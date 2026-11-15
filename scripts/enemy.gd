@@ -15,6 +15,9 @@ var knock_resist := 1.0
 var stun_t := 0.0
 var elite := false      # version élite : plus de vie, plus rapide, attaque spéciale, lueur rouge
 var is_boss := false
+var hp_max := 0          # vie de départ (pour la barre de vie)
+var show_bar := true
+const HpBarScript = preload("res://scripts/hp_bar.gd")
 
 # Multiplicateurs liés à la difficulté (et au statut élite)
 func spd() -> float:
@@ -37,6 +40,11 @@ func setup_body() -> void:
 	if elite:
 		geo_value *= 2
 		add_child(main.make_light(Color(1.0, 0.3, 0.25), 0.9, 1.0))
+	hp_max = hp
+	if show_bar and not is_boss:
+		var bar := Node2D.new()
+		bar.set_script(HpBarScript)
+		add_child(bar)
 
 func get_rect() -> Rect2:
 	return Rect2(global_position - size / 2.0, size)
@@ -54,6 +62,7 @@ func take_hit(dmg: int, dir: Vector2) -> void:
 	if dead:
 		return
 	hp -= dmg
+	main.on_damage_dealt(self, dmg)
 	flash_t = 0.12
 	knock = dir * 340.0 * knock_resist
 	main.spawn_burst(global_position, Color(1.0, 0.95, 0.85), 8, 180.0)

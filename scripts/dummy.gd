@@ -6,6 +6,7 @@ var wobble := 0.0
 func _ready() -> void:
 	size = Vector2(28, 44)
 	hp = 9999
+	show_bar = false
 	geo_value = 0
 	setup_body()
 
@@ -17,6 +18,7 @@ func parried(_d: Vector2) -> void:
 
 func take_hit(dmg: int, dir: Vector2) -> void:
 	flash_t = 0.12
+	main.on_damage_dealt(self, dmg)
 	wobble = 1.0 * (signf(dir.x) if dir.x != 0.0 else 1.0)
 	main.spawn_burst(global_position, Color(0.85, 0.75, 0.55), 6 + dmg, 140.0)
 	hp = 9999

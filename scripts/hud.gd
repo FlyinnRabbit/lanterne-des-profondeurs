@@ -8,10 +8,28 @@ var main
 var message := ""
 var message_t := 0.0
 var shown_soul := 0.0
+var damage_log := []     # [dégâts, nom, type de coup, coup fatal, âge]
+const LOG_TIME := 1.6
 var t := 0.0
+
+func add_damage(dmg: int, who: String, kind: String, killed: bool) -> void:
+	if not Settings.damage_numbers:
+		return
+	# regroupe les coups rapides sur la même cible
+	if not damage_log.is_empty() and damage_log[0][1] == who and damage_log[0][4] < 0.25 and not damage_log[0][3]:
+		damage_log[0][0] += dmg
+		damage_log[0][3] = killed
+		damage_log[0][4] = 0.0
+		return
+	damage_log.push_front([dmg, who, kind, killed, 0.0])
+	if damage_log.size() > 6:
+		damage_log.pop_back()
 
 func _process(delta: float) -> void:
 	t += delta
+	for d in damage_log:
+		d[4] += delta
+	damage_log = damage_log.filter(func(d): return d[4] < LOG_TIME)
 	message_t -= delta
 	if main and main.player:
 		shown_soul = lerpf(shown_soul, float(main.player.soul), minf(delta * 10.0, 1.0))
@@ -102,6 +120,27 @@ func _draw() -> void:
 		draw_rect(Rect2(bpos, Vector2(bw, bh)), Color(0.6, 0.75, 0.95, 0.8), false, 2.0)
 		for i in sl.size():
 			G.draw_rich(self, font, bpos.x, bw, bpos.y + 38 + i * 30, sl[i], 21, Color(0.95, 0.96, 1.0))
+	# Dégâts infligés : coin en haut à droite, disparaissent vite
+	var ly := 64.0 if Settings.show_fps else 40.0
+	for d in damage_log:
+		var a: float = clampf((LOG_TIME - d[4]) / 0.5, 0.0, 1.0)
+		var slide: float = clampf(d[4] / 0.12, 0.0, 1.0)
+		var col := Color(1.0, 1.0, 1.0)
+		match d[2]:
+			"finisher": col = Color(1.0, 0.85, 0.45)
+			"spin": col = Color(1.0, 0.65, 0.35)
+			"thrust": col = Color(0.75, 0.95, 1.0)
+			"autre": col = Color(0.7, 0.85, 1.0)
+		var big := "-%d" % d[0]
+		var fs := 26 if d[0] >= 3 else 22
+		var x := sz.x - 24.0 + (1.0 - slide) * 30.0
+		var bw := font.get_string_size(big, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		draw_string(font, Vector2(x - bw + 2, ly + 2), big, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0, 0, 0, 0.6 * a))
+		draw_string(font, Vector2(x - bw, ly), big, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(col, a))
+		var who: String = d[1] + (" — vaincu" if d[3] else "")
+		var ww := font.get_string_size(who, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+		draw_string(font, Vector2(x - bw - ww - 8, ly - 2), who, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.8, 0.82, 0.9, 0.8 * a))
+		ly += 30.0
 	# Compteur d'images par seconde (Options)
 	if Settings.show_fps:
 		draw_string(font, Vector2(sz.x - 110, 28), "%d FPS" % Engine.get_frames_per_second(), HORIZONTAL_ALIGNMENT_RIGHT, 100, 16, Color(0.7, 1.0, 0.7, 0.9))

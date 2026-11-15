@@ -616,6 +616,23 @@ func ultimate_blast(pos: Vector2) -> void:
 		if is_instance_valid(pr) and pr.hostile and pr.global_position.distance_to(pos) <= ULT_RADIUS:
 			pr.pop()
 
+# Journal des dégâts infligés (coin de l'écran)
+const ENEMY_NAMES := {"crawler.gd": "Rampant", "flyer.gd": "Volant", "spitter.gd": "Cracheur", "hopper.gd": "Sauteur",
+	"guard.gd": "Garde", "bomber.gd": "Bulbe", "weaver.gd": "Tisseuse", "lancer.gd": "Lancier", "wraith.gd": "Spectre",
+	"dummy.gd": "Mannequin"}
+func on_damage_dealt(e, dmg: int) -> void:
+	if dmg <= 0 or hud == null:
+		return
+	var n := ""
+	if "boss_name" in e:
+		n = e.boss_name
+	else:
+		n = ENEMY_NAMES.get(e.get_script().resource_path.get_file(), "Ennemi")
+	if e.elite:
+		n += " (élite)"
+	var kind: String = player.attack_kind if player.attack_t > 0.0 or player.thrust_t > 0.0 else "autre"
+	hud.add_damage(dmg, n, kind, e.hp <= 0)
+
 # Coquille Épineuse : riposte quand le joueur est touché
 func thorns_burst(pos: Vector2) -> void:
 	spawn_burst(pos, Color(0.6, 0.85, 0.5), 24, 300.0, 0.0)

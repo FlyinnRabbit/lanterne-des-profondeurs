@@ -20,6 +20,8 @@ var sfx_volume := 0.8
 var fps_cap := 1           # index dans FPS_CHOICES
 var show_fps := false
 var pad_style := 0         # 0 automatique, 1 Xbox, 2 PlayStation
+var enemy_bars := true     # barres de vie au-dessus des ennemis
+var damage_numbers := true # dégâts infligés dans le coin de l'écran
 
 const FPS_CHOICES := [30, 60, 120, 144, 165, 240, 0]   # 0 = illimité
 const FPS_LABELS := ["30", "60", "120", "144", "165", "240", "Illimité"]
@@ -72,12 +74,14 @@ func reset_defaults() -> void:
 	fps_cap = 1
 	show_fps = false
 	pad_style = 0
+	enemy_bars = true
+	damage_numbers = true
 	apply_display()
 	save_settings()
 	changed.emit()
 
 const KEYS := ["hud_scale", "menu_scale", "shake", "zoom", "fullscreen", "vsync", "hitstop", "show_hints",
-	"master_volume", "music_volume", "sfx_volume", "fps_cap", "show_fps", "pad_style"]
+	"master_volume", "music_volume", "sfx_volume", "fps_cap", "show_fps", "pad_style", "enemy_bars", "damage_numbers"]
 
 func save_settings() -> void:
 	var cfg := ConfigFile.new()

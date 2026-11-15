@@ -145,6 +145,8 @@ la musique baisse un peu quand le jeu est en pause.
 ## Options (menu pause → Options)
 - **Taille du HUD** (60 – 160 %) et **taille des menus** (60 – 130 %, s'applique aussi à l'inventaire).
 - **Zoom de la caméra**, **plein écran** (aussi avec F11), **synchronisation verticale**.
+- **Barres de vie des ennemis** (trait au-dessus de chaque ennemi blessé, encadré rouge pour les élites)
+  et **dégâts infligés** affichés brièvement en haut à droite (couleur selon le coup).
 - **Aides à l'écran** (rappels de touches en bas de l'écran).
 - **Secousses de l'écran** (0 – 150 %), **arrêt sur image** aux impacts, **vibrations** de la manette.
 Tout est sauvegardé dans `user://settings.cfg`. Le menu Commandes est désormais une liste
