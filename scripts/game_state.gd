@@ -1,15 +1,19 @@
 extends Node
-# Autoload « GameState » : partie en cours façon roguelite.
-# Une partie = tutoriel (niveau 0) puis RUN_LENGTH niveaux générés, chacun dans un biome tiré
-# au hasard parmi 9. Boss « Gardien » à la fin du niveau 3, boss final à la fin du dernier.
+# Autoload « GameState » : progression du joueur.
+#  mode "tutorial" : le tutoriel (fait à la main)
+#  mode "hub"      : le Sanctuaire (banc, marchand, ascenseur)
+#  mode "descent"  : un palier = 2 niveaux générés, le 2e se termine par un boss.
+#                    Palier terminé → retour au hub, palier suivant débloqué (paliers sans fin).
+# Mort pendant une descente → retour au hub, le butin de la descente est perdu.
+# La progression est sauvegardée dans user://save.cfg.
 
 const Levels = preload("res://scripts/levels.gd")
 const Charms = preload("res://scripts/charms.gd")
 const Biomes = preload("res://scripts/biomes.gd")
 const LevelGen = preload("res://scripts/levelgen.gd")
-
-const RUN_LENGTH := 5
-const MID_BOSS_AT := 3
+const SAVE_PATH := "user://save.cfg"
+const STEPS_PER_PALIER := 2
+const MAX_BONUS_HP := 4
 
 signal equipment_changed
 
@@ -35,6 +39,17 @@ const DIFFS := [
 var difficulty := 1
 var show_title := true       # écran titre au lancement du jeu
 
+var mode := "tutorial"
+var palier := 1              # palier en cours (descente)
+var step := 1                # niveau dans le palier (1..STEPS_PER_PALIER)
+var unlocked := 1            # plus haut palier accessible par l'ascenseur
+var record := 0              # plus haut palier terminé
+var run_seed := 0
+var prog := {}               # progression : éclats, emblèmes, encoches, vie bonus…
+var snapshot := {}           # état au départ de la descente (restauré à la mort)
+var pending_message := ""    # message à afficher à l'arrivée dans la scène suivante
+var _cache := {}
+
 # Valeur d'un paramètre de la difficulté en cours
 func d(key: String):
 	return DIFFS[difficulty][key]
@@ -42,98 +57,156 @@ func d(key: String):
 func diff_name() -> String:
 	return DIFFS[difficulty]["name"]
 
-var level_index := 0
-var run_seed := 0
-var run_biomes: Array = []   # indices dans Biomes.all()
-var prog := {}               # progression en direct
-var snapshot := {}           # copie au début du niveau (pour « Recommencer le niveau »)
-var _cache := {}             # niveaux déjà générés (même graine = même niveau)
+# Paramètre de difficulté ajusté à la profondeur : chaque palier rend les ennemis plus coriaces
+func scaled(key: String) -> float:
+	var base := float(d(key))
+	var p := float(palier - 1) if mode == "descent" else 0.0
+	match key:
+		"hp", "boss_hp":
+			return base * (1.0 + 0.18 * p)
+		"speed":
+			return base * minf(1.0 + 0.05 * p, 1.5)
+		"aggro":
+			return base * minf(1.0 + 0.08 * p, 1.8)
+		"count":
+			return base * minf(1.0 + 0.1 * p, 2.0)
+		"elite":
+			return minf(base + 0.06 * p, 0.85)
+	return base
 
 func _ready() -> void:
-	_new_run()
-
-func _fresh() -> Dictionary:
-	return {"geo": 0, "can_dash": false, "owned": [], "equipped": [], "notches": 3, "collected": []}
-
-func _new_run() -> void:
-	randomize()
-	run_seed = randi() % 1000000
-	var rng := RandomNumberGenerator.new()
-	rng.seed = run_seed
-	var pool := range(Biomes.all().size())
-	run_biomes = []
-	for i in RUN_LENGTH:
-		var j := rng.randi_range(0, pool.size() - 1)
-		run_biomes.append(pool[j])
-		pool.remove_at(j)
-	_cache.clear()
 	prog = _fresh()
 	snapshot = prog.duplicate(true)
+	randomize()
+	run_seed = randi() % 1000000
+
+func _fresh() -> Dictionary:
+	return {"geo": 0, "can_dash": false, "owned": [], "equipped": [], "notches": 3, "collected": [],
+		"bonus_hp": 0, "notches_bought": 0}
 
 # ---------------------------------------------------------------- niveaux
-func level_count() -> int:
-	return 1 + RUN_LENGTH
-
 func is_tutorial() -> bool:
-	return level_index == 0
+	return mode == "tutorial"
 
-func is_last_level() -> bool:
-	return level_index >= RUN_LENGTH
+func is_hub() -> bool:
+	return mode == "hub"
+
+func is_boss_level() -> bool:
+	return mode == "descent" and step == STEPS_PER_PALIER
+
+func depth() -> int:
+	return (palier - 1) * STEPS_PER_PALIER + step
 
 func current_level() -> Dictionary:
-	if level_index == 0:
+	if mode == "tutorial":
 		var t: Dictionary = Levels.LEVELS[0].duplicate()
 		t["music"] = ["res://music/tuto_premiers_pas.ogg"]
 		return t
-	if not _cache.has(level_index):
-		var biome: Dictionary = Biomes.all()[run_biomes[level_index - 1]]
+	if mode == "hub":
+		var h: Dictionary = Levels.HUB.duplicate()
+		h["music"] = ["res://music/sanctuaire.ogg"]
+		return h
+	var key := "%d-%d-%d" % [run_seed, palier, step]
+	if not _cache.has(key):
+		var all := Biomes.all()
+		var rng := RandomNumberGenerator.new()
+		rng.seed = run_seed * 7 + palier * 1013
+		var b1 := rng.randi_range(0, all.size() - 1)
+		var b2 := (b1 + rng.randi_range(1, all.size() - 1)) % all.size()
+		var biome: Dictionary = all[b1 if step == 1 else b2]
 		var boss := ""
-		if level_index == MID_BOSS_AT:
-			boss = "K"
-		elif level_index == RUN_LENGTH:
-			boss = "Q"
+		if is_boss_level():
+			boss = "K" if palier % 2 == 1 else "Q"
 		var gen := LevelGen.new()
-		var seed_value := run_seed * 31 + level_index * 7919
-		_cache[level_index] = {
+		var seed_value := run_seed * 31 + palier * 7919 + step * 104729
+		var diff: Dictionary = DIFFS[difficulty].duplicate()
+		diff["count"] = scaled("count")
+		_cache[key] = {
 			"name": biome["name"],
-			"map": gen.generate(biome, seed_value, level_index, boss, level_index == RUN_LENGTH, DIFFS[difficulty]),
+			"map": gen.generate(biome, seed_value, mini(depth(), 10), boss, false, diff),
 			"music": biome["music"],
 			"boss_music": "res://music/boss_abbesse_engloutie.ogg" if boss == "Q" else "res://music/boss_gardien_du_puits.ogg",
 			"palette": biome["pal"],
 			"seed": seed_value,
 		}
-	return _cache[level_index]
+	return _cache[key]
 
-func biome_names() -> Array:
-	var out := []
-	for b in run_biomes:
-		out.append(Biomes.all()[b]["name"])
-	return out
-
+# Fin du niveau en cours (passage lumineux atteint)
 func go_next_level(player) -> void:
-	if is_tutorial():
-		prog["can_dash"] = true          # la Ruée apprise au tutoriel est conservée
-	else:
+	if mode == "tutorial":
+		prog["can_dash"] = true
+		mode = "hub"
+		pending_message = "Le Sanctuaire de la Lanterne\nParle au marchand, puis prends l'ascenseur pour descendre."
+	elif mode == "descent":
 		prog["geo"] = player.geo
-		prog["can_dash"] = player.can_dash
-	level_index = mini(level_index + 1, RUN_LENGTH)
-	snapshot = prog.duplicate(true)
+		if step < STEPS_PER_PALIER:
+			step += 1
+		else:
+			record = maxi(record, palier)
+			unlocked = maxi(unlocked, palier + 1)
+			mode = "hub"
+			pending_message = "Palier %d terminé !\nL'ascenseur peut maintenant descendre jusqu'au palier %d." % [palier, unlocked]
+	save_game()
 	_reload(true)
 
-func restart_level() -> void:
+# Départ en descente depuis l'ascenseur du hub
+func start_descent(p: int, player) -> void:
+	if player:
+		prog["geo"] = player.geo
+	palier = clampi(p, 1, unlocked)
+	step = 1
+	mode = "descent"
+	snapshot = prog.duplicate(true)
+	save_game()
+	_reload(true)
+
+# Mort pendant une descente : retour au hub, le butin ramassé depuis le départ est perdu
+func die_in_descent() -> void:
+	var where := "Vous avez sombré au palier %d (niveau %d/%d)." % [palier, step, STEPS_PER_PALIER]
 	prog = snapshot.duplicate(true)
+	mode = "hub"
+	pending_message = where + "\nLe butin de cette descente est perdu, mais l'ascenseur se souvient."
+	save_game()
+	_reload(true)
+
+func abandon_descent() -> void:
+	prog = snapshot.duplicate(true)
+	mode = "hub"
+	pending_message = "Descente abandonnée. Le butin de cette descente est perdu."
+	save_game()
+	_reload(false)
+
+func restart_level() -> void:
 	_reload(false)
 
 func new_game(skip_tutorial := false, diff := -1) -> void:
 	if diff >= 0:
 		difficulty = diff
 	show_title = false
-	_new_run()
-	level_index = 1 if skip_tutorial else 0
+	randomize()
+	run_seed = randi() % 1000000
+	_cache.clear()
+	prog = _fresh()
+	unlocked = 1
+	record = 0
+	palier = 1
+	step = 1
 	if skip_tutorial:
 		prog["can_dash"] = true
-		snapshot = prog.duplicate(true)
+		mode = "hub"
+		pending_message = "Le Sanctuaire de la Lanterne\nParle au marchand, puis prends l'ascenseur pour descendre."
+	else:
+		mode = "tutorial"
+	snapshot = prog.duplicate(true)
+	save_game()
 	_reload(false)
+
+func continue_game() -> void:
+	if load_game():
+		show_title = false
+		mode = "hub"
+		pending_message = "Bon retour au Sanctuaire."
+		_reload(false)
 
 func _reload(deferred: bool) -> void:
 	Engine.time_scale = 1.0
@@ -142,6 +215,94 @@ func _reload(deferred: bool) -> void:
 		get_tree().call_deferred("reload_current_scene")
 	else:
 		get_tree().reload_current_scene()
+
+# ---------------------------------------------------------------- sauvegarde
+func save_game() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("game", "version", 1)
+	cfg.set_value("game", "difficulty", difficulty)
+	cfg.set_value("game", "unlocked", unlocked)
+	cfg.set_value("game", "record", record)
+	cfg.set_value("game", "run_seed", run_seed)
+	cfg.set_value("game", "tutorial_done", mode != "tutorial")
+	# en descente on sauvegarde l'état du départ : quitter en pleine descente = abandon
+	cfg.set_value("game", "prog", snapshot if mode == "descent" else prog)
+	cfg.save(SAVE_PATH)
+
+func has_save() -> bool:
+	var cfg := ConfigFile.new()
+	return cfg.load(SAVE_PATH) == OK and bool(cfg.get_value("game", "tutorial_done", false))
+
+func save_summary() -> String:
+	var cfg := ConfigFile.new()
+	if cfg.load(SAVE_PATH) != OK:
+		return ""
+	var dd: int = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
+	var p: Dictionary = cfg.get_value("game", "prog", {})
+	return "%s — palier %d accessible — record : palier %d — %d éclats" % [
+		DIFFS[dd]["name"], int(cfg.get_value("game", "unlocked", 1)), int(cfg.get_value("game", "record", 0)), int(p.get("geo", 0))]
+
+func load_game() -> bool:
+	var cfg := ConfigFile.new()
+	if cfg.load(SAVE_PATH) != OK:
+		return false
+	difficulty = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
+	unlocked = int(cfg.get_value("game", "unlocked", 1))
+	record = int(cfg.get_value("game", "record", 0))
+	run_seed = int(cfg.get_value("game", "run_seed", run_seed))
+	var p = cfg.get_value("game", "prog", {})
+	prog = _fresh()
+	if p is Dictionary:
+		for k in p:
+			prog[k] = p[k]
+	snapshot = prog.duplicate(true)
+	_cache.clear()
+	return true
+
+# ---------------------------------------------------------------- marchand
+func max_hp_bonus() -> int:
+	return int(prog.get("bonus_hp", 0))
+
+func charm_price(id: int) -> int:
+	return 60 * int(Charms.CHARMS[id]["cost"])
+
+func notch_price() -> int:
+	return 120 + 80 * int(prog.get("notches_bought", 0))
+
+func hp_price() -> int:
+	return 150 + 100 * max_hp_bonus()
+
+# Achat : renvoie "" si c'est fait, sinon la raison du refus
+func buy(kind: String, id: int, player) -> String:
+	var price := 0
+	match kind:
+		"charm":
+			if owns(id):
+				return "Déjà possédé."
+			price = charm_price(id)
+		"notch":
+			price = notch_price()
+		"hp":
+			if max_hp_bonus() >= MAX_BONUS_HP:
+				return "Le marchand n'en a plus."
+			price = hp_price()
+	if player.geo < price:
+		return "Pas assez d'éclats (%d nécessaires)." % price
+	player.geo -= price
+	prog["geo"] = player.geo
+	match kind:
+		"charm":
+			add_charm(id)
+		"notch":
+			prog["notches"] = int(prog["notches"]) + 1
+			prog["notches_bought"] = int(prog.get("notches_bought", 0)) + 1
+		"hp":
+			prog["bonus_hp"] = max_hp_bonus() + 1
+			player.apply_equipment()
+			player.hp = player.max_hp
+	snapshot = prog.duplicate(true)
+	save_game()
+	return ""
 
 # ---------------------------------------------------------------- emblèmes
 func charm_count() -> int:

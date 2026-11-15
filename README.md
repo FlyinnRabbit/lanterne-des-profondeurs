@@ -69,12 +69,23 @@ Les boss sont aussi plus rapides et plus résistants selon la difficulté.
   le sauteur enchaîne deux bonds, le garde charge au bouclier.
 Les nouveaux ennemis et les élites deviennent plus fréquents en profondeur.
 
-## Parties aléatoires (façon Dead Cells)
-Chaque partie : **tutoriel**, puis **5 niveaux générés** dans 5 biomes tirés au hasard parmi 9,
-dans un ordre aléatoire. Les niveaux sont reconstruits à chaque partie en assemblant des
-« salles » (sol plat, plateformes, fosses à pics, piliers, collines, murs à escalader, puits,
-couloirs bas, ponts, arènes, grands gouffres à franchir en Ruée…). Chaque biome a ses
-couleurs, sa musique, ses types de salles favoris et ses ennemis :
+## Le Sanctuaire et les paliers sans fin
+Après le tutoriel, on arrive au **Sanctuaire de la Lanterne**, la base du jeu :
+- **Banc** : repos, vie restaurée, changement d'emblèmes.
+- **Marchand** : échange les éclats contre des **fragments de vie** (+1 vie max, jusqu'à 4),
+  des **encoches** d'emblème et les **emblèmes** pas encore trouvés.
+- **Ascenseur** : choisit le **palier** où descendre.
+
+Un **palier = 2 niveaux générés** (biomes tirés au hasard parmi 9) **puis un boss**
+(Gardien du Puits aux paliers impairs, Abbesse Engloutie aux pairs). Le terminer ramène
+au Sanctuaire et **débloque le palier suivant** — sans fin. Plus on descend, plus les ennemis
+ont de vie, de vitesse, d'agressivité et d'élites (≈ ×1,9 de vie au palier 6, ×2,6 au palier 10).
+
+**Mort** pendant une descente : retour au Sanctuaire, le butin ramassé depuis le départ
+(éclats, emblèmes, encoches) est perdu, mais les paliers débloqués et les achats restent.
+**Sauvegarde automatique** (`user://save.cfg`) : l'écran titre propose **Continuer**.
+
+Les 9 biomes :
 
 | Biome | Particularité |
 |---|---|
@@ -87,16 +98,6 @@ couleurs, sa musique, ses types de salles favoris et ses ennemis :
 | Les Abysses Gelés | neige, ponts fragiles et gouffres, cracheurs |
 | La Ruche Bourdonnante | couloirs étroits envahis de volants |
 | L'Ossuaire | collines et arènes, rampants et cracheurs |
-
-- Un banc au départ et un à mi-parcours de chaque niveau.
-- **Gardien du Puits** à la fin du niveau 3, **Abbesse Engloutie** à la fin du niveau 5, puis le sanctuaire.
-- Les emblèmes (losanges) et encoches sont placés au hasard dans les niveaux.
-- La difficulté monte avec la profondeur (niveaux plus longs, plus d'ennemis).
-- Le menu pause affiche le numéro de la partie et le parcours. « Recommencer le niveau »
-  redonne exactement le même niveau ; « Nouvelle partie » tire un nouveau parcours
-  (avec ou sans tutoriel).
-- Le tutoriel reste fait à la main (`scripts/levels.gd`) ; le générateur est dans
-  `scripts/levelgen.gd` et les biomes dans `scripts/biomes.gd` (facile d'en ajouter).
 
 ## Musique et sons
 Bande-son **originale** générée pour le jeu (aucun droit d'auteur, elle est à toi) :

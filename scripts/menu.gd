@@ -81,8 +81,19 @@ func _build_title(root: Control) -> void:
 	sub.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
 	v.add_child(sub)
 	v.add_child(Control.new())
-	first_title_button = _button("Jouer", func(): _open_difficulty())
-	v.add_child(first_title_button)
+	if GameState.has_save():
+		first_title_button = _button("Continuer", func(): GameState.continue_game())
+		v.add_child(first_title_button)
+		var sv := Label.new()
+		sv.text = GameState.save_summary()
+		sv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		sv.add_theme_font_size_override("font_size", 14)
+		sv.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
+		v.add_child(sv)
+		v.add_child(_button("Nouvelle partie", func(): _open_difficulty()))
+	else:
+		first_title_button = _button("Jouer", func(): _open_difficulty())
+		v.add_child(first_title_button)
 	v.add_child(_button("Commandes", _open_controls))
 	v.add_child(_button("Options", _open_options))
 	v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
@@ -99,6 +110,13 @@ func _build_difficulty(root: Control) -> void:
 	diff_header.visible = false
 	v.add_child(diff_header)
 	v.add_child(_title("Choisis la difficulté"))
+	if GameState.has_save():
+		var warn := Label.new()
+		warn.text = "Une nouvelle partie remplace ta sauvegarde actuelle."
+		warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		warn.add_theme_font_size_override("font_size", 14)
+		warn.add_theme_color_override("font_color", Color(1.0, 0.65, 0.5))
+		v.add_child(warn)
 	for i in GameState.DIFFS.size():
 		var dd: Dictionary = GameState.DIFFS[i]
 		var b := _button(dd["name"], _start_game.bind(i))
@@ -231,18 +249,16 @@ func _build_pause(root: Control) -> void:
 	info.add_theme_font_size_override("font_size", 15)
 	info.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
 	if GameState.is_tutorial():
-		info.text = "Tutoriel — partie n° %d" % GameState.run_seed
+		info.text = "Tutoriel"
+	elif GameState.is_hub():
+		info.text = "Sanctuaire — %s — record : palier %d" % [GameState.diff_name(), GameState.record]
 	else:
-		info.text = "Partie n° %d — niveau %d / %d — %s" % [GameState.run_seed, GameState.level_index, GameState.RUN_LENGTH, GameState.diff_name()]
+		info.text = "Palier %d — niveau %d / %d — %s" % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER, GameState.diff_name()]
 	var route := Label.new()
 	route.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	route.add_theme_font_size_override("font_size", 13)
 	route.add_theme_color_override("font_color", Color(0.5, 0.56, 0.68))
-	var names := []
-	for i in GameState.run_biomes.size():
-		var n: String = GameState.biome_names()[i]
-		names.append(("[%s]" % n) if i + 1 == GameState.level_index else (n if i + 1 < GameState.level_index else "?"))
-	route.text = " → ".join(PackedStringArray(names))
+	route.text = "Progression sauvegardée automatiquement" if not GameState.is_tutorial() else ""
 	v.add_child(info)
 	v.add_child(route)
 	first_pause_button = _button("Reprendre", close)
@@ -253,6 +269,8 @@ func _build_pause(root: Control) -> void:
 		v.add_child(_button("Passer le tutoriel", func(): GameState.go_next_level(main.player)))
 	if GameState.is_tutorial():
 		v.add_child(_button("Recommencer le tutoriel", _restart))
+	if GameState.mode == "descent":
+		v.add_child(_button("Abandonner la descente", func(): GameState.abandon_descent()))
 	v.add_child(_button("Nouvelle partie…", _open_difficulty))
 	v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
 

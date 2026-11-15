@@ -10,6 +10,7 @@ extends Node2D
 #   O  passage vers le niveau suivant    E  sanctuaire (fin du jeu)
 #   1-8 emblème (voir charms.gd)         N  encoche d'emblème supplémentaire
 #   T  panneau du tutoriel               m  mannequin d'entraînement
+#   M  marchand (hub)                    L  ascenseur (hub)
 #   *  emblème au hasard (niveaux générés)    h  sauteur    g  garde à bouclier
 #   Y  grille d'entrée de l'arène        X  grille de sortie
 # Les cartes sont dans scripts/levels.gd.
@@ -34,6 +35,7 @@ const DummyScript = preload("res://scripts/dummy.gd")
 const HopperScript = preload("res://scripts/hopper.gd")
 const GuardScript = preload("res://scripts/guard.gd")
 const Biomes = preload("res://scripts/biomes.gd")
+const HubUIScript = preload("res://scripts/hub_ui.gd")
 
 var MAP: Array = []
 
@@ -67,6 +69,9 @@ var sign_text := ""
 var benches := []   # positions des bancs
 var pal: Dictionary = {}
 var level: Dictionary = {}
+var interactables := []   # [prop, "merchant"/"elevator"]
+var interact_hint := ""
+var hub_ui
 var pickups := []   # [prop, "charm"/"notch", id ou clé]
 
 func _ready() -> void:
@@ -97,11 +102,19 @@ func _ready() -> void:
 	inventory.main = self
 	add_child(inventory)
 	GameState.equipment_changed.connect(player.apply_equipment)
+	hub_ui = CanvasLayer.new()
+	hub_ui.set_script(HubUIScript)
+	hub_ui.main = self
+	add_child(hub_ui)
 	if GameState.is_tutorial():
 		player.can_dash = true
 		show_message(level["name"], 3.0)
+	elif GameState.is_hub():
+		show_message(GameState.pending_message if GameState.pending_message != "" else level["name"], 4.5)
 	else:
-		show_message("Niveau %d / %d — %s\nDifficulté : %s" % [GameState.level_index, GameState.RUN_LENGTH, level["name"], GameState.diff_name()], 3.5)
+		show_message("Palier %d — niveau %d / %d%s\n%s — %s" % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER,
+			"  (boss)" if GameState.is_boss_level() else "", level["name"], GameState.diff_name()], 3.5)
+	GameState.pending_message = ""
 	Audio.play_playlist(level.get("music", []))
 	if GameState.show_title:
 		menu.open_title()
@@ -221,7 +234,7 @@ func _spawn_everything() -> void:
 						rp.color = GameState.charm(cid)["color"]
 						pickups.append([rp, "charm", cid])
 				"N":
-					var key := "%d:%d,%d" % [GameState.level_index, x, y]
+					var key := "%d-%d-%d:%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, x, y]
 					if not GameState.is_collected(key):
 						var np = _make_prop("notch", Vector2(x * TILE + TILE / 2.0, y * TILE + TILE / 2.0), Color(1.0, 0.9, 0.6), 1.6)
 						pickups.append([np, "notch", key])
@@ -232,6 +245,12 @@ func _spawn_everything() -> void:
 					signs.append([sp, data, false])
 				"m":
 					enemy_spawns.append([DummyScript, _cell_feet(x, y, 44), null, false])
+				"M":
+					var mp = _make_prop("merchant", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.5), 2.5)
+					interactables.append([mp, "merchant"])
+				"L":
+					var lp = _make_prop("elevator", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(0.6, 0.85, 1.0), 3.0)
+					interactables.append([lp, "elevator"])
 				"O":
 					exit_door = _make_prop("door", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(0.6, 0.85, 1.0), 3.5)
 				"E":
@@ -267,7 +286,7 @@ func _roll_elite(x: int, y: int) -> bool:
 		return false
 	var r := RandomNumberGenerator.new()
 	r.seed = int(level.get("seed", 0)) + x * 977 + y * 31
-	return r.randf() < float(GameState.d("elite")) * (0.6 + GameState.level_index * 0.15)
+	return r.randf() < GameState.scaled("elite") * (0.6 + 0.15 * mini(GameState.depth(), 6))
 
 # Emblème tiré au hasard parmi ceux pas encore possédés (reproductible pour un même niveau)
 func _random_charm(x: int) -> int:
@@ -359,6 +378,16 @@ func _process(delta: float) -> void:
 	flash = move_toward(flash, 0.0, delta * 3.0)
 
 	var pp: Vector2 = player.global_position
+	# Marchand et ascenseur (hub)
+	interact_hint = ""
+	for it in interactables:
+		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
+			interact_hint = "%s : %s" % [Controls.label("up"), "parler au marchand" if it[1] == "merchant" else "appeler l'ascenseur"]
+			if Input.is_action_just_pressed("up") and player.is_on_floor() and not get_tree().paused:
+				if it[1] == "merchant":
+					hub_ui.open_shop()
+				else:
+					hub_ui.open_elevator()
 	# Banc le plus proche
 	for bp in benches:
 		if pp.distance_to(bp) < pp.distance_to(bench_pos):
@@ -493,13 +522,10 @@ func on_player_died() -> void:
 	show_message("Vous avez sombré...", 2.0)
 	spawn_burst(player.global_position, Color(0.15, 0.1, 0.2), 40, 260.0)
 	await get_tree().create_timer(1.6).timeout
-	# Mort définitive (sauf dans le tutoriel) : la partie est terminée
+	# En descente : retour au hub, le butin de la descente est perdu
 	if not GameState.is_tutorial():
 		Audio.stop_music()
-		var summary := "Vous avez sombré dans %s (niveau %d / %d, %s).\nÉclats : %d — Emblèmes : %d — Partie n° %d" % [
-			level["name"], GameState.level_index, GameState.RUN_LENGTH, GameState.diff_name(),
-			player.geo, GameState.prog["owned"].size(), GameState.run_seed]
-		menu.open_game_over(summary)
+		GameState.die_in_descent()
 		return
 	if boss_started and not boss_dead:
 		boss_started = false
@@ -512,7 +538,7 @@ func on_player_died() -> void:
 
 func on_boss_killed() -> void:
 	boss_dead = true
-	player.geo += 50
+	player.geo += 60 + 20 * GameState.palier
 	spawn_burst(boss.global_position, Color(1.0, 0.7, 0.4), 70, 380.0)
 	shake(18)
 	hit_stop(0.25)

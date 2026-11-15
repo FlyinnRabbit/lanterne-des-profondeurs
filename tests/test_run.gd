@@ -1,5 +1,5 @@
 extends SceneTree
-var DIFFS_TO_TEST := [1]
+var DIFFS_TO_TEST := [1, 3]
 var FRAMES := 400
 # Test automatique : charge chaque niveau dans plusieurs difficultés et simule des entrées.
 # Lancer : godot --headless -s res://tests/test_run.gd
@@ -16,17 +16,19 @@ func _press(a: String, on: bool) -> void:
 func _run() -> void:
 	await process_frame
 	var gs = root.get_node("GameState")
+	var stages := [["tutorial", 1, 1], ["hub", 1, 1], ["descent", 1, 1], ["descent", 1, 2], ["descent", 2, 2], ["descent", 4, 1], ["descent", 6, 2]]
 	for diff in DIFFS_TO_TEST:
-		gs._new_run()
-		for lvl in range(0, 6):
+		for st in stages:
 			gs.difficulty = diff
-			gs.show_title = (lvl == 0 and diff == 0)
-			gs.level_index = lvl
+			gs.show_title = false
+			gs.mode = st[0]
+			gs.palier = st[1]
+			gs.step = st[2]
 			change_scene_to_file("res://main.tscn")
 			await process_frame
 			await process_frame
 			var main = current_scene
-			print("== diff %d niveau %d : %s (%d x %d)" % [diff, lvl, main.level["name"], main.map_size.x, main.map_size.y])
+			print("== diff %d %s palier %d niveau %d : %s (%d x %d)" % [diff, st[0], st[1], st[2], main.level["name"], main.map_size.x, main.map_size.y])
 			if gs.show_title:
 				main.menu._open_difficulty()
 				main.menu._open_options()

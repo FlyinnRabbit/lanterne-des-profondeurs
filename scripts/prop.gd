@@ -69,6 +69,50 @@ func _draw() -> void:
 			draw_colored_polygon(DU.diamond(Vector2(0, -45), Vector2(6, 8)), Color(0.6, 0.85, 1.0, g))
 			if not lit:
 				draw_string(ThemeDB.fallback_font, Vector2(-4, -64 + sin(t * 4.0) * 3.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1.0, 0.9, 0.6))
+		"merchant":
+			# Marchand : grand papillon de nuit voyageur, cape ronde et sac de babioles
+			var bob := sin(t * 1.6) * 1.5
+			var cloak := Color(0.32, 0.24, 0.3)
+			draw_colored_polygon(DU.ellipse(Vector2(14, -24 + bob), Vector2(14, 16)), Color(0.45, 0.33, 0.22))   # sac
+			for i in 3:
+				draw_circle(Vector2(8 + i * 6, -34 + bob + (i % 2) * 4), 2.5, [Color(1, 0.8, 0.4), Color(0.6, 0.9, 1), Color(0.9, 0.6, 1)][i])
+			draw_colored_polygon(PackedVector2Array([Vector2(-16, 0), Vector2(16, 0), Vector2(10, -36 + bob), Vector2(-10, -36 + bob)]), cloak)
+			draw_colored_polygon(DU.ellipse(Vector2(0, -42 + bob), Vector2(13, 11)), Color(0.85, 0.82, 0.72))      # tête duveteuse
+			draw_line(Vector2(-5, -51 + bob), Vector2(-14, -64 + bob + sin(t * 2.0) * 2.0), Color(0.85, 0.82, 0.72), 2.0)
+			draw_line(Vector2(5, -51 + bob), Vector2(14, -64 + bob - sin(t * 2.0) * 2.0), Color(0.85, 0.82, 0.72), 2.0)
+			draw_circle(Vector2(-5, -42 + bob), 3.0, Color(0.1, 0.05, 0.1))
+			draw_circle(Vector2(5, -42 + bob), 3.0, Color(0.1, 0.05, 0.1))
+			draw_circle(Vector2(-4, -43 + bob), 1.0, Color(1, 1, 1))
+			draw_circle(Vector2(6, -43 + bob), 1.0, Color(1, 1, 1))
+			# lanterne tenue
+			draw_line(Vector2(-14, -20 + bob), Vector2(-22, -14 + bob), Color(0.5, 0.45, 0.4), 2.0)
+			draw_circle(Vector2(-23, -9 + bob), 5.0 + sin(t * 3.0) * 0.6, Color(1.0, 0.8, 0.45))
+			draw_circle(Vector2(-23, -9 + bob), 11.0, Color(1.0, 0.8, 0.45, 0.2))
+		"elevator":
+			# Ascenseur : cage de fer suspendue à des chaînes, panneau lumineux
+			var iron := Color(0.4, 0.42, 0.5)
+			var cage := Rect2(-26, -78, 52, 78)
+			draw_rect(cage, Color(0.08, 0.09, 0.13, 0.85))
+			draw_rect(cage, iron, false, 3.0)
+			for i in 5:
+				var x := -26.0 + i * 13.0
+				draw_line(Vector2(x, -78), Vector2(x, 0), Color(iron, 0.7), 2.0)
+			draw_line(Vector2(-26, -40), Vector2(26, -40), Color(iron, 0.7), 2.0)
+			for cx in [-16.0, 16.0]:
+				var y := -78.0
+				while y > -300.0:
+					draw_arc(Vector2(cx, y - 6), 4.0, 0.0, TAU, 8, Color(0.35, 0.36, 0.42), 2.0)
+					y -= 12.0
+			# rouage
+			var g := Vector2(0, -92)
+			draw_circle(g, 10.0, Color(0.3, 0.31, 0.38))
+			for i in 8:
+				var a2 := t * 0.8 + i * TAU / 8.0
+				draw_line(g, g + Vector2(cos(a2), sin(a2)) * 14.0, Color(0.45, 0.46, 0.55), 3.0)
+			# panneau
+			var glow := 0.6 + sin(t * 2.5) * 0.25
+			draw_rect(Rect2(30, -44, 12, 18), Color(0.2, 0.22, 0.3))
+			draw_circle(Vector2(36, -35), 3.5, Color(0.6, 0.9, 1.0, glow))
 		"shrine":
 			var stone := Color(0.3, 0.32, 0.42)
 			draw_rect(Rect2(-40, -10, 80, 10), stone)

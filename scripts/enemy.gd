@@ -18,10 +18,10 @@ var is_boss := false
 
 # Multiplicateurs liés à la difficulté (et au statut élite)
 func spd() -> float:
-	return float(GameState.d("speed")) * (1.2 if elite else 1.0)
+	return float(GameState.scaled("speed")) * (1.2 if elite else 1.0)
 
 func aggro() -> float:
-	return float(GameState.d("aggro")) * (1.25 if elite else 1.0)
+	return float(GameState.scaled("aggro")) * (1.25 if elite else 1.0)
 
 func setup_body() -> void:
 	var s := RectangleShape2D.new()
@@ -33,7 +33,7 @@ func setup_body() -> void:
 	collision_mask = 1
 	add_to_group("enemies")
 	if not is_boss:
-		hp = maxi(1, roundi(hp * float(GameState.d("hp")) * (1.7 if elite else 1.0)))
+		hp = maxi(1, roundi(hp * float(GameState.scaled("hp")) * (1.7 if elite else 1.0)))
 	if elite:
 		geo_value *= 2
 		add_child(main.make_light(Color(1.0, 0.3, 0.25), 0.9, 1.0))

@@ -18,7 +18,7 @@ func _ready() -> void:
 	if variant == 2:
 		max_hp = 50
 		boss_name = "L'Abbesse Engloutie"
-	max_hp = roundi(max_hp * float(GameState.d("boss_hp")))
+	max_hp = roundi(max_hp * float(GameState.scaled("boss_hp")))
 	hp = max_hp
 	geo_value = 0
 	knock_resist = 0.0
@@ -42,7 +42,7 @@ func is_harmful() -> bool:
 func rage() -> float:
 	var r := 1.3 if hp <= max_hp / 2 else 1.0
 	# la difficulté accélère le boss et raccourcit ses pauses
-	return r * (1.15 if variant == 2 else 1.0) * sqrt(float(GameState.d("speed")) * float(GameState.d("aggro")))
+	return r * (1.15 if variant == 2 else 1.0) * sqrt(float(GameState.scaled("speed")) * float(GameState.scaled("aggro")))
 
 func take_hit(dmg: int, dir_hit: Vector2) -> void:
 	if state == "sleep":

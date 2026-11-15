@@ -103,7 +103,9 @@ func _draw() -> void:
 		draw_string(font, Vector2(sz.x - 110, 28), "%d FPS" % Engine.get_frames_per_second(), HORIZONTAL_ALIGNMENT_RIGHT, 100, 16, Color(0.7, 1.0, 0.7, 0.9))
 	# Aide contextuelle
 	var hint := ""
-	if not p.sitting and not p.dead and p.global_position.distance_to(main.bench_pos) < 48:
+	if main.interact_hint != "":
+		hint = main.interact_hint
+	elif not p.sitting and not p.dead and p.global_position.distance_to(main.bench_pos) < 48:
 		hint = "%s : se reposer sur le banc" % Controls.label("up")
 	elif p.sitting:
 		hint = "%s : changer d'équipement    bouger : se lever" % Controls.label("inventory")
@@ -112,5 +114,5 @@ func _draw() -> void:
 			Controls.label("move_left"), Controls.label("move_right"), Controls.label("jump"),
 			Controls.label("attack"), Controls.label("dash"), Controls.label("parry"),
 			Controls.label("ultimate"), Controls.label("focus"), Controls.label("inventory"), Controls.pause_label()]
-	if hint != "" and Settings.show_hints:
+	if hint != "" and (Settings.show_hints or main.interact_hint != ""):
 		draw_string(font, Vector2(0, sz.y - 20), hint, HORIZONTAL_ALIGNMENT_CENTER, sz.x, 16, Color(0.75, 0.8, 0.9, 0.85))

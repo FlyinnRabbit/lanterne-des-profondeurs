@@ -106,7 +106,7 @@ func reach() -> float:
 
 # À appeler quand l'équipement change
 func apply_equipment() -> void:
-	max_hp = 5 + (2 if eq(C.GLASS_HEART) else 0)
+	max_hp = 5 + (2 if eq(C.GLASS_HEART) else 0) + GameState.max_hp_bonus()
 	hp = mini(hp, max_hp)
 
 func get_rect() -> Rect2:
