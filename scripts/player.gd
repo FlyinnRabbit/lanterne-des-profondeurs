@@ -550,6 +550,15 @@ func attack_rect() -> Rect2:
 	var hgt := 54.0 * (1.25 if attack_kind == "finisher" else 1.0) * float(wpn["h"])
 	if attack_kind == "air_rise":
 		hgt *= 1.4
+	# fouet : la liane s'arrête au premier mur (pas de coup à travers la roche)
+	if GameState.weapon() == "fouet":
+		var step := 8.0
+		var d := 0.0
+		while d < w:
+			if main.is_solid_at(Vector2(p.x + facing * (SIZE.x / 2.0 + d), p.y - 4.0)):
+				break
+			d += step
+		w = maxf(d, 24.0)
 	var x := p.x + SIZE.x / 2.0 - 4.0 if facing > 0 else p.x - SIZE.x / 2.0 - w + 4.0
 	return Rect2(Vector2(x, p.y - hgt * 0.55), Vector2(w, hgt))
 
@@ -950,13 +959,19 @@ func _draw() -> void:
 					return
 				if GameState.weapon() == "fouet" and attack_dir.y == 0.0:
 					# fouet : liane ondulée jusqu'au bout de la zone de coup
-					var k2 := clampf(attack_t / ATTACK_TIME, 0.0, 1.0)
+					# la liane va exactement de la main au bout de la zone de coup
+					var k2 := clampf(attack_t / (ATTACK_TIME * (1.4 if attack_kind == "finisher" else 1.0)), 0.0, 1.0)
+					var start := Vector2(facing * 8.0, -4.0)
+					var end_x: float = (r.end.x if facing > 0 else r.position.x) - global_position.x
 					var pts := PackedVector2Array()
-					var reachx := r.size.x + 10.0
 					for i in 13:
 						var u := i / 12.0
-						pts.append(Vector2(facing * reachx * u, c.y + sin(u * 9.0 + anim_t * 40.0) * 6.0 * (1.0 - u) - 4.0 * (1.0 - u)))
-					draw_polyline(pts, Color(0.6, 0.85, 0.45, k2), 4.0)
+						var wave := sin(u * 9.0 + anim_t * 40.0) * 6.0 * (1.0 - u)
+						pts.append(Vector2(lerpf(start.x, end_x, u), lerpf(start.y, c.y, u) + wave))
+					var vine := Color(1.0, 0.6, 0.25, k2) if attack_crit else Color(0.6, 0.85, 0.45, k2)
+					draw_polyline(pts, vine, 4.0)
+					for i in range(2, 12, 2):
+						draw_line(pts[i], pts[i] + Vector2(-facing * 4.0, -5.0), Color(vine.darkened(0.3), k2), 1.5)   # épines
 					draw_circle(pts[12], 5.0, Color(0.85, 1.0, 0.65, k2))
 					return
 				var fin := attack_kind == "finisher"
