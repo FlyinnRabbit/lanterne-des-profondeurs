@@ -476,6 +476,7 @@ func _setup_camera_and_fx() -> void:
 	mod.color = pal["ambient"]
 	if GameState.curse == "dark" and GameState.mode == "descent":
 		mod.color = (pal["ambient"] as Color).darkened(0.65)
+		_make_darkness()
 	add_child(mod)
 	camera = Camera2D.new()
 	camera.zoom = Vector2(Settings.zoom, Settings.zoom)
@@ -586,7 +587,49 @@ func _reveal() -> void:
 		for x in range(maxi(c.x - 13, 0), mini(c.x + 14, map_size.x)):
 			explored[y * map_size.x + x] = 1
 
+# Malédiction « Obscurité » : voile noir sur tout l'écran (décor compris), sauf un petit
+# cercle de lumière autour du héros. Indépendant de la difficulté.
+var dark_rect: ColorRect
+const DARK_SHADER := """
+shader_type canvas_item;
+uniform vec2 center = vec2(0.5);
+uniform float radius = 150.0;
+uniform float soft = 110.0;
+uniform vec2 screen = vec2(1280.0, 720.0);
+void fragment() {
+	vec2 p = SCREEN_UV * screen;
+	float d = distance(p, center);
+	float a = smoothstep(radius, radius + soft, d);
+	COLOR = vec4(0.0, 0.0, 0.02, a * 0.94);
+}
+"""
+func _make_darkness() -> void:
+	var cl := CanvasLayer.new()
+	cl.layer = 5          # au-dessus du niveau, sous le HUD (10) et les menus
+	add_child(cl)
+	dark_rect = ColorRect.new()
+	dark_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dark_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sh := Shader.new()
+	sh.code = DARK_SHADER
+	var mat := ShaderMaterial.new()
+	mat.shader = sh
+	dark_rect.material = mat
+	cl.add_child(dark_rect)
+
+func _update_darkness() -> void:
+	if dark_rect == null or player == null:
+		return
+	var vp := get_viewport().get_visible_rect().size
+	var mat: ShaderMaterial = dark_rect.material
+	var sp: Vector2 = player.get_global_transform_with_canvas().origin + Vector2(0, -10) * camera.zoom.x
+	mat.set_shader_parameter("center", sp)
+	mat.set_shader_parameter("screen", vp)
+	mat.set_shader_parameter("radius", 120.0 * camera.zoom.x)
+	mat.set_shader_parameter("soft", 90.0 * camera.zoom.x)
+
 func _process(delta: float) -> void:
+	_update_darkness()
 	_reveal_t -= delta
 	_update_rooms(delta)
 	if GameState.mode in ["descent", "rush"] and not get_tree().paused:
