@@ -21,6 +21,7 @@ var t := 0.0
 var boomerang := false   # étoiles niv. 2 : reviennent vers le joueur
 var returning := false
 var colorblind := false
+var volley = null       # étoiles d'une même salve : un seul coup par ennemi (Dictionary partagé)
 var from_trap := false   # fléchette de totem : la parer ne rapporte ni âme ni ultime
 
 func _ready() -> void:
@@ -76,6 +77,10 @@ func _physics_process(delta: float) -> void:
 	else:
 		for e in get_tree().get_nodes_in_group("enemies"):
 			if is_instance_valid(e) and not e.dead and not _hit.has(e) and r.intersects(e.get_rect()):
+				if volley != null and not returning and volley.has(e):
+					continue
+				if volley != null and not returning:
+					volley[e] = true
 				if crit:
 					main.player.last_crit_t = 0.2
 				var dm := damage

@@ -490,12 +490,13 @@ func _throw_stars(kind: String, adir: Vector2) -> void:
 		"low":
 			dirs = [Vector2(facing, 0)]
 	var first := true
+	var volley := {}     # une salve ne touche qu'une fois le même ennemi
 	for d in dirs:
 		var star_crit := attack_crit and first     # le critique ne vaut que pour une étoile
 		first = false
 		main.spawn_projectile(global_position + d * 14.0 + Vector2(0, 6 if kind == "low" else -4), d * (560.0 if not big else 480.0),
 			{"kind": "shuriken", "hostile": false, "radius": 14.0 if big else 8.0, "life": 0.6 if not big else 0.8,
-			"pierce": big, "damage": dmg if (star_crit or not attack_crit) else _base_damage(), "crit": star_crit, "boomerang": GameState.weapon_level() >= 2})
+			"pierce": big, "damage": dmg if (star_crit or not attack_crit) else _base_damage(), "crit": star_crit, "boomerang": GameState.weapon_level() >= 2, "volley": volley})
 	attack_crit = false
 
 # Dégâts selon le type de coup
