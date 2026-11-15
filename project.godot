@@ -40,6 +40,7 @@ common/physics_ticks_per_second=120
 
 [rendering]
 
+textures/vram_compression/import_etc2_astc=true
 shader_compiler/shader_cache/enabled=false
 
 environment/defaults/default_clear_color=Color(0.025, 0.035, 0.07, 1)

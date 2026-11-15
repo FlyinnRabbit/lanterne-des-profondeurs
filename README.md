@@ -11,6 +11,19 @@ Dernière version : onglet **Releases** → `LanterneDesProfondeurs_Windows.zip`
 lancer `LanterneDesProfondeurs.exe`. L'exe n'étant pas signé, Windows SmartScreen peut afficher
 « Windows a protégé votre ordinateur » → *Informations complémentaires* → *Exécuter quand même*.
 
+## macOS (Intel et Apple Silicon)
+1. Télécharger `LanterneDesProfondeurs_macOS.zip` dans la Release, le décompresser et glisser
+   **Lanterne des Profondeurs** dans le dossier Applications.
+2. L'app n'est pas validée par Apple (il faudrait un compte développeur payant), macOS la bloque donc
+   au premier lancement :
+   - **clic droit (ou Ctrl + clic) sur l'app → Ouvrir**, puis **Ouvrir** dans la fenêtre ;
+   - sur **macOS 15 (Sequoia)** et plus récent : lancer l'app une fois, puis **Réglages Système →
+     Confidentialité et sécurité** → en bas, **« Ouvrir quand même »** ;
+   - si macOS affiche « l'app est endommagée », ouvrir le **Terminal** et taper :
+     `xattr -cr "/Applications/Lanterne des Profondeurs.app"`, puis relancer.
+3. Ensuite le jeu se lance normalement. Les manettes Xbox et PlayStation fonctionnent.
+   Sauvegardes : `~/Library/Application Support/Godot/app_userdata/Lanterne des Profondeurs/`.
+
 ## Version portable
 `LanterneDesProfondeurs_Windows_Portable.zip` / `LanterneDesProfondeurs_Linux_Portable.tar.gz` :
 le jeu avec un fichier `portable.txt`. Tant que ce fichier est à côté de l'exécutable,

@@ -1,4 +1,4 @@
-# Construit le jeu pour Windows (.exe) et Linux / Steam Deck (.x86_64) automatiquement.
+# Construit le jeu pour Windows (.exe), Linux / Steam Deck (.x86_64) et macOS (.app universelle) automatiquement.
 # - À chaque Release publiée (ou tag « v* ») : ajoute LanterneDesProfondeurs_Windows.zip à la Release.
 # - Lancement manuel (onglet Actions > Export Windows > Run workflow) :
 #     * champ « version » rempli (ex. v1.2.0) → crée le tag et la Release avec l'exe ;
@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Installer Godot 4.3 et les modèles d'export Windows et Linux
+      - name: Installer Godot 4.3 et les modèles d'export Windows, Linux et macOS
         run: |
           cd "$RUNNER_TEMP"
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
@@ -34,7 +34,7 @@ jobs:
           mv Godot_v4.3-stable_linux.x86_64 godot && chmod +x godot
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
           mkdir -p ~/.local/share/godot/export_templates/4.3.stable
-          unzip -qj Godot_v4.3-stable_export_templates.tpz templates/windows_release_x86_64.exe templates/linux_release.x86_64 templates/version.txt \
+          unzip -qj Godot_v4.3-stable_export_templates.tpz templates/windows_release_x86_64.exe templates/linux_release.x86_64 templates/macos.zip templates/version.txt \
             -d ~/.local/share/godot/export_templates/4.3.stable
           rm Godot_v4.3-stable_export_templates.tpz
 
@@ -56,6 +56,10 @@ jobs:
           cp build/linux/LanterneDesProfondeurs.x86_64 build/linux/LanterneDesProfondeurs.png art/portable.txt $P/linux/LanterneDesProfondeurs_Portable/
           (cd $P/win && zip -9 -r ../../LanterneDesProfondeurs_Windows_Portable.zip LanterneDesProfondeurs_Portable)
           tar -czf build/LanterneDesProfondeurs_Linux_Portable.tar.gz -C $P/linux LanterneDesProfondeurs_Portable
+          # macOS : application universelle (Intel + Apple Silicon), signature ad hoc (non validée par Apple)
+          mkdir -p build/macos
+          "$RUNNER_TEMP/godot" --headless --export-release "macOS" build/macos/LanterneDesProfondeurs.zip
+          cp build/macos/LanterneDesProfondeurs.zip build/LanterneDesProfondeurs_macOS.zip
           cd build && zip -9 LanterneDesProfondeurs_Windows.zip LanterneDesProfondeurs.exe
 
       - name: Artefact
@@ -67,6 +71,7 @@ jobs:
             build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz
             build/LanterneDesProfondeurs_Windows_Portable.zip
             build/LanterneDesProfondeurs_Linux_Portable.tar.gz
+            build/LanterneDesProfondeurs_macOS.zip
 
       - name: Release (tag ou Release publiée)
         if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
@@ -77,6 +82,7 @@ jobs:
             build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz
             build/LanterneDesProfondeurs_Windows_Portable.zip
             build/LanterneDesProfondeurs_Linux_Portable.tar.gz
+            build/LanterneDesProfondeurs_macOS.zip
 
       - name: Release (lancement manuel avec version)
         if: github.event_name == 'workflow_dispatch' && inputs.version != ''
@@ -93,8 +99,14 @@ jobs:
             **Version portable** (clé USB, sauvegardes à côté du jeu) : `LanterneDesProfondeurs_Windows_Portable.zip` ou `LanterneDesProfondeurs_Linux_Portable.tar.gz`.
 
             **Linux / Steam Deck** : télécharger `LanterneDesProfondeurs_Linux_SteamDeck.tar.gz`, extraire, lancer `LanterneDesProfondeurs.x86_64` (voir le README pour l'ajouter à Steam).
+
+            **macOS** (Intel et Apple Silicon) : télécharger `LanterneDesProfondeurs_macOS.zip`, décompresser, glisser *Lanterne des Profondeurs* dans Applications.
+            L'app n'est pas validée par Apple : au premier lancement, faire **clic droit → Ouvrir** puis **Ouvrir**
+            (sur macOS 15 : Réglages Système → Confidentialité et sécurité → « Ouvrir quand même »).
+            Si macOS dit que l'app est « endommagée » : dans le Terminal, `xattr -cr "/Applications/Lanterne des Profondeurs.app"`.
           files: |
             build/LanterneDesProfondeurs_Windows.zip
             build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz
             build/LanterneDesProfondeurs_Windows_Portable.zip
             build/LanterneDesProfondeurs_Linux_Portable.tar.gz
+            build/LanterneDesProfondeurs_macOS.zip
