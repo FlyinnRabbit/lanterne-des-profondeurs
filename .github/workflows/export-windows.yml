@@ -1,6 +1,8 @@
 # Construit l'exe Windows automatiquement.
 # - À chaque Release publiée (ou tag « v* ») : ajoute LanterneDesProfondeurs_Windows.zip à la Release.
-# - Lancement manuel possible (onglet Actions > Export Windows > Run workflow) : exe dans les artefacts.
+# - Lancement manuel (onglet Actions > Export Windows > Run workflow) :
+#     * champ « version » rempli (ex. v1.2.0) → crée le tag et la Release avec l'exe ;
+#     * champ vide → exe disponible seulement dans les artefacts.
 name: Export Windows
 
 on:
@@ -9,6 +11,11 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version à publier (ex. v1.2.0). Laisser vide pour un simple test."
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -46,8 +53,21 @@ jobs:
           name: LanterneDesProfondeurs_Windows
           path: build/LanterneDesProfondeurs_Windows.zip
 
-      - name: Release
+      - name: Release (tag ou Release publiée)
         if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          files: build/LanterneDesProfondeurs_Windows.zip
+
+      - name: Release (lancement manuel avec version)
+        if: github.event_name == 'workflow_dispatch' && inputs.version != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: Lanterne des Profondeurs ${{ inputs.version }}
+          generate_release_notes: true
+          body: |
+            **Windows** : télécharger `LanterneDesProfondeurs_Windows.zip`, décompresser et lancer `LanterneDesProfondeurs.exe`.
+            L'exe n'est pas encore signé : si Windows affiche « Windows a protégé votre ordinateur », cliquer *Informations complémentaires* → *Exécuter quand même*.
           files: build/LanterneDesProfondeurs_Windows.zip
