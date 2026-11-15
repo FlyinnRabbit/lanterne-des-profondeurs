@@ -17,7 +17,8 @@ func _tap(i: int) -> void:
 	await process_frame
 func _run() -> void:
 	await process_frame
-	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://save.cfg"))
+	for f in ["save.cfg", "save_1.cfg", "save_2.cfg", "save_3.cfg"]:
+		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://" + f))
 	change_scene_to_file("res://main.tscn")
 	await process_frame
 	await process_frame
@@ -25,7 +26,7 @@ func _run() -> void:
 	var m = main.menu
 	print("titre visible : ", m.title_panel.get_parent().visible, " focus : ", root.gui_get_focus_owner().text if root.gui_get_focus_owner() else "aucun")
 	await _tap(JOY_BUTTON_A)     # Jouer
-	print("après A -> difficulté visible : ", m.diff_panel.get_parent().visible, " focus : ", root.gui_get_focus_owner().text)
+	print("après A -> parties visible : ", m.slots_panel.get_parent().visible, " focus : ", root.gui_get_focus_owner().text)
 	await _tap(JOY_BUTTON_B)     # retour
 	print("après B -> titre visible : ", m.title_panel.get_parent().visible)
 	await _tap(JOY_BUTTON_DPAD_DOWN)
@@ -36,7 +37,8 @@ func _run() -> void:
 	await _tap(JOY_BUTTON_B)
 	await _tap(JOY_BUTTON_DPAD_UP)
 	await _tap(JOY_BUTTON_DPAD_UP)
-	await _tap(JOY_BUTTON_A)     # Jouer
+	await _tap(JOY_BUTTON_A)     # Jouer -> parties
+	await _tap(JOY_BUTTON_A)     # emplacement 1 (vide) -> difficulté
 	await _tap(JOY_BUTTON_A)     # Normal (difficulté actuelle) -> lance la partie
 	await process_frame
 	await process_frame
