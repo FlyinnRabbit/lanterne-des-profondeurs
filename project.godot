@@ -1,0 +1,33 @@
+; Lanterne des Profondeurs — projet Godot 4
+
+config_version=5
+
+[application]
+
+config/name="Lanterne des Profondeurs"
+config/description="Petit metroidvania 2D inspiré de Hollow Knight"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.3")
+
+[autoload]
+
+Controls="*res://scripts/controls.gd"
+GameState="*res://scripts/game_state.gd"
+Settings="*res://scripts/settings.gd"
+Audio="*res://scripts/audio.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[physics]
+
+common/physics_ticks_per_second=120
+
+[rendering]
+
+environment/defaults/default_clear_color=Color(0.025, 0.035, 0.07, 1)
+2d/snap/snap_2d_transforms_to_pixel=false
