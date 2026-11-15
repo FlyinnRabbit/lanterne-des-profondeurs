@@ -23,6 +23,7 @@ var fall_v := 0.0
 # Pas Léger : franchir le piège sans être touché rapporte des éclats
 var pass_side := 0.0
 var pass_hp := 0
+var pass_rewarded := false
 
 func _ready() -> void:
 	home = position
@@ -63,7 +64,7 @@ func _physics_process(delta: float) -> void:
 				var on_screen: bool = absf(main.player.global_position.x - global_position.x) < 700.0
 				if on_screen:
 					main.spawn_projectile(global_position + Vector2(dir * 14.0, -28.0), Vector2(dir * 300.0, 0),
-						{"kind": "dart", "hostile": true, "radius": 5.0, "life": 2.6})
+						{"kind": "dart", "hostile": true, "radius": 5.0, "life": 2.6, "from_trap": true})
 					Audio.sfx("spit", 0.15, -6.0)
 		"blade":
 			var bp := blade_pos()
@@ -107,7 +108,8 @@ func _check_pass() -> void:
 	elif absf(dx) > 160.0:
 		pass_side = 0.0
 	elif signf(dx) == -pass_side and absf(dx) > 90.0:
-		if p.hp >= pass_hp and not p.dead and p.eq(Ch.LIGHT_STEP):
+		if p.hp >= pass_hp and not p.dead and p.eq(Ch.LIGHT_STEP) and not pass_rewarded:
+			pass_rewarded = true
 			p.geo += 5
 			main.spawn_burst(p.global_position, Color(0.7, 1.0, 0.6), 10, 140.0)
 			Audio.sfx("pickup", 0.1, -6.0)

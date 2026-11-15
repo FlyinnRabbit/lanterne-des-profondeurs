@@ -21,6 +21,7 @@ var t := 0.0
 var boomerang := false   # étoiles niv. 2 : reviennent vers le joueur
 var returning := false
 var colorblind := false
+var from_trap := false   # fléchette de totem : la parer ne rapporte ni âme ni ultime
 
 func _ready() -> void:
 	add_to_group("projectiles")

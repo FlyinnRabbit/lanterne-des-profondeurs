@@ -137,6 +137,7 @@ const CURSES := {
 	"dark": {"name": "Obscurité", "desc": "La lumière se réduit autour de toi. Éclats +50 %.", "geo": 1.5},
 	"fragile": {"name": "Fragilité", "desc": "Impossible de se soigner avec l'âme. Éclats +60 %.", "geo": 1.6},
 }
+const RUSH_REWARD := 300
 const RUSH_ORDER := ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre"]
 var curse := ""
 var daily := false
@@ -253,7 +254,9 @@ func go_next_level(player) -> void:
 				Achievements.save()
 			Achievements.unlock("rush")
 			_end_special()
-			pending_message = tr("Défi des boss terminé en %d:%02d !") % [int(t) / 60, int(t) % 60] + "\n" + tr("Meilleur temps : %d:%02d") % [int(Achievements.counters["rush_best"]) / 60, int(Achievements.counters["rush_best"]) % 60]
+			prog["geo"] = int(prog.get("geo", 0)) + RUSH_REWARD     # récompense gardée
+			snapshot = prog.duplicate(true)
+			pending_message = tr("Défi des boss terminé en %d:%02d !") % [int(t) / 60, int(t) % 60] + "  " + tr("+%d éclats") % RUSH_REWARD + "\n" + tr("Meilleur temps : %d:%02d") % [int(Achievements.counters["rush_best"]) / 60, int(Achievements.counters["rush_best"]) % 60]
 			save_game()
 		_reload(true)
 		return

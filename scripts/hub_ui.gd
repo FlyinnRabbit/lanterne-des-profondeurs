@@ -190,7 +190,7 @@ func open_elevator() -> void:
 	# modes spéciaux
 	var dkey := "daily_%d" % GameState.today_seed()
 	var dbest := float(Achievements.counters.get(dkey, 0.0))
-	var dl := tr("Descente du jour (même niveau pour tous, aujourd'hui)")
+	var dl := tr("Descente du jour (même niveau pour tous, aujourd'hui)") + " " + tr("— butin non conservé")
 	if dbest > 0.0:
 		dl += "  — " + tr("meilleur : %d:%02d") % [int(dbest) / 60, int(dbest) % 60]
 	var db := _lift_button(dl, _daily)

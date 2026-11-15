@@ -31,6 +31,8 @@ const PERFECT_PARRY := 0.12     # parade dans les 0,12 premières secondes = par
 const CRIT_MULT := 1.5
 const CRIT_TIME := 6.0
 const Weapons = preload("res://scripts/weapons.gd")
+const TrapScript = preload("res://scripts/trap.gd")
+const DummyScript = preload("res://scripts/dummy.gd")
 const POGO_VELOCITY := -580.0
 const INVULN_TIME := 1.3
 const FOCUS_TIME := 0.9
@@ -71,8 +73,11 @@ var air_i := -1                 # combo aérien (0, 1, 2)
 var crouching := false
 var crouch_latch := false
 var rest_acc := 0.0
+var combat_t := 99.0      # temps depuis le dernier coup donné ou reçu
+var trap_parry := false   # la parade en cours vient d'un piège (pas d'âme ni d'ultime)
 var plunging := false
 var plunge_used := false        # une seule plongée par saut
+var rise_used := false          # une seule entaille montante par saut (pas de vol infini)
 var plunge_cd := 0.0
 var plunge_kill_t := 0.0
 var crit_ready := false         # coup critique prêt (après une parade parfaite)
@@ -127,7 +132,16 @@ func parry_window() -> float:
 	return 0.35 if eq(C.MIRROR) else PARRY_WINDOW
 
 func focus_time() -> float:
-	return FOCUS_TIME * (0.55 if eq(C.QUICK_FOCUS) else 1.0) * (0.5 if crouching and eq(C.SHADOW_REST) else 1.0)
+	var quick := eq(C.QUICK_FOCUS)
+	var rest := crouching and eq(C.SHADOW_REST)
+	var m := 1.0
+	if quick and rest:
+		m = 0.55 * 0.9          # les deux : le meilleur bonus + un petit supplément
+	elif quick:
+		m = 0.55
+	elif rest:
+		m = 0.667
+	return maxf(FOCUS_TIME * m, 0.4)
 
 func soul_per_hit() -> int:
 	return roundi((SOUL_PER_HIT + (6 if eq(C.GREED) else 0)) * float(GameState.d("soul")))
@@ -176,7 +190,8 @@ func _physics_process(delta: float) -> void:
 	parry_t = maxf(parry_t - delta, 0.0)
 	parry_cd = maxf(parry_cd - delta, 0.0)
 	parry_flash = maxf(parry_flash - delta, 0.0)
-	if crouching and eq(C.SHADOW_REST):
+	combat_t += delta
+	if crouching and eq(C.SHADOW_REST) and soul < FOCUS_COST and combat_t >= 3.0 and not _enemy_near(320.0):
 		rest_acc += delta * 5.0
 		if rest_acc >= 1.0:
 			rest_acc -= 1.0
@@ -235,6 +250,7 @@ func _physics_process(delta: float) -> void:
 		air_dash_used = false
 		air_i = -1
 		plunge_used = false
+		rise_used = false
 		if not was_on_floor:
 			squash = Vector2(1.3, 0.7)
 			main.spawn_burst(global_position + Vector2(0, SIZE.y / 2), Color(0.6, 0.65, 0.8, 0.6), 6, 80.0, 50.0)
@@ -243,6 +259,7 @@ func _physics_process(delta: float) -> void:
 	# Concentration (soin) : maintenir L au sol avec 33 d'âme
 	if Input.is_action_pressed("focus") and on_floor and soul >= FOCUS_COST and hp < max_hp and knock_t <= 0.0 and not (GameState.curse == "fragile" and GameState.mode == "descent"):
 		focus_t += delta
+		_set_crouch(crouch_latch if Settings.crouch_toggle else Input.is_action_pressed("down"))
 		velocity.x = 0.0
 		velocity.y = minf(velocity.y + GRAVITY * delta, FALL_MAX)
 		if focus_t >= focus_time():
@@ -349,9 +366,10 @@ func _physics_process(delta: float) -> void:
 			air_i = (air_i + 1) % 3 if combo_t > 0.0 else 0
 			combo_t = COMBO_WINDOW
 			_start_attack(["air", "air_rise", "air_spin"][air_i], adir)
-			if air_i == 1:
+			if air_i == 1 and not rise_used:
+				rise_used = true
 				velocity.y = minf(velocity.y, -300.0)
-			elif air_i == 2:
+			elif air_i == 2 and not rise_used:
 				velocity.y = minf(velocity.y, -150.0)
 		else:
 			combo_i = (combo_i + 1) % 3 if combo_t > 0.0 else 0
@@ -471,13 +489,24 @@ func _throw_stars(kind: String, adir: Vector2) -> void:
 			dirs = [Vector2(facing, -0.6).normalized()]
 		"low":
 			dirs = [Vector2(facing, 0)]
+	var first := true
 	for d in dirs:
+		var star_crit := attack_crit and first     # le critique ne vaut que pour une étoile
+		first = false
 		main.spawn_projectile(global_position + d * 14.0 + Vector2(0, 6 if kind == "low" else -4), d * (560.0 if not big else 480.0),
 			{"kind": "shuriken", "hostile": false, "radius": 14.0 if big else 8.0, "life": 0.6 if not big else 0.8,
-			"pierce": big, "damage": dmg, "crit": attack_crit, "boomerang": GameState.weapon_level() >= 2})
+			"pierce": big, "damage": dmg if (star_crit or not attack_crit) else _base_damage(), "crit": star_crit, "boomerang": GameState.weapon_level() >= 2})
 	attack_crit = false
 
 # Dégâts selon le type de coup
+# Dégâts du coup en cours sans le critique
+func _base_damage() -> int:
+	var c := attack_crit
+	attack_crit = false
+	var d := hit_damage()
+	attack_crit = c
+	return d
+
 func hit_damage() -> int:
 	var d := nail_damage() + int(weapon()["dmg"])
 	match attack_kind:
@@ -618,7 +647,8 @@ func _on_parry(from_pos: Vector2, source) -> void:
 		crit_t = CRIT_TIME
 		perfect_t = 1.2
 		Audio.sfx("crit_ready", 0.0, 0.0)
-		Achievements.on_perfect_parry()
+		if not _from_trap(source):
+			Achievements.on_perfect_parry()
 		if eq(C.ECHO):
 			var ed := signf(from_pos.x - global_position.x)
 			if ed == 0.0:
@@ -629,8 +659,10 @@ func _on_parry(from_pos: Vector2, source) -> void:
 	parry_cd = 0.12
 	parry_flash = 0.25
 	invuln_t = maxf(invuln_t, 0.4)
-	ult = mini(ult + roundi(ULT_PER_PARRY * float(GameState.d("ult"))), ULT_MAX)
-	soul = mini(soul + soul_per_hit(), SOUL_MAX)
+	if not _from_trap(source):
+		ult = mini(ult + roundi(ULT_PER_PARRY * float(GameState.d("ult"))), ULT_MAX)
+		soul = mini(soul + soul_per_hit(), SOUL_MAX)
+		combat_t = 0.0
 	var d := (from_pos - global_position).normalized()
 	if d == Vector2.ZERO:
 		d = Vector2(facing, 0)
@@ -705,7 +737,17 @@ func _plunge_land() -> void:
 		main.spawn_projectile(feet + Vector2(d * 20.0, -4.0), Vector2(d * 360.0, 0), {"kind": "wave", "hostile": false, "damage": 1, "life": 0.6})
 	attack_crit = false
 
+func _from_trap(source) -> bool:
+	return source != null and is_instance_valid(source) and (("from_trap" in source and source.from_trap) or source.get_script() == TrapScript)
+
+func _enemy_near(r: float) -> bool:
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(e) and not e.dead and e.global_position.distance_to(global_position) < r and e.get_script() != DummyScript:
+			return true
+	return false
+
 func take_damage(amount: int, from_x: float) -> void:
+	combat_t = 0.0
 	if dead:
 		return
 	hp -= amount

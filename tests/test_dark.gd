@@ -9,7 +9,7 @@ func _run() -> void:
 	var gs = root.get_node("GameState")
 	gs.show_title = false
 	gs.unlocked = 5
-	for d in [2, 3]:
+	for d in [0, 1]:
 		gs.difficulty = d
 		gs.mode = "hub"
 		change_scene_to_file("res://main.tscn")

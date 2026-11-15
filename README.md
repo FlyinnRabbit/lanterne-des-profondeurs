@@ -162,7 +162,8 @@ Les nouveaux ennemis et les élites deviennent plus fréquents en profondeur.
 
 ## Nouveaux emblèmes
 - **Météore Ardent** : une plongée qui touche prépare un coup critique.
-- **Repos de l'Ombre** : accroupi, l'âme se remplit et le soin va deux fois plus vite.
+- **Repos de l'Ombre** (2 encoches) : accroupi hors combat, l'âme remonte lentement jusqu'à 33 ; soin accroupi 1,5 fois plus rapide
+  (avec Concentration Vive : les bonus ne se multiplient pas, soin jamais sous 0,4 s).
 - **Écho Parfait** : une parade parfaite lance une lame d'âme gratuite.
 - **Pas Léger** : franchir un piège sans être touché rapporte 5 éclats.
 

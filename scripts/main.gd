@@ -894,6 +894,8 @@ const ENEMY_NAMES := {"crawler.gd": "Rampant", "flyer.gd": "Volant", "spitter.gd
 	"guard.gd": "Garde", "bomber.gd": "Bulbe", "weaver.gd": "Tisseuse", "lancer.gd": "Lancier", "wraith.gd": "Spectre",
 	"dummy.gd": "Mannequin", "shade.gd": "Ombre"}
 func on_damage_dealt(e, dmg: int) -> void:
+	if player and e.get_script() != DummyScript:
+		player.combat_t = 0.0
 	if dmg <= 0 or hud == null:
 		return
 	var n := ""
