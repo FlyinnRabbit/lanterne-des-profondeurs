@@ -5,7 +5,8 @@ extends Node
 signal bindings_changed
 signal device_changed(using_pad: bool)
 
-const SAVE_PATH := "user://controls.cfg"
+const Paths = preload("res://scripts/paths.gd")
+const SAVE_NAME := "controls.cfg"   # voir paths.gd (mode portable)
 const SAVE_VERSION := 2   # v2 : boutons de souris dans les cases « Touche »
 
 # Les cases « Touche » acceptent aussi la souris : un bouton de souris est stocké
@@ -334,11 +335,11 @@ func save_settings() -> void:
 		cfg.set_value("pad", a, pad[a])
 	cfg.set_value("options", "vibration", vibration)
 	cfg.set_value("meta", "version", SAVE_VERSION)
-	cfg.save(SAVE_PATH)
+	cfg.save(Paths.file(SAVE_NAME))
 
 func load_settings() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(SAVE_PATH) != OK:
+	if cfg.load(Paths.file(SAVE_NAME)) != OK:
 		return
 	vibration = cfg.get_value("options", "vibration", true)
 	if int(cfg.get_value("meta", "version", 1)) < SAVE_VERSION:

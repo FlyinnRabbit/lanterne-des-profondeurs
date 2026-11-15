@@ -1,0 +1,8 @@
+LANTERNE DES PROFONDEURS - VERSION PORTABLE
+
+Ce fichier active le mode portable : tant qu'il reste à côté du jeu, la progression,
+les réglages et les touches sont enregistrés dans le dossier « sauvegardes » ici même.
+Rien n'est écrit ailleurs sur l'ordinateur.
+
+Copie tout ce dossier sur une clé USB pour emporter ton jeu et ta partie partout.
+Supprime ce fichier pour revenir au mode normal (sauvegardes dans le dossier utilisateur).

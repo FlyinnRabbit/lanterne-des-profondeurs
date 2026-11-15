@@ -1,9 +1,10 @@
 extends Node
-# Autoload « Settings » : options d'affichage et de confort, sauvegardées dans user://settings.cfg.
+# Autoload « Settings » : options d'affichage et de confort, sauvegardées dans settings.cfg (voir paths.gd).
 
 signal changed
 
-const SAVE_PATH := "user://settings.cfg"
+const Paths = preload("res://scripts/paths.gd")
+const SAVE_NAME := "settings.cfg"   # voir paths.gd (mode portable)
 
 var hud_scale := 1.0       # 0.6 – 1.6
 var menu_scale := 1.0      # 0.6 – 1.3
@@ -30,7 +31,7 @@ static func is_steam_deck() -> bool:
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	if is_steam_deck() and not FileAccess.file_exists(SAVE_PATH):
+	if is_steam_deck() and not FileAccess.file_exists(Paths.file(SAVE_NAME)):
 		fullscreen = true      # premier lancement sur le Deck : plein écran, 60 FPS
 		pad_style = 1          # les boutons du Deck sont A/B/X/Y
 	load_settings()
@@ -82,11 +83,11 @@ func save_settings() -> void:
 	var cfg := ConfigFile.new()
 	for k in KEYS:
 		cfg.set_value("options", k, get(k))
-	cfg.save(SAVE_PATH)
+	cfg.save(Paths.file(SAVE_NAME))
 
 func load_settings() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(SAVE_PATH) != OK:
+	if cfg.load(Paths.file(SAVE_NAME)) != OK:
 		return
 	for k in KEYS:
 		if cfg.has_section_key("options", k):

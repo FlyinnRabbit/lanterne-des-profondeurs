@@ -11,6 +11,13 @@ Dernière version : onglet **Releases** → `LanterneDesProfondeurs_Windows.zip`
 lancer `LanterneDesProfondeurs.exe`. L'exe n'étant pas signé, Windows SmartScreen peut afficher
 « Windows a protégé votre ordinateur » → *Informations complémentaires* → *Exécuter quand même*.
 
+## Version portable
+`LanterneDesProfondeurs_Windows_Portable.zip` / `LanterneDesProfondeurs_Linux_Portable.tar.gz` :
+le jeu avec un fichier `portable.txt`. Tant que ce fichier est à côté de l'exécutable,
+la progression, les réglages et les touches sont enregistrés dans le dossier `sauvegardes`
+du jeu (rien n'est écrit ailleurs) : copier le dossier sur une clé USB suffit pour emporter
+le jeu et sa partie. Supprimer `portable.txt` pour revenir aux sauvegardes habituelles.
+
 ## Linux et Steam Deck
 Dans les Releases : `LanterneDesProfondeurs_Linux_SteamDeck.tar.gz` (Linux x86_64).
 

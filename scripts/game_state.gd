@@ -5,13 +5,14 @@ extends Node
 #  mode "descent"  : un palier = 2 niveaux générés, le 2e se termine par un boss.
 #                    Palier terminé → retour au hub, palier suivant débloqué (paliers sans fin).
 # Mort pendant une descente → retour au hub, le butin de la descente est perdu.
-# La progression est sauvegardée dans user://save.cfg.
+# La progression est sauvegardée dans save.cfg (user:// ou dossier « sauvegardes » en mode portable).
 
 const Levels = preload("res://scripts/levels.gd")
 const Charms = preload("res://scripts/charms.gd")
 const Biomes = preload("res://scripts/biomes.gd")
 const LevelGen = preload("res://scripts/levelgen.gd")
-const SAVE_PATH := "user://save.cfg"
+const Paths = preload("res://scripts/paths.gd")
+const SAVE_NAME := "save.cfg"   # voir paths.gd (mode portable)
 const STEPS_PER_PALIER := 2
 const MAX_BONUS_HP := 4
 
@@ -227,15 +228,15 @@ func save_game() -> void:
 	cfg.set_value("game", "tutorial_done", mode != "tutorial")
 	# en descente on sauvegarde l'état du départ : quitter en pleine descente = abandon
 	cfg.set_value("game", "prog", snapshot if mode == "descent" else prog)
-	cfg.save(SAVE_PATH)
+	cfg.save(Paths.file(SAVE_NAME))
 
 func has_save() -> bool:
 	var cfg := ConfigFile.new()
-	return cfg.load(SAVE_PATH) == OK and bool(cfg.get_value("game", "tutorial_done", false))
+	return cfg.load(Paths.file(SAVE_NAME)) == OK and bool(cfg.get_value("game", "tutorial_done", false))
 
 func save_summary() -> String:
 	var cfg := ConfigFile.new()
-	if cfg.load(SAVE_PATH) != OK:
+	if cfg.load(Paths.file(SAVE_NAME)) != OK:
 		return ""
 	var dd: int = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
 	var p: Dictionary = cfg.get_value("game", "prog", {})
@@ -244,7 +245,7 @@ func save_summary() -> String:
 
 func load_game() -> bool:
 	var cfg := ConfigFile.new()
-	if cfg.load(SAVE_PATH) != OK:
+	if cfg.load(Paths.file(SAVE_NAME)) != OK:
 		return false
 	difficulty = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
 	unlocked = int(cfg.get_value("game", "unlocked", 1))

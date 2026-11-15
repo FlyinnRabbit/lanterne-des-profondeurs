@@ -49,6 +49,13 @@ jobs:
           "$RUNNER_TEMP/godot" --headless --export-release "Linux" build/linux/LanterneDesProfondeurs.x86_64
           cp art/icon.png build/linux/LanterneDesProfondeurs.png
           tar -czf build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz -C build/linux .
+          # Versions portables : portable.txt à côté du jeu = sauvegardes dans le dossier du jeu
+          P=build/portable
+          mkdir -p $P/win/LanterneDesProfondeurs_Portable/sauvegardes $P/linux/LanterneDesProfondeurs_Portable/sauvegardes
+          cp build/LanterneDesProfondeurs.exe art/portable.txt $P/win/LanterneDesProfondeurs_Portable/
+          cp build/linux/LanterneDesProfondeurs.x86_64 build/linux/LanterneDesProfondeurs.png art/portable.txt $P/linux/LanterneDesProfondeurs_Portable/
+          (cd $P/win && zip -9 -r ../../LanterneDesProfondeurs_Windows_Portable.zip LanterneDesProfondeurs_Portable)
+          tar -czf build/LanterneDesProfondeurs_Linux_Portable.tar.gz -C $P/linux LanterneDesProfondeurs_Portable
           cd build && zip -9 LanterneDesProfondeurs_Windows.zip LanterneDesProfondeurs.exe
 
       - name: Artefact
@@ -58,6 +65,8 @@ jobs:
           path: |
             build/LanterneDesProfondeurs_Windows.zip
             build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz
+            build/LanterneDesProfondeurs_Windows_Portable.zip
+            build/LanterneDesProfondeurs_Linux_Portable.tar.gz
 
       - name: Release (tag ou Release publiée)
         if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
@@ -66,6 +75,8 @@ jobs:
           files: |
             build/LanterneDesProfondeurs_Windows.zip
             build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz
+            build/LanterneDesProfondeurs_Windows_Portable.zip
+            build/LanterneDesProfondeurs_Linux_Portable.tar.gz
 
       - name: Release (lancement manuel avec version)
         if: github.event_name == 'workflow_dispatch' && inputs.version != ''
@@ -79,7 +90,11 @@ jobs:
             **Windows** : télécharger `LanterneDesProfondeurs_Windows.zip`, décompresser et lancer `LanterneDesProfondeurs.exe`.
             L'exe n'est pas encore signé : si Windows affiche « Windows a protégé votre ordinateur », cliquer *Informations complémentaires* → *Exécuter quand même*.
 
+            **Version portable** (clé USB, sauvegardes à côté du jeu) : `LanterneDesProfondeurs_Windows_Portable.zip` ou `LanterneDesProfondeurs_Linux_Portable.tar.gz`.
+
             **Linux / Steam Deck** : télécharger `LanterneDesProfondeurs_Linux_SteamDeck.tar.gz`, extraire, lancer `LanterneDesProfondeurs.x86_64` (voir le README pour l'ajouter à Steam).
           files: |
             build/LanterneDesProfondeurs_Windows.zip
             build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz
+            build/LanterneDesProfondeurs_Windows_Portable.zip
+            build/LanterneDesProfondeurs_Linux_Portable.tar.gz

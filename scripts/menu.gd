@@ -3,6 +3,7 @@ extends CanvasLayer
 # + écran « Options » (taille du HUD et des menus, caméra, secousses, plein écran…).
 
 const GlyphButtonScript = preload("res://scripts/glyph_button.gd")
+const Paths = preload("res://scripts/paths.gd")
 
 var main
 var dim: ColorRect
@@ -266,7 +267,7 @@ func _build_pause(root: Control) -> void:
 	route.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	route.add_theme_font_size_override("font_size", 13)
 	route.add_theme_color_override("font_color", Color(0.5, 0.56, 0.68))
-	route.text = "Progression sauvegardée automatiquement" if not GameState.is_tutorial() else ""
+	route.text = "" if GameState.is_tutorial() else ("Progression sauvegardée automatiquement" + (" (mode portable : dossier « sauvegardes » à côté du jeu)" if Paths.is_portable() else ""))
 	v.add_child(info)
 	v.add_child(route)
 	first_pause_button = _button("Reprendre", close)

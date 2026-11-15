@@ -21,6 +21,10 @@ GameState="*res://scripts/game_state.gd"
 Settings="*res://scripts/settings.gd"
 Audio="*res://scripts/audio.gd"
 
+[debug]
+
+file_logging/enable_file_logging.pc=false
+
 [display]
 
 window/size/viewport_width=1280
@@ -33,6 +37,8 @@ window/stretch/aspect="expand"
 common/physics_ticks_per_second=120
 
 [rendering]
+
+shader_compiler/shader_cache/enabled=false
 
 environment/defaults/default_clear_color=Color(0.025, 0.035, 0.07, 1)
 2d/snap/snap_2d_transforms_to_pixel=false
