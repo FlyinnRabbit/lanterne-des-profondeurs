@@ -225,18 +225,22 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 	var variety: float = float(diff.get("variety", 1.0)) * (0.4 + depth * 0.3)
 	ew["h"] = variety
 	ew["g"] = variety * 0.8
+	# nouveaux ennemis : un peu partout, et beaucoup plus dans les biomes qui les mettent en avant
+	var extras: Dictionary = biome.get("extras", {})
+	for k in ["b", "w", "l", "r"]:
+		ew[k] = variety * 0.5 + float(extras.get(k, 0.0))
 	var ground := _shuffled(ground_spots.filter(func(p): return p.x > 18))
 	var air := _shuffled(air_spots.filter(func(p): return p.x > 18))
 	for i in count:
 		var k := _pick(ew)
-		if k == "f" and not air.is_empty():
+		if k in ["f", "w", "r"] and not air.is_empty():
 			var p: Vector2i = air.pop_back()
 			if g[p.y][p.x] == ".":
-				put(p.x, p.y, "f")
+				put(p.x, p.y, k)
 		elif not ground.is_empty():
 			var p: Vector2i = ground.pop_back()
 			if g[p.y][p.x] == "." and g[p.y + 1][p.x] == "#":
-				put(p.x, p.y, k if k in ["s", "h", "g"] else "c")
+				put(p.x, p.y, k if k in ["s", "h", "g", "b", "l"] else "c")
 	# emblèmes (« * ») et encoche
 	item_spots = _shuffled(item_spots)
 	var items := 2 if depth <= 3 else 1

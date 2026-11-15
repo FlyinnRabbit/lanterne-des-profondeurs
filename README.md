@@ -50,6 +50,7 @@ Dans les Releases : `LanterneDesProfondeurs_Linux_SteamDeck.tar.gz` (Linux x86_6
 | Frapper vers le haut / le bas | Z ou S + J | haut/bas + X |
 | Ruée / esquive | K ou Maj | RT |
 | Parade | I ou **clic droit** | LB |
+| Sort d'âme (33 d'âme) | O ou clic milieu | RB |
 | Ultime (jauge pleine) | U ou R | Y |
 | Se soigner (maintenir, coûte 33 d'âme) | L ou F | B |
 | Se reposer au banc | Z / flèche haut | haut |
@@ -92,6 +93,10 @@ Aussi accessible en cours de partie : Pause → « Nouvelle partie… ».
 Les boss sont aussi plus rapides et plus résistants selon la difficulté.
 
 ### Ennemis
+- **Bulbe explosif** : roule vers toi, s'allume et explose (les ennemis proches aussi). Tue-le avant !
+- **Tisseuse** : araignée suspendue au plafond qui se laisse tomber quand tu passes dessous.
+- **Lancier** : se met en garde puis porte un long estoc ; une parade l'étourdit.
+- **Spectre** : s'estompe (intouchable), réapparaît près de toi et lance une orbe lente.
 - **Rampant**, **Volant**, **Cracheur** (comme avant).
 - **Sauteur** (nouveau) : sauterelle qui bondit vers toi.
 - **Garde à bouclier** (nouveau) : bloque les coups de face. Frappe-le par-dessus (coup vers
@@ -180,6 +185,12 @@ Comme dans l'inspiration, on ne change d'équipement qu'**assis sur un banc**.
 Les effets sont définis dans `scripts/charms.gd` et appliqués dans `scripts/player.gd`.
 
 ## Combat
+- **Combo** : trois coups d'affilée, le 3e est un **coup final** plus large et plus fort.
+- **Coup chargé** : maintenir Frapper ~0,7 s (l'aiguille scintille) puis relâcher = **tourbillon**
+  qui touche tout autour (gros dégâts).
+- **Estoc** : frapper **pendant (ou juste après) une ruée** = estoc perçant en ligne droite.
+- **Sort d'âme** : lame d'âme lancée devant soi, qui **traverse** les ennemis (coûte 33 d'âme,
+  comme un soin — à toi de choisir).
 - **Parade** : courte fenêtre (0,2 s). Un contact paré étourdit l'ennemi (il devient inoffensif
   et vulnérable) ; un boss paré est sonné une seconde. Une spore parée repart vers les ennemis.
   Rapporte de l'âme et beaucoup de charge d'ultime.

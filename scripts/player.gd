@@ -19,6 +19,12 @@ const DASH_TIME := 0.18
 const DASH_COOLDOWN := 0.45
 const ATTACK_COOLDOWN := 0.36
 const ATTACK_TIME := 0.12
+const COMBO_WINDOW := 0.55      # délai pour enchaîner le coup suivant du combo
+const CHARGE_TIME := 0.7        # maintien de la frappe pour un coup chargé
+const THRUST_TIME := 0.2        # estoc (frapper pendant/juste après une ruée)
+const THRUST_SPEED := 620.0
+const SPIN_TIME := 0.28
+const SPELL_COST := 33
 const POGO_VELOCITY := -580.0
 const INVULN_TIME := 1.3
 const FOCUS_TIME := 0.9
@@ -48,6 +54,13 @@ var attack_cd := 0.0
 var attack_t := 0.0
 var attack_dir := Vector2.RIGHT
 var attack_hit := {}
+var attack_kind := "slash"     # slash / finisher / thrust / spin
+var combo_i := 0
+var combo_t := 0.0
+var charge_t := 0.0
+var thrust_t := 0.0
+var post_dash_t := 0.0
+var spell_cd := 0.0
 var invuln_t := 0.0
 var knock_t := 0.0
 var recoil_t := 0.0
@@ -114,7 +127,8 @@ func get_rect() -> Rect2:
 
 func _physics_process(delta: float) -> void:
 	anim_t += delta
-	for t in ["coyote_t", "buffer_t", "dash_t", "dash_cd", "attack_cd", "attack_t", "invuln_t", "knock_t", "recoil_t"]:
+	for t in ["coyote_t", "buffer_t", "dash_t", "dash_cd", "attack_cd", "attack_t", "invuln_t", "knock_t", "recoil_t",
+			"combo_t", "thrust_t", "post_dash_t", "spell_cd"]:
 		set(t, maxf(get(t) - delta, 0.0))
 	parry_t = maxf(parry_t - delta, 0.0)
 	parry_cd = maxf(parry_cd - delta, 0.0)
@@ -197,8 +211,24 @@ func _physics_process(delta: float) -> void:
 			air_dash_used = true
 		squash = Vector2(1.3, 0.8)
 		main.spawn_burst(global_position, Color(0.2, 0.2, 0.3, 0.8), 10, 120.0, 0.0)
+	# Estoc : frapper pendant la ruée (ou juste après) = coup perçant en ligne droite
+	if Input.is_action_just_pressed("attack") and (dash_t > 0.0 or post_dash_t > 0.0) and thrust_t <= 0.0 and knock_t <= 0.0:
+		_start_attack("thrust", Vector2(facing, 0))
+		thrust_t = THRUST_TIME
+		attack_t = THRUST_TIME
+		dash_t = 0.0
+		post_dash_t = 0.0
+		Audio.sfx("dash", 0.05, 2.0)
+	if thrust_t > 0.0:
+		velocity = Vector2(facing * THRUST_SPEED, 0.0)
+		_do_attack_hits()
+		move_and_slide()
+		_post_move(on_floor)
+		return
 	if dash_t > 0.0:
 		velocity = Vector2(facing * DASH_SPEED, 0.0)
+		if dash_t <= delta * 1.5:
+			post_dash_t = 0.15
 		move_and_slide()
 		_post_move(on_floor)
 		return
@@ -224,20 +254,42 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_released("jump") and velocity.y < 0.0:
 		velocity.y *= JUMP_CUT
 
-	# Attaque
+	# Attaque : combo de 3 coups (le 3e est un coup final), coup chargé en maintenant
 	if Input.is_action_just_pressed("attack") and attack_cd <= 0.0 and knock_t <= 0.0:
-		attack_cd = ATTACK_COOLDOWN
-		attack_t = ATTACK_TIME
-		Audio.sfx("slash", 0.12, -2.0)
-		attack_hit.clear()
+		var adir := Vector2(facing, 0)
 		if Input.is_action_pressed("up"):
-			attack_dir = Vector2.UP
+			adir = Vector2.UP
 		elif Input.is_action_pressed("down") and not on_floor:
-			attack_dir = Vector2.DOWN
-		else:
-			attack_dir = Vector2(facing, 0)
+			adir = Vector2.DOWN
+		combo_i = (combo_i + 1) % 3 if combo_t > 0.0 else 0
+		combo_t = COMBO_WINDOW
+		_start_attack("finisher" if combo_i == 2 and adir.y == 0.0 else "slash", adir)
+		charge_t = 0.0
+	if Input.is_action_pressed("attack") and attack_t <= 0.0 and knock_t <= 0.0:
+		var before := charge_t
+		charge_t += delta
+		if before < CHARGE_TIME and charge_t >= CHARGE_TIME:
+			main.spawn_burst(global_position, Color(1.0, 0.95, 0.75), 10, 120.0, -100.0)
+			Audio.sfx("pickup", 0.0, -8.0)
+	if Input.is_action_just_released("attack"):
+		if charge_t >= CHARGE_TIME and knock_t <= 0.0:
+			_start_attack("spin", Vector2(facing, 0))
+			attack_t = SPIN_TIME
+			main.shake(6)
+		charge_t = 0.0
 	if attack_t > 0.0:
 		_do_attack_hits()
+
+	# Sort d'âme : lame d'âme qui traverse les ennemis (coûte 33 d'âme)
+	if Input.is_action_just_pressed("spell") and soul >= SPELL_COST and spell_cd <= 0.0 and knock_t <= 0.0:
+		soul -= SPELL_COST
+		spell_cd = 0.45
+		main.spawn_projectile(global_position + Vector2(facing * 20, -4), Vector2(facing * 620.0, 0),
+			{"kind": "soulblade", "hostile": false, "radius": 14.0, "life": 1.1, "pierce": true, "damage": 3 + (1 if eq(C.BRUTE) else 0)})
+		recoil_t = 0.1
+		recoil_vx = -facing * 180.0
+		squash = Vector2(1.2, 0.85)
+		Audio.sfx("parry", 0.05, -3.0)
 
 	move_and_slide()
 	_post_move(on_floor)
@@ -255,16 +307,41 @@ func _update_safe_spot() -> void:
 	if main.is_solid_at(l) and main.is_solid_at(r):
 		last_safe = global_position
 
+func _start_attack(kind: String, adir: Vector2) -> void:
+	attack_kind = kind
+	attack_dir = adir
+	attack_cd = ATTACK_COOLDOWN * (1.3 if kind == "finisher" else 1.0)
+	attack_t = ATTACK_TIME * (1.4 if kind == "finisher" else 1.0)
+	attack_hit.clear()
+	Audio.sfx("slash", 0.12, -2.0 if kind == "slash" else 1.0)
+
+# Dégâts selon le type de coup
+func hit_damage() -> int:
+	match attack_kind:
+		"finisher", "thrust":
+			return nail_damage() + 1
+		"spin":
+			return nail_damage() * 2 + 1
+	return nail_damage()
+
 func attack_rect() -> Rect2:
 	var p := global_position
+	if attack_kind == "spin":
+		var rs := 84.0 * reach()
+		return Rect2(p - Vector2(rs, rs * 0.8), Vector2(rs * 2.0, rs * 1.6))
+	if attack_kind == "thrust":
+		var tw := 120.0 * reach()
+		var tx := p.x if facing > 0 else p.x - tw
+		return Rect2(Vector2(tx, p.y - 16), Vector2(tw, 26))
 	if attack_dir == Vector2.UP:
 		var hu := 62.0 * reach()
 		return Rect2(p + Vector2(-32, -SIZE.y / 2.0 + 4 - hu), Vector2(64, hu))
 	if attack_dir == Vector2.DOWN:
 		return Rect2(p + Vector2(-32, SIZE.y / 2.0 - 6), Vector2(64, 62.0 * reach()))
-	var w := 70.0 * reach()
+	var w := 70.0 * reach() * (1.3 if attack_kind == "finisher" else 1.0)
+	var hgt := 54.0 * (1.25 if attack_kind == "finisher" else 1.0)
 	var x := p.x + SIZE.x / 2.0 - 4.0 if facing > 0 else p.x - SIZE.x / 2.0 - w + 4.0
-	return Rect2(Vector2(x, p.y - 30), Vector2(w, 54))
+	return Rect2(Vector2(x, p.y - hgt * 0.55), Vector2(w, hgt))
 
 func _do_attack_hits() -> void:
 	var r := attack_rect()
@@ -273,13 +350,18 @@ func _do_attack_hits() -> void:
 			continue
 		if e.get_rect().intersects(r):
 			attack_hit[e] = true
-			e.take_hit(nail_damage(), attack_dir)
+			var kdir := attack_dir
+			if attack_kind == "spin":
+				kdir = (e.global_position - global_position).normalized()
+			e.take_hit(hit_damage(), kdir * (1.6 if attack_kind == "finisher" else 1.0))
 			Audio.sfx("hit")
 			soul = mini(soul + soul_per_hit(), SOUL_MAX)
 			ult = mini(ult + ult_per_hit(), ULT_MAX)
-			main.shake(4)
-			main.hit_stop(0.04)
-			if attack_dir == Vector2.DOWN:
+			main.shake(4 if attack_kind == "slash" else 8)
+			main.hit_stop(0.04 if attack_kind == "slash" else 0.07)
+			if attack_kind == "spin" or attack_kind == "thrust":
+				pass   # pas de recul : le tourbillon et l'estoc traversent
+			elif attack_dir == Vector2.DOWN:
 				_pogo()
 			elif attack_dir.x != 0.0:
 				recoil_t = 0.08
@@ -476,12 +558,36 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# Arc de l'attaque
+	# Coup chargé prêt : l'aiguille scintille
+	if charge_t > 0.2 and attack_t <= 0.0:
+		var ck := clampf(charge_t / CHARGE_TIME, 0.0, 1.0)
+		var cc := Color(1.0, 0.9, 0.6, 0.15 + 0.35 * ck) if ck >= 1.0 else Color(0.8, 0.9, 1.0, 0.1 + 0.25 * ck)
+		draw_arc(Vector2(0, -4), 18.0 + 10.0 * ck, 0.0, TAU * ck, 24, cc, 3.0)
+		if ck >= 1.0:
+			draw_circle(Vector2(facing * 14, -6), 4.0 + sin(anim_t * 20.0), Color(1.0, 0.95, 0.75))
 	if attack_t > 0.0:
-		var k := attack_t / ATTACK_TIME
 		var r := attack_rect()
 		var c := r.get_center() - global_position
 		var ang := attack_dir.angle()
-		var col := Color(0.95, 0.97, 1.0, 0.9 * k)
-		draw_arc(c - attack_dir * 14.0, 30.0, ang - 1.3, ang + 1.3, 18, col, 7.0 * k + 1.0)
-		draw_arc(c - attack_dir * 18.0, 22.0, ang - 1.0, ang + 1.0, 14, Color(0.7, 0.85, 1.0, 0.5 * k), 3.0)
-		draw_line(Vector2.ZERO, attack_dir * 30.0 + Vector2(0, -4), Color(0.85, 0.87, 0.95), 2.0)
+		match attack_kind:
+			"spin":
+				var k := clampf(attack_t / SPIN_TIME, 0.0, 1.0)
+				var rot := (1.0 - k) * TAU * 1.5 * facing
+				for i in 3:
+					draw_arc(Vector2(0, -4), 40.0 + i * 16.0, rot + i * 2.1, rot + i * 2.1 + 2.4, 20, Color(1.0, 0.95, 0.8, 0.8 * k), 6.0 * k + 1.0)
+				draw_circle(Vector2(0, -4), 80.0 * (1.2 - k), Color(1.0, 0.9, 0.6, 0.12 * k))
+			"thrust":
+				var k := clampf(attack_t / THRUST_TIME, 0.0, 1.0)
+				var tip := Vector2(facing * r.size.x, -4)
+				draw_line(Vector2(0, -4), tip, Color(0.95, 0.97, 1.0, 0.9 * k), 5.0)
+				draw_colored_polygon(PackedVector2Array([tip + Vector2(facing * 14, 0), tip + Vector2(0, -6), tip + Vector2(0, 6)]), Color(1, 1, 1, k))
+				for i in 4:
+					draw_line(Vector2(-facing * (10 + i * 14), -14 + i * 7), Vector2(-facing * (40 + i * 14), -14 + i * 7), Color(0.7, 0.85, 1.0, 0.4 * k), 2.0)
+			_:
+				var fin := attack_kind == "finisher"
+				var k := clampf(attack_t / (ATTACK_TIME * (1.4 if fin else 1.0)), 0.0, 1.0)
+				var col := Color(1.0, 0.88, 0.55, 0.95 * k) if fin else Color(0.95, 0.97, 1.0, 0.9 * k)
+				var rad := 40.0 if fin else 30.0
+				draw_arc(c - attack_dir * 14.0, rad, ang - 1.3, ang + 1.3, 18, col, (10.0 if fin else 7.0) * k + 1.0)
+				draw_arc(c - attack_dir * 18.0, rad - 8.0, ang - 1.0, ang + 1.0, 14, Color(0.7, 0.85, 1.0, 0.5 * k), 3.0)
+				draw_line(Vector2.ZERO, attack_dir * 30.0 + Vector2(0, -4), Color(0.85, 0.87, 0.95), 2.0)

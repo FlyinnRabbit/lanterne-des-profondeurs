@@ -114,6 +114,6 @@ func _draw() -> void:
 	elif p.sitting:
 		hint = "{inventory|1} : changer d'équipement    bouger : se lever"
 	elif t < 14.0 and not GameState.is_tutorial():
-		hint = "{move_left|1}{move_right|1} bouger   {jump|1} sauter   {attack|1} frapper   {dash|1} ruée   {parry|1} parade   {ultimate|1} ultime   {focus|1} soin   {inventory|1} inventaire   {pause|1} pause"
+		hint = "{move_left|1}{move_right|1} bouger   {jump|1} sauter   {attack|1} frapper   {dash|1} ruée   {parry|1} parade   {spell|1} sort   {ultimate|1} ultime   {focus|1} soin   {inventory|1} inventaire   {pause|1} pause"
 	if hint != "" and (Settings.show_hints or main.interact_hint != ""):
 		G.draw_rich(self, font, 0, sz.x, sz.y - 18, hint, 16, Color(0.75, 0.8, 0.9, 0.9))

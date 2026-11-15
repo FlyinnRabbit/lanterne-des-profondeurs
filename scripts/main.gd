@@ -12,6 +12,7 @@ extends Node2D
 #   T  panneau du tutoriel               m  mannequin d'entraînement
 #   M  marchand (hub)                    L  ascenseur (hub)
 #   *  emblème au hasard (niveaux générés)    h  sauteur    g  garde à bouclier
+#   b  bulbe explosif   l  lancier   w  tisseuse (plafond)   r  spectre
 #   Y  grille d'entrée de l'arène        X  grille de sortie
 # Les cartes sont dans scripts/levels.gd.
 
@@ -41,6 +42,10 @@ const BossQueen = preload("res://scripts/boss_queen.gd")
 const BossColossus = preload("res://scripts/boss_colossus.gd")
 const BossWorm = preload("res://scripts/boss_worm.gd")
 const BossKnight = preload("res://scripts/boss_knight.gd")
+const BomberScript = preload("res://scripts/bomber.gd")
+const WeaverScript = preload("res://scripts/weaver.gd")
+const LancerScript = preload("res://scripts/lancer.gd")
+const WraithScript = preload("res://scripts/wraith.gd")
 
 var MAP: Array = []
 
@@ -270,6 +275,14 @@ func _spawn_everything() -> void:
 					enemy_spawns.append([HopperScript, _cell_feet(x, y, 22), null, _roll_elite(x, y)])
 				"g":
 					enemy_spawns.append([GuardScript, _cell_feet(x, y, 30), null, _roll_elite(x, y)])
+				"b":
+					enemy_spawns.append([BomberScript, _cell_feet(x, y, 24), null, _roll_elite(x, y)])
+				"l":
+					enemy_spawns.append([LancerScript, _cell_feet(x, y, 40), null, _roll_elite(x, y)])
+				"w":
+					enemy_spawns.append([WeaverScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
+				"r":
+					enemy_spawns.append([WraithScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
 				"K", "Q":
 					var bid: String = level.get("boss_id", "abbesse" if row[x] == "Q" else "gardien")
 					var scripts := {"reine": BossQueen, "colosse": BossColossus, "ver": BossWorm, "chevalier": BossKnight}

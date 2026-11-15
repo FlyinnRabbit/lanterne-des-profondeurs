@@ -13,6 +13,9 @@ var life := 5.0
 var radius := 7.0
 var gravity := 0.0
 var kind := "spore"
+var pierce := false      # traverse les ennemis (lame d'âme)
+var damage := 3
+var _hit := {}
 var t := 0.0
 
 func _ready() -> void:
@@ -52,10 +55,14 @@ func _physics_process(delta: float) -> void:
 				pop()
 	else:
 		for e in get_tree().get_nodes_in_group("enemies"):
-			if is_instance_valid(e) and not e.dead and r.intersects(e.get_rect()):
-				e.take_hit(3, vel.normalized())
-				pop()
-				return
+			if is_instance_valid(e) and not e.dead and not _hit.has(e) and r.intersects(e.get_rect()):
+				e.take_hit(damage, vel.normalized())
+				_hit[e] = true
+				if not pierce:
+					pop()
+					return
+				main.shake(3)
+				main.player.ult = mini(main.player.ult + 3, main.player.ULT_MAX)
 	queue_redraw()
 
 func parried(_dir: Vector2) -> void:
@@ -75,6 +82,7 @@ func _color() -> Color:
 		"wave": return Color(1.0, 0.85, 0.55)
 		"acid": return Color(0.6, 1.0, 0.35)
 		"ember": return Color(0.55, 0.85, 1.0)
+		"soulblade": return Color(0.85, 0.95, 1.0)
 	return Color(0.85, 0.45, 0.95)
 
 func _draw() -> void:
@@ -96,6 +104,11 @@ func _draw() -> void:
 			draw_circle(Vector2.ZERO, radius * 1.8, Color(c, 0.2))
 			draw_circle(Vector2.ZERO, radius, c)
 			draw_circle(Vector2(-2, -2), radius * 0.35, Color(1, 1, 1, 0.7))
+		"soulblade":
+			var d := signf(vel.x)
+			draw_circle(Vector2.ZERO, radius * 2.0, Color(0.7, 0.85, 1.0, 0.15))
+			draw_arc(Vector2(-d * 6, 0), radius * 1.4, -PI / 2.0 + (0.0 if d > 0 else PI), PI / 2.0 + (0.0 if d > 0 else PI), 16, Color(1, 1, 1, 0.95), 5.0)
+			draw_arc(Vector2(-d * 12, 0), radius * 1.1, -PI / 2.0 + (0.0 if d > 0 else PI), PI / 2.0 + (0.0 if d > 0 else PI), 12, Color(0.6, 0.85, 1.0, 0.6), 3.0)
 		"ember":
 			draw_circle(Vector2.ZERO, radius * 2.2, Color(c, 0.18))
 			draw_colored_polygon(PackedVector2Array([Vector2(radius * 1.6, 0), Vector2(0, radius), Vector2(-radius, 0), Vector2(0, -radius)]).duplicate(), c)

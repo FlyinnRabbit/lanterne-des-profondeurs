@@ -19,18 +19,18 @@ const CURSOR_HIDE_DELAY := 2.0
 var cursor_idle := 0.0
 
 # Ordre et noms affichés dans le menu
-const ACTIONS := ["move_left", "move_right", "up", "down", "jump", "attack", "dash", "parry", "ultimate", "focus", "inventory"]
+const ACTIONS := ["move_left", "move_right", "up", "down", "jump", "attack", "dash", "parry", "spell", "ultimate", "focus", "inventory"]
 const LABELS := {
 	"move_left": "Gauche", "move_right": "Droite", "up": "Haut / Banc", "down": "Bas",
 	"jump": "Sauter", "attack": "Frapper", "dash": "Ruée / Esquive", "parry": "Parade",
-	"ultimate": "Ultime", "focus": "Se soigner", "inventory": "Inventaire",
+	"spell": "Sort d'âme", "ultimate": "Ultime", "focus": "Se soigner", "inventory": "Inventaire",
 }
 
 var DEFAULT_KEYS := {
 	"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
 	"up": [KEY_W, KEY_UP], "down": [KEY_S, KEY_DOWN],
 	"jump": [KEY_SPACE, KEY_NONE], "attack": [KEY_J, -MOUSE_BUTTON_LEFT],
-	"dash": [KEY_K, KEY_SHIFT], "parry": [KEY_I, -MOUSE_BUTTON_RIGHT],
+	"dash": [KEY_K, KEY_SHIFT], "parry": [KEY_I, -MOUSE_BUTTON_RIGHT], "spell": [KEY_O, -MOUSE_BUTTON_MIDDLE],
 	"ultimate": [KEY_U, KEY_R], "focus": [KEY_L, KEY_F],
 	"inventory": [KEY_TAB, KEY_B],
 }
@@ -43,6 +43,7 @@ var DEFAULT_PAD := {
 	"attack": {"type": "button", "index": JOY_BUTTON_X},
 	"dash": {"type": "axis", "axis": JOY_AXIS_TRIGGER_RIGHT, "dir": 1},
 	"parry": {"type": "button", "index": JOY_BUTTON_LEFT_SHOULDER},
+	"spell": {"type": "button", "index": JOY_BUTTON_RIGHT_SHOULDER},
 	"ultimate": {"type": "button", "index": JOY_BUTTON_Y},
 	"focus": {"type": "button", "index": JOY_BUTTON_B},
 	"inventory": {"type": "button", "index": JOY_BUTTON_BACK},
