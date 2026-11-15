@@ -1,4 +1,4 @@
-# Construit l'exe Windows automatiquement.
+# Construit le jeu pour Windows (.exe) et Linux / Steam Deck (.x86_64) automatiquement.
 # - À chaque Release publiée (ou tag « v* ») : ajoute LanterneDesProfondeurs_Windows.zip à la Release.
 # - Lancement manuel (onglet Actions > Export Windows > Run workflow) :
 #     * champ « version » rempli (ex. v1.2.0) → crée le tag et la Release avec l'exe ;
@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Installer Godot 4.3 et le modèle d'export Windows
+      - name: Installer Godot 4.3 et les modèles d'export Windows et Linux
         run: |
           cd "$RUNNER_TEMP"
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
@@ -34,7 +34,7 @@ jobs:
           mv Godot_v4.3-stable_linux.x86_64 godot && chmod +x godot
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
           mkdir -p ~/.local/share/godot/export_templates/4.3.stable
-          unzip -qj Godot_v4.3-stable_export_templates.tpz templates/windows_release_x86_64.exe templates/version.txt \
+          unzip -qj Godot_v4.3-stable_export_templates.tpz templates/windows_release_x86_64.exe templates/linux_release.x86_64 templates/version.txt \
             -d ~/.local/share/godot/export_templates/4.3.stable
           rm Godot_v4.3-stable_export_templates.tpz
 
@@ -45,19 +45,27 @@ jobs:
           "$RUNNER_TEMP/godot" --headless --export-release "Windows Desktop" build/LanterneDesProfondeurs.exe
           pip install --quiet pillow
           python3 tools/peicon.py build/LanterneDesProfondeurs.exe art/icon_1024.png
+          mkdir -p build/linux
+          "$RUNNER_TEMP/godot" --headless --export-release "Linux" build/linux/LanterneDesProfondeurs.x86_64
+          cp art/icon.png build/linux/LanterneDesProfondeurs.png
+          tar -czf build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz -C build/linux .
           cd build && zip -9 LanterneDesProfondeurs_Windows.zip LanterneDesProfondeurs.exe
 
       - name: Artefact
         uses: actions/upload-artifact@v6
         with:
-          name: LanterneDesProfondeurs_Windows
-          path: build/LanterneDesProfondeurs_Windows.zip
+          name: LanterneDesProfondeurs
+          path: |
+            build/LanterneDesProfondeurs_Windows.zip
+            build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz
 
       - name: Release (tag ou Release publiée)
         if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v3
         with:
-          files: build/LanterneDesProfondeurs_Windows.zip
+          files: |
+            build/LanterneDesProfondeurs_Windows.zip
+            build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz
 
       - name: Release (lancement manuel avec version)
         if: github.event_name == 'workflow_dispatch' && inputs.version != ''
@@ -70,4 +78,8 @@ jobs:
           body: |
             **Windows** : télécharger `LanterneDesProfondeurs_Windows.zip`, décompresser et lancer `LanterneDesProfondeurs.exe`.
             L'exe n'est pas encore signé : si Windows affiche « Windows a protégé votre ordinateur », cliquer *Informations complémentaires* → *Exécuter quand même*.
-          files: build/LanterneDesProfondeurs_Windows.zip
+
+            **Linux / Steam Deck** : télécharger `LanterneDesProfondeurs_Linux_SteamDeck.tar.gz`, extraire, lancer `LanterneDesProfondeurs.x86_64` (voir le README pour l'ajouter à Steam).
+          files: |
+            build/LanterneDesProfondeurs_Windows.zip
+            build/LanterneDesProfondeurs_Linux_SteamDeck.tar.gz

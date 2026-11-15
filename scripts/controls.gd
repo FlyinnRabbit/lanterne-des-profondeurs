@@ -109,6 +109,9 @@ func _ready() -> void:
 	var pads := Input.get_connected_joypads()
 	if not pads.is_empty():
 		pad_kind = detect_kind(Input.get_joy_name(pads[0]))
+	# Sur Steam Deck, les commandes intégrées sont une manette : on affiche ses boutons d'emblée
+	if Settings.is_steam_deck():
+		using_pad = true
 	reset_defaults(false)
 	load_settings()
 	apply()

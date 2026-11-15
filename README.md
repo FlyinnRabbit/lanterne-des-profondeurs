@@ -11,6 +11,24 @@ Dernière version : onglet **Releases** → `LanterneDesProfondeurs_Windows.zip`
 lancer `LanterneDesProfondeurs.exe`. L'exe n'étant pas signé, Windows SmartScreen peut afficher
 « Windows a protégé votre ordinateur » → *Informations complémentaires* → *Exécuter quand même*.
 
+## Linux et Steam Deck
+Dans les Releases : `LanterneDesProfondeurs_Linux_SteamDeck.tar.gz` (Linux x86_64).
+
+**Linux** : extraire l'archive, puis lancer `./LanterneDesProfondeurs.x86_64`
+(si besoin : clic droit → Propriétés → « Autoriser l'exécution », ou `chmod +x`).
+
+**Steam Deck** :
+1. Passer en **mode Bureau** (bouton Steam → Alimentation → Passer au bureau).
+2. Télécharger l'archive depuis la page Releases avec le navigateur, l'extraire
+   (clic droit → *Extract archive here*), par exemple dans `~/Jeux/Lanterne`.
+3. Ouvrir Steam en mode Bureau → *Jeux* → **Ajouter un jeu non-Steam à ma bibliothèque**
+   → *Parcourir* → choisir `LanterneDesProfondeurs.x86_64` → *Ajouter les programmes
+   sélectionnés*.
+4. Revenir en **mode Jeu** : le jeu est dans la bibliothèque (onglet *Non-Steam*).
+   Il se lance en plein écran, les commandes du Deck fonctionnent directement
+   (A sauter, X frapper, RT ruée, LB parade, Y ultime, B soin) et l'écran 16:10 est rempli.
+   L'icône `LanterneDesProfondeurs.png` fournie peut être choisie dans les propriétés du raccourci.
+
 ## Lancer le projet dans Godot
 1. Installe Godot 4 (version standard, pas .NET) : https://godotengine.org/download
 2. Dans le gestionnaire de projets : **Importer** → choisis le dossier `lanterne` (fichier `project.godot`).

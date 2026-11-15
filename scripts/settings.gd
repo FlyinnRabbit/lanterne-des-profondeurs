@@ -24,8 +24,15 @@ const FPS_CHOICES := [30, 60, 120, 144, 165, 240, 0]   # 0 = illimité
 const FPS_LABELS := ["30", "60", "120", "144", "165", "240", "Illimité"]
 const PAD_STYLE_LABELS := ["Automatique", "Xbox (XInput)", "PlayStation"]
 
+# Steam Deck : Steam définit la variable d'environnement SteamDeck=1
+static func is_steam_deck() -> bool:
+	return OS.get_environment("SteamDeck") == "1" or OS.get_processor_name().contains("AMD Custom APU")
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if is_steam_deck() and not FileAccess.file_exists(SAVE_PATH):
+		fullscreen = true      # premier lancement sur le Deck : plein écran, 60 FPS
+		pad_style = 1          # les boutons du Deck sont A/B/X/Y
 	load_settings()
 	apply_display()
 
