@@ -256,6 +256,16 @@ func _rush_level() -> Dictionary:
 		}
 	return _cache[key]
 
+# Après un boss final : le palier compte comme terminé, puis retour au Sanctuaire
+# (on continue les paliers) ou à l'écran titre (partie terminée, la sauvegarde est gardée).
+func finish_final(player, end_game: bool) -> void:
+	step = STEPS_PER_PALIER
+	prog["finished"] = true
+	go_next_level(player)
+	if end_game:
+		show_title = true
+		pending_message = tr("Partie terminée — merci d'avoir joué !")
+
 # Fin du niveau en cours (passage lumineux atteint)
 func go_next_level(player) -> void:
 	if mode == "rush":
@@ -471,7 +481,7 @@ func save_summary(s := -1) -> String:
 		return tr("Tutoriel en cours")
 	var dd: int = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
 	var p: Dictionary = cfg.get_value("game", "prog", {})
-	return tr("%s — palier %d accessible — record : palier %d — %d éclats") % [
+	return ("★ " if bool(p.get("finished", false)) else "") + tr("%s — palier %d accessible — record : palier %d — %d éclats") % [
 		tr(DIFFS[dd]["name"]), int(cfg.get_value("game", "unlocked", 1)), int(cfg.get_value("game", "record", 0)), int(p.get("geo", 0))]
 
 func load_game() -> bool:

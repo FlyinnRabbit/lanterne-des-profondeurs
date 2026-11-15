@@ -8,6 +8,7 @@ var boss_id := "ombre"
 var t := 0.0
 var view: Control
 var skip_hold := 0.0
+var choice: Control = null    # choix final : retourner au Sanctuaire ou terminer la partie
 const TOTAL := 66.0
 
 const BOSS_LINE := {
@@ -46,21 +47,60 @@ func _ready() -> void:
 	Audio.play_boss("res://music/fin_lanterne_rallumee.ogg")
 
 func _process(delta: float) -> void:
+	if choice:
+		return
 	t += delta
 	if t > 3.0 and (Input.is_action_pressed("jump") or Input.is_action_pressed("attack") or Input.is_action_pressed("ui_accept")):
 		skip_hold += delta
 	else:
 		skip_hold = 0.0
 	if t >= TOTAL or skip_hold > 0.8:
-		_finish()
+		_show_choice()
 		return
 	view.queue_redraw()
 
-func _finish() -> void:
+# Après le générique : continuer (les paliers sans fin, jusqu'au palier 28 et au-delà) ou finir la partie
+func _show_choice() -> void:
+	t = TOTAL - 0.01
+	view.queue_redraw()
+	choice = CenterContainer.new()
+	choice.set_anchors_preset(Control.PRESET_FULL_RECT)
+	choice.theme = main.menu._make_theme()
+	add_child(choice)
+	var panel := PanelContainer.new()
+	choice.add_child(panel)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	panel.add_child(v)
+	var title := Label.new()
+	title.text = "La Lanterne brille à nouveau."
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.6))
+	v.add_child(title)
+	var info := Label.new()
+	info.text = "Le palier est terminé. Tu peux continuer à descendre (d'autres boss finaux t'attendent aux paliers 14, 21, 28…) ou terminer ta partie ici."
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.custom_minimum_size = Vector2(560, 0)
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info.add_theme_font_size_override("font_size", 16)
+	info.add_theme_color_override("font_color", Color(0.8, 0.84, 0.95))
+	v.add_child(info)
+	var b1: Button = main.menu._button("Retourner au Sanctuaire et continuer", _continue)
+	b1.custom_minimum_size = Vector2(520, 46)
+	v.add_child(b1)
+	var b2: Button = main.menu._button("Terminer la partie (retour à l'écran titre)", _end_game)
+	b2.custom_minimum_size = Vector2(520, 46)
+	v.add_child(b2)
+	b1.grab_focus()
+
+func _continue() -> void:
 	get_tree().paused = false
-	Audio.resume_level()
-	main.show_message(tr("Mais au fond, quelque chose remue encore…\nLes paliers continuent, plus profonds et plus durs."), 6.0)
-	queue_free()
+	GameState.finish_final(main.player, false)
+
+func _end_game() -> void:
+	get_tree().paused = false
+	GameState.finish_final(main.player, true)
 
 # fondu d'un segment [a, b]
 func _k(a: float, b: float, f := 1.0) -> float:
@@ -177,6 +217,6 @@ func _paint() -> void:
 			var y := sz.y + 40 - u2 * (sz.y + CREDITS.size() * 50.0) + i * 50.0
 			var big := i == 0 or i == CREDITS.size() - 1
 			_text(y, CREDITS[i], 36 if big else 22, Color(1.0, 0.88, 0.6) if big else Color(0.85, 0.88, 0.95), 1.0)
-	if t > 3.0:
+	if t > 3.0 and choice == null:
 		var font := ThemeDB.fallback_font
 		view.draw_string(font, Vector2(0, sz.y - 18), tr("Maintenir Saut ou Frapper : passer"), HORIZONTAL_ALIGNMENT_RIGHT, sz.x - 20, 14, Color(0.6, 0.62, 0.7, 0.7))

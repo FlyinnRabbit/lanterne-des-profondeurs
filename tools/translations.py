@@ -425,6 +425,11 @@ T = {
 "Le Cerbère des Profondeurs": ("The Cerberus of the Depths", "El Cancerbero de las Profundidades", "Der Zerberus der Tiefen"),
 "Le Centaure Archer": ("The Centaur Archer", "El Centauro Arquero", "Der Kentaur-Bogenschütze"),
 "L'Œil d'en Dessous": ("The Eye from Below", "El Ojo de Abajo", "Das Auge von Unten"),
+"La Lanterne brille à nouveau.": ("The Lantern shines again.", "La Linterna vuelve a brillar.", "Die Laterne leuchtet wieder."),
+"Le palier est terminé. Tu peux continuer à descendre (d'autres boss finaux t'attendent aux paliers 14, 21, 28…) ou terminer ta partie ici.": ("The tier is cleared. You can keep descending (more final bosses await on tiers 14, 21, 28…) or end your game here.", "El nivel está superado. Puedes seguir bajando (otros jefes finales te esperan en los niveles 14, 21, 28…) o terminar tu partida aquí.", "Die Ebene ist geschafft. Du kannst weiter hinabsteigen (weitere Endbosse warten auf Ebene 14, 21, 28…) oder dein Spiel hier beenden."),
+"Retourner au Sanctuaire et continuer": ("Return to the Sanctuary and keep going", "Volver al Santuario y continuar", "Zum Heiligtum zurückkehren und weitermachen"),
+"Terminer la partie (retour à l'écran titre)": ("End the game (back to title screen)", "Terminar la partida (volver a la pantalla de título)", "Spiel beenden (zurück zum Titelbildschirm)"),
+"Partie terminée — merci d'avoir joué !": ("Game complete — thanks for playing!", "Partida terminada — ¡gracias por jugar!", "Spiel abgeschlossen — danke fürs Spielen!"),
 }
 LANGS = ["en", "es", "de"]
 def gd(s):
