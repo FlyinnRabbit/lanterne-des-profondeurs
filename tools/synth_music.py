@@ -390,5 +390,58 @@ jobs.update({
 })
 jobs["sfx"] = lambda: sfx_all(OUT.replace("music", "sfx"))
 
+# ---------------- boss finaux et fin ----------------
+def oeil(seed, name):
+    # L'Œil d'en Dessous : lent, dissonant, chœur grave et pulsations (rythme irrégulier)
+    rng = np.random.default_rng(seed); np.random.seed(seed)
+    bars = 20; T = Track(96, bars); root = 38; sc = "phryg"; prog = [0, 1, 0, 6, 0, 1, 4, 1]
+    for b in range(bars):
+        c = prog[b % 8]; t0 = b * T.bar; e = T.spb / 2
+        T.add(t0, drone(mtof(root - 24), T.bar * 1.2, 0.45), 0, 0.3)
+        T.add(t0, choir([mtof(n) for n in chord(root - 12, sc, c, 3)], T.bar, 0.32, "o"), rng.uniform(-0.4, 0.4), 0.8)
+        for i in [0, 3, 5, 6]:
+            T.add(t0 + i * e, kick(0.8 if i == 0 else 0.55), 0, 0.15)
+        if b % 2:
+            T.add(t0 + 2 * T.spb, tom(70, 0.7), -0.4, 0.4)
+            T.add(t0 + 3.5 * T.spb, tom(55, 0.7), 0.4, 0.4)
+        for i in range(8):
+            T.add(t0 + i * e, bass(mtof(deg(root - 24, sc, c) + (1 if i == 5 else 0)), e * 0.9, 0.4, grit=0.8), 0, 0.05)
+        # cloches désaccordées
+        if b % 2 == 0:
+            T.add(t0 + T.spb, bell(mtof(deg(root + 12, sc, c)) * 1.012, 2, 0.3), 0.6, 0.9)
+            T.add(t0 + 2.5 * T.spb, bell(mtof(deg(root + 13, sc, c + 4)) * 0.988, 2, 0.25), -0.6, 0.9)
+    for (t, d, m, v) in melody(rng, root + 12, sc, prog, bars, T.spb, R_SLOW, density=0.6):
+        if t >= 4 * T.bar:
+            T.add(t, pad([mtof(m)], d, v * 0.4, 1800, attack=0.2, release=0.6), 0, 0.6)
+    T.render(f"{OUT}/{name}.ogg", rev_time=4.5, gain=0.9)
+
+def fin(seed, name):
+    # Thème de fin : la Lanterne rallumée — lent, majeur, cloches, chœur et piano
+    rng = np.random.default_rng(seed); np.random.seed(seed)
+    bars = 28; T = Track(72, bars); root = 50; sc = "major"; prog = [0, 4, 5, 3, 0, 3, 4, 4]
+    for b in range(bars):
+        c = prog[b % 8]; t0 = b * T.bar
+        T.add(t0, pad([mtof(n) for n in chord(root - 12, sc, c, 4)], T.bar, 0.2, 1800, attack=1.0, kind="sine"), 0, 0.7)
+        if b >= 4:
+            T.add(t0, choir([mtof(n) for n in chord(root, sc, c)], T.bar, 0.22 + 0.1 * (b >= 16), "a"), 0, 0.8)
+        if b >= 8:
+            T.add(t0, bass(mtof(deg(root - 24, sc, c)), T.bar * 0.9, 0.3), 0, 0.2)
+        T.add(t0, bell(mtof(deg(root + 12, sc, c)), 3, 0.3), -0.3, 0.8)
+        if b >= 16:
+            for i in range(4):
+                T.add(t0 + i * T.spb, kick(0.35), 0, 0.3)
+            T.add(t0, organ([mtof(n) for n in chord(root - 12, sc, c)], T.bar * 0.95, 0.18), 0, 0.5)
+    for (t, d, m, v) in melody(rng, root + 12, sc, prog, bars, T.spb, R_SLOW, density=0.85):
+        T.add(t, piano(mtof(m), d, v * 0.5), 0.15, 0.6)
+    T.render(f"{OUT}/{name}.ogg", rev_time=5.0, gain=0.85)
+
+jobs.update({
+    "f1": lambda: boss(31, "boss_ombre_lanterne", True, bpm=138, root=46, sc="harm", prog=[0, 5, 1, 4, 0, 6, 5, 4]),
+    "f2": lambda: boss(32, "boss_cerbere", True, bpm=158, root=41, sc="phryg", prog=[0, 1, 0, 1, 5, 6, 1, 0]),
+    "f3": lambda: boss(33, "boss_centaure", True, bpm=172, root=45, sc="dorian", prog=[0, 6, 5, 6, 0, 3, 4, 4]),
+    "f4": lambda: oeil(34, "boss_oeil_d_en_dessous"),
+    "end": lambda: fin(35, "fin_lanterne_rallumee"),
+})
+
 for k in (sys.argv[2:] or jobs):
     jobs[k]()

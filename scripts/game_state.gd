@@ -30,12 +30,22 @@ const BOSSES := {
 	"colosse": {"name": "Le Colosse d'Os", "music": "res://music/boss_colosse_d_os.ogg"},
 	"ver": {"name": "Le Ver des Profondeurs", "music": "res://music/boss_ver_des_profondeurs.ogg"},
 	"chevalier": {"name": "Le Chevalier Spectral", "music": "res://music/boss_chevalier_spectral.ogg"},
-	"ombre": {"name": "L'Ombre de la Lanterne", "music": "res://music/boss_chevalier_spectral.ogg"},
+	"ombre": {"name": "L'Ombre de la Lanterne", "music": "res://music/boss_ombre_lanterne.ogg"},
+	"cerbere": {"name": "Le Cerbère des Profondeurs", "music": "res://music/boss_cerbere.ogg"},
+	"centaure": {"name": "Le Centaure Archer", "music": "res://music/boss_centaure.ogg"},
+	"oeil": {"name": "L'Œil d'en Dessous", "music": "res://music/boss_oeil_d_en_dessous.ogg"},
 }
+# Boss finaux : l'un d'eux, tiré au hasard pour chaque partie, garde le palier 7 (puis 14, 21…)
+const FINALS := ["ombre", "cerbere", "centaure", "oeil"]
+
+func final_boss_for(p: int) -> String:
+	var r := RandomNumberGenerator.new()
+	r.seed = run_seed * 977 + int(p / 7) * 31
+	return FINALS[r.randi_range(0, FINALS.size() - 1)]
 
 func boss_for(p: int) -> String:
 	if p % 7 == 0:
-		return "ombre"     # boss final : palier 7, 14, 21…
+		return final_boss_for(p)     # boss final : palier 7, 14, 21…
 	var rest := ["abbesse", "reine", "colosse", "ver", "chevalier"]
 	var rng := RandomNumberGenerator.new()
 	rng.seed = run_seed * 13 + 5
@@ -142,7 +152,7 @@ const CURSES := {
 	"fragile": {"name": "Fragilité", "desc": "Impossible de se soigner avec l'âme. Éclats +60 %.", "geo": 1.6},
 }
 const RUSH_REWARD := 300
-const RUSH_ORDER := ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre"]
+const RUSH_ORDER := ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre", "cerbere", "centaure", "oeil"]
 var curse := ""
 var daily := false
 var saved_seed := 0

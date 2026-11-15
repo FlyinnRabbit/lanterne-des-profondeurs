@@ -178,10 +178,21 @@ Les nouveaux ennemis et les élites deviennent plus fréquents en profondeur.
 - **Arène d'élites** : réveille l'autel, bats trois élites, gagne des éclats et un emblème.
 - **Marchand ambulant** : parfois près du banc de mi-parcours (les achats font partie du butin).
 
-## Boss final
-**L'Ombre de la Lanterne** attend au palier 7 (puis tous les 7 paliers) : couronnes de braises,
-balayage à hauteur de tête, pluie de cendres annoncée au plafond, colonnes de lumière, et en
-phase 2 des spectres invoqués.
+## Boss finaux
+Au palier 7 (puis tous les 7 paliers), un boss final **tiré au hasard pour chaque partie**,
+chacun avec son propre thème musical :
+- **L'Ombre de la Lanterne** : couronnes de braises, balayage à hauteur de tête, pluie de cendres,
+  colonnes de lumière, spectres en phase 2.
+- **Le Cerbère des Profondeurs** : souffle de braises des trois têtes, bond avec onde de choc,
+  triple morsure à hauteur de tête (s'accroupir), hurlement qui fait jaillir des flammes.
+- **Le Centaure Archer** : galop à travers l'arène, salves de flèches, pluie de flèches annoncée
+  au sol, coup de lance à hauteur de tête (s'accroupir), sauts par-dessus le joueur.
+- **L'Œil d'en Dessous** : tentacules qui jaillissent du sol, rayon qui balaie l'arène à hauteur
+  de tête (s'accroupir) ou au ras du sol (sauter), spirales de spores, yeux volants.
+
+Le vaincre lance **l'animation de fin** : la Lanterne se rallume, la lumière remonte palier par
+palier jusqu'au Sanctuaire puis à la surface, et le générique défile sur le thème de fin.
+Ensuite, les paliers continuent. Succès « Les quatre gardiens » : vaincre les quatre.
 
 ## L'arsenal (au Sanctuaire)
 | Arme | Prix | Style |

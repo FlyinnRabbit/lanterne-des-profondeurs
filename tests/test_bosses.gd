@@ -16,12 +16,19 @@ func _run() -> void:
 	var gs = root.get_node("GameState")
 	gs.show_title = false
 	gs.difficulty = 1
-	for id in ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre"]:
+	for id in ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre", "cerbere", "centaure", "oeil"]:
 		var pal := 1
 		for p in range(1, 8):
 			if gs.boss_for(p) == id:
 				pal = p
 				break
+		if id in gs.FINALS:
+			pal = 7
+			for sd in range(1, 400):
+				gs.run_seed = sd
+				gs._cache.clear()
+				if gs.boss_for(7) == id:
+					break
 		gs.mode = "descent"
 		gs.palier = pal
 		gs.step = 2

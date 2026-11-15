@@ -197,7 +197,7 @@ func open_elevator() -> void:
 	db.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
 	if GameState.record >= 6:
 		var rbest := float(Achievements.counters.get("rush_best", 0.0))
-		var rl := tr("Défi des boss : les 7 boss à la suite")
+		var rl := tr("Défi des boss : les %d boss à la suite") % GameState.RUSH_ORDER.size()
 		if rbest > 0.0:
 			rl += "  — " + tr("meilleur : %d:%02d") % [int(rbest) / 60, int(rbest) % 60]
 		var rb := _lift_button(rl, _rush)

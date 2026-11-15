@@ -45,6 +45,10 @@ const BossColossus = preload("res://scripts/boss_colossus.gd")
 const BossWorm = preload("res://scripts/boss_worm.gd")
 const BossKnight = preload("res://scripts/boss_knight.gd")
 const BossLantern = preload("res://scripts/boss_lantern.gd")
+const BossCerberus = preload("res://scripts/boss_cerberus.gd")
+const BossCentaur = preload("res://scripts/boss_centaur.gd")
+const BossEye = preload("res://scripts/boss_eye.gd")
+const EndingScript = preload("res://scripts/ending.gd")
 const BomberScript = preload("res://scripts/bomber.gd")
 const WeaverScript = preload("res://scripts/weaver.gd")
 const LancerScript = preload("res://scripts/lancer.gd")
@@ -403,8 +407,9 @@ func _spawn_everything() -> void:
 					enemy_spawns.append([WraithScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
 				"K", "Q":
 					var bid: String = level.get("boss_id", "abbesse" if row[x] == "Q" else "gardien")
-					var scripts := {"reine": BossQueen, "colosse": BossColossus, "ver": BossWorm, "chevalier": BossKnight, "ombre": BossLantern}
-					var heights := {"reine": 62, "colosse": 112, "ver": 54, "chevalier": 72, "ombre": 76}
+					var scripts := {"reine": BossQueen, "colosse": BossColossus, "ver": BossWorm, "chevalier": BossKnight, "ombre": BossLantern,
+						"cerbere": BossCerberus, "centaure": BossCentaur, "oeil": BossEye}
+					var heights := {"reine": 62, "colosse": 112, "ver": 54, "chevalier": 72, "ombre": 76, "cerbere": 84, "centaure": 96, "oeil": 96}
 					boss = CharacterBody2D.new()
 					boss.set_script(scripts.get(bid, BossScript))
 					if not scripts.has(bid):
@@ -849,12 +854,25 @@ func on_boss_killed() -> void:
 		exit_gate.set_closed(false)
 	Audio.resume_level()
 	var bname: String = boss.boss_name
-	if level.get("boss_id", "") == "ombre":
+	if level.get("boss_id", "") in GameState.FINALS and GameState.mode == "descent":
 		Achievements.unlock("final")
-		show_message(tr("L'Ombre de la Lanterne se dissipe.\nLa Lanterne des Profondeurs brille à nouveau — mais les profondeurs continuent…"), 6.0)
+		Achievements.counters["final_" + str(level["boss_id"])] = true
+		Achievements.save()
+		if GameState.FINALS.all(func(fid): return Achievements.counters.get("final_" + fid, false)):
+			Achievements.unlock("finals4")
+		await get_tree().create_timer(2.5).timeout
+		play_ending(level["boss_id"])
 		return
 	var fem := bname.begins_with("La ") or bname.begins_with("L'Abbesse")
 	show_message(tr("%s est vaincue.\nLa voie est ouverte." if fem else "%s est vaincu.\nLa voie est ouverte.") % tr(bname), 4.0)
+
+# Animation de fin (après un boss final) ; le jeu continue ensuite (paliers sans fin)
+func play_ending(boss_id: String) -> void:
+	var e := CanvasLayer.new()
+	e.set_script(EndingScript)
+	e.main = self
+	e.boss_id = boss_id
+	add_child(e)
 
 func on_parry(pos: Vector2) -> void:
 	Audio.sfx("parry")
