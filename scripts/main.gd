@@ -124,8 +124,8 @@ func _ready() -> void:
 	elif GameState.is_hub():
 		show_message(GameState.pending_message if GameState.pending_message != "" else level["name"], 4.5)
 	else:
-		show_message("Palier %d — niveau %d / %d%s\n%s — %s" % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER,
-			"  (boss)" if GameState.is_boss_level() else "", level["name"], GameState.diff_name()], 3.5)
+		show_message(tr("Palier %d — niveau %d / %d%s\n%s — %s") % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER,
+			tr("  (boss)") if GameState.is_boss_level() else "", tr(level["name"]), GameState.diff_name()], 3.5)
 	GameState.pending_message = ""
 	Audio.play_playlist(level.get("music", []))
 	if GameState.show_title:
@@ -465,7 +465,7 @@ func _process(delta: float) -> void:
 	interact_hint = ""
 	for it in interactables:
 		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
-			interact_hint = "{up|1} : %s" % {"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur"}[it[1]]
+			interact_hint = tr("{up|1} : %s") % tr({"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur"}[it[1]])
 			if Input.is_action_just_pressed("up") and player.is_on_floor() and not get_tree().paused:
 				if it[1] == "merchant":
 					hub_ui.open_shop()
@@ -498,12 +498,12 @@ func _process(delta: float) -> void:
 		boss.wake()
 		Audio.play_boss(level.get("boss_music", "res://music/boss_gardien_du_puits.ogg"))
 		shake(10)
-		show_message(boss.boss_name.to_upper(), 3.0)
+		show_message(tr(boss.boss_name).to_upper(), 3.0)
 	# Panneaux du tutoriel
 	sign_text = ""
 	for sg in signs:
 		if pp.distance_to(sg[0].position + Vector2(0, -20)) < 70.0:
-			sign_text = sg[1]["text"]   # les {action} sont dessinés en icônes par le HUD
+			sign_text = tr(sg[1]["text"])   # les {action} sont dessinés en icônes par le HUD
 			if not sg[2]:
 				sg[2] = true
 				sg[0].lit = true
@@ -517,11 +517,11 @@ func _process(delta: float) -> void:
 			if pk[1] == "charm":
 				GameState.add_charm(pk[2])
 				Audio.sfx("pickup", 0.0)
-				show_message("Emblème obtenu : %s\nÉquipe-le depuis l'inventaire ({inventory|1}) en te reposant sur un banc." % GameState.charm(pk[2])["name"], 4.5)
+				show_message(tr("Emblème obtenu : %s\nÉquipe-le depuis l'inventaire ({inventory|1}) en te reposant sur un banc.") % tr(GameState.charm(pk[2])["name"]), 4.5)
 			else:
 				GameState.add_notch(pk[2])
 				Audio.sfx("pickup", 0.0)
-				show_message("Encoche d'emblème obtenue !\nEncoches : %d" % GameState.prog["notches"], 3.5)
+				show_message(tr("Encoche d'emblème obtenue !\nEncoches : %d") % GameState.prog["notches"], 3.5)
 			spawn_burst(prop.position, Color(1.0, 0.92, 0.65), 30, 220.0, 0.0)
 			shake(6)
 			prop.queue_free()
@@ -541,7 +541,7 @@ func _process(delta: float) -> void:
 		spawn_burst(shrine.position + Vector2(0, -40), Color(1.0, 0.9, 0.6), 60, 300.0)
 		Audio.play_boss("res://music/sanctuaire.ogg")
 		Audio.sfx("door", 0.0)
-		show_message("Vous avez rallumé la Lanterne des Profondeurs.\nPartie n° %d terminée — merci d'avoir joué !  ({pause|1} : nouvelle partie)" % GameState.run_seed, 9999.0)
+		show_message(tr("Vous avez rallumé la Lanterne des Profondeurs.\nPartie n° %d terminée — merci d'avoir joué !  ({pause|1} : nouvelle partie)") % GameState.run_seed, 9999.0)
 
 # ---------------------------------------------------------------- utilitaires
 # Remplace {action} par les touches actuellement réglées
@@ -569,7 +569,7 @@ func hit_stop(duration: float) -> void:
 
 func show_message(text: String, duration: float = 2.5) -> void:
 	if hud:
-		hud.message = text
+		hud.message = tr(text)
 		hud.message_t = duration
 
 func spawn_burst(pos: Vector2, color: Color, amount: int = 12, speed: float = 160.0, grav: float = 300.0) -> void:
@@ -640,7 +640,7 @@ func on_boss_killed() -> void:
 	Audio.resume_level()
 	var bname: String = boss.boss_name
 	var fem := bname.begins_with("La ") or bname.begins_with("L'Abbesse")
-	show_message("%s est vaincu%s.\nLa voie est ouverte." % [bname, "e" if fem else ""], 4.0)
+	show_message(tr("%s est vaincue.\nLa voie est ouverte." if fem else "%s est vaincu.\nLa voie est ouverte.") % tr(bname), 4.0)
 
 func on_parry(pos: Vector2) -> void:
 	Audio.sfx("parry")
@@ -688,11 +688,11 @@ func on_damage_dealt(e, dmg: int) -> void:
 		return
 	var n := ""
 	if "boss_name" in e:
-		n = e.boss_name
+		n = tr(e.boss_name)
 	else:
-		n = ENEMY_NAMES.get(e.get_script().resource_path.get_file(), "Ennemi")
+		n = tr(ENEMY_NAMES.get(e.get_script().resource_path.get_file(), "Ennemi"))
 	if e.elite:
-		n += " (élite)"
+		n += tr(" (élite)")
 	var kind: String = player.attack_kind if player.attack_t > 0.0 or player.thrust_t > 0.0 else "autre"
 	if player.last_crit_t > 0.0:
 		kind = "crit"

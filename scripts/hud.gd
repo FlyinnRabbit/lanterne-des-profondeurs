@@ -93,7 +93,7 @@ func _draw() -> void:
 		var w := 500.0
 		var bx := (sz.x - w) / 2.0
 		var by := sz.y - 60.0
-		draw_string(font, Vector2(bx, by - 10), main.boss.boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.9, 0.85, 0.8))
+		draw_string(font, Vector2(bx, by - 10), tr(main.boss.boss_name), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.9, 0.85, 0.8))
 		draw_rect(Rect2(bx, by, w, 10), Color(0.05, 0.05, 0.08, 0.85))
 		draw_rect(Rect2(bx, by, w * float(main.boss.hp) / main.boss.max_hp, 10), Color(0.85, 0.4, 0.3))
 	# Flash blanc de l'ultime
@@ -132,13 +132,13 @@ func _draw() -> void:
 			"thrust": col = Color(0.75, 0.95, 1.0)
 			"autre": col = Color(0.7, 0.85, 1.0)
 			"crit": col = Color(1.0, 0.45, 0.25)
-		var big := ("CRITIQUE -%d" if d[2] == "crit" else "-%d") % d[0]
+		var big := (tr("CRITIQUE -%d") if d[2] == "crit" else "-%d") % d[0]
 		var fs := 26 if d[0] >= 3 else 22
 		var x := sz.x - 24.0 + (1.0 - slide) * 30.0
 		var bw := font.get_string_size(big, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		draw_string(font, Vector2(x - bw + 2, ly + 2), big, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0, 0, 0, 0.6 * a))
 		draw_string(font, Vector2(x - bw, ly), big, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(col, a))
-		var who: String = d[1] + (" — vaincu" if d[3] else "")
+		var who: String = d[1] + (tr(" — vaincu") if d[3] else "")
 		var ww := font.get_string_size(who, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
 		draw_string(font, Vector2(x - bw - ww - 8, ly - 2), who, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.8, 0.82, 0.9, 0.8 * a))
 		ly += 30.0

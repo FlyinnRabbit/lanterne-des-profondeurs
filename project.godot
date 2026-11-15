@@ -20,6 +20,7 @@ Controls="*res://scripts/controls.gd"
 GameState="*res://scripts/game_state.gd"
 Settings="*res://scripts/settings.gd"
 Audio="*res://scripts/audio.gd"
+Lang="*res://scripts/lang.gd"
 
 [debug]
 
@@ -42,3 +43,7 @@ shader_compiler/shader_cache/enabled=false
 
 environment/defaults/default_clear_color=Color(0.025, 0.035, 0.07, 1)
 2d/snap/snap_2d_transforms_to_pixel=false
+
+[internationalization]
+
+locale/fallback="fr"

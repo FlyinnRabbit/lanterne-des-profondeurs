@@ -43,7 +43,7 @@ func boss_for(p: int) -> String:
 	return order[(p - 1) % order.size()]
 
 func boss_name_for(p: int) -> String:
-	return BOSSES[boss_for(p)]["name"]
+	return tr(BOSSES[boss_for(p)]["name"])
 
 # Difficultés. soul/ult : gain d'âme et d'ultime · speed : vitesse des ennemis et projectiles ·
 # aggro : portée de détection et cadence d'attaque · hp : vie des ennemis · dmg : dégâts reçus ·
@@ -83,7 +83,7 @@ func d(key: String):
 	return DIFFS[difficulty][key]
 
 func diff_name() -> String:
-	return DIFFS[difficulty]["name"]
+	return tr(DIFFS[difficulty]["name"])
 
 # Paramètre de difficulté ajusté à la profondeur : chaque palier rend les ennemis plus coriaces
 func scaled(key: String) -> float:
@@ -176,7 +176,7 @@ func go_next_level(player) -> void:
 			record = maxi(record, palier)
 			unlocked = maxi(unlocked, palier + 1)
 			mode = "hub"
-			pending_message = "Palier %d terminé !\nL'ascenseur peut maintenant descendre jusqu'au palier %d." % [palier, unlocked]
+			pending_message = tr("Palier %d terminé !\nL'ascenseur peut maintenant descendre jusqu'au palier %d.") % [palier, unlocked]
 	save_game()
 	_reload(true)
 
@@ -193,10 +193,10 @@ func start_descent(p: int, player) -> void:
 
 # Mort pendant une descente : retour au hub, le butin ramassé depuis le départ est perdu
 func die_in_descent() -> void:
-	var where := "Vous avez sombré au palier %d (niveau %d/%d)." % [palier, step, STEPS_PER_PALIER]
+	var where := tr("Vous avez sombré au palier %d (niveau %d/%d).") % [palier, step, STEPS_PER_PALIER]
 	prog = snapshot.duplicate(true)
 	mode = "hub"
-	pending_message = where + "\nLe butin de cette descente est perdu, mais l'ascenseur se souvient."
+	pending_message = where + "\n" + tr("Le butin de cette descente est perdu, mais l'ascenseur se souvient.")
 	save_game()
 	_reload(true)
 
@@ -270,8 +270,8 @@ func save_summary() -> String:
 		return ""
 	var dd: int = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
 	var p: Dictionary = cfg.get_value("game", "prog", {})
-	return "%s — palier %d accessible — record : palier %d — %d éclats" % [
-		DIFFS[dd]["name"], int(cfg.get_value("game", "unlocked", 1)), int(cfg.get_value("game", "record", 0)), int(p.get("geo", 0))]
+	return tr("%s — palier %d accessible — record : palier %d — %d éclats") % [
+		tr(DIFFS[dd]["name"]), int(cfg.get_value("game", "unlocked", 1)), int(cfg.get_value("game", "record", 0)), int(p.get("geo", 0))]
 
 func load_game() -> bool:
 	var cfg := ConfigFile.new()
@@ -318,7 +318,7 @@ func buy(kind: String, id: int, player) -> String:
 				return "Le marchand n'en a plus."
 			price = hp_price()
 	if player.geo < price:
-		return "Pas assez d'éclats (%d nécessaires)." % price
+		return tr("Pas assez d'éclats (%d nécessaires).") % price
 	player.geo -= price
 	prog["geo"] = player.geo
 	match kind:
@@ -353,7 +353,7 @@ func buy_weapon(id: String, player) -> String:
 		return "Déjà possédée."
 	var price := int(WeaponsData.get_w(id)["price"])
 	if player.geo < price:
-		return "Pas assez d'éclats (%d nécessaires)." % price
+		return tr("Pas assez d'éclats (%d nécessaires).") % price
 	player.geo -= price
 	prog["geo"] = player.geo
 	var arr: Array = prog.get("weapons_owned", [])

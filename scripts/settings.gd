@@ -22,6 +22,7 @@ var show_fps := false
 var pad_style := 0         # 0 automatique, 1 Xbox, 2 PlayStation
 var enemy_bars := true     # barres de vie au-dessus des ennemis
 var damage_numbers := true # dégâts infligés dans le coin de l'écran
+var language := 0          # index dans Lang.CODES (0 = langue du système)
 
 const FPS_CHOICES := [30, 60, 120, 144, 165, 240, 0]   # 0 = illimité
 const FPS_LABELS := ["30", "60", "120", "144", "165", "240", "Illimité"]
@@ -81,7 +82,7 @@ func reset_defaults() -> void:
 	changed.emit()
 
 const KEYS := ["hud_scale", "menu_scale", "shake", "zoom", "fullscreen", "vsync", "hitstop", "show_hints",
-	"master_volume", "music_volume", "sfx_volume", "fps_cap", "show_fps", "pad_style", "enemy_bars", "damage_numbers"]
+	"master_volume", "music_volume", "sfx_volume", "fps_cap", "show_fps", "pad_style", "enemy_bars", "damage_numbers", "language"]
 
 func save_settings() -> void:
 	var cfg := ConfigFile.new()

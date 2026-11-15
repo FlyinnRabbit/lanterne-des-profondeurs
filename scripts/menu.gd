@@ -32,6 +32,9 @@ var cells := {}          # "action:slot" -> Button
 var waiting_action := ""
 var waiting_slot := -1
 var wait_t := 0.0
+var info: Label
+var route: Label
+var save_label: Label
 
 func _ready() -> void:
 	layer = 20
@@ -94,6 +97,7 @@ func _build_title(root: Control) -> void:
 		first_title_button = _button("Continuer", func(): GameState.continue_game())
 		v.add_child(first_title_button)
 		var sv := Label.new()
+		save_label = sv
 		sv.text = GameState.save_summary()
 		sv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		sv.add_theme_font_size_override("font_size", 14)
@@ -253,21 +257,15 @@ func _build_pause(root: Control) -> void:
 	v.add_theme_constant_override("separation", 8)
 	pause_panel.add_child(v)
 	v.add_child(_title("Pause"))
-	var info := Label.new()
+	info = Label.new()
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info.add_theme_font_size_override("font_size", 15)
 	info.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
-	if GameState.is_tutorial():
-		info.text = "Tutoriel"
-	elif GameState.is_hub():
-		info.text = "Sanctuaire — %s — record : palier %d" % [GameState.diff_name(), GameState.record]
-	else:
-		info.text = "Palier %d — niveau %d / %d — %s" % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER, GameState.diff_name()]
-	var route := Label.new()
+	route = Label.new()
 	route.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	route.add_theme_font_size_override("font_size", 13)
 	route.add_theme_color_override("font_color", Color(0.5, 0.56, 0.68))
-	route.text = "" if GameState.is_tutorial() else ("Progression sauvegardée automatiquement" + (" (mode portable : dossier « sauvegardes » à côté du jeu)" if Paths.is_portable() else ""))
+	_update_info()
 	v.add_child(info)
 	v.add_child(route)
 	first_pause_button = _button("Reprendre", close)
@@ -282,6 +280,20 @@ func _build_pause(root: Control) -> void:
 		v.add_child(_button("Abandonner la descente", func(): GameState.abandon_descent()))
 	v.add_child(_button("Nouvelle partie…", _open_difficulty))
 	v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
+
+# Textes composés du menu (à refaire quand la langue change)
+func _update_info() -> void:
+	if info == null:
+		return
+	if GameState.is_tutorial():
+		info.text = "Tutoriel"
+	elif GameState.is_hub():
+		info.text = tr("Sanctuaire — %s — record : palier %d") % [GameState.diff_name(), GameState.record]
+	else:
+		info.text = tr("Palier %d — niveau %d / %d — %s") % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER, GameState.diff_name()]
+	route.text = "" if GameState.is_tutorial() else (tr("Progression sauvegardée automatiquement") + (tr(" (mode portable : dossier « sauvegardes » à côté du jeu)") if Paths.is_portable() else ""))
+	if save_label:
+		save_label.text = GameState.save_summary()
 
 func _build_controls(root: Control) -> void:
 	controls_panel = _centered_panel(root)
@@ -371,6 +383,8 @@ func _build_options(root: Control) -> void:
 	g.add_theme_constant_override("h_separation", 18)
 	g.add_theme_constant_override("v_separation", 8)
 	oscroll.add_child(g)
+	_section(g, "Langue")
+	_choice_row(g, "Langue / Language", "language", Lang.NAMES)
 	_section(g, "Son")
 	_slider_row(g, "Volume général", "master_volume", 0.0, 1.0, 0.05, true)
 	_slider_row(g, "Musique", "music_volume", 0.0, 1.0, 0.05, true)
@@ -456,6 +470,10 @@ func _choice_row(g: GridContainer, text: String, key: String, labels: Array) -> 
 func _on_choice(index: int, key: String) -> void:
 	Settings.set_value(key, index)
 	_refresh()
+	if key == "language":
+		_update_info()
+		if main and main.hud:
+			main.hud.queue_redraw()
 
 func _check_row(g: GridContainer, text: String, key: String) -> void:
 	var l := Label.new()
@@ -529,6 +547,7 @@ func _show(on: bool) -> void:
 	_go(pause_panel if on else null)
 
 func open() -> void:
+	_update_info()
 	_show(true)
 	Engine.time_scale = 1.0
 	get_tree().paused = true
@@ -585,7 +604,7 @@ func _on_joy_changed(device: int, connected: bool) -> void:
 	_refresh()
 	if main:
 		var n := Input.get_joy_name(device)
-		main.show_message(("Manette connectée : " + n) if connected else "Manette déconnectée", 2.5)
+		main.show_message((tr("Manette connectée : ") + n) if connected else "Manette déconnectée", 2.5)
 		if connected:
 			Controls.rumble(0.4, 0.4, 0.25)
 
@@ -594,7 +613,7 @@ func _start_wait(action: String, slot: int) -> void:
 	waiting_action = action
 	waiting_slot = slot
 	wait_t = 0.15   # ignore la pression qui a validé le bouton
-	status.text = ("Appuie sur un bouton de la manette…" if slot == 2 else "Appuie sur une touche ou clique avec un bouton de la souris…") + "  (Échap ou Menu/Options : annuler)"
+	status.text = tr("Appuie sur un bouton de la manette…" if slot == 2 else "Appuie sur une touche ou clique avec un bouton de la souris…") + tr("  (Échap ou Menu/Options : annuler)")
 	_refresh()
 
 func _cancel_wait() -> void:
@@ -624,7 +643,7 @@ func _input(event: InputEvent) -> void:
 				status.text = "Annulé."
 			elif waiting_slot < 2:
 				Controls.rebind_key(waiting_action, waiting_slot, event.physical_keycode)
-				status.text = "%s → %s" % [Controls.LABELS[waiting_action], Controls.key_name(event.physical_keycode)]
+				status.text = "%s → %s" % [tr(Controls.LABELS[waiting_action]), Controls.key_name(event.physical_keycode)]
 			else:
 				status.text = "Utilise la manette pour cette case (Échap : annuler)."
 				get_viewport().set_input_as_handled()
@@ -634,7 +653,7 @@ func _input(event: InputEvent) -> void:
 			var code: int = Controls.mouse_code(event)
 			if code != 0:
 				Controls.rebind_key(waiting_action, waiting_slot, code)
-				status.text = "%s → %s" % [Controls.LABELS[waiting_action], Controls.key_name(code)]
+				status.text = "%s → %s" % [tr(Controls.LABELS[waiting_action]), Controls.key_name(code)]
 				_finish_wait()
 		elif waiting_slot == 2 and (event is InputEventJoypadButton or event is InputEventJoypadMotion):
 			if event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_START:
@@ -645,7 +664,7 @@ func _input(event: InputEvent) -> void:
 			if not d.is_empty():
 				Controls.rebind_pad(waiting_action, d)
 				Controls.rumble(0.3, 0.0, 0.1)
-				status.text = "%s → %s" % [Controls.LABELS[waiting_action], Controls.pad_name(d)]
+				status.text = "%s → %s" % [tr(Controls.LABELS[waiting_action]), Controls.pad_name(d)]
 				_finish_wait()
 		if not (event is InputEventMouseMotion):
 			get_viewport().set_input_as_handled()

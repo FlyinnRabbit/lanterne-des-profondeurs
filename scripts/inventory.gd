@@ -203,8 +203,8 @@ func _toggle(id: int) -> void:
 	if err != "":
 		status.text = err
 	else:
-		var n: String = GameState.charm(id)["name"]
-		status.text = ("%s équipé." if GameState.has_charm(id) else "%s retiré.") % n
+		var n: String = tr(GameState.charm(id)["name"])
+		status.text = tr("%s équipé." if GameState.has_charm(id) else "%s retiré.") % n
 		Controls.rumble(0.2, 0.0, 0.06)
 	_refresh()
 	_show_desc(id)
@@ -213,8 +213,8 @@ func _show_desc(id: int) -> void:
 	focused_id = id
 	if GameState.owns(id):
 		var c: Dictionary = GameState.charm(id)
-		desc_name.text = c["name"] + ("  (équipé)" if GameState.has_charm(id) else "")
-		desc_cost.text = "Coût : %d encoche%s" % [c["cost"], "s" if c["cost"] > 1 else ""]
+		desc_name.text = tr(c["name"]) + (tr("  (équipé)") if GameState.has_charm(id) else "")
+		desc_cost.text = tr("Coût : %d encoches" if c["cost"] > 1 else "Coût : %d encoche") % c["cost"]
 		desc_text.text = c["desc"]
 	else:
 		desc_name.text = "???"
@@ -225,13 +225,13 @@ func _refresh() -> void:
 	var p = main.player
 	title_info.text = "Assis sur un banc : clique ou valide un emblème pour l'équiper." if _can_edit() else "Consultation seule — repose-toi sur un banc pour changer d'équipement."
 	var items := []
-	items.append("• Aiguille du Veilleur")
+	items.append("• " + tr(p.weapon()["name"]))
 	if p.can_dash:
-		items.append("• Cape d'Ombre-Vive (Ruée / Esquive)")
-	items.append("• Éclats : %d" % p.geo)
-	items.append("• Emblèmes trouvés : %d / %d" % [GameState.prog["owned"].size(), GameState.charm_count()])
+		items.append("• " + tr("Cape d'Ombre-Vive (Ruée / Esquive)"))
+	items.append("• " + tr("Éclats : %d") % p.geo)
+	items.append("• " + tr("Emblèmes trouvés : %d / %d") % [GameState.prog["owned"].size(), GameState.charm_count()])
 	items_label.text = "\n".join(items)
-	stats_label.text = "Vie %d/%d   Âme %d   Ultime %d %%   Dégâts %d" % [p.hp, p.max_hp, p.soul, p.ult, p.nail_damage()]
+	stats_label.text = tr("Vie %d/%d   Âme %d   Ultime %d %%   Dégâts %d") % [p.hp, p.max_hp, p.soul, p.ult, p.nail_damage()]
 	for s in slots:
 		s.queue_redraw()
 	notch_bar.queue_redraw()

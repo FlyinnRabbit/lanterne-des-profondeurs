@@ -768,7 +768,7 @@ func _draw() -> void:
 	if perfect_t > 0.0:
 		var pk := perfect_t / 1.2
 		var f := ThemeDB.fallback_font
-		var txt := "PARFAITE !"
+		var txt := tr("PARFAITE !")
 		var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
 		draw_string(f, Vector2(-tw / 2.0, -50 - (1.0 - pk) * 14.0), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1.0, 0.85, 0.4, pk))
 	# Attaque plongée : traînée et lame pointée vers le bas

@@ -57,10 +57,10 @@ static func _key_text(k: int) -> String:
 		return "M%d" % -k
 	var t: String = c.key_name(k)
 	match t:
-		"Escape": return "Échap"
-		"Space": return "Espace"
-		"Shift": return "Maj"
-		"Enter": return "Entrée"
+		"Escape": return TranslationServer.translate("Échap")
+		"Space": return TranslationServer.translate("Espace")
+		"Shift": return TranslationServer.translate("Maj")
+		"Enter": return TranslationServer.translate("Entrée")
 		"Tab": return "Tab"
 		"Left": return "←"
 		"Right": return "→"
@@ -280,6 +280,7 @@ static func _segments(text: String) -> Array:
 	return out
 
 static func rich_width(font: Font, text: String, font_size: int) -> float:
+	text = String(TranslationServer.translate(text))
 	var h := font_size * 1.3
 	var total := 0.0
 	for seg in _segments(text):
@@ -292,6 +293,7 @@ static func rich_width(font: Font, text: String, font_size: int) -> float:
 
 # Dessine une ligne centrée dans [x, x + avail] ; y = ligne de base du texte.
 static func draw_rich(ci: CanvasItem, font: Font, x: float, avail: float, y: float, text: String, font_size: int, col: Color, shadow := false) -> void:
+	text = String(TranslationServer.translate(text))
 	var h := font_size * 1.3
 	var total := rich_width(font, text, font_size)
 	var cx := x + (avail - total) / 2.0

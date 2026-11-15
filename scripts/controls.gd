@@ -97,13 +97,13 @@ func pad_style() -> String:
 # Libellé du périphérique actuel : « Clavier / souris », « Manette Xbox », « Manette PlayStation »
 func device_label() -> String:
 	if not using_pad:
-		return "Clavier / souris"
-	return "Manette PlayStation" if pad_style() == "ps" else "Manette Xbox"
+		return tr("Clavier / souris")
+	return tr("Manette PlayStation") if pad_style() == "ps" else tr("Manette Xbox")
 
 # Touche de pause selon le périphérique
 func pause_label() -> String:
 	if not using_pad:
-		return "Échap / P"
+		return tr("Échap / P")
 	return "Options" if pad_style() == "ps" else "Menu"
 
 func _ready() -> void:
@@ -244,7 +244,7 @@ func key_name(k: int) -> String:
 	if k == KEY_NONE:
 		return "—"
 	if k < 0:
-		return MOUSE_NAMES.get(-k, "Souris %d" % -k)
+		return tr(MOUSE_NAMES[-k]) if MOUSE_NAMES.has(-k) else tr("Souris %d") % -k
 	var local := DisplayServer.keyboard_get_keycode_from_physical(k)
 	var s := OS.get_keycode_string(local)
 	return s if s != "" else OS.get_keycode_string(k)
@@ -255,17 +255,17 @@ func pad_name(d: Dictionary) -> String:
 	var ps := pad_style() == "ps"
 	if d["type"] == "button":
 		var names: Dictionary = PS_BUTTON_NAMES if ps else PAD_BUTTON_NAMES
-		return names.get(int(d["index"]), "Bouton %d" % int(d["index"]))
+		return tr(names[int(d["index"])]) if names.has(int(d["index"])) else tr("Bouton %d") % int(d["index"])
 	var axis := int(d["axis"])
 	var pos: bool = float(d["dir"]) > 0
 	match axis:
 		JOY_AXIS_TRIGGER_LEFT: return "L2" if ps else "LT"
 		JOY_AXIS_TRIGGER_RIGHT: return "R2" if ps else "RT"
-		JOY_AXIS_LEFT_X: return "Stick G " + ("droite" if pos else "gauche")
-		JOY_AXIS_LEFT_Y: return "Stick G " + ("bas" if pos else "haut")
-		JOY_AXIS_RIGHT_X: return "Stick D " + ("droite" if pos else "gauche")
-		JOY_AXIS_RIGHT_Y: return "Stick D " + ("bas" if pos else "haut")
-	return "Axe %d %s" % [axis, "+" if pos else "-"]
+		JOY_AXIS_LEFT_X: return tr("Stick G droite" if pos else "Stick G gauche")
+		JOY_AXIS_LEFT_Y: return tr("Stick G bas" if pos else "Stick G haut")
+		JOY_AXIS_RIGHT_X: return tr("Stick D droite" if pos else "Stick D gauche")
+		JOY_AXIS_RIGHT_Y: return tr("Stick D bas" if pos else "Stick D haut")
+	return tr("Axe %d %s") % [axis, "+" if pos else "-"]
 
 # Nom court de la commande principale, selon le périphérique utilisé en dernier
 func label(action: String) -> String:
@@ -289,13 +289,13 @@ func label_all(action: String) -> String:
 func pad_description() -> String:
 	var pads := Input.get_connected_joypads()
 	if pads.is_empty():
-		return "Aucune manette détectée"
+		return tr("Aucune manette détectée")
 	var parts := []
 	for id in pads:
 		var n := Input.get_joy_name(id)
 		var tag := " (PlayStation)" if detect_kind(n) == "ps" else " (Xbox / XInput)"
 		parts.append(n + tag)
-	return "Manette : " + ", ".join(parts)
+	return tr("Manette : ") + ", ".join(parts)
 
 # ---------------------------------------------------------------- vibrations
 func rumble(weak: float, strong: float, duration: float) -> void:

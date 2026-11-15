@@ -177,6 +177,9 @@ avec un fondu, un thème par boss, un pour le tutoriel et un pour le sanctuaire.
 la musique baisse un peu quand le jeu est en pause.
 
 ## Options (menu pause → Options)
+- **Langue / Language** : Automatique (langue du système), Français, English, Español, Deutsch.
+  Les traductions sont dans `tools/translations.py` (texte français → anglais, espagnol, allemand) ;
+  lancer `python3 tools/translations.py` régénère `scripts/translations.gd`.
 - **Taille du HUD** (60 – 160 %) et **taille des menus** (60 – 130 %, s'applique aussi à l'inventaire).
 - **Zoom de la caméra**, **plein écran** (aussi avec F11), **synchronisation verticale**.
 - **Barres de vie des ennemis** (trait au-dessus de chaque ennemi blessé, encadré rouge pour les élites)

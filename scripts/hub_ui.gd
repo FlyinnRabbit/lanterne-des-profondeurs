@@ -93,26 +93,26 @@ func _build_shop(root: Control) -> void:
 
 func _shop_items() -> Array:
 	var items := []
-	items.append({"kind": "hp", "id": 0, "name": "Fragment de vie (%d / %d)" % [GameState.max_hp_bonus(), GameState.MAX_BONUS_HP],
+	items.append({"kind": "hp", "id": 0, "name": tr("Fragment de vie (%d / %d)") % [GameState.max_hp_bonus(), GameState.MAX_BONUS_HP],
 		"price": GameState.hp_price(), "desc": "Ajoute un fragment de vie maximum, pour toujours.",
 		"sold_out": GameState.max_hp_bonus() >= GameState.MAX_BONUS_HP})
-	items.append({"kind": "notch", "id": 0, "name": "Encoche d'emblème (vous en avez %d)" % int(GameState.prog["notches"]),
+	items.append({"kind": "notch", "id": 0, "name": tr("Encoche d'emblème (vous en avez %d)") % int(GameState.prog["notches"]),
 		"price": GameState.notch_price(), "desc": "Permet d'équiper davantage d'emblèmes.", "sold_out": false})
 	for id in GameState.charm_count():
 		if not GameState.owns(id):
 			var c: Dictionary = GameState.charm(id)
-			items.append({"kind": "charm", "id": id, "name": "Emblème : %s (coût %d encoche%s)" % [c["name"], c["cost"], "s" if c["cost"] > 1 else ""],
+			items.append({"kind": "charm", "id": id, "name": tr("Emblème : %s (coût %d encoches)" if c["cost"] > 1 else "Emblème : %s (coût %d encoche)") % [tr(c["name"]), c["cost"]],
 				"price": GameState.charm_price(id), "desc": c["desc"], "sold_out": false})
 	return items
 
 func _refresh_shop() -> void:
 	for ch in shop_list.get_children():
 		ch.queue_free()
-	shop_geo.text = "Éclats : %d" % main.player.geo
+	shop_geo.text = tr("Éclats : %d") % main.player.geo
 	var first: Button = null
 	for it in _shop_items():
 		var b := Button.new()
-		b.text = ("%s — VENDU" % it["name"]) if it["sold_out"] else ("%s — %d éclats" % [it["name"], it["price"]])
+		b.text = (tr("%s — VENDU") % it["name"]) if it["sold_out"] else (tr("%s — %d éclats") % [it["name"], it["price"]])
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.custom_minimum_size = Vector2(600, 38)
 		b.disabled = it["sold_out"]
@@ -176,12 +176,12 @@ func open_elevator() -> void:
 	_open(lift_panel)
 	for ch in lift_list.get_children():
 		ch.queue_free()
-	lift_info.text = "Difficulté : %s — record : palier %d.\nChaque palier : 2 niveaux puis un boss. Plus on descend, plus les ennemis sont coriaces.\nMourir ramène ici et fait perdre le butin de la descente." % [GameState.diff_name(), GameState.record]
+	lift_info.text = tr("Difficulté : %s — record : palier %d.\nChaque palier : 2 niveaux puis un boss. Plus on descend, plus les ennemis sont coriaces.\nMourir ramène ici et fait perdre le butin de la descente.") % [GameState.diff_name(), GameState.record]
 	var last: Button = null
 	for p in range(GameState.unlocked, 0, -1):
 		var boss: String = GameState.boss_name_for(p)
 		var b := Button.new()
-		b.text = "Palier %d — boss : %s%s" % [p, boss, "  (nouveau !)" if p > GameState.record else ""]
+		b.text = tr("Palier %d — boss : %s%s") % [p, boss, tr("  (nouveau !)") if p > GameState.record else ""]
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.custom_minimum_size = Vector2(540, 40)
 		b.pressed.connect(_descend.bind(p))
@@ -230,7 +230,7 @@ func _refresh_arsenal(focus_id: String = "") -> void:
 	for ch in ars_list.get_children():
 		ars_list.remove_child(ch)
 		ch.queue_free()
-	ars_geo.text = "Éclats : %d" % main.player.geo
+	ars_geo.text = tr("Éclats : %d") % main.player.geo
 	var cur: String = GameState.weapon()
 	var to_focus: Button = null
 	for id in Weapons.ORDER:
@@ -238,12 +238,12 @@ func _refresh_arsenal(focus_id: String = "") -> void:
 		var b := Button.new()
 		var state := ""
 		if id == cur:
-			state = "ÉQUIPÉE"
+			state = tr("ÉQUIPÉE")
 		elif GameState.owns_weapon(id):
-			state = "équiper"
+			state = tr("équiper")
 		else:
-			state = "%d éclats" % int(w["price"])
-		b.text = "%s — %s" % [w["name"], state]
+			state = tr("%d éclats") % int(w["price"])
+		b.text = "%s — %s" % [tr(w["name"]), state]
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.custom_minimum_size = Vector2(600, 40)
 		b.add_theme_color_override("font_color", w["color"] if id != cur else Color(1.0, 0.9, 0.55))
@@ -261,7 +261,7 @@ func _refresh_arsenal(focus_id: String = "") -> void:
 func _pick_weapon(id: String) -> void:
 	if GameState.owns_weapon(id):
 		GameState.equip_weapon(id)
-		ars_status.text = "%s équipée." % Weapons.W[id]["name"]
+		ars_status.text = tr("%s équipée.") % tr(Weapons.W[id]["name"])
 		Audio.sfx("pickup", 0.0, -3.0)
 	else:
 		var err: String = GameState.buy_weapon(id, main.player)
@@ -270,7 +270,7 @@ func _pick_weapon(id: String) -> void:
 			return
 		Audio.sfx("pickup", 0.0)
 		Controls.rumble(0.3, 0.0, 0.1)
-		ars_status.text = "%s achetée et équipée !" % Weapons.W[id]["name"]
+		ars_status.text = tr("%s achetée et équipée !") % tr(Weapons.W[id]["name"])
 	_refresh_arsenal(id)
 
 # ---------------------------------------------------------------- commun
