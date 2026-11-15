@@ -41,6 +41,15 @@ def parse(data):
     walk(base, [])
     return res
 
+def dib(img):
+    """Image RGBA -> entrée d'icône BMP 32 bits (en-tête + pixels BGRA de bas en haut + masque AND)."""
+    w, h = img.size
+    px = img.tobytes('raw', 'BGRA')
+    rows = [px[y * w * 4:(y + 1) * w * 4] for y in range(h)]
+    mask_row = ((w + 31) // 32) * 4
+    header = struct.pack('<IiiHHIIiiII', 40, w, h * 2, 1, 32, 0, w * h * 4 + mask_row * h, 0, 0, 0, 0)
+    return header + b''.join(reversed(rows)) + b'\0' * (mask_row * h)
+
 def main(exe_path, ico_path):
     data = bytearray(open(exe_path, 'rb').read())
     res = parse(data)
@@ -59,13 +68,19 @@ def main(exe_path, ico_path):
         ent, off, cap = icons[iid]
         img = src.resize((w, w), Image.LANCZOS)
         blob = None
-        for colors in (None, 256, 128, 64):
-            buf = io.BytesIO()
-            im = img if colors is None else img.quantize(colors=colors, method=Image.FASTOCTREE).convert('RGBA')
-            im.save(buf, 'PNG', optimize=True)
-            if len(buf.getvalue()) <= cap:
-                blob = buf.getvalue()
-                break
+        if w < 256:
+            # Petites tailles : format BMP 32 bits (comme l'icône d'origine), lu partout par Windows
+            blob = dib(img)
+            if len(blob) > cap:
+                blob = None
+        if blob is None and w >= 256:
+            for colors in (None, 256, 128, 64):
+                buf = io.BytesIO()
+                im = img if colors is None else img.quantize(colors=colors, method=Image.FASTOCTREE).convert('RGBA')
+                im.save(buf, 'PNG', optimize=True)
+                if len(buf.getvalue()) <= cap:
+                    blob = buf.getvalue()
+                    break
         if blob is None:
             print(f"  {w}px : place insuffisante ({cap} octets), image d'origine conservée")
             continue
