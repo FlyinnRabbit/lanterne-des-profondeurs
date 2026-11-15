@@ -13,7 +13,9 @@ const Charms = preload("res://scripts/charms.gd")
 const Biomes = preload("res://scripts/biomes.gd")
 const LevelGen = preload("res://scripts/levelgen.gd")
 const Paths = preload("res://scripts/paths.gd")
-const SAVE_NAME := "save.cfg"   # voir paths.gd (mode portable)
+const SAVE_NAME := "save.cfg"   # ancien fichier unique (repris dans l'emplacement 1)
+const SLOTS := 3                # emplacements de sauvegarde : save_1.cfg, save_2.cfg, save_3.cfg
+var slot := 1
 const STEPS_PER_PALIER := 2
 const MAX_BONUS_HP := 4
 
@@ -111,6 +113,8 @@ func scaled(key: String) -> float:
 	return base
 
 func _ready() -> void:
+	_migrate_old_save()
+	slot = clampi(int(Settings.last_slot), 1, SLOTS)
 	prog = _fresh()
 	snapshot = prog.duplicate(true)
 	randomize()
@@ -347,9 +351,13 @@ func abandon_descent() -> void:
 func restart_level() -> void:
 	_reload(false)
 
-func new_game(skip_tutorial := false, diff := -1) -> void:
+func new_game(skip_tutorial := false, diff := -1, s := -1) -> void:
+	if s > 0:
+		_use_slot(s)
 	if diff >= 0:
 		difficulty = diff
+	daily = false
+	curse = ""
 	show_title = false
 	randomize()
 	run_seed = randi() % 1000000
@@ -369,12 +377,56 @@ func new_game(skip_tutorial := false, diff := -1) -> void:
 	save_game()
 	_reload(false)
 
-func continue_game() -> void:
+func continue_game(s := -1) -> void:
+	if s > 0:
+		_use_slot(s)
+	daily = false
+	curse = ""
 	if load_game():
 		show_title = false
-		mode = "hub"
-		pending_message = "Bon retour au Sanctuaire."
+		var cfg := ConfigFile.new()
+		cfg.load(Paths.file(save_name()))
+		if bool(cfg.get_value("game", "tutorial_done", false)):
+			mode = "hub"
+			pending_message = "Bon retour au Sanctuaire."
+		else:
+			mode = "tutorial"
 		_reload(false)
+
+func _use_slot(s: int) -> void:
+	slot = clampi(s, 1, SLOTS)
+	Settings.set_value("last_slot", slot)
+
+func save_name(s := -1) -> String:
+	return "save_%d.cfg" % (slot if s <= 0 else s)
+
+# L'ancienne sauvegarde unique devient l'emplacement 1
+func _migrate_old_save() -> void:
+	var old := Paths.file(SAVE_NAME)
+	var new1 := Paths.file(save_name(1))
+	if FileAccess.file_exists(old) and not FileAccess.file_exists(new1):
+		var cfg := ConfigFile.new()
+		if cfg.load(old) == OK:
+			cfg.save(new1)
+			DirAccess.remove_absolute(old if not old.begins_with("user://") else ProjectSettings.globalize_path(old))
+
+func slot_exists(s: int) -> bool:
+	return FileAccess.file_exists(Paths.file(save_name(s)))
+
+func delete_slot(s: int) -> void:
+	var path := Paths.file(save_name(s))
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path if not path.begins_with("user://") else ProjectSettings.globalize_path(path))
+
+# Emplacement à proposer pour « Continuer » : le dernier utilisé s'il existe, sinon le premier rempli
+func continue_slot() -> int:
+	var last := clampi(int(Settings.last_slot), 1, SLOTS)
+	if has_save(last):
+		return last
+	for s in range(1, SLOTS + 1):
+		if has_save(s):
+			return s
+	return -1
 
 func _reload(deferred: bool) -> void:
 	Engine.time_scale = Settings.speed()
@@ -395,16 +447,18 @@ func save_game() -> void:
 	cfg.set_value("game", "tutorial_done", mode != "tutorial")
 	# en descente on sauvegarde l'état du départ : quitter en pleine descente = abandon
 	cfg.set_value("game", "prog", snapshot if mode in ["descent", "rush"] else prog)
-	cfg.save(Paths.file(SAVE_NAME))
+	cfg.save(Paths.file(save_name()))
 
-func has_save() -> bool:
+func has_save(s := -1) -> bool:
 	var cfg := ConfigFile.new()
-	return cfg.load(Paths.file(SAVE_NAME)) == OK and bool(cfg.get_value("game", "tutorial_done", false))
+	return cfg.load(Paths.file(save_name(s))) == OK and bool(cfg.get_value("game", "tutorial_done", false))
 
-func save_summary() -> String:
+func save_summary(s := -1) -> String:
 	var cfg := ConfigFile.new()
-	if cfg.load(Paths.file(SAVE_NAME)) != OK:
+	if cfg.load(Paths.file(save_name(s))) != OK:
 		return ""
+	if not bool(cfg.get_value("game", "tutorial_done", false)):
+		return tr("Tutoriel en cours")
 	var dd: int = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
 	var p: Dictionary = cfg.get_value("game", "prog", {})
 	return tr("%s — palier %d accessible — record : palier %d — %d éclats") % [
@@ -412,7 +466,7 @@ func save_summary() -> String:
 
 func load_game() -> bool:
 	var cfg := ConfigFile.new()
-	if cfg.load(Paths.file(SAVE_NAME)) != OK:
+	if cfg.load(Paths.file(save_name())) != OK:
 		return false
 	difficulty = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
 	unlocked = int(cfg.get_value("game", "unlocked", 1))

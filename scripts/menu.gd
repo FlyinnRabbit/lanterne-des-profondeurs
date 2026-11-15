@@ -34,6 +34,10 @@ var waiting_slot := -1
 var wait_t := 0.0
 var info: Label
 var ach_panel: PanelContainer
+var slots_panel: PanelContainer
+var slots_box: VBoxContainer
+var diff_warn: Label
+var target_slot := 1
 var ach_list: VBoxContainer
 var ach_back: Button
 var route: Label
@@ -56,6 +60,7 @@ func _ready() -> void:
 	_build_title(root)
 	_build_difficulty(root)
 	_build_achievements(root)
+	_build_slots(root)
 	home_panel = pause_panel
 	for p in _panels():
 		p.resized.connect(_apply_scale)
@@ -66,7 +71,7 @@ func _ready() -> void:
 	Input.joy_connection_changed.connect(_on_joy_changed)
 
 func _panels() -> Array:
-	return [pause_panel, controls_panel, options_panel, title_panel, diff_panel, ach_panel]
+	return [pause_panel, controls_panel, options_panel, title_panel, diff_panel, ach_panel, slots_panel]
 
 # Affiche un seul panneau
 func _go(panel: PanelContainer) -> void:
@@ -97,19 +102,20 @@ func _build_title(root: Control) -> void:
 	sub.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
 	v.add_child(sub)
 	v.add_child(Control.new())
-	if GameState.has_save():
-		first_title_button = _button("Continuer", func(): GameState.continue_game())
+	var cs: int = GameState.continue_slot()
+	if cs > 0:
+		first_title_button = _button("Continuer", func(): GameState.continue_game(cs))
 		v.add_child(first_title_button)
 		var sv := Label.new()
 		save_label = sv
-		sv.text = GameState.save_summary()
+		sv.text = tr("Emplacement %d") % cs + " — " + GameState.save_summary(cs)
 		sv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		sv.add_theme_font_size_override("font_size", 14)
 		sv.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
 		v.add_child(sv)
-		v.add_child(_button("Nouvelle partie", func(): _open_difficulty()))
+		v.add_child(_button("Parties (3 emplacements)", _open_slots))
 	else:
-		first_title_button = _button("Jouer", func(): _open_difficulty())
+		first_title_button = _button("Jouer", _open_slots)
 		v.add_child(first_title_button)
 	v.add_child(_button("Commandes", _open_controls))
 	v.add_child(_button("Options", _open_options))
@@ -128,8 +134,9 @@ func _build_difficulty(root: Control) -> void:
 	diff_header.visible = false
 	v.add_child(diff_header)
 	v.add_child(_title("Choisis la difficulté"))
-	if GameState.has_save():
+	if true:
 		var warn := Label.new()
+		diff_warn = warn
 		warn.text = "Une nouvelle partie remplace ta sauvegarde actuelle."
 		warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		warn.add_theme_font_size_override("font_size", 14)
@@ -161,16 +168,89 @@ func _build_difficulty(root: Control) -> void:
 	v.add_child(row)
 	diff_back_row = row
 
-func _open_difficulty() -> void:
+func _open_difficulty(s := -1) -> void:
+	target_slot = s if s > 0 else GameState.slot
+	if diff_warn:
+		diff_warn.visible = GameState.slot_exists(target_slot)
+		diff_warn.text = tr("Une nouvelle partie remplace la sauvegarde de l'emplacement %d.") % target_slot
 	_go(diff_panel)
 	diff_buttons[GameState.difficulty].grab_focus()
 
 func _start_game(diff: int) -> void:
-	GameState.new_game(skip_tuto_check.button_pressed, diff)
+	GameState.new_game(skip_tuto_check.button_pressed, diff, target_slot)
+
+# ---------------------------------------------------------------- emplacements de sauvegarde
+func _build_slots(root: Control) -> void:
+	slots_panel = _centered_panel(root)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	slots_panel.add_child(v)
+	v.add_child(_title("Parties"))
+	var hint := Label.new()
+	hint.text = "Chaque emplacement a sa propre partie et sa propre difficulté."
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_size_override("font_size", 14)
+	hint.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
+	v.add_child(hint)
+	slots_box = VBoxContainer.new()
+	slots_box.add_theme_constant_override("separation", 8)
+	v.add_child(slots_box)
+	var br := _button("Retour", _back_to_pause)
+	br.custom_minimum_size = Vector2(200, 40)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(br)
+	v.add_child(row)
+
+func _open_slots() -> void:
+	for ch in slots_box.get_children():
+		slots_box.remove_child(ch)
+		ch.queue_free()
+	var first: Button = null
+	for s in range(1, GameState.SLOTS + 1):
+		var line := HBoxContainer.new()
+		line.add_theme_constant_override("separation", 6)
+		var exists: bool = GameState.slot_exists(s)
+		var main_b := Button.new()
+		main_b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		main_b.custom_minimum_size = Vector2(660, 48)
+		main_b.add_theme_font_size_override("font_size", 15)
+		main_b.clip_text = true
+		var cur := "  ◆" if s == GameState.slot and not title_mode else ""
+		if exists:
+			main_b.text = tr("Emplacement %d") % s + cur + " — " + GameState.save_summary(s)
+			main_b.pressed.connect(func(): GameState.continue_game(s))
+		else:
+			main_b.text = tr("Emplacement %d") % s + " — " + tr("vide : nouvelle partie")
+			main_b.pressed.connect(_open_difficulty.bind(s))
+		line.add_child(main_b)
+		var nb := Button.new()
+		nb.text = "Nouvelle"
+		nb.custom_minimum_size = Vector2(110, 48)
+		nb.disabled = not exists
+		nb.pressed.connect(_open_difficulty.bind(s))
+		line.add_child(nb)
+		var db := Button.new()
+		db.text = "Supprimer"
+		db.custom_minimum_size = Vector2(120, 48)
+		db.disabled = not exists or (s == GameState.slot and not title_mode)
+		db.pressed.connect(func():
+			if db.text != tr("Confirmer ?"):
+				db.text = tr("Confirmer ?")
+			else:
+				GameState.delete_slot(s)
+				_open_slots())
+		line.add_child(db)
+		slots_box.add_child(line)
+		if first == null:
+			first = main_b
+	_go(slots_panel)
+	first.grab_focus()
 
 # Mort définitive : récapitulatif de la partie puis choix d'une nouvelle partie
 func open_game_over(summary: String) -> void:
 	game_over = true
+	target_slot = GameState.slot
 	home_panel = diff_panel
 	visible = true
 	dim.visible = true
@@ -284,7 +364,7 @@ func _build_pause(root: Control) -> void:
 		v.add_child(_button("Recommencer le tutoriel", _restart))
 	if GameState.mode == "descent":
 		v.add_child(_button("Abandonner la descente", func(): GameState.abandon_descent()))
-	v.add_child(_button("Nouvelle partie…", _open_difficulty))
+	v.add_child(_button("Parties…", _open_slots))
 	v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
 
 # Textes composés du menu (à refaire quand la langue change)
@@ -299,7 +379,9 @@ func _update_info() -> void:
 		info.text = tr("Palier %d — niveau %d / %d — %s") % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER, GameState.diff_name()]
 	route.text = "" if GameState.is_tutorial() else (tr("Progression sauvegardée automatiquement") + (tr(" (mode portable : dossier « sauvegardes » à côté du jeu)") if Paths.is_portable() else ""))
 	if save_label:
-		save_label.text = GameState.save_summary()
+		var cs2: int = GameState.continue_slot()
+		if cs2 > 0:
+			save_label.text = tr("Emplacement %d") % cs2 + " — " + GameState.save_summary(cs2)
 
 func _build_achievements(root: Control) -> void:
 	ach_panel = _centered_panel(root)

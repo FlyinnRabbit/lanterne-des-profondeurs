@@ -82,6 +82,11 @@ Les vibrations se coupent dans le menu Commandes. Les aides à l'écran s'adapte
 au dernier périphérique utilisé (clavier ou manette).
 
 ## Écran titre et difficulté
+**3 emplacements de sauvegarde** : écran titre → « Parties ». Chaque emplacement a sa propre partie
+et sa propre difficulté (par exemple une partie Normal et une partie Cauchemar en parallèle).
+« Continuer » reprend le dernier emplacement joué. L'ancienne sauvegarde devient l'emplacement 1.
+Les succès et les options sont communs à tous les emplacements.
+
 Au lancement : **Jouer** → choix de la difficulté (et option « Passer le tutoriel »).
 Aussi accessible en cours de partie : Pause → « Nouvelle partie… ».
 

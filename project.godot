@@ -16,9 +16,9 @@ boot_splash/use_filter=true
 
 [autoload]
 
+Settings="*res://scripts/settings.gd"
 Controls="*res://scripts/controls.gd"
 GameState="*res://scripts/game_state.gd"
-Settings="*res://scripts/settings.gd"
 Audio="*res://scripts/audio.gd"
 Lang="*res://scripts/lang.gd"
 Achievements="*res://scripts/achievements.gd"
