@@ -1,19 +1,29 @@
 extends Node2D
-# Boule de spores tirée par les cracheurs et l'Abbesse.
-# Une parade la renvoie : elle blesse alors les ennemis.
+# Projectiles ennemis. Une parade les renvoie (ils blessent alors les ennemis).
+#  kind "spore" : boule de spores en ligne droite (cracheurs, Abbesse, Reine)
+#  kind "rock"  : rocher qui tombe (Colosse) — soumis à la gravité
+#  kind "wave"  : onde de choc qui court au sol (Gardien, Colosse, Ver)
+#  kind "acid"  : crachat acide en cloche (Ver) — soumis à la gravité
+#  kind "ember" : braise spectrale (Chevalier)
 
 var main
 var vel := Vector2.ZERO
 var hostile := true
 var life := 5.0
 var radius := 7.0
+var gravity := 0.0
+var kind := "spore"
 var t := 0.0
 
 func _ready() -> void:
 	add_to_group("projectiles")
 	z_index = 2
+	if kind == "wave":
+		life = minf(life, 3.0)
 
 func get_rect() -> Rect2:
+	if kind == "wave":
+		return Rect2(global_position - Vector2(12, 34), Vector2(24, 36))
 	return Rect2(global_position - Vector2(radius, radius), Vector2(radius, radius) * 2.0)
 
 func _physics_process(delta: float) -> void:
@@ -22,8 +32,15 @@ func _physics_process(delta: float) -> void:
 	if life <= 0.0:
 		queue_free()
 		return
+	vel.y += gravity * delta
 	global_position += vel * delta
-	if main.is_solid_at(global_position):
+	if kind == "wave":
+		# l'onde suit le sol : elle s'arrête contre un mur ou au bord du vide
+		var ahead := global_position + Vector2(signf(vel.x) * 14.0, -10.0)
+		if main.is_solid_at(ahead) or not main.is_solid_at(global_position + Vector2(0, 6)):
+			pop()
+			return
+	elif main.is_solid_at(global_position):
 		pop()
 		return
 	var r := get_rect()
@@ -44,14 +61,45 @@ func _physics_process(delta: float) -> void:
 func parried(_dir: Vector2) -> void:
 	hostile = false
 	life = 3.0
+	gravity = 0.0
 	vel = -vel * 1.6
 
 func pop() -> void:
-	main.spawn_burst(global_position, Color(0.75, 0.9, 1.0) if not hostile else Color(0.85, 0.55, 0.9), 8, 120.0, 0.0)
+	var c := Color(0.75, 0.9, 1.0) if not hostile else _color()
+	main.spawn_burst(global_position, c, 8, 120.0, 0.0)
 	queue_free()
 
+func _color() -> Color:
+	match kind:
+		"rock": return Color(0.6, 0.55, 0.5)
+		"wave": return Color(1.0, 0.85, 0.55)
+		"acid": return Color(0.6, 1.0, 0.35)
+		"ember": return Color(0.55, 0.85, 1.0)
+	return Color(0.85, 0.45, 0.95)
+
 func _draw() -> void:
-	var c := Color(0.85, 0.45, 0.95) if hostile else Color(0.6, 0.9, 1.0)
-	draw_circle(Vector2.ZERO, radius * 2.0, Color(c, 0.18))
-	draw_circle(Vector2.ZERO, radius + sin(t * 20.0), c)
-	draw_circle(Vector2(-2, -2), radius * 0.4, Color(1, 1, 1, 0.8))
+	var c := _color() if hostile else Color(0.6, 0.9, 1.0)
+	match kind:
+		"rock":
+			var pts := PackedVector2Array()
+			for i in 7:
+				var a := i * TAU / 7.0 + t * 3.0
+				pts.append(Vector2(cos(a), sin(a)) * radius * (0.8 + 0.25 * sin(i * 2.3)))
+			draw_colored_polygon(pts, c.darkened(0.3))
+			draw_polyline(pts + PackedVector2Array([pts[0]]), c, 1.5)
+		"wave":
+			var h := 30.0 + sin(t * 30.0) * 4.0
+			var d := signf(vel.x)
+			draw_colored_polygon(PackedVector2Array([Vector2(-10 * d, 0), Vector2(8 * d, 0), Vector2(2 * d, -h), Vector2(-4 * d, -h * 0.6)]), Color(c, 0.85))
+			draw_circle(Vector2(0, -4), 14.0, Color(c, 0.2))
+		"acid":
+			draw_circle(Vector2.ZERO, radius * 1.8, Color(c, 0.2))
+			draw_circle(Vector2.ZERO, radius, c)
+			draw_circle(Vector2(-2, -2), radius * 0.35, Color(1, 1, 1, 0.7))
+		"ember":
+			draw_circle(Vector2.ZERO, radius * 2.2, Color(c, 0.18))
+			draw_colored_polygon(PackedVector2Array([Vector2(radius * 1.6, 0), Vector2(0, radius), Vector2(-radius, 0), Vector2(0, -radius)]).duplicate(), c)
+		_:
+			draw_circle(Vector2.ZERO, radius * 2.0, Color(c, 0.18))
+			draw_circle(Vector2.ZERO, radius + sin(t * 20.0), c)
+			draw_circle(Vector2(-2, -2), radius * 0.4, Color(1, 1, 1, 0.8))

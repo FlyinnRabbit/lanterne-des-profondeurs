@@ -172,7 +172,7 @@ func open_elevator() -> void:
 	lift_info.text = "Difficulté : %s — record : palier %d.\nChaque palier : 2 niveaux puis un boss. Plus on descend, plus les ennemis sont coriaces.\nMourir ramène ici et fait perdre le butin de la descente." % [GameState.diff_name(), GameState.record]
 	var last: Button = null
 	for p in range(GameState.unlocked, 0, -1):
-		var boss := "Gardien du Puits" if p % 2 == 1 else "Abbesse Engloutie"
+		var boss: String = GameState.boss_name_for(p)
 		var b := Button.new()
 		b.text = "Palier %d — boss : %s%s" % [p, boss, "  (nouveau !)" if p > GameState.record else ""]
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT

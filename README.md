@@ -108,8 +108,7 @@ Après le tutoriel, on arrive au **Sanctuaire de la Lanterne**, la base du jeu :
   des **encoches** d'emblème et les **emblèmes** pas encore trouvés.
 - **Ascenseur** : choisit le **palier** où descendre.
 
-Un **palier = 2 niveaux générés** (biomes tirés au hasard parmi 9) **puis un boss**
-(Gardien du Puits aux paliers impairs, Abbesse Engloutie aux pairs). Le terminer ramène
+Un **palier = 2 niveaux générés** (biomes tirés au hasard parmi 9) **puis un boss**. Le terminer ramène
 au Sanctuaire et **débloque le palier suivant** — sans fin. Plus on descend, plus les ennemis
 ont de vie, de vitesse, d'agressivité et d'élites (≈ ×1,9 de vie au palier 6, ×2,6 au palier 10).
 
@@ -145,6 +144,21 @@ la musique baisse un peu quand le jeu est en pause.
 - **Secousses de l'écran** (0 – 150 %), **arrêt sur image** aux impacts, **vibrations** de la manette.
 Tout est sauvegardé dans `user://settings.cfg`. Le menu Commandes est désormais une liste
 défilante (molette, ou navigation clavier/manette).
+
+## Les boss
+Le Gardien ouvre toujours la marche ; les cinq autres arrivent dans un **ordre propre à chaque
+partie**, puis le cycle recommence en plus coriace. Chacun a sa forme, ses attaques, une
+**phase 2** à mi-vie (nouvelles variantes plus agressives) et son propre thème musical.
+Une parade sur un contact étourdit le boss une seconde.
+
+| Boss | Style | Attaques |
+|---|---|---|
+| Gardien du Puits | scarabée cuirassé | charge annoncée, bond écrasant ; phase 2 : ondes de choc au sol |
+| L'Abbesse Engloutie | reine des spores | charge, bond, salve en éventail, anneau de spores (plus dense en phase 2) |
+| La Reine Essaim | guêpe géante **volante** | piqués (enchaînés en phase 2), salve de dards visés, anneaux en spirale, invoque des volants |
+| Le Colosse d'Os | géant d'ossements | poing au sol (ondes + rochers qui tombent), balayage du bras ; phase 2 : bond + rangée de piliers d'os |
+| Le Ver des Profondeurs | ver **fouisseur** | s'enfouit, un sillon de poussière le trahit, jaillit sous toi en crachant de l'acide ; charge ; phase 2 : trois jaillissements + ondes |
+| Le Chevalier Spectral | duelliste fantôme | estocs fulgurants (combos ×3 en phase 2), **téléportation dans ton dos**, piliers spectraux en ligne, salve de braises |
 
 ## Inventaire et emblèmes
 Tab ouvre l'inventaire (le jeu se met en pause) : objets, éclats, statistiques et la grille des

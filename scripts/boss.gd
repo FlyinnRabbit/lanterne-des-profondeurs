@@ -69,6 +69,12 @@ func _choose() -> void:
 	if variant == 2 and r < 0.3:
 		state = "windup_volley"
 		state_t = 0.6 / rage()
+	elif variant == 2 and r < 0.45:
+		state = "windup_ring"           # anneau de spores autour d'elle
+		state_t = 0.7 / rage()
+	elif variant == 1 and hp <= max_hp / 2 and r < 0.25:
+		state = "windup_quake"          # Gardien enragé : frappe le sol, ondes de choc
+		state_t = 0.6 / rage()
 	elif r < 0.55:
 		state = "windup_charge"
 		state_t = 0.55 / rage()
@@ -136,9 +142,29 @@ func _physics_process(delta: float) -> void:
 			if is_on_floor() and state_t <= 0.0:
 				main.shake(14)
 				main.spawn_burst(global_position + Vector2(0, 30), Color(0.6, 0.6, 0.7), 26, 260.0)
+				if variant == 1 and hp <= max_hp / 2:   # atterrissage enragé : ondes de choc
+					for d in [-1.0, 1.0]:
+						main.spawn_projectile(global_position + Vector2(d * 40.0, 30.0), Vector2(d * 300.0 * spd(), 0), {"kind": "wave"})
 				velocity.x = 0.0
 				state = "recover"
 				state_t = 0.6 / rage()
+		"windup_ring":
+			velocity.x = 0.0
+			if state_t <= 0.0:
+				var n := 12 if hp > max_hp / 2 else 16
+				for i in n:
+					main.spawn_projectile(global_position + Vector2(0, -10), Vector2.from_angle(anim_t + i * TAU / n) * 210.0 * spd())
+				state = "recover"
+				state_t = 0.8 / rage()
+		"windup_quake":
+			velocity.x = 0.0
+			if state_t <= 0.0:
+				main.shake(14)
+				for d in [-1.0, 1.0]:
+					for k in 2:
+						main.spawn_projectile(global_position + Vector2(d * (40.0 + k * 10.0), 30.0), Vector2(d * (260.0 + k * 90.0) * spd(), 0), {"kind": "wave"})
+				state = "recover"
+				state_t = 0.8 / rage()
 		"windup_volley":
 			velocity.x = 0.0
 			dir = -1 if p.global_position.x < global_position.x else 1

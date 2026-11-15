@@ -36,6 +36,11 @@ const HopperScript = preload("res://scripts/hopper.gd")
 const GuardScript = preload("res://scripts/guard.gd")
 const Biomes = preload("res://scripts/biomes.gd")
 const HubUIScript = preload("res://scripts/hub_ui.gd")
+const PillarScript = preload("res://scripts/pillar.gd")
+const BossQueen = preload("res://scripts/boss_queen.gd")
+const BossColossus = preload("res://scripts/boss_colossus.gd")
+const BossWorm = preload("res://scripts/boss_worm.gd")
+const BossKnight = preload("res://scripts/boss_knight.gd")
 
 var MAP: Array = []
 
@@ -266,11 +271,15 @@ func _spawn_everything() -> void:
 				"g":
 					enemy_spawns.append([GuardScript, _cell_feet(x, y, 30), null, _roll_elite(x, y)])
 				"K", "Q":
+					var bid: String = level.get("boss_id", "abbesse" if row[x] == "Q" else "gardien")
+					var scripts := {"reine": BossQueen, "colosse": BossColossus, "ver": BossWorm, "chevalier": BossKnight}
+					var heights := {"reine": 62, "colosse": 112, "ver": 54, "chevalier": 72}
 					boss = CharacterBody2D.new()
-					boss.set_script(BossScript)
-					boss.variant = 2 if row[x] == "Q" else 1
+					boss.set_script(scripts.get(bid, BossScript))
+					if not scripts.has(bid):
+						boss.variant = 2 if bid == "abbesse" else 1
 					boss.main = self
-					boss.home = _cell_feet(x, y, 64)
+					boss.home = _cell_feet(x, y, heights.get(bid, 64))
 					boss.position = boss.home
 					add_child(boss)
 	respawn_enemies()
@@ -538,6 +547,12 @@ func on_player_died() -> void:
 
 func on_boss_killed() -> void:
 	boss_dead = true
+	for m in minions:
+		if is_instance_valid(m) and not m.dead:
+			m.die()
+	for pr in get_tree().get_nodes_in_group("projectiles"):
+		if is_instance_valid(pr) and pr.hostile:
+			pr.pop()
 	player.geo += 60 + 20 * GameState.palier
 	spawn_burst(boss.global_position, Color(1.0, 0.7, 0.4), 70, 380.0)
 	shake(18)
@@ -547,7 +562,9 @@ func on_boss_killed() -> void:
 	if exit_gate:
 		exit_gate.set_closed(false)
 	Audio.resume_level()
-	show_message("%s est vaincu%s.\nLa voie est ouverte." % [boss.boss_name, "e" if boss.variant == 2 else ""], 4.0)
+	var bname: String = boss.boss_name
+	var fem := bname.begins_with("La ") or bname.begins_with("L'Abbesse")
+	show_message("%s est vaincu%s.\nLa voie est ouverte." % [bname, "e" if fem else ""], 4.0)
 
 func on_parry(pos: Vector2) -> void:
 	Audio.sfx("parry")
@@ -593,11 +610,43 @@ func thorns_burst(pos: Vector2) -> void:
 		if is_instance_valid(e) and e.get_rect().get_center().distance_to(pos) < 110.0:
 			e.take_hit(3, (e.get_rect().get_center() - pos).normalized())
 
-func spawn_projectile(pos: Vector2, vel: Vector2) -> void:
+# opts : {"kind": "spore"/"rock"/"wave"/"acid"/"ember", "gravity": float, "radius": float, "life": float}
+func spawn_projectile(pos: Vector2, vel: Vector2, opts: Dictionary = {}) -> void:
 	var pr := Node2D.new()
 	pr.set_script(ProjectileScript)
 	pr.main = self
 	pr.vel = vel
 	pr.position = pos
+	for k in opts:
+		pr.set(k, opts[k])
 	add_child(pr)
-	pr.add_child(make_light(Color(0.85, 0.5, 1.0), 0.6, 0.8))
+	pr.add_child(make_light(pr._color(), 0.6, 0.8))
+
+# Pilier qui jaillit du sol en x (sol à floor_y) après un avertissement
+func spawn_pillar(x: float, floor_y: float, delay: float = 0.0, opts: Dictionary = {}) -> void:
+	if delay > 0.0:
+		await get_tree().create_timer(delay, false).timeout
+	if not is_instance_valid(self) or boss_dead:
+		return
+	var pl := Node2D.new()
+	pl.set_script(PillarScript)
+	pl.main = self
+	pl.position = Vector2(x, floor_y)
+	for k in opts:
+		pl.set(k, opts[k])
+	add_child(pl)
+
+# Sbire invoqué par un boss (pas de réapparition au banc)
+var minions := []
+func spawn_minion(script, pos: Vector2) -> void:
+	var alive := minions.filter(func(m): return is_instance_valid(m))
+	minions = alive
+	if minions.size() >= 4:
+		return
+	var e := CharacterBody2D.new()
+	e.set_script(script)
+	e.main = self
+	e.position = pos
+	add_child(e)
+	minions.append(e)
+	spawn_burst(pos, Color(0.9, 0.8, 0.4), 12, 160.0, 0.0)

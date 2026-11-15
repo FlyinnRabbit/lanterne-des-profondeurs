@@ -18,6 +18,32 @@ const MAX_BONUS_HP := 4
 
 signal equipment_changed
 
+# Boss : chaque palier se termine par l'un d'eux. Le Gardien ouvre toujours la marche,
+# les autres arrivent dans un ordre propre à chaque partie, puis le cycle recommence (plus durs).
+const BOSSES := {
+	"gardien": {"name": "Gardien du Puits", "music": "res://music/boss_gardien_du_puits.ogg"},
+	"abbesse": {"name": "L'Abbesse Engloutie", "music": "res://music/boss_abbesse_engloutie.ogg"},
+	"reine": {"name": "La Reine Essaim", "music": "res://music/boss_reine_essaim.ogg"},
+	"colosse": {"name": "Le Colosse d'Os", "music": "res://music/boss_colosse_d_os.ogg"},
+	"ver": {"name": "Le Ver des Profondeurs", "music": "res://music/boss_ver_des_profondeurs.ogg"},
+	"chevalier": {"name": "Le Chevalier Spectral", "music": "res://music/boss_chevalier_spectral.ogg"},
+}
+
+func boss_for(p: int) -> String:
+	var rest := ["abbesse", "reine", "colosse", "ver", "chevalier"]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = run_seed * 13 + 5
+	for i in range(rest.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp = rest[i]
+		rest[i] = rest[j]
+		rest[j] = tmp
+	var order := ["gardien"] + rest
+	return order[(p - 1) % order.size()]
+
+func boss_name_for(p: int) -> String:
+	return BOSSES[boss_for(p)]["name"]
+
 # Difficultés. soul/ult : gain d'âme et d'ultime · speed : vitesse des ennemis et projectiles ·
 # aggro : portée de détection et cadence d'attaque · hp : vie des ennemis · dmg : dégâts reçus ·
 # count : nombre d'ennemis · elite : chance qu'un ennemi soit une version élite ·
@@ -116,8 +142,10 @@ func current_level() -> Dictionary:
 		var b2 := (b1 + rng.randi_range(1, all.size() - 1)) % all.size()
 		var biome: Dictionary = all[b1 if step == 1 else b2]
 		var boss := ""
+		var boss_id := ""
 		if is_boss_level():
-			boss = "K" if palier % 2 == 1 else "Q"
+			boss = "K"
+			boss_id = boss_for(palier)
 		var gen := LevelGen.new()
 		var seed_value := run_seed * 31 + palier * 7919 + step * 104729
 		var diff: Dictionary = DIFFS[difficulty].duplicate()
@@ -126,7 +154,8 @@ func current_level() -> Dictionary:
 			"name": biome["name"],
 			"map": gen.generate(biome, seed_value, mini(depth(), 10), boss, false, diff),
 			"music": biome["music"],
-			"boss_music": "res://music/boss_abbesse_engloutie.ogg" if boss == "Q" else "res://music/boss_gardien_du_puits.ogg",
+			"boss_id": boss_id,
+			"boss_music": BOSSES[boss_id]["music"] if boss_id != "" else "",
 			"palette": biome["pal"],
 			"seed": seed_value,
 		}
