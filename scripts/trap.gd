@@ -3,6 +3,7 @@ extends Node2D
 #  dart       (Z) : totem qui tire des fléchettes à hauteur de tête — s'accroupir pour les esquiver (ou parer)
 #  blade      (U) : lame-pendule suspendue au plafond, son point bas passe juste au-dessus d'un héros accroupi
 #  stalactite (V) : se décroche quand on passe dessous, se reforme ensuite
+const Ch = preload("res://scripts/charms.gd")
 var main
 var kind := "dart"
 var dir := 1.0           # sens de tir du totem
@@ -19,6 +20,9 @@ var state := "idle"      # idle / shake / fall / gone
 var st_t := 0.0
 var home := Vector2.ZERO
 var fall_v := 0.0
+# Pas Léger : franchir le piège sans être touché rapporte des éclats
+var pass_side := 0.0
+var pass_hp := 0
 
 func _ready() -> void:
 	home = position
@@ -52,6 +56,7 @@ func _physics_process(delta: float) -> void:
 	hit_cd -= delta
 	if main.player == null:
 		return
+	_check_pass()
 	match kind:
 		"dart":
 			if fmod(t, period) < fmod(t - delta, period):
@@ -92,6 +97,22 @@ func _physics_process(delta: float) -> void:
 						position = home
 	queue_redraw()
 
+func _check_pass() -> void:
+	var p = main.player
+	var dx: float = p.global_position.x - global_position.x
+	if pass_side == 0.0:
+		if absf(dx) < 140.0 and absf(dx) > 90.0:
+			pass_side = signf(dx)
+			pass_hp = p.hp
+	elif absf(dx) > 160.0:
+		pass_side = 0.0
+	elif signf(dx) == -pass_side and absf(dx) > 90.0:
+		if p.hp >= pass_hp and not p.dead and p.eq(Ch.LIGHT_STEP):
+			p.geo += 5
+			main.spawn_burst(p.global_position, Color(0.7, 1.0, 0.6), 10, 140.0)
+			Audio.sfx("pickup", 0.1, -6.0)
+		pass_side = 0.0
+
 func _shatter() -> void:
 	main.spawn_burst(position + Vector2(0, 24), Color(0.75, 0.7, 0.65), 12, 160.0, 400.0)
 	state = "gone"
@@ -115,7 +136,7 @@ func _draw() -> void:
 			draw_circle(Vector2.ZERO, 5.0, Color(0.35, 0.35, 0.4))
 			var n := bp.normalized()
 			var tan := Vector2(-n.y, n.x)
-			draw_colored_polygon(PackedVector2Array([bp - tan * 20.0, bp + n * 10.0, bp + tan * 20.0, bp - n * 4.0]), Color(0.78, 0.8, 0.86))
+			draw_colored_polygon(PackedVector2Array([bp - tan * 20.0, bp + n * 10.0, bp + tan * 20.0, bp - n * 4.0]), Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.78, 0.8, 0.86))
 			draw_line(bp - tan * 18.0 + n * 2.0, bp + tan * 18.0 + n * 2.0, Color(1, 1, 1, 0.6), 1.5)
 		"stalactite":
 			if state == "gone":
@@ -123,5 +144,5 @@ func _draw() -> void:
 				draw_colored_polygon(PackedVector2Array([Vector2(-6, 0), Vector2(6, 0), Vector2(0, 8 * k)]), Color(0.6, 0.56, 0.52, 0.6))
 				return
 			var off := Vector2(sin(t * 60.0) * 2.0, 0) if state == "shake" else Vector2.ZERO
-			draw_colored_polygon(PackedVector2Array([off + Vector2(-10, 0), off + Vector2(10, 0), off + Vector2(0, 32)]), Color(0.62, 0.58, 0.54))
+			draw_colored_polygon(PackedVector2Array([off + Vector2(-10, 0), off + Vector2(10, 0), off + Vector2(0, 32)]), Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.62, 0.58, 0.54))
 			draw_line(off + Vector2(-3, 2), off + Vector2(0, 26), Color(0.8, 0.76, 0.7, 0.6), 2.0)

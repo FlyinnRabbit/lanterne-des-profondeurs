@@ -2,6 +2,7 @@ extends "res://scripts/enemy.gd"
 # Mannequin d'entraînement : ne bouge pas, ne blesse pas, ne meurt pas.
 
 var wobble := 0.0
+var hits := []        # [temps, dégâts] : dégâts par seconde sur les 5 dernières secondes
 
 func _ready() -> void:
 	size = Vector2(28, 44)
@@ -19,6 +20,7 @@ func parried(_d: Vector2) -> void:
 func take_hit(dmg: int, dir: Vector2) -> void:
 	flash_t = 0.12
 	main.on_damage_dealt(self, dmg)
+	hits.append([anim_t, dmg])
 	wobble = 1.0 * (signf(dir.x) if dir.x != 0.0 else 1.0)
 	main.spawn_burst(global_position, Color(0.85, 0.75, 0.55), 6 + dmg, 140.0)
 	hp = 9999
@@ -27,6 +29,8 @@ func _physics_process(delta: float) -> void:
 	flash_t -= delta
 	anim_t += delta
 	wobble = move_toward(wobble, 0.0, delta * 3.0)
+	while not hits.is_empty() and anim_t - float(hits[0][0]) > 5.0:
+		hits.pop_front()
 	velocity.y = minf(velocity.y + 1800.0 * delta, 900.0)
 	velocity.x = 0.0
 	move_and_slide()
@@ -46,3 +50,12 @@ func _draw() -> void:
 	draw_line(Vector2(2, -46), Vector2(5, -43), Color(0.2, 0.15, 0.1), 2.0)
 	draw_line(Vector2(5, -46), Vector2(2, -43), Color(0.2, 0.15, 0.1), 2.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if not hits.is_empty():
+		var total := 0
+		for h in hits:
+			total += int(h[1])
+		var span := maxf(anim_t - float(hits[0][0]), 1.0)
+		var f := ThemeDB.fallback_font
+		var txt := tr("%.1f dégâts/s") % (total / span)
+		var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+		draw_string(f, Vector2(-tw / 2.0, -42), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1.0, 0.9, 0.6))

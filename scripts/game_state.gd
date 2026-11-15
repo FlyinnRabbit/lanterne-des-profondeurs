@@ -28,9 +28,12 @@ const BOSSES := {
 	"colosse": {"name": "Le Colosse d'Os", "music": "res://music/boss_colosse_d_os.ogg"},
 	"ver": {"name": "Le Ver des Profondeurs", "music": "res://music/boss_ver_des_profondeurs.ogg"},
 	"chevalier": {"name": "Le Chevalier Spectral", "music": "res://music/boss_chevalier_spectral.ogg"},
+	"ombre": {"name": "L'Ombre de la Lanterne", "music": "res://music/boss_chevalier_spectral.ogg"},
 }
 
 func boss_for(p: int) -> String:
+	if p % 7 == 0:
+		return "ombre"     # boss final : palier 7, 14, 21…
 	var rest := ["abbesse", "reine", "colosse", "ver", "chevalier"]
 	var rng := RandomNumberGenerator.new()
 	rng.seed = run_seed * 13 + 5
@@ -41,6 +44,9 @@ func boss_for(p: int) -> String:
 		rest[j] = tmp
 	var order := ["gardien"] + rest
 	return order[(p - 1) % order.size()]
+
+func boss_name_for_id(id: String) -> String:
+	return tr(BOSSES[id]["name"])
 
 func boss_name_for(p: int) -> String:
 	return tr(BOSSES[boss_for(p)]["name"])
@@ -88,7 +94,9 @@ func diff_name() -> String:
 # Paramètre de difficulté ajusté à la profondeur : chaque palier rend les ennemis plus coriaces
 func scaled(key: String) -> float:
 	var base := float(d(key))
-	var p := float(palier - 1) if mode == "descent" else 0.0
+	var p := float(palier - 1) if mode in ["descent", "rush"] else 0.0
+	if curse == "haste" and mode == "descent" and key in ["speed", "aggro"]:
+		base *= 1.25 if key == "speed" else 1.15
 	match key:
 		"hp", "boss_hp":
 			return base * (1.0 + 0.18 * p)
@@ -120,7 +128,61 @@ func is_hub() -> bool:
 	return mode == "hub"
 
 func is_boss_level() -> bool:
-	return mode == "descent" and step == STEPS_PER_PALIER
+	return (mode == "descent" and step == STEPS_PER_PALIER) or mode == "rush"
+
+# ---------------------------------------------------------------- malédictions, descente du jour, défi des boss
+const CURSES := {
+	"": {"name": "Aucune malédiction", "desc": "Descente normale.", "geo": 1.0},
+	"haste": {"name": "Hâte", "desc": "Ennemis 25 % plus rapides et plus agressifs. Éclats +50 %.", "geo": 1.5},
+	"dark": {"name": "Obscurité", "desc": "La lumière se réduit autour de toi. Éclats +50 %.", "geo": 1.5},
+	"fragile": {"name": "Fragilité", "desc": "Impossible de se soigner avec l'âme. Éclats +60 %.", "geo": 1.6},
+}
+const RUSH_ORDER := ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre"]
+var curse := ""
+var daily := false
+var saved_seed := 0
+var rush_i := 0
+
+func geo_mult() -> float:
+	return float(CURSES.get(curse, CURSES[""])["geo"]) if mode == "descent" else 1.0
+
+static func today_seed() -> int:
+	var d := Time.get_date_dict_from_system()
+	return int(d["year"]) * 10000 + int(d["month"]) * 100 + int(d["day"])
+
+func start_daily(player) -> void:
+	if player:
+		prog["geo"] = player.geo
+	saved_seed = run_seed
+	run_seed = today_seed()
+	daily = true
+	curse = ""
+	_cache.clear()
+	_start(3)
+
+func start_rush(player) -> void:
+	if player:
+		prog["geo"] = player.geo
+	snapshot = prog.duplicate(true)
+	mode = "rush"
+	rush_i = 0
+	palier = 6
+	step = 1
+	curse = ""
+	trial_weapon = ""
+	Achievements.reset_run()
+	save_game()
+	_reload(true)
+
+# Fin d'un mode spécial : retour au hub avec le bon état
+func _end_special() -> void:
+	if daily:
+		run_seed = saved_seed
+		daily = false
+		_cache.clear()
+	prog = snapshot.duplicate(true)
+	curse = ""
+	mode = "hub"
 
 func depth() -> int:
 	return (palier - 1) * STEPS_PER_PALIER + step
@@ -134,6 +196,8 @@ func current_level() -> Dictionary:
 		var h: Dictionary = Levels.HUB.duplicate()
 		h["music"] = ["res://music/sanctuaire.ogg"]
 		return h
+	if mode == "rush":
+		return _rush_level()
 	var key := "%d-%d-%d" % [run_seed, palier, step]
 	if not _cache.has(key):
 		var all := Biomes.all()
@@ -162,8 +226,50 @@ func current_level() -> Dictionary:
 		}
 	return _cache[key]
 
+func _rush_level() -> Dictionary:
+	var key := "rush-%d" % rush_i
+	if not _cache.has(key):
+		var bid: String = RUSH_ORDER[rush_i]
+		var all: Array = Biomes.all()
+		var biome: Dictionary = all[rush_i % all.size()]
+		var gen := LevelGen.new()
+		var diff: Dictionary = DIFFS[difficulty].duplicate()
+		_cache[key] = {
+			"name": biome["name"], "map": gen.generate(biome, 777 + rush_i, 6, "K", false, diff, true),
+			"music": biome["music"], "boss_id": bid, "boss_music": BOSSES[bid]["music"],
+			"palette": biome["pal"], "seed": 777 + rush_i,
+		}
+	return _cache[key]
+
 # Fin du niveau en cours (passage lumineux atteint)
 func go_next_level(player) -> void:
+	if mode == "rush":
+		rush_i += 1
+		if rush_i >= RUSH_ORDER.size():
+			var t := float(Achievements.run.get("time", 0.0))
+			var best := float(Achievements.counters.get("rush_best", 0.0))
+			if best <= 0.0 or t < best:
+				Achievements.counters["rush_best"] = t
+				Achievements.save()
+			Achievements.unlock("rush")
+			_end_special()
+			pending_message = tr("Défi des boss terminé en %d:%02d !") % [int(t) / 60, int(t) % 60] + "\n" + tr("Meilleur temps : %d:%02d") % [int(Achievements.counters["rush_best"]) / 60, int(Achievements.counters["rush_best"]) % 60]
+			save_game()
+		_reload(true)
+		return
+	if mode == "descent" and daily and step >= STEPS_PER_PALIER:
+		var t2 := float(Achievements.run.get("time", 0.0))
+		var dkey := "daily_%d" % run_seed
+		var best2 := float(Achievements.counters.get(dkey, 0.0))
+		if best2 <= 0.0 or t2 < best2:
+			Achievements.counters[dkey] = t2
+			Achievements.save()
+		Achievements.unlock("daily")
+		_end_special()
+		pending_message = tr("Descente du jour réussie en %d:%02d !") % [int(t2) / 60, int(t2) % 60] + "\n" + tr("Meilleur temps du jour : %d:%02d") % [int(Achievements.counters[dkey]) / 60, int(Achievements.counters[dkey]) % 60] + "\n" + Achievements.run_summary()
+		save_game()
+		_reload(true)
+		return
 	if mode == "tutorial":
 		prog["can_dash"] = true
 		mode = "hub"
@@ -177,33 +283,61 @@ func go_next_level(player) -> void:
 			unlocked = maxi(unlocked, palier + 1)
 			mode = "hub"
 			pending_message = tr("Palier %d terminé !\nL'ascenseur peut maintenant descendre jusqu'au palier %d.") % [palier, unlocked]
+			pending_message += "\n" + Achievements.run_summary()
+			_palier_done()
+			if curse != "":
+				Achievements.unlock("curse")
+			curse = ""
 	save_game()
 	_reload(true)
 
 # Départ en descente depuis l'ascenseur du hub
-func start_descent(p: int, player) -> void:
+func start_descent(p: int, player, curse_id := "") -> void:
 	if player:
 		prog["geo"] = player.geo
-	palier = clampi(p, 1, unlocked)
+	curse = curse_id
+	_start(clampi(p, 1, unlocked))
+
+func _start(p: int) -> void:
+	palier = p
 	step = 1
 	mode = "descent"
+	trial_weapon = ""
+	Achievements.reset_run()
 	snapshot = prog.duplicate(true)
 	save_game()
 	_reload(true)
 
 # Mort pendant une descente : retour au hub, le butin ramassé depuis le départ est perdu
-func die_in_descent() -> void:
+func die_in_descent(geo_now: int = -1, pos: Vector2 = Vector2.ZERO) -> void:
+	if mode == "rush" or daily:
+		var what := tr("Défi des boss échoué (boss %d / %d).") % [rush_i + 1, RUSH_ORDER.size()] if mode == "rush" else tr("Descente du jour échouée.")
+		_end_special()
+		pending_message = what + "\n" + Achievements.run_summary()
+		save_game()
+		_reload(true)
+		return
 	var where := tr("Vous avez sombré au palier %d (niveau %d/%d).") % [palier, step, STEPS_PER_PALIER]
+	var lost := geo_now - int(snapshot.get("geo", 0))
 	prog = snapshot.duplicate(true)
+	curse = ""
+	# l'ombre garde les éclats perdus (une ombre non récupérée est remplacée)
+	if geo_now >= 0 and lost > 0 and mode == "descent":
+		prog["shade"] = {"palier": palier, "step": step, "x": pos.x, "y": pos.y, "geo": lost}
+		where += "\n" + tr("Ton ombre garde %d éclats là où tu es tombé.") % lost
+	where += "\n" + Achievements.run_summary()
 	mode = "hub"
 	pending_message = where + "\n" + tr("Le butin de cette descente est perdu, mais l'ascenseur se souvient.")
 	save_game()
 	_reload(true)
 
 func abandon_descent() -> void:
+	if mode == "rush" or daily:
+		_end_special()
+	curse = ""
 	prog = snapshot.duplicate(true)
 	mode = "hub"
-	pending_message = "Descente abandonnée. Le butin de cette descente est perdu."
+	pending_message = tr("Descente abandonnée. Le butin de cette descente est perdu.") + "\n" + Achievements.run_summary()
 	save_game()
 	_reload(false)
 
@@ -240,7 +374,7 @@ func continue_game() -> void:
 		_reload(false)
 
 func _reload(deferred: bool) -> void:
-	Engine.time_scale = 1.0
+	Engine.time_scale = Settings.speed()
 	get_tree().paused = false
 	if deferred:
 		get_tree().call_deferred("reload_current_scene")
@@ -254,10 +388,10 @@ func save_game() -> void:
 	cfg.set_value("game", "difficulty", difficulty)
 	cfg.set_value("game", "unlocked", unlocked)
 	cfg.set_value("game", "record", record)
-	cfg.set_value("game", "run_seed", run_seed)
+	cfg.set_value("game", "run_seed", saved_seed if daily else run_seed)
 	cfg.set_value("game", "tutorial_done", mode != "tutorial")
 	# en descente on sauvegarde l'état du départ : quitter en pleine descente = abandon
-	cfg.set_value("game", "prog", snapshot if mode == "descent" else prog)
+	cfg.set_value("game", "prog", snapshot if mode in ["descent", "rush"] else prog)
 	cfg.save(Paths.file(SAVE_NAME))
 
 func has_save() -> bool:
@@ -331,16 +465,44 @@ func buy(kind: String, id: int, player) -> String:
 			prog["bonus_hp"] = max_hp_bonus() + 1
 			player.apply_equipment()
 			player.hp = player.max_hp
-	snapshot = prog.duplicate(true)
+	if mode == "hub":
+		snapshot = prog.duplicate(true)   # en descente, l'achat fait partie du butin (perdu à la mort)
 	save_game()
 	return ""
 
 # ---------------------------------------------------------------- armes (arsenal)
+var trial_weapon := ""   # arme essayée à l'arsenal (au Sanctuaire seulement, non sauvegardée)
+
 func weapon() -> String:
+	if trial_weapon != "" and mode == "hub":
+		return trial_weapon
 	return str(prog.get("weapon", "aiguille"))
 
 func owns_weapon(id: String) -> bool:
 	return id == "aiguille" or (prog.get("weapons_owned", []) as Array).has(id)
+
+func weapon_level(id: String = "") -> int:
+	if id == "":
+		id = weapon()
+	return int((prog.get("weapon_lv", {}) as Dictionary).get(id, 1))
+
+func upgrade_weapon(id: String, player) -> String:
+	if weapon_level(id) >= 2:
+		return "Déjà améliorée."
+	if not owns_weapon(id):
+		return "Achète d'abord cette arme."
+	var price := int(WeaponsData.UP[id]["price"])
+	if player.geo < price:
+		return tr("Pas assez d'éclats (%d nécessaires).") % price
+	player.geo -= price
+	prog["geo"] = player.geo
+	var lv: Dictionary = prog.get("weapon_lv", {})
+	lv[id] = 2
+	prog["weapon_lv"] = lv
+	snapshot = prog.duplicate(true)
+	save_game()
+	Achievements.unlock("forge")
+	return ""
 
 func equip_weapon(id: String) -> void:
 	if owns_weapon(id):
@@ -359,6 +521,8 @@ func buy_weapon(id: String, player) -> String:
 	var arr: Array = prog.get("weapons_owned", [])
 	arr.append(id)
 	prog["weapons_owned"] = arr
+	if arr.size() >= 3:
+		Achievements.unlock("arsenal")
 	prog["weapon"] = id
 	snapshot = prog.duplicate(true)
 	save_game()
@@ -386,6 +550,19 @@ func notches_used() -> int:
 func add_charm(id: int) -> void:
 	if not owns(id):
 		prog["owned"].append(id)
+	if prog["owned"].size() >= charm_count():
+		Achievements.unlock("charms")
+
+# Succès liés à la fin d'un palier
+func _palier_done() -> void:
+	if palier >= 1:
+		Achievements.unlock("palier1")
+	if palier >= 3:
+		Achievements.unlock("palier3")
+	if palier >= 6:
+		Achievements.unlock("palier6")
+	if int(Achievements.run.get("hurt", 0)) == 0:
+		Achievements.unlock("flawless")
 
 func add_notch(key: String) -> void:
 	if not is_collected(key):

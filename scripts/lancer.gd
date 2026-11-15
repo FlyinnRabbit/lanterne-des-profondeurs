@@ -15,6 +15,9 @@ func _ready() -> void:
 	floor_snap_length = 6.0
 
 # Pendant l'estoc, la lance prolonge la zone dangereuse
+func telegraph() -> int:
+	return 2 if state == "windup" and stun_t <= 0.0 else 0
+
 func get_rect() -> Rect2:
 	var r := Rect2(global_position - size / 2.0, size)
 	if state == "thrust":

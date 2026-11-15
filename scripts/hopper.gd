@@ -13,6 +13,10 @@ func _ready() -> void:
 	setup_body()
 	wait_t = randf_range(0.5, 1.5)
 
+func telegraph() -> int:
+	var p = main.player
+	return 1 if is_on_floor() and stun_t <= 0.0 and wait_t < 0.3 and p and p.global_position.distance_to(global_position) < 380.0 * aggro() else 0
+
 func _physics_process(delta: float) -> void:
 	anim_t += delta
 	flash_t -= delta

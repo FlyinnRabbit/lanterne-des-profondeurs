@@ -18,6 +18,9 @@ var damage := 3
 var crit := false
 var _hit := {}
 var t := 0.0
+var boomerang := false   # étoiles niv. 2 : reviennent vers le joueur
+var returning := false
+var colorblind := false
 
 func _ready() -> void:
 	add_to_group("projectiles")
@@ -36,6 +39,17 @@ func _physics_process(delta: float) -> void:
 	if life <= 0.0:
 		queue_free()
 		return
+	if boomerang:
+		if not returning and t > 0.32:
+			returning = true
+			_hit.clear()
+		if returning:
+			var to: Vector2 = main.player.global_position - global_position
+			if to.length() < 22.0:
+				queue_free()
+				return
+			vel = vel.lerp(to.normalized() * 620.0, minf(delta * 10.0, 1.0))
+			life = maxf(life, 0.2)
 	vel.y += gravity * delta
 	global_position += vel * delta
 	if kind == "wave":
@@ -44,9 +58,13 @@ func _physics_process(delta: float) -> void:
 		if main.is_solid_at(ahead) or not main.is_solid_at(global_position + Vector2(0, 6)):
 			pop()
 			return
-	elif main.is_solid_at(global_position):
-		pop()
-		return
+	elif main.is_solid_at(global_position) and not returning:
+		if boomerang:
+			returning = true
+			_hit.clear()
+		else:
+			pop()
+			return
 	var r := get_rect()
 	if hostile:
 		var p = main.player
@@ -59,14 +77,28 @@ func _physics_process(delta: float) -> void:
 			if is_instance_valid(e) and not e.dead and not _hit.has(e) and r.intersects(e.get_rect()):
 				if crit:
 					main.player.last_crit_t = 0.2
-				e.take_hit(damage, vel.normalized())
+				var dm := damage
+				if kind == "shuriken" and e.is_boss:
+					# les boss encaissent mieux les coups à distance : 60 % des dégâts (cumulés)
+					var acc: float = float(e.get_meta("ranged_acc", 0.0)) + damage * 0.6
+					dm = floori(acc)
+					e.set_meta("ranged_acc", acc - dm)
+				if dm > 0:
+					e.take_hit(dm, vel.normalized())
+				else:
+					main.spawn_burst(global_position, Color(0.8, 0.85, 1.0), 4, 120.0)
 				_hit[e] = true
 				if kind == "shuriken":
 					var pl = main.player
-					pl.soul = mini(pl.soul + 7, pl.SOUL_MAX)
-					pl.ult = mini(pl.ult + 4, pl.ULT_MAX)
-					Audio.sfx("hit", 0.1, -3.0)
-				if not pierce:
+					pl.soul = mini(pl.soul + 3, pl.SOUL_MAX)
+					pl.ult = mini(pl.ult + 2, pl.ULT_MAX)
+					Audio.sfx("star_hit", 0.1, -3.0)
+					if boomerang and not returning:
+						returning = true
+						_hit.clear()
+						_hit[e] = true
+						life = maxf(life, 0.9)
+				if not pierce and not boomerang:
 					pop()
 					return
 				main.shake(3)
@@ -93,10 +125,14 @@ func _color() -> Color:
 		"soulblade": return Color(0.85, 0.95, 1.0)
 		"shuriken": return Color(0.8, 0.85, 0.95)
 		"dart": return Color(1.0, 0.55, 0.3)
+		"slashwave": return Color(0.85, 0.92, 1.0)
 	return Color(0.85, 0.45, 0.95)
 
 func _draw() -> void:
 	var c := _color() if hostile else Color(0.6, 0.9, 1.0)
+	if hostile and Settings.colorblind:
+		c = Color(1.0, 0.1, 0.85)
+		draw_arc(Vector2.ZERO, radius + 3.0, 0.0, TAU, 16, Color(1, 1, 1), 2.0)
 	if crit and kind == "soulblade":
 		c = Color(1.0, 0.75, 0.35)
 	match kind:
@@ -116,6 +152,10 @@ func _draw() -> void:
 			draw_circle(Vector2.ZERO, radius * 1.8, Color(c, 0.2))
 			draw_circle(Vector2.ZERO, radius, c)
 			draw_circle(Vector2(-2, -2), radius * 0.35, Color(1, 1, 1, 0.7))
+		"slashwave":
+			var sd := signf(vel.x)
+			var a := clampf(life / 0.32, 0.0, 1.0)
+			draw_arc(Vector2(-sd * 8, 0), 16.0, -1.2 if sd > 0 else PI - 1.2, 1.2 if sd > 0 else PI + 1.2, 12, Color(0.9, 0.95, 1.0, a), 4.0)
 		"dart":
 			var dd := signf(vel.x)
 			draw_line(Vector2(-dd * 12, 0), Vector2(dd * 6, 0), Color(0.55, 0.4, 0.3), 2.0)

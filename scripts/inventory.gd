@@ -29,8 +29,8 @@ class CharmSlot extends Button:
 		if owned:
 			var col: Color = GameState.charm(charm_id)["color"]
 			if GameState.has_charm(charm_id):
-				draw_circle(c, 30.0, Color(col, 0.25))
-				draw_arc(c, 30.0, 0.0, TAU, 32, Color(1.0, 0.9, 0.6), 2.0)
+				draw_circle(c, 26.0, Color(col, 0.25))
+				draw_arc(c, 26.0, 0.0, TAU, 32, Color(1.0, 0.9, 0.6), 2.0)
 			draw_colored_polygon(DU.diamond(c, Vector2(16, 21)), col)
 			draw_colored_polygon(DU.diamond(c, Vector2(7, 10)), Color(1, 1, 1, 0.75))
 			# coût en petites encoches
@@ -107,7 +107,7 @@ func _ready() -> void:
 	for id in GameState.charm_count():
 		var b := CharmSlot.new()
 		b.charm_id = id
-		b.custom_minimum_size = Vector2(96, 96)
+		b.custom_minimum_size = Vector2(84, 80)
 		b.focus_entered.connect(_show_desc.bind(id))
 		b.mouse_entered.connect(_show_desc.bind(id))
 		b.pressed.connect(_toggle.bind(id))
@@ -165,7 +165,7 @@ func _apply_scale() -> void:
 # ---------------------------------------------------------------- ouverture
 func open() -> void:
 	visible = true
-	Engine.time_scale = 1.0
+	Engine.time_scale = Settings.speed()
 	get_tree().paused = true
 	status.text = ""
 	_apply_scale()

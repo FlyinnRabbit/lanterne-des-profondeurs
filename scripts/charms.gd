@@ -9,6 +9,10 @@ const MIRROR := 4
 const GREED := 5
 const QUICK_FOCUS := 6
 const BRUTE := 7
+const METEOR := 8
+const SHADOW_REST := 9
+const ECHO := 10
+const LIGHT_STEP := 11
 
 const CHARMS := [
 	{"name": "Aiguille Longue", "cost": 2, "color": Color(0.75, 0.85, 1.0),
@@ -26,5 +30,13 @@ const CHARMS := [
 	{"name": "Concentration Vive", "cost": 1, "color": Color(1.0, 0.95, 0.7),
 		"desc": "Le soin se fait presque deux fois plus vite."},
 	{"name": "Force Brute", "cost": 3, "color": Color(1.0, 0.55, 0.4),
-		"desc": "Les coups d'aiguille infligent le double de dégâts."},
+		"desc": "+1 dégât à tous les coups, mais les coups sont 20 % plus lents."},
+	{"name": "Météore Ardent", "cost": 2, "color": Color(1.0, 0.7, 0.3),
+		"desc": "Une attaque plongée qui touche un ennemi prépare un coup critique."},
+	{"name": "Repos de l'Ombre", "cost": 1, "color": Color(0.6, 0.55, 0.9),
+		"desc": "Accroupi, l'âme se remplit lentement et le soin est deux fois plus rapide."},
+	{"name": "Écho Parfait", "cost": 2, "color": Color(0.85, 1.0, 0.95),
+		"desc": "Une parade parfaite lance gratuitement une lame d'âme."},
+	{"name": "Pas Léger", "cost": 1, "color": Color(0.7, 1.0, 0.6),
+		"desc": "Franchir un piège sans être touché rapporte 5 éclats."},
 ]

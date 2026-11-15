@@ -1,6 +1,7 @@
 extends Control
 # Interface : réceptacle d'âme, fragments de vie, éclats (monnaie), barre du boss, messages.
 
+const MapView = preload("res://scripts/map_view.gd")
 const DU = preload("res://scripts/draw_util.gd")
 const G = preload("res://scripts/glyphs.gd")
 
@@ -11,6 +12,12 @@ var shown_soul := 0.0
 var damage_log := []     # [dégâts, nom, type de coup, coup fatal, âge]
 const LOG_TIME := 1.6
 var t := 0.0
+var toasts := []        # [texte, âge] : succès débloqués
+
+func _ready() -> void:
+	Achievements.unlocked.connect(func(id):
+		toasts.append([tr("Succès débloqué : %s") % tr(Achievements.info(id)[1]), 0.0])
+		Audio.sfx("achievement", 0.0, 0.0))
 
 func add_damage(dmg: int, who: String, kind: String, killed: bool) -> void:
 	if not Settings.damage_numbers:
@@ -31,6 +38,9 @@ func _process(delta: float) -> void:
 		d[4] += delta
 	damage_log = damage_log.filter(func(d): return d[4] < LOG_TIME)
 	message_t -= delta
+	for ts in toasts:
+		ts[1] += delta
+	toasts = toasts.filter(func(ts): return ts[1] < 4.0)
 	if main and main.player:
 		shown_soul = lerpf(shown_soul, float(main.player.soul), minf(delta * 10.0, 1.0))
 	queue_redraw()
@@ -107,6 +117,23 @@ func _draw() -> void:
 			var fs := 34 if i == 0 else 22
 			var y := sz.y * 0.28 + i * 38.0
 			G.draw_rich(self, font, 0, sz.x, y, lines[i], fs, Color(0.92, 0.94, 1.0, alpha), true)
+	# Chronomètre (descente du jour, défi des boss, défi chronométré)
+	if GameState.daily or GameState.mode == "rush":
+		var tt := int(Achievements.run.get("time", 0.0))
+		var ts2 := "%d:%02d" % [tt / 60, tt % 60]
+		draw_string(font, Vector2(0, 32), ts2, HORIZONTAL_ALIGNMENT_CENTER, sz.x, 24, Color(0.85, 0.92, 1.0))
+	if main.challenge_t > 0.0:
+		var ct := "%.1f" % main.challenge_t
+		draw_string(font, Vector2(0, 64), tr("Défi : %s s") % ct, HORIZONTAL_ALIGNMENT_CENTER, sz.x, 26, Color(1.0, 0.75, 0.35) if main.challenge_t > 3.0 else Color(1.0, 0.4, 0.3))
+	# Succès débloqués (bandeau en haut au centre)
+	for i in toasts.size():
+		var ts: Array = toasts[i]
+		var ta := clampf(minf(ts[1] * 4.0, (4.0 - ts[1]) * 2.0), 0.0, 1.0)
+		var tw := font.get_string_size(ts[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x + 40.0
+		var tp := Vector2((sz.x - tw) / 2.0, 18.0 + i * 44.0)
+		draw_rect(Rect2(tp, Vector2(tw, 36)), Color(0.08, 0.06, 0.02, 0.85 * ta))
+		draw_rect(Rect2(tp, Vector2(tw, 36)), Color(1.0, 0.8, 0.4, ta), false, 2.0)
+		draw_string(font, tp + Vector2(20, 24), ts[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1.0, 0.9, 0.6, ta))
 	# Panneau du tutoriel
 	if main.sign_text != "":
 		var sl: PackedStringArray = main.sign_text.split("\n")
@@ -122,6 +149,19 @@ func _draw() -> void:
 			G.draw_rich(self, font, bpos.x, bw, bpos.y + 38 + i * 30, sl[i], 21, Color(0.95, 0.96, 1.0))
 	# Dégâts infligés : coin en haut à droite, disparaissent vite
 	var ly := 64.0 if Settings.show_fps else 40.0
+	# Mini-carte (en descente)
+	if Settings.minimap and GameState.mode == "descent" and main.player:
+		var mw := 26
+		var mh := 12
+		var mc := 7.0
+		var mo := Vector2(sz.x - mw * mc - 16.0, ly - 16.0)
+		var pc := Vector2i(floori(main.player.global_position.x / main.TILE), floori(main.player.global_position.y / main.TILE))
+		var mr := Rect2i(pc - Vector2i(mw / 2, mh / 2), Vector2i(mw, mh))
+		draw_rect(Rect2(mo - Vector2(4, 4), Vector2(mw * mc + 8, mh * mc + 8)), Color(0.02, 0.03, 0.06, 0.7))
+		MapView.draw_cells(self, main, mo, mc, mr)
+		MapView.draw_markers(self, main, mo, mc, mr, false)
+		draw_rect(Rect2(mo - Vector2(4, 4), Vector2(mw * mc + 8, mh * mc + 8)), Color(0.6, 0.7, 0.9, 0.6), false, 1.5)
+		ly += mh * mc + 24.0
 	for d in damage_log:
 		var a: float = clampf((LOG_TIME - d[4]) / 0.5, 0.0, 1.0)
 		var slide: float = clampf(d[4] / 0.12, 0.0, 1.0)
@@ -154,6 +194,6 @@ func _draw() -> void:
 	elif p.sitting:
 		hint = "{inventory|1} : changer d'équipement    bouger : se lever"
 	elif t < 14.0 and not GameState.is_tutorial():
-		hint = "{move_left|1}{move_right|1} bouger   {jump|1} sauter   {attack|1} frapper   {dash|1} ruée   {parry|1} parade   {spell|1} sort   {ultimate|1} ultime   {focus|1} soin   {inventory|1} inventaire   {pause|1} pause"
+		hint = "{move_left|1}{move_right|1} bouger   {jump|1} sauter   {attack|1} frapper   {dash|1} ruée   {parry|1} parade   {spell|1} sort   {ultimate|1} ultime   {focus|1} soin   {inventory|1} inventaire   {map|1} carte   {pause|1} pause"
 	if hint != "" and (Settings.show_hints or main.interact_hint != ""):
 		G.draw_rich(self, font, 0, sz.x, sz.y - 18, hint, 16, Color(0.75, 0.8, 0.9, 0.9))

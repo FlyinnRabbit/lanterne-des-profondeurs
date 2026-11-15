@@ -16,10 +16,18 @@ const W := {
 		"w": 1.9, "h": 0.7, "v": 1.45, "cd": 1.25, "dmg": 0, "knock": 0.7, "stagger": 0.0, "ranged": false},
 	"marteau": {"name": "Marteau d'Enclume", "price": 220, "color": Color(1.0, 0.65, 0.35),
 		"desc": "Lent et lourd : +1 dégât, gros recul et étourdit brièvement les ennemis touchés.",
-		"w": 0.95, "h": 1.35, "v": 1.1, "cd": 1.6, "dmg": 1, "knock": 1.6, "stagger": 0.35, "ranged": false},
+		"w": 0.95, "h": 1.35, "v": 1.1, "cd": 1.85, "dmg": 1, "knock": 1.6, "stagger": 0.35, "ranged": false},
 	"shuriken": {"name": "Étoiles de Lune", "price": 260, "color": Color(0.75, 0.85, 1.0),
 		"desc": "Shurikens lancés à distance, très rapides. Coup final : 3 étoiles ; tourbillon : 8 étoiles en cercle ; estoc : grande étoile perçante. Pas de rebond.",
 		"w": 1.0, "h": 1.0, "v": 1.0, "cd": 0.75, "dmg": 0, "knock": 0.6, "stagger": 0.0, "ranged": true},
+}
+
+# Améliorations (niveau 2), vendues par la forgeronne une fois le palier 1 terminé
+const UP := {
+	"aiguille": {"price": 200, "desc": "Niv. 2 : le coup final projette une courte lame d'air."},
+	"fouet": {"price": 240, "desc": "Niv. 2 : le fouet attire vers toi les petits ennemis touchés."},
+	"marteau": {"price": 260, "desc": "Niv. 2 : le coup final fait jaillir une onde de choc des deux côtés."},
+	"shuriken": {"price": 280, "desc": "Niv. 2 : les étoiles reviennent comme un boomerang et touchent à nouveau."},
 }
 
 static func get_w(id: String) -> Dictionary:

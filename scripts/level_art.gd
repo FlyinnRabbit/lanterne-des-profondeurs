@@ -43,7 +43,11 @@ func _draw() -> void:
 				var hx := r.position.x + 4 + i * 10 + _hash(x + i, y) * 6
 				var hh := 3.0 + _hash(x, y + i) * 6.0
 				draw_line(Vector2(hx, r.position.y), Vector2(hx + 1, r.position.y - hh), moss, 1.5)
+	if Settings.colorblind:
+		spike_col = Color(1.0, 0.1, 0.85)
 	for s in main.spikes:
+		if Settings.colorblind:
+			draw_rect(Rect2(s.position.x - 2, s.end.y - 3, s.size.x + 4, 3), Color(1, 1, 1))
 		var n := 3
 		var w: float = s.size.x / n
 		for i in n:

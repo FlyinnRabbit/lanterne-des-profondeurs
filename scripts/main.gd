@@ -44,6 +44,7 @@ const BossQueen = preload("res://scripts/boss_queen.gd")
 const BossColossus = preload("res://scripts/boss_colossus.gd")
 const BossWorm = preload("res://scripts/boss_worm.gd")
 const BossKnight = preload("res://scripts/boss_knight.gd")
+const BossLantern = preload("res://scripts/boss_lantern.gd")
 const BomberScript = preload("res://scripts/bomber.gd")
 const WeaverScript = preload("res://scripts/weaver.gd")
 const LancerScript = preload("res://scripts/lancer.gd")
@@ -76,6 +77,16 @@ var shake_amt := 0.0
 var light_tex: GradientTexture2D
 var menu
 var inventory
+var map_view
+var challenge_start = null
+var challenge_goal = null
+var challenge_t := 0.0
+var challenge_done := false
+var altar_foes := []
+var altar_state := ""     # "" / "fight" / "done"
+var explored := PackedByteArray()   # cases découvertes (carte)
+var _reveal_t := 0.0
+const MapViewScript = preload("res://scripts/map_view.gd")
 var signs := []     # [prop, données du panneau, déjà déclenché]
 var sign_text := ""
 var benches := []   # positions des bancs
@@ -95,6 +106,7 @@ func _ready() -> void:
 	light_tex = DU.radial_texture()
 	_build_level()
 	_spawn_everything()
+	_spawn_shade()
 	_setup_camera_and_fx()
 	var layer := CanvasLayer.new()
 	layer.layer = 10
@@ -109,6 +121,12 @@ func _ready() -> void:
 	menu.set_script(MenuScript)
 	menu.main = self
 	add_child(menu)
+	explored.resize(map_size.x * map_size.y)
+	explored.fill(1 if (GameState.mode != "descent" or GameState.prog.get("map_full", false)) else 0)
+	map_view = CanvasLayer.new()
+	map_view.set_script(MapViewScript)
+	map_view.main = self
+	add_child(map_view)
 	inventory = CanvasLayer.new()
 	inventory.set_script(InventoryScript)
 	inventory.main = self
@@ -123,9 +141,13 @@ func _ready() -> void:
 		show_message(level["name"], 3.0)
 	elif GameState.is_hub():
 		show_message(GameState.pending_message if GameState.pending_message != "" else level["name"], 4.5)
+	elif GameState.mode == "rush":
+		show_message(tr("Défi des boss — %d / %d\n%s") % [GameState.rush_i + 1, GameState.RUSH_ORDER.size(), GameState.boss_name_for_id(GameState.RUSH_ORDER[GameState.rush_i])], 3.0)
 	else:
-		show_message(tr("Palier %d — niveau %d / %d%s\n%s — %s") % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER,
-			tr("  (boss)") if GameState.is_boss_level() else "", tr(level["name"]), GameState.diff_name()], 3.5)
+		var head := tr("Descente du jour") + " — " if GameState.daily else ""
+		var cur := ("  —  " + tr(GameState.CURSES[GameState.curse]["name"])) if GameState.curse != "" else ""
+		show_message(head + tr("Palier %d — niveau %d / %d%s\n%s — %s") % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER,
+			tr("  (boss)") if GameState.is_boss_level() else "", tr(level["name"]), GameState.diff_name()] + cur, 3.5)
 	GameState.pending_message = ""
 	Audio.play_playlist(level.get("music", []))
 	if GameState.show_title:
@@ -240,6 +262,20 @@ func _crumble_start(row: String, x: int) -> bool:
 func _cell_feet(x: int, y: int, height: float) -> Vector2:
 	return Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE - height / 2.0 - 1.0)
 
+const ShadeScript = preload("res://scripts/shade.gd")
+var shade_node = null
+func _spawn_shade() -> void:
+	var sh: Dictionary = GameState.prog.get("shade", {})
+	if sh.is_empty() or GameState.mode != "descent" or int(sh["palier"]) != GameState.palier or int(sh["step"]) != GameState.step:
+		return
+	var e := CharacterBody2D.new()
+	e.set_script(ShadeScript)
+	e.main = self
+	e.geo_kept = int(sh["geo"])
+	e.position = Vector2(float(sh["x"]), float(sh["y"]) - 20.0)
+	add_child(e)
+	shade_node = e
+
 func _spawn_everything() -> void:
 	for y in map_size.y:
 		var row: String = MAP[y]
@@ -288,6 +324,27 @@ func _spawn_everything() -> void:
 				"M":
 					var mp = _make_prop("merchant", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.5), 2.5)
 					interactables.append([mp, "merchant"])
+				"W":
+					_make_platform("breakable", Vector2(x * TILE, y * TILE), Vector2(TILE, TILE))
+				"$":
+					var gkey := "%d-%d-%d$%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, x, y]
+					if not GameState.is_collected(gkey):
+						var cp2 = _make_prop("cache", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.85, 0.4), 1.8)
+						pickups.append([cp2, "geo", gkey])
+				"S":
+					challenge_start = _make_prop("challenge", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.75, 0.35), 2.0)
+				"G":
+					challenge_goal = _make_prop("flag", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.75, 0.35), 2.0)
+				"F", "J", "I":
+					# habitants du Sanctuaire : arrivent au fil des paliers terminés
+					var npc: String = {"F": "smith", "J": "cartographer", "I": "elder"}[row[x]]
+					var need: int = {"smith": 1, "cartographer": 2, "elder": 3}[npc]
+					if GameState.record >= need:
+						var np2 = _make_prop(npc, Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.55), 2.0)
+						interactables.append([np2, npc])
+				"R":
+					var rp2 = _make_prop("altar", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.4, 0.35), 2.2)
+					interactables.append([rp2, "altar"])
 				"Z":
 					# totem à fléchettes : tire vers le côté le plus dégagé
 					var dl := 0
@@ -346,8 +403,8 @@ func _spawn_everything() -> void:
 					enemy_spawns.append([WraithScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
 				"K", "Q":
 					var bid: String = level.get("boss_id", "abbesse" if row[x] == "Q" else "gardien")
-					var scripts := {"reine": BossQueen, "colosse": BossColossus, "ver": BossWorm, "chevalier": BossKnight}
-					var heights := {"reine": 62, "colosse": 112, "ver": 54, "chevalier": 72}
+					var scripts := {"reine": BossQueen, "colosse": BossColossus, "ver": BossWorm, "chevalier": BossKnight, "ombre": BossLantern}
+					var heights := {"reine": 62, "colosse": 112, "ver": 54, "chevalier": 72, "ombre": 76}
 					boss = CharacterBody2D.new()
 					boss.set_script(scripts.get(bid, BossScript))
 					if not scripts.has(bid):
@@ -417,10 +474,16 @@ func make_light(color: Color, sc: float, energy: float, offset: Vector2 = Vector
 func _setup_camera_and_fx() -> void:
 	var mod := CanvasModulate.new()
 	mod.color = pal["ambient"]
+	if GameState.curse == "dark" and GameState.mode == "descent":
+		mod.color = (pal["ambient"] as Color).darkened(0.65)
 	add_child(mod)
 	camera = Camera2D.new()
 	camera.zoom = Vector2(Settings.zoom, Settings.zoom)
-	Settings.changed.connect(func(): camera.zoom = Vector2(Settings.zoom, Settings.zoom))
+	Settings.changed.connect(func():
+		camera.zoom = Vector2(Settings.zoom, Settings.zoom)
+		for n in get_children():
+			if n is Node2D and n.get_script() == LevelArtScript:
+				n.queue_redraw())
 	camera.limit_left = 0
 	camera.limit_top = 0
 	camera.limit_right = map_size.x * TILE
@@ -448,10 +511,91 @@ func _setup_camera_and_fx() -> void:
 	dust.scale_amount_max = 2.5
 	dust.color = pal["dust"]
 	camera.add_child(dust)
-	player.add_child(make_light(pal.get("light", Color(1.0, 0.85, 0.6)), 2.2, 0.85, Vector2(0, -10)))
+	player.add_child(make_light(pal.get("light", Color(1.0, 0.85, 0.6)), 1.3 if GameState.curse == "dark" and GameState.mode == "descent" else 2.2, 1.0 if GameState.curse == "dark" else 0.85, Vector2(0, -10)))
 
 # ---------------------------------------------------------------- boucle
+# ---------------------------------------------------------------- salles spéciales
+func _update_rooms(delta: float) -> void:
+	if player == null or player.dead:
+		return
+	var pp: Vector2 = player.global_position
+	# défi chronométré
+	if challenge_start and not challenge_done:
+		if challenge_t <= 0.0 and pp.distance_to(challenge_start.position + Vector2(0, -20)) < 40.0:
+			challenge_t = 13.0
+			challenge_start.lit = true
+			Audio.sfx("door", 0.0, 2.0)
+			show_message("Défi : atteins le drapeau avant la fin du temps !", 2.5)
+		elif challenge_t > 0.0:
+			challenge_t -= delta
+			if challenge_goal and pp.distance_to(challenge_goal.position + Vector2(0, -20)) < 44.0:
+				challenge_t = 0.0
+				challenge_done = true
+				challenge_goal.lit = true
+				var reward := roundi((40 + 15 * GameState.palier) * GameState.geo_mult())
+				player.geo += reward
+				spawn_burst(challenge_goal.position, Color(1.0, 0.85, 0.4), 40, 260.0, 0.0)
+				Audio.sfx("pickup", 0.0, 3.0)
+				show_message(tr("Défi réussi ! +%d éclats") % reward, 3.0)
+				Achievements.unlock("room")
+			elif challenge_t <= 0.0:
+				challenge_t = 0.0
+				challenge_done = true
+				show_message("Défi raté… le temps est écoulé.", 2.5)
+	# arène d'élites
+	if altar_state == "fight":
+		altar_foes = altar_foes.filter(func(e): return is_instance_valid(e) and not e.dead)
+		if altar_foes.is_empty():
+			altar_state = "done"
+			var reward2 := roundi((50 + 15 * GameState.palier) * GameState.geo_mult())
+			player.geo += reward2
+			var cid := _random_charm(int(pp.x))
+			if cid >= 0:
+				var rp = _make_prop("charm", pp + Vector2(0, -60), GameState.charm(cid)["color"], 1.6)
+				rp.color = GameState.charm(cid)["color"]
+				pickups.append([rp, "charm", cid])
+			Audio.sfx("pickup", 0.0, 3.0)
+			show_message(tr("Arène vaincue ! +%d éclats") % reward2, 3.0)
+			Achievements.unlock("room")
+
+func _start_altar(prop) -> void:
+	if altar_state != "":
+		return
+	altar_state = "fight"
+	prop.lit = true
+	shake(10)
+	Audio.sfx("ult", 0.0, -4.0)
+	var pool := [GuardScript, LancerScript, HopperScript, CrawlerScript, SpitterScript]
+	for i in 3:
+		var e := CharacterBody2D.new()
+		e.set_script(pool[(GameState.palier + i * 2) % pool.size()])
+		e.main = self
+		e.elite = true
+		e.position = prop.position + Vector2(-220 + i * 220, -40)
+		add_child(e)
+		altar_foes.append(e)
+		spawn_burst(e.position, Color(1.0, 0.35, 0.3), 16, 180.0, 0.0)
+
+func is_explored(x: int, y: int) -> bool:
+	var i := y * map_size.x + x
+	return i >= 0 and i < explored.size() and explored[i] == 1
+
+func _reveal() -> void:
+	var c := Vector2i(floori(player.global_position.x / TILE), floori(player.global_position.y / TILE))
+	for y in range(maxi(c.y - 9, 0), mini(c.y + 10, map_size.y)):
+		for x in range(maxi(c.x - 13, 0), mini(c.x + 14, map_size.x)):
+			explored[y * map_size.x + x] = 1
+
 func _process(delta: float) -> void:
+	_reveal_t -= delta
+	_update_rooms(delta)
+	if GameState.mode in ["descent", "rush"] and not get_tree().paused:
+		Achievements.run["time"] = float(Achievements.run.get("time", 0.0)) + delta
+	if player and player.geo >= 1000:
+		Achievements.unlock("rich")
+	if _reveal_t <= 0.0 and player:
+		_reveal_t = 0.15
+		_reveal()
 	if player == null:
 		return
 	# Caméra : suit le joueur, regarde un peu devant lui
@@ -465,12 +609,20 @@ func _process(delta: float) -> void:
 	interact_hint = ""
 	for it in interactables:
 		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
-			interact_hint = tr("{up|1} : %s") % tr({"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur"}[it[1]])
+			var verbs := {"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur",
+				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "cartographer": "parler au cartographe", "elder": "écouter l'ancien"}
+			if it[1] == "altar" and altar_state != "":
+				continue
+			interact_hint = tr("{up|1} : %s") % tr(verbs[it[1]])
 			if Input.is_action_just_pressed("up") and player.is_on_floor() and not get_tree().paused:
 				if it[1] == "merchant":
 					hub_ui.open_shop()
 				elif it[1] == "arsenal":
 					hub_ui.open_arsenal()
+				elif it[1] == "altar":
+					_start_altar(it[0])
+				elif it[1] in ["smith", "cartographer", "elder"]:
+					hub_ui.open_npc(it[1])
 				else:
 					hub_ui.open_elevator()
 	# Banc le plus proche
@@ -514,7 +666,14 @@ func _process(delta: float) -> void:
 	for pk in pickups.duplicate():
 		var prop = pk[0]
 		if is_instance_valid(prop) and pp.distance_to(prop.position) < 34:
-			if pk[1] == "charm":
+			if pk[1] == "geo":
+				var amount := roundi((40 + 15 * GameState.palier) * GameState.geo_mult())
+				player.geo += amount
+				GameState.prog["collected"].append(pk[2])     # cachette vidée
+				Audio.sfx("pickup", 0.0)
+				show_message(tr("Trésor caché : +%d éclats !") % amount, 3.0)
+				Achievements.unlock("room")
+			elif pk[1] == "charm":
 				GameState.add_charm(pk[2])
 				Audio.sfx("pickup", 0.0)
 				show_message(tr("Emblème obtenu : %s\nÉquipe-le depuis l'inventaire ({inventory|1}) en te reposant sur un banc.") % tr(GameState.charm(pk[2])["name"]), 4.5)
@@ -563,9 +722,9 @@ func shake(amount: float) -> void:
 func hit_stop(duration: float) -> void:
 	if not Settings.hitstop:
 		return
-	Engine.time_scale = 0.05
+	Engine.time_scale = 0.05 * Settings.speed()
 	await get_tree().create_timer(duration, true, false, true).timeout
-	Engine.time_scale = 1.0
+	Engine.time_scale = Settings.speed()
 
 func show_message(text: String, duration: float = 2.5) -> void:
 	if hud:
@@ -592,12 +751,16 @@ func spawn_burst(pos: Vector2, color: Color, amount: int = 12, speed: float = 16
 
 # ---------------------------------------------------------------- événements
 func on_enemy_killed(e, geo: int) -> void:
-	player.geo += geo
+	player.geo += roundi(geo * GameState.geo_mult())
+	Achievements.stat("kills")
+	if player.plunge_kill_t > 0.0:
+		Achievements.unlock("plunge")
 	Audio.sfx("kill")
 	spawn_burst(e.global_position, Color(0.95, 0.9, 0.75), 18, 220.0)
 	shake(4)
 
 func on_player_hurt() -> void:
+	Achievements.on_hurt()
 	Audio.sfx("hurt")
 	shake(12)
 	hit_stop(0.12)
@@ -610,7 +773,7 @@ func on_player_died() -> void:
 	# En descente : retour au hub, le butin de la descente est perdu
 	if not GameState.is_tutorial():
 		Audio.stop_music()
-		GameState.die_in_descent()
+		GameState.die_in_descent(player.geo, respawn_pos if player.global_position.y > map_size.y * TILE else player.global_position)
 		return
 	if boss_started and not boss_dead:
 		boss_started = false
@@ -629,7 +792,7 @@ func on_boss_killed() -> void:
 	for pr in get_tree().get_nodes_in_group("projectiles"):
 		if is_instance_valid(pr) and pr.hostile:
 			pr.pop()
-	player.geo += 60 + 20 * GameState.palier
+	player.geo += roundi((60 + 20 * GameState.palier) * GameState.geo_mult())
 	spawn_burst(boss.global_position, Color(1.0, 0.7, 0.4), 70, 380.0)
 	shake(18)
 	hit_stop(0.25)
@@ -639,6 +802,10 @@ func on_boss_killed() -> void:
 		exit_gate.set_closed(false)
 	Audio.resume_level()
 	var bname: String = boss.boss_name
+	if level.get("boss_id", "") == "ombre":
+		Achievements.unlock("final")
+		show_message(tr("L'Ombre de la Lanterne se dissipe.\nLa Lanterne des Profondeurs brille à nouveau — mais les profondeurs continuent…"), 6.0)
+		return
 	var fem := bname.begins_with("La ") or bname.begins_with("L'Abbesse")
 	show_message(tr("%s est vaincue.\nLa voie est ouverte." if fem else "%s est vaincu.\nLa voie est ouverte.") % tr(bname), 4.0)
 
@@ -682,7 +849,7 @@ func ultimate_blast(pos: Vector2) -> void:
 # Journal des dégâts infligés (coin de l'écran)
 const ENEMY_NAMES := {"crawler.gd": "Rampant", "flyer.gd": "Volant", "spitter.gd": "Cracheur", "hopper.gd": "Sauteur",
 	"guard.gd": "Garde", "bomber.gd": "Bulbe", "weaver.gd": "Tisseuse", "lancer.gd": "Lancier", "wraith.gd": "Spectre",
-	"dummy.gd": "Mannequin"}
+	"dummy.gd": "Mannequin", "shade.gd": "Ombre"}
 func on_damage_dealt(e, dmg: int) -> void:
 	if dmg <= 0 or hud == null:
 		return
@@ -696,6 +863,8 @@ func on_damage_dealt(e, dmg: int) -> void:
 	var kind: String = player.attack_kind if player.attack_t > 0.0 or player.thrust_t > 0.0 else "autre"
 	if player.last_crit_t > 0.0:
 		kind = "crit"
+		Achievements.on_crit()
+	Achievements.stat("damage", dmg)
 	hud.add_damage(dmg, n, kind, e.hp <= 0)
 
 # Coquille Épineuse : riposte quand le joueur est touché

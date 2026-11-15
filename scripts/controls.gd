@@ -19,11 +19,11 @@ const CURSOR_HIDE_DELAY := 2.0
 var cursor_idle := 0.0
 
 # Ordre et noms affichés dans le menu
-const ACTIONS := ["move_left", "move_right", "up", "down", "jump", "attack", "dash", "parry", "spell", "ultimate", "focus", "inventory"]
+const ACTIONS := ["move_left", "move_right", "up", "down", "jump", "attack", "dash", "parry", "spell", "ultimate", "focus", "inventory", "map"]
 const LABELS := {
 	"move_left": "Gauche", "move_right": "Droite", "up": "Haut / Banc", "down": "Bas / S'accroupir",
 	"jump": "Sauter", "attack": "Frapper", "dash": "Ruée / Esquive", "parry": "Parade",
-	"spell": "Sort d'âme", "ultimate": "Ultime", "focus": "Se soigner", "inventory": "Inventaire",
+	"spell": "Sort d'âme", "ultimate": "Ultime", "focus": "Se soigner", "inventory": "Inventaire", "map": "Carte",
 }
 
 var DEFAULT_KEYS := {
@@ -33,6 +33,7 @@ var DEFAULT_KEYS := {
 	"dash": [KEY_K, KEY_SHIFT], "parry": [KEY_I, -MOUSE_BUTTON_RIGHT], "spell": [KEY_O, -MOUSE_BUTTON_MIDDLE],
 	"ultimate": [KEY_U, KEY_R], "focus": [KEY_L, KEY_F],
 	"inventory": [KEY_TAB, KEY_B],
+	"map": [KEY_M, KEY_NONE],
 }
 var DEFAULT_PAD := {
 	"move_left": {"type": "button", "index": JOY_BUTTON_DPAD_LEFT},
@@ -47,6 +48,7 @@ var DEFAULT_PAD := {
 	"ultimate": {"type": "button", "index": JOY_BUTTON_Y},
 	"focus": {"type": "button", "index": JOY_BUTTON_B},
 	"inventory": {"type": "button", "index": JOY_BUTTON_BACK},
+	"map": {"type": "button", "index": JOY_BUTTON_RIGHT_STICK},
 }
 # Le stick gauche reste toujours actif pour se déplacer, en plus des réglages.
 const STICK := {

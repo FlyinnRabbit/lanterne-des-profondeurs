@@ -3,7 +3,8 @@ extends Node
 # Bus créés au démarrage : Master > Music, Master > SFX. Volumes réglés dans Options.
 
 const FADE := 1.5
-const SFX_NAMES := ["slash", "hit", "hurt", "parry", "dash", "jump", "ult", "pickup", "heal", "spit", "kill", "door"]
+const SFX_NAMES := ["slash", "hit", "hurt", "parry", "dash", "jump", "ult", "pickup", "heal", "spit", "kill", "door",
+	"whip", "hammer", "star", "star_hit", "crit", "crit_ready", "achievement"]
 
 var players: Array[AudioStreamPlayer] = []
 var active := 0

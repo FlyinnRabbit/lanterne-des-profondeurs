@@ -69,7 +69,12 @@ var post_dash_t := 0.0
 var spell_cd := 0.0
 var air_i := -1                 # combo aérien (0, 1, 2)
 var crouching := false
+var crouch_latch := false
+var rest_acc := 0.0
 var plunging := false
+var plunge_used := false        # une seule plongée par saut
+var plunge_cd := 0.0
+var plunge_kill_t := 0.0
 var crit_ready := false         # coup critique prêt (après une parade parfaite)
 var crit_t := 0.0
 var attack_crit := false        # le coup en cours est critique
@@ -122,7 +127,7 @@ func parry_window() -> float:
 	return 0.35 if eq(C.MIRROR) else PARRY_WINDOW
 
 func focus_time() -> float:
-	return FOCUS_TIME * (0.55 if eq(C.QUICK_FOCUS) else 1.0)
+	return FOCUS_TIME * (0.55 if eq(C.QUICK_FOCUS) else 1.0) * (0.5 if crouching and eq(C.SHADOW_REST) else 1.0)
 
 func soul_per_hit() -> int:
 	return roundi((SOUL_PER_HIT + (6 if eq(C.GREED) else 0)) * float(GameState.d("soul")))
@@ -131,7 +136,7 @@ func ult_per_hit() -> int:
 	return roundi((ULT_PER_HIT + (4 if eq(C.GREED) else 0)) * float(GameState.d("ult")))
 
 func nail_damage() -> int:
-	return 2 if eq(C.BRUTE) else 1
+	return 2 if eq(C.BRUTE) else 1   # Force Brute : +1 dégât (le double au départ, plus en profondeur)
 
 func reach() -> float:
 	return 1.4 if eq(C.LONG_NAIL) else 1.0
@@ -166,11 +171,16 @@ func _set_crouch(on: bool) -> void:
 func _physics_process(delta: float) -> void:
 	anim_t += delta
 	for t in ["coyote_t", "buffer_t", "dash_t", "dash_cd", "attack_cd", "attack_t", "invuln_t", "knock_t", "recoil_t",
-			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t"]:
+			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t", "plunge_cd", "plunge_kill_t"]:
 		set(t, maxf(get(t) - delta, 0.0))
 	parry_t = maxf(parry_t - delta, 0.0)
 	parry_cd = maxf(parry_cd - delta, 0.0)
 	parry_flash = maxf(parry_flash - delta, 0.0)
+	if crouching and eq(C.SHADOW_REST):
+		rest_acc += delta * 5.0
+		if rest_acc >= 1.0:
+			rest_acc -= 1.0
+			soul = mini(soul + 1, SOUL_MAX)
 	if crit_ready and crit_t <= 0.0:
 		crit_ready = false
 	crit_light.enabled = crit_ready
@@ -224,13 +234,14 @@ func _physics_process(delta: float) -> void:
 		coyote_t = COYOTE
 		air_dash_used = false
 		air_i = -1
+		plunge_used = false
 		if not was_on_floor:
 			squash = Vector2(1.3, 0.7)
 			main.spawn_burst(global_position + Vector2(0, SIZE.y / 2), Color(0.6, 0.65, 0.8, 0.6), 6, 80.0, 50.0)
 		_update_safe_spot()
 
 	# Concentration (soin) : maintenir L au sol avec 33 d'âme
-	if Input.is_action_pressed("focus") and on_floor and soul >= FOCUS_COST and hp < max_hp and knock_t <= 0.0:
+	if Input.is_action_pressed("focus") and on_floor and soul >= FOCUS_COST and hp < max_hp and knock_t <= 0.0 and not (GameState.curse == "fragile" and GameState.mode == "descent"):
 		focus_t += delta
 		velocity.x = 0.0
 		velocity.y = minf(velocity.y + GRAVITY * delta, FALL_MAX)
@@ -246,8 +257,10 @@ func _physics_process(delta: float) -> void:
 	focus_t = 0.0
 
 	# Attaque plongée : en l'air, bas + ruée = piqué vers le sol, onde de choc à l'impact
-	if not on_floor and not plunging and Input.is_action_pressed("down") and Input.is_action_just_pressed("dash") and knock_t <= 0.0:
+	if not on_floor and not plunging and not plunge_used and plunge_cd <= 0.0 and Input.is_action_pressed("down") and Input.is_action_just_pressed("dash") and knock_t <= 0.0:
 		plunging = true
+		plunge_used = true
+		plunge_cd = 0.6
 		dash_t = 0.0
 		attack_hit.clear()
 		attack_crit = _take_crit()
@@ -304,7 +317,14 @@ func _physics_process(delta: float) -> void:
 		velocity.x = dir * run_speed() * (0.35 if parry_t > 0.0 else 1.0) * (0.3 if crouching else 1.0)
 		if dir != 0.0 and attack_t <= 0.0:
 			facing = int(dir)
-	_set_crouch(on_floor and Input.is_action_pressed("down") and knock_t <= 0.0)
+	if Settings.crouch_toggle:
+		if on_floor and Input.is_action_just_pressed("down"):
+			crouch_latch = not crouch_latch
+		if not on_floor or Input.is_action_just_pressed("jump") or dash_t > 0.0:
+			crouch_latch = false
+		_set_crouch(on_floor and crouch_latch and knock_t <= 0.0)
+	else:
+		_set_crouch(on_floor and Input.is_action_pressed("down") and knock_t <= 0.0)
 
 	# Saut
 	velocity.y = minf(velocity.y + GRAVITY * delta, FALL_MAX)
@@ -365,7 +385,7 @@ func _physics_process(delta: float) -> void:
 		var sdmg := 3 + (1 if eq(C.BRUTE) else 0)
 		main.spawn_projectile(global_position + Vector2(facing * 20, -4), Vector2(facing * 620.0, 0),
 			{"kind": "soulblade", "hostile": false, "radius": 14.0, "life": 1.1, "pierce": true,
-			"damage": ceili(sdmg * CRIT_MULT) if crit else sdmg, "crit": crit})
+			"damage": crit_damage(sdmg) if crit else sdmg, "crit": crit})
 		recoil_t = 0.1
 		recoil_vx = -facing * 180.0
 		squash = Vector2(1.2, 0.85)
@@ -399,16 +419,41 @@ func _start_attack(kind: String, adir: Vector2) -> void:
 	var wpn := weapon()
 	attack_kind = kind
 	attack_dir = adir
-	attack_cd = ATTACK_COOLDOWN * (1.3 if kind == "finisher" else 1.0) * float(wpn["cd"])
+	attack_cd = ATTACK_COOLDOWN * (1.3 if kind == "finisher" else 1.0) * float(wpn["cd"]) * (1.2 if eq(C.BRUTE) else 1.0)
 	attack_t = ATTACK_TIME * (1.4 if kind in ["finisher", "air_spin"] else 1.0)
 	attack_hit.clear()
 	attack_crit = _take_crit()
-	Audio.sfx("slash", 0.12, -2.0 if kind == "slash" else 1.0)
+	match GameState.weapon():
+		"fouet": Audio.sfx("whip", 0.1, -3.0)
+		"marteau": Audio.sfx("hammer", 0.08, -2.0)
+		"shuriken": Audio.sfx("star", 0.15, -4.0)
+		_: Audio.sfx("slash", 0.12, -2.0 if kind == "slash" else 1.0)
+	if attack_crit:
+		Audio.sfx("crit", 0.05, -1.0)
 	if wpn["ranged"]:
 		_throw_stars(kind, adir)
+	elif kind == "finisher" and GameState.weapon_level() >= 2:
+		match GameState.weapon():
+			"aiguille":
+				main.spawn_projectile(global_position + Vector2(facing * 30, -4), Vector2(facing * 560.0, 0),
+					{"kind": "slashwave", "hostile": false, "radius": 12.0, "life": 0.32, "pierce": true, "damage": nail_damage(), "crit": false})
+			"marteau":
+				var feet := global_position + Vector2(0, SIZE.y / 2.0 - 4.0)
+				for d in [-1.0, 1.0]:
+					main.spawn_projectile(feet + Vector2(d * 24.0, 0), Vector2(d * 380.0, 0), {"kind": "wave", "hostile": false, "damage": nail_damage(), "life": 0.7})
+				main.shake(6)
 
 # Shurikens : l'arme lancée
 func _throw_stars(kind: String, adir: Vector2) -> void:
+	# au plus 3 étoiles « simples » à l'écran (le coup final, le tourbillon et l'estoc passent outre)
+	if kind in ["slash", "air", "air_rise", "low"]:
+		var n := 0
+		for pr in get_tree().get_nodes_in_group("projectiles"):
+			if is_instance_valid(pr) and pr.kind == "shuriken" and not pr.hostile:
+				n += 1
+		if n >= 3:
+			attack_crit = false
+			return
 	var dmg := hit_damage()
 	var base := Vector2(facing, 0) if adir.y == 0.0 else adir
 	var dirs := [base]
@@ -429,7 +474,7 @@ func _throw_stars(kind: String, adir: Vector2) -> void:
 	for d in dirs:
 		main.spawn_projectile(global_position + d * 14.0 + Vector2(0, 6 if kind == "low" else -4), d * (560.0 if not big else 480.0),
 			{"kind": "shuriken", "hostile": false, "radius": 14.0 if big else 8.0, "life": 0.6 if not big else 0.8,
-			"pierce": big, "damage": dmg, "crit": attack_crit})
+			"pierce": big, "damage": dmg, "crit": attack_crit, "boomerang": GameState.weapon_level() >= 2})
 	attack_crit = false
 
 # Dégâts selon le type de coup
@@ -440,7 +485,11 @@ func hit_damage() -> int:
 			d += 1
 		"spin":
 			d = d * 2 + 1
-	return ceili(d * CRIT_MULT) if attack_crit else d
+	return crit_damage(d) if attack_crit else d
+
+# Critique : ×1,5 arrondi au-dessus, et toujours au moins +1
+func crit_damage(d: int) -> int:
+	return maxi(d + 1, ceili(d * CRIT_MULT))
 
 func attack_rect() -> Rect2:
 	var p := global_position
@@ -473,8 +522,17 @@ func attack_rect() -> Rect2:
 	var x := p.x + SIZE.x / 2.0 - 4.0 if facing > 0 else p.x - SIZE.x / 2.0 - w + 4.0
 	return Rect2(Vector2(x, p.y - hgt * 0.55), Vector2(w, hgt))
 
+func _hit_breakables(r: Rect2) -> void:
+	for b in get_tree().get_nodes_in_group("breakables"):
+		if is_instance_valid(b) and not attack_hit.has(b) and b.get_rect().intersects(r):
+			attack_hit[b] = true
+			b.hit(1)
+			if attack_dir == Vector2.DOWN and not is_on_floor():
+				_pogo()
+
 func _do_attack_hits() -> void:
 	var r := attack_rect()
+	_hit_breakables(r)
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e) or attack_hit.has(e):
 			continue
@@ -489,6 +547,11 @@ func _do_attack_hits() -> void:
 			e.take_hit(hit_damage(), kdir * (1.6 if attack_kind == "finisher" else 1.0) * float(wpn["knock"]))
 			if float(wpn["stagger"]) > 0.0 and is_instance_valid(e) and not e.is_boss:
 				e.stun_t = maxf(e.stun_t, float(wpn["stagger"]))
+			# fouet niv. 2 : attire les petits ennemis
+			if GameState.weapon() == "fouet" and GameState.weapon_level() >= 2 and is_instance_valid(e) and not e.is_boss and not e.dead:
+				var pull: Vector2 = global_position - e.global_position
+				if pull.length() > 50.0:
+					e.knock = pull.normalized() * minf(pull.length() * 4.0, 520.0)
 			Audio.sfx("hit")
 			soul = mini(soul + soul_per_hit(), SOUL_MAX)
 			ult = mini(ult + ult_per_hit(), ULT_MAX)
@@ -554,7 +617,14 @@ func _on_parry(from_pos: Vector2, source) -> void:
 		crit_ready = true
 		crit_t = CRIT_TIME
 		perfect_t = 1.2
-		Audio.sfx("pickup", 0.0, 2.0)
+		Audio.sfx("crit_ready", 0.0, 0.0)
+		Achievements.on_perfect_parry()
+		if eq(C.ECHO):
+			var ed := signf(from_pos.x - global_position.x)
+			if ed == 0.0:
+				ed = float(facing)
+			main.spawn_projectile(global_position + Vector2(ed * 20, -4), Vector2(ed * 620.0, 0),
+				{"kind": "soulblade", "hostile": false, "radius": 14.0, "life": 1.1, "pierce": true, "damage": 3})
 	parry_t = 0.0
 	parry_cd = 0.12
 	parry_flash = 0.25
@@ -593,6 +663,10 @@ func _plunge_rect() -> Rect2:
 	return Rect2(global_position + Vector2(-18, SIZE.y / 2.0 - 10), Vector2(36, 40))
 
 func _plunge_hits() -> void:
+	plunge_kill_t = 0.5
+	for b in get_tree().get_nodes_in_group("breakables"):
+		if is_instance_valid(b) and b.get_rect().intersects(_plunge_rect().grow(4.0)):
+			b.hit(3)
 	var r := _plunge_rect()
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if is_instance_valid(e) and not attack_hit.has(e) and e.get_rect().intersects(r):
@@ -602,6 +676,9 @@ func _plunge_hits() -> void:
 				last_crit_t = 0.2
 			e.take_hit(hit_damage(), Vector2.DOWN)
 			Audio.sfx("hit")
+			if eq(C.METEOR):
+				crit_ready = true
+				crit_t = CRIT_TIME
 			soul = mini(soul + soul_per_hit(), SOUL_MAX)
 			# rebond sur l'ennemi touché
 			plunging = false
@@ -611,6 +688,7 @@ func _plunge_hits() -> void:
 			return
 
 func _plunge_land() -> void:
+	plunge_kill_t = 0.5
 	plunging = false
 	attack_kind = "plunge"
 	squash = Vector2(1.45, 0.6)

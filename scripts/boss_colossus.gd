@@ -11,6 +11,11 @@ func _ready() -> void:
 	floor_snap_length = 8.0
 
 # Pendant le balayage, la zone dangereuse s'étend devant lui
+func telegraph() -> int:
+	if state == "windup_sweep":
+		return 2
+	return super.telegraph()
+
 func get_rect() -> Rect2:
 	var r := Rect2(global_position - size / 2.0, size)
 	if sweep_t > 0.0:

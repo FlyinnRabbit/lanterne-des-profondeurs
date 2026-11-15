@@ -33,6 +33,9 @@ var waiting_action := ""
 var waiting_slot := -1
 var wait_t := 0.0
 var info: Label
+var ach_panel: PanelContainer
+var ach_list: VBoxContainer
+var ach_back: Button
 var route: Label
 var save_label: Label
 
@@ -52,6 +55,7 @@ func _ready() -> void:
 	_build_options(root)
 	_build_title(root)
 	_build_difficulty(root)
+	_build_achievements(root)
 	home_panel = pause_panel
 	for p in _panels():
 		p.resized.connect(_apply_scale)
@@ -62,7 +66,7 @@ func _ready() -> void:
 	Input.joy_connection_changed.connect(_on_joy_changed)
 
 func _panels() -> Array:
-	return [pause_panel, controls_panel, options_panel, title_panel, diff_panel]
+	return [pause_panel, controls_panel, options_panel, title_panel, diff_panel, ach_panel]
 
 # Affiche un seul panneau
 func _go(panel: PanelContainer) -> void:
@@ -109,6 +113,7 @@ func _build_title(root: Control) -> void:
 		v.add_child(first_title_button)
 	v.add_child(_button("Commandes", _open_controls))
 	v.add_child(_button("Options", _open_options))
+	v.add_child(_button("Succès", _open_achievements))
 	v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
 
 func _build_difficulty(root: Control) -> void:
@@ -272,6 +277,7 @@ func _build_pause(root: Control) -> void:
 	v.add_child(first_pause_button)
 	v.add_child(_button("Commandes", _open_controls))
 	v.add_child(_button("Options", _open_options))
+	v.add_child(_button("Succès", _open_achievements))
 	if GameState.is_tutorial():
 		v.add_child(_button("Passer le tutoriel", func(): GameState.go_next_level(main.player)))
 	if GameState.is_tutorial():
@@ -294,6 +300,52 @@ func _update_info() -> void:
 	route.text = "" if GameState.is_tutorial() else (tr("Progression sauvegardée automatiquement") + (tr(" (mode portable : dossier « sauvegardes » à côté du jeu)") if Paths.is_portable() else ""))
 	if save_label:
 		save_label.text = GameState.save_summary()
+
+func _build_achievements(root: Control) -> void:
+	ach_panel = _centered_panel(root)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	ach_panel.add_child(v)
+	v.add_child(_title("Succès"))
+	var sc := ScrollContainer.new()
+	sc.custom_minimum_size = Vector2(620, 380)
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.follow_focus = true
+	v.add_child(sc)
+	ach_list = VBoxContainer.new()
+	ach_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ach_list.add_theme_constant_override("separation", 4)
+	sc.add_child(ach_list)
+	ach_back = _button("Retour", _back_to_pause)
+	ach_back.custom_minimum_size = Vector2(200, 40)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(ach_back)
+	v.add_child(row)
+
+func _open_achievements() -> void:
+	for ch in ach_list.get_children():
+		ach_list.remove_child(ch)
+		ch.queue_free()
+	var n := 0
+	for a in Achievements.LIST:
+		var ok: bool = Achievements.done.has(a[0])
+		if ok:
+			n += 1
+		var l := Label.new()
+		l.text = ("✔  " if ok else "·  ") + tr(a[1]) + " — " + tr(a[2])
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size = Vector2(600, 0)
+		l.add_theme_font_size_override("font_size", 16)
+		l.add_theme_color_override("font_color", Color(1.0, 0.88, 0.55) if ok else Color(0.55, 0.58, 0.68))
+		ach_list.add_child(l)
+	var head := Label.new()
+	head.text = tr("%d / %d débloqués") % [n, Achievements.LIST.size()]
+	head.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
+	ach_list.add_child(head)
+	ach_list.move_child(head, 0)
+	_go(ach_panel)
+	ach_back.grab_focus()
 
 func _build_controls(root: Control) -> void:
 	controls_panel = _centered_panel(root)
@@ -400,6 +452,12 @@ func _build_options(root: Control) -> void:
 	_check_row(g, "Afficher les FPS", "show_fps")
 	_check_row(g, "Barres de vie des ennemis", "enemy_bars")
 	_check_row(g, "Dégâts infligés (coin de l'écran)", "damage_numbers")
+	_check_row(g, "Mini-carte", "minimap")
+	_check_row(g, "Annonces d'attaque ennemies (!)", "telegraphs")
+	_section(g, "Accessibilité")
+	_check_row(g, "Dangers très contrastés (daltonisme)", "colorblind")
+	_check_row(g, "Accroupi : appuyer pour basculer", "crouch_toggle")
+	_choice_row(g, "Vitesse du jeu", "game_speed", Settings.SPEED_LABELS)
 	_section(g, "Manette")
 	_choice_row(g, "Noms des boutons", "pad_style", Settings.PAD_STYLE_LABELS)
 	_section(g, "Sensations")
@@ -549,7 +607,7 @@ func _show(on: bool) -> void:
 func open() -> void:
 	_update_info()
 	_show(true)
-	Engine.time_scale = 1.0
+	Engine.time_scale = Settings.speed()
 	get_tree().paused = true
 	first_pause_button.grab_focus()
 

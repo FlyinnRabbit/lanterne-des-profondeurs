@@ -121,6 +121,62 @@ Les nouveaux ennemis et les élites deviennent plus fréquents en profondeur.
   brille au bout de l'arme et le prochain coup (normal, final, tourbillon, estoc, aérien, plongée
   ou lame d'âme) est **critique : ×1,5 dégâts**. Le journal des dégâts affiche « CRITIQUE ».
 
+## Équilibrage (v1.8)
+- **Étoiles de Lune** : 3 étoiles « simples » maximum à l'écran, moins d'âme par touche, et les boss
+  n'encaissent que 60 % des dégâts à distance.
+- **Marteau** un peu plus lent ; **Force Brute** : +1 dégât mais coups 20 % plus lents.
+- **Critique** : ×1,5 arrondi au-dessus, et toujours au moins +1 dégât.
+- **Attaque plongée** : une seule par saut (petite recharge).
+- **Pièges** : 50 % de chance maximum par salle, et moins d'ennemis dans les salles piégées.
+- **Ombre** : en mourant en descente, ton ombre garde les éclats perdus là où tu es tombé.
+  Retourne au même palier et vaincs-la pour les récupérer (une nouvelle mort la remplace).
+
+## Carte, annonces et accessibilité
+- **Carte** (touche M / R3) : tout ce que tu as découvert du niveau, avec banc, sortie, ombre, objets.
+  **Mini-carte** en haut à droite (Options). Le **cartographe** vend une plume qui révèle tout.
+- **Annonces d'attaque** : un « ! » jaune au-dessus d'un ennemi qui prépare un coup, orange avec
+  une flèche quand c'est une attaque haute (s'accroupir).
+- **Options → Accessibilité** : dangers très contrastés (daltonisme), accroupi en appuyant (bascule),
+  vitesse du jeu 100 / 90 / 80 / 70 %.
+- **Statistiques** de descente (ennemis, dégâts, critiques, parades parfaites, coups reçus, temps)
+  affichées au retour au Sanctuaire.
+- **Sons** propres à chaque arme, au coup critique et à la parade parfaite.
+
+## Nouveautés du Sanctuaire
+- **Mannequin d'entraînement** (à droite de l'arsenal) qui affiche les dégâts par seconde.
+  À l'arsenal, **Essayer** prête une arme le temps de rester au Sanctuaire.
+- **Habitants** qui arrivent au fil des paliers terminés : la **forgeronne** (palier 1, armes niv. 2),
+  le **cartographe** (palier 2, carte complète), l'**ancien** (palier 3, l'histoire de la Lanterne).
+- **Ascenseur** : chaque palier peut se jouer avec une **malédiction** (Hâte, Obscurité, Fragilité)
+  pour +50 à 60 % d'éclats ; **Descente du jour** (même niveau pour tout le monde, meilleur temps) ;
+  **Défi des boss** (les 7 boss à la suite, chronométré) une fois le palier 6 terminé.
+- **Succès** (17), consultables depuis l'écran titre ou le menu pause.
+
+## Armes niveau 2 (forgeronne)
+| Arme | Effet niv. 2 |
+|---|---|
+| Aiguille | le coup final projette une courte lame d'air |
+| Fouet | attire vers toi les petits ennemis touchés |
+| Marteau | le coup final fait jaillir une onde de choc des deux côtés |
+| Étoiles | reviennent comme un boomerang et touchent à nouveau |
+
+## Nouveaux emblèmes
+- **Météore Ardent** : une plongée qui touche prépare un coup critique.
+- **Repos de l'Ombre** : accroupi, l'âme se remplit et le soin va deux fois plus vite.
+- **Écho Parfait** : une parade parfaite lance une lame d'âme gratuite.
+- **Pas Léger** : franchir un piège sans être touché rapporte 5 éclats.
+
+## Salles spéciales
+- **Trésor** : un sol fissuré cache un coffre ; casse-le (coups vers le bas ou plongée).
+- **Défi chronométré** : touche la stèle au sablier, puis atteins le drapeau en 13 secondes.
+- **Arène d'élites** : réveille l'autel, bats trois élites, gagne des éclats et un emblème.
+- **Marchand ambulant** : parfois près du banc de mi-parcours (les achats font partie du butin).
+
+## Boss final
+**L'Ombre de la Lanterne** attend au palier 7 (puis tous les 7 paliers) : couronnes de braises,
+balayage à hauteur de tête, pluie de cendres annoncée au plafond, colonnes de lumière, et en
+phase 2 des spectres invoqués.
+
 ## L'arsenal (au Sanctuaire)
 | Arme | Prix | Style |
 |---|---|---|

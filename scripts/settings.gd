@@ -23,6 +23,17 @@ var pad_style := 0         # 0 automatique, 1 Xbox, 2 PlayStation
 var enemy_bars := true     # barres de vie au-dessus des ennemis
 var damage_numbers := true # dégâts infligés dans le coin de l'écran
 var language := 0          # index dans Lang.CODES (0 = langue du système)
+var minimap := true        # mini-carte en haut à droite
+var telegraphs := true     # « ! » au-dessus des ennemis qui préparent un coup
+var colorblind := false    # dangers en couleurs très contrastées (blanc / magenta)
+var crouch_toggle := false # appuyer sur bas pour s'accroupir / se relever
+var game_speed := 0        # index dans SPEED_CHOICES
+
+const SPEED_CHOICES := [1.0, 0.9, 0.8, 0.7]
+const SPEED_LABELS := ["100 %", "90 %", "80 %", "70 %"]
+
+func speed() -> float:
+	return SPEED_CHOICES[clampi(game_speed, 0, SPEED_CHOICES.size() - 1)]
 
 const FPS_CHOICES := [30, 60, 120, 144, 165, 240, 0]   # 0 = illimité
 const FPS_LABELS := ["30", "60", "120", "144", "165", "240", "Illimité"]
@@ -44,6 +55,8 @@ func set_value(key: String, value) -> void:
 	set(key, value)
 	if key in ["fullscreen", "vsync", "fps_cap"]:
 		apply_display()
+	if key == "game_speed" and Engine.time_scale > 0.5:
+		Engine.time_scale = speed()
 	save_settings()
 	changed.emit()
 
@@ -77,12 +90,19 @@ func reset_defaults() -> void:
 	pad_style = 0
 	enemy_bars = true
 	damage_numbers = true
+	minimap = true
+	telegraphs = true
+	colorblind = false
+	crouch_toggle = false
+	game_speed = 0
+	Engine.time_scale = speed()
 	apply_display()
 	save_settings()
 	changed.emit()
 
 const KEYS := ["hud_scale", "menu_scale", "shake", "zoom", "fullscreen", "vsync", "hitstop", "show_hints",
-	"master_volume", "music_volume", "sfx_volume", "fps_cap", "show_fps", "pad_style", "enemy_bars", "damage_numbers", "language"]
+	"master_volume", "music_volume", "sfx_volume", "fps_cap", "show_fps", "pad_style", "enemy_bars", "damage_numbers", "language",
+	"minimap", "telegraphs", "colorblind", "crouch_toggle", "game_speed"]
 
 func save_settings() -> void:
 	var cfg := ConfigFile.new()

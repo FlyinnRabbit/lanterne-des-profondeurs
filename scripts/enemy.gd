@@ -18,6 +18,7 @@ var is_boss := false
 var hp_max := 0          # vie de départ (pour la barre de vie)
 var show_bar := true
 const HpBarScript = preload("res://scripts/hp_bar.gd")
+const TelegraphScript = preload("res://scripts/telegraph.gd")
 
 # Multiplicateurs liés à la difficulté (et au statut élite)
 func spd() -> float:
@@ -41,6 +42,9 @@ func setup_body() -> void:
 		geo_value *= 2
 		add_child(main.make_light(Color(1.0, 0.3, 0.25), 0.9, 1.0))
 	hp_max = hp
+	var tg := Node2D.new()
+	tg.set_script(TelegraphScript)
+	add_child(tg)
 	if show_bar and not is_boss:
 		var bar := Node2D.new()
 		bar.set_script(HpBarScript)
@@ -48,6 +52,21 @@ func setup_body() -> void:
 
 func get_rect() -> Rect2:
 	return Rect2(global_position - size / 2.0, size)
+
+# Annonce d'attaque : 0 rien, 1 attaque qui arrive, 2 attaque haute (s'accroupir)
+func telegraph() -> int:
+	if dead or stun_t > 0.0:
+		return 0
+	for k in ["windup_t", "windup", "dive_windup"]:
+		if k in self and float(get(k)) > 0.0:
+			return 1
+	if "fuse" in self and float(get("fuse")) >= 0.0:
+		return 1
+	if "state" in self:
+		var st := str(get("state"))
+		if st.begins_with("windup") or st == "appear":
+			return 1
+	return 0
 
 func is_harmful() -> bool:
 	return not dead and stun_t <= 0.0
