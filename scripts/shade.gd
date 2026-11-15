@@ -25,7 +25,9 @@ func _physics_process(delta: float) -> void:
 	var target := home + Vector2(sin(anim_t * 0.7) * 20.0, sin(anim_t * 1.3) * 10.0)
 	if p and not p.dead and p.global_position.distance_to(global_position) < 300.0:
 		target = p.global_position + Vector2(0, -8)
-	if knock.length() > 10.0:
+	if stun_t > 0.0 and knock.length() <= 10.0:
+		velocity = velocity.move_toward(Vector2.ZERO, 600.0 * delta)
+	elif knock.length() > 10.0:
 		velocity = knock
 		knock = knock.move_toward(Vector2.ZERO, 1400.0 * delta)
 	else:

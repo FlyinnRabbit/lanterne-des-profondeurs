@@ -71,9 +71,26 @@ func telegraph() -> int:
 func is_harmful() -> bool:
 	return not dead and stun_t <= 0.0
 
+# Étourdissement. Parade parfaite : ×1,6. Les boss ne peuvent pas être étourdis en boucle :
+# après un étourdissement, ils y sont insensibles 2,5 s (la parade bloque quand même le coup).
+var stun_immune_until := 0.0
+
+func stun_mult() -> float:
+	return 1.6 if main.player and main.player.parry_perfect_now else 1.0
+
+func try_stun(t: float) -> bool:
+	var now: float = main.clock
+	if is_boss and now < stun_immune_until:
+		flash_t = 0.1
+		return false
+	stun_t = maxf(stun_t, t)
+	if is_boss:
+		stun_immune_until = now + t + 2.5
+	return true
+
 # Appelé quand le joueur pare le contact : l'ennemi est repoussé et étourdi (inoffensif).
 func parried(dir: Vector2) -> void:
-	stun_t = 1.1
+	try_stun(1.1 * stun_mult())
 	flash_t = 0.1
 	knock = Vector2(signf(dir.x) if dir.x != 0.0 else 1.0, -0.3) * 420.0
 

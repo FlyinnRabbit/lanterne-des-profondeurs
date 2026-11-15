@@ -74,7 +74,8 @@ var crouching := false
 var crouch_latch := false
 var rest_acc := 0.0
 var combat_t := 99.0      # temps depuis le dernier coup donné ou reçu
-var trap_parry := false   # la parade en cours vient d'un piège (pas d'âme ni d'ultime)
+var trap_parry := false
+var parry_perfect_now := false   # la parade en cours est parfaite (lu par l'ennemi paré)   # la parade en cours vient d'un piège (pas d'âme ni d'ultime)
 var plunging := false
 var plunge_used := false        # une seule plongée par saut
 var rise_used := false          # une seule entaille montante par saut (pas de vol infini)
@@ -579,9 +580,13 @@ func _do_attack_hits() -> void:
 				e.stun_t = maxf(e.stun_t, float(wpn["stagger"]))
 			# fouet niv. 2 : attire les petits ennemis
 			if GameState.weapon() == "fouet" and GameState.weapon_level() >= 2 and is_instance_valid(e) and not e.is_boss and not e.dead:
+				# attire jusqu'à une distance de frappe (pas au contact) et étourdit brièvement :
+				# l'ennemi attiré est inoffensif le temps d'arriver
 				var pull: Vector2 = global_position - e.global_position
-				if pull.length() > 50.0:
-					e.knock = pull.normalized() * minf(pull.length() * 4.0, 520.0)
+				var gap := pull.length() - 70.0
+				if gap > 10.0:
+					e.knock = pull.normalized() * minf(sqrt(4400.0 * gap), 900.0)   # s'arrête à ~70 px
+					e.stun_t = maxf(e.stun_t, 0.7)
 			Audio.sfx("hit")
 			soul = mini(soul + soul_per_hit(), SOUL_MAX)
 			ult = mini(ult + ult_per_hit(), ULT_MAX)
@@ -642,8 +647,9 @@ func receive_hit(from_pos: Vector2, source) -> bool:
 	return false
 
 func _on_parry(from_pos: Vector2, source) -> void:
-	# parade parfaite : le prochain coup sera critique (×1,5)
-	if parry_window() - parry_t <= PERFECT_PARRY:
+	# parade parfaite : le prochain coup sera critique (×1,5) et l'ennemi est étourdi plus longtemps
+	parry_perfect_now = parry_window() - parry_t <= PERFECT_PARRY
+	if parry_perfect_now:
 		crit_ready = true
 		crit_t = CRIT_TIME
 		perfect_t = 1.2

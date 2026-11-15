@@ -23,6 +23,9 @@ func _physics_process(delta: float) -> void:
 	flash_t -= delta
 	stun_t -= delta
 	var p = main.player
+	if stun_t > 0.0:
+		dive_windup = 0.0     # étourdi : le piqué est annulé
+		dive_t = 0.0
 	var target := home + Vector2(sin(anim_t * 0.8) * 40.0, sin(anim_t * 1.7) * 16.0)
 	var speed := 60.0
 	if p and not p.dead and p.global_position.distance_to(global_position) < 330.0 * aggro():

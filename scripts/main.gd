@@ -628,7 +628,11 @@ func _update_darkness() -> void:
 	mat.set_shader_parameter("radius", 120.0 * camera.zoom.x)
 	mat.set_shader_parameter("soft", 90.0 * camera.zoom.x)
 
+var clock := 0.0   # temps de jeu (suit la vitesse du jeu et la pause)
+
 func _process(delta: float) -> void:
+	if not get_tree().paused:
+		clock += delta
 	_update_darkness()
 	_reveal_t -= delta
 	_update_rooms(delta)

@@ -50,8 +50,9 @@ func take_hit(dmg: int, dir_hit: Vector2) -> void:
 	super.take_hit(dmg, dir_hit)
 
 func parried(_d: Vector2) -> void:
-	stun_t = 1.0
 	flash_t = 0.1
+	if not try_stun(1.0 * stun_mult()):
+		return
 	state = "recover"
 	state_t = 1.0
 	velocity.x = 0.0

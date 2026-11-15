@@ -60,8 +60,9 @@ func on_phase2() -> void:
 	pass
 
 func parried(_d: Vector2) -> void:
-	stun_t = 1.0
 	flash_t = 0.1
+	if not try_stun(1.0 * stun_mult()):
+		return
 	state = "recover"
 	state_t = 1.0
 
