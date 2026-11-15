@@ -21,7 +21,7 @@ var cursor_idle := 0.0
 # Ordre et noms affichés dans le menu
 const ACTIONS := ["move_left", "move_right", "up", "down", "jump", "attack", "dash", "parry", "spell", "ultimate", "focus", "inventory"]
 const LABELS := {
-	"move_left": "Gauche", "move_right": "Droite", "up": "Haut / Banc", "down": "Bas",
+	"move_left": "Gauche", "move_right": "Droite", "up": "Haut / Banc", "down": "Bas / S'accroupir",
 	"jump": "Sauter", "attack": "Frapper", "dash": "Ruée / Esquive", "parry": "Parade",
 	"spell": "Sort d'âme", "ultimate": "Ultime", "focus": "Se soigner", "inventory": "Inventaire",
 }

@@ -25,6 +25,12 @@ const THRUST_TIME := 0.2        # estoc (frapper pendant/juste après une ruée)
 const THRUST_SPEED := 620.0
 const SPIN_TIME := 0.28
 const SPELL_COST := 33
+const CROUCH_SIZE := Vector2(20, 18)
+const PLUNGE_SPEED := 980.0
+const PERFECT_PARRY := 0.12     # parade dans les 0,12 premières secondes = parfaite
+const CRIT_MULT := 1.5
+const CRIT_TIME := 6.0
+const Weapons = preload("res://scripts/weapons.gd")
 const POGO_VELOCITY := -580.0
 const INVULN_TIME := 1.3
 const FOCUS_TIME := 0.9
@@ -61,6 +67,16 @@ var charge_t := 0.0
 var thrust_t := 0.0
 var post_dash_t := 0.0
 var spell_cd := 0.0
+var air_i := -1                 # combo aérien (0, 1, 2)
+var crouching := false
+var plunging := false
+var crit_ready := false         # coup critique prêt (après une parade parfaite)
+var crit_t := 0.0
+var attack_crit := false        # le coup en cours est critique
+var last_crit_t := 0.0          # pour le journal des dégâts
+var perfect_t := 0.0
+var cs: CollisionShape2D
+var crit_light: PointLight2D
 var invuln_t := 0.0
 var knock_t := 0.0
 var recoil_t := 0.0
@@ -81,9 +97,12 @@ var ult_charge_t := 0.0
 func _ready() -> void:
 	var shape := RectangleShape2D.new()
 	shape.size = SIZE
-	var cs := CollisionShape2D.new()
+	cs = CollisionShape2D.new()
 	cs.shape = shape
 	add_child(cs)
+	crit_light = main.make_light(Color(1.0, 0.75, 0.3), 0.7, 1.4)
+	crit_light.enabled = false
+	add_child(crit_light)
 	collision_layer = 2
 	collision_mask = 1
 	floor_snap_length = 6.0
@@ -122,17 +141,42 @@ func apply_equipment() -> void:
 	max_hp = 5 + (2 if eq(C.GLASS_HEART) else 0) + GameState.max_hp_bonus()
 	hp = mini(hp, max_hp)
 
+func weapon() -> Dictionary:
+	return Weapons.get_w(GameState.weapon())
+
 func get_rect() -> Rect2:
+	if crouching:
+		return Rect2(global_position + Vector2(-CROUCH_SIZE.x / 2.0, SIZE.y / 2.0 - CROUCH_SIZE.y), CROUCH_SIZE)
 	return Rect2(global_position - SIZE / 2.0, SIZE)
+
+# Accroupi : boîte de collision plus basse (les attaques hautes passent au-dessus)
+func _set_crouch(on: bool) -> void:
+	if on == crouching:
+		return
+	if not on:
+		# se relever seulement s'il y a la place au-dessus
+		for dx in [-8.0, 8.0]:
+			if main.is_solid_at(global_position + Vector2(dx, -SIZE.y / 2.0 + 2.0)):
+				return
+	crouching = on
+	var sh := cs.shape as RectangleShape2D
+	sh.size = CROUCH_SIZE if on else SIZE
+	cs.position = Vector2(0, (SIZE.y - CROUCH_SIZE.y) / 2.0) if on else Vector2.ZERO
 
 func _physics_process(delta: float) -> void:
 	anim_t += delta
 	for t in ["coyote_t", "buffer_t", "dash_t", "dash_cd", "attack_cd", "attack_t", "invuln_t", "knock_t", "recoil_t",
-			"combo_t", "thrust_t", "post_dash_t", "spell_cd"]:
+			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t"]:
 		set(t, maxf(get(t) - delta, 0.0))
 	parry_t = maxf(parry_t - delta, 0.0)
 	parry_cd = maxf(parry_cd - delta, 0.0)
 	parry_flash = maxf(parry_flash - delta, 0.0)
+	if crit_ready and crit_t <= 0.0:
+		crit_ready = false
+	crit_light.enabled = crit_ready
+	if crit_ready:
+		crit_light.energy = 1.1 + 0.4 * sin(anim_t * 10.0)
+		crit_light.position = Vector2(facing * 16, -2)
 	squash = squash.lerp(Vector2.ONE, minf(delta * 12.0, 1.0))
 	modulate.a = 0.35 if (invuln_t > 0.0 and fmod(invuln_t, 0.16) < 0.08 and not sitting) else 1.0
 	queue_redraw()
@@ -179,6 +223,7 @@ func _physics_process(delta: float) -> void:
 	if on_floor:
 		coyote_t = COYOTE
 		air_dash_used = false
+		air_i = -1
 		if not was_on_floor:
 			squash = Vector2(1.3, 0.7)
 			main.spawn_burst(global_position + Vector2(0, SIZE.y / 2), Color(0.6, 0.65, 0.8, 0.6), 6, 80.0, 50.0)
@@ -199,6 +244,23 @@ func _physics_process(delta: float) -> void:
 		_post_move(on_floor)
 		return
 	focus_t = 0.0
+
+	# Attaque plongée : en l'air, bas + ruée = piqué vers le sol, onde de choc à l'impact
+	if not on_floor and not plunging and Input.is_action_pressed("down") and Input.is_action_just_pressed("dash") and knock_t <= 0.0:
+		plunging = true
+		dash_t = 0.0
+		attack_hit.clear()
+		attack_crit = _take_crit()
+		squash = Vector2(0.7, 1.35)
+		Audio.sfx("dash", 0.0, 3.0)
+	if plunging:
+		velocity = Vector2(0, PLUNGE_SPEED)
+		_plunge_hits()
+		move_and_slide()
+		if is_on_floor() and plunging:
+			_plunge_land()
+		_post_move(on_floor)
+		return
 
 	# Ruée
 	if can_dash and Input.is_action_just_pressed("dash") and dash_cd <= 0.0 and (on_floor or not air_dash_used) and knock_t <= 0.0:
@@ -239,9 +301,10 @@ func _physics_process(delta: float) -> void:
 	elif recoil_t > 0.0:
 		velocity.x = recoil_vx
 	else:
-		velocity.x = dir * run_speed() * (0.35 if parry_t > 0.0 else 1.0)
+		velocity.x = dir * run_speed() * (0.35 if parry_t > 0.0 else 1.0) * (0.3 if crouching else 1.0)
 		if dir != 0.0 and attack_t <= 0.0:
 			facing = int(dir)
+	_set_crouch(on_floor and Input.is_action_pressed("down") and knock_t <= 0.0)
 
 	# Saut
 	velocity.y = minf(velocity.y + GRAVITY * delta, FALL_MAX)
@@ -261,9 +324,23 @@ func _physics_process(delta: float) -> void:
 			adir = Vector2.UP
 		elif Input.is_action_pressed("down") and not on_floor:
 			adir = Vector2.DOWN
-		combo_i = (combo_i + 1) % 3 if combo_t > 0.0 else 0
-		combo_t = COMBO_WINDOW
-		_start_attack("finisher" if combo_i == 2 and adir.y == 0.0 else "slash", adir)
+		if not on_floor and adir.y == 0.0:
+			# combo aérien : entaille, entaille montante, puis vrille
+			air_i = (air_i + 1) % 3 if combo_t > 0.0 else 0
+			combo_t = COMBO_WINDOW
+			_start_attack(["air", "air_rise", "air_spin"][air_i], adir)
+			if air_i == 1:
+				velocity.y = minf(velocity.y, -300.0)
+			elif air_i == 2:
+				velocity.y = minf(velocity.y, -150.0)
+		else:
+			combo_i = (combo_i + 1) % 3 if combo_t > 0.0 else 0
+			combo_t = COMBO_WINDOW
+			if crouching and adir.y == 0.0:
+				combo_i = -1
+				_start_attack("low", adir)
+			else:
+				_start_attack("finisher" if combo_i == 2 and adir.y == 0.0 else "slash", adir)
 		charge_t = 0.0
 	if Input.is_action_pressed("attack") and attack_t <= 0.0 and knock_t <= 0.0:
 		var before := charge_t
@@ -284,8 +361,11 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("spell") and soul >= SPELL_COST and spell_cd <= 0.0 and knock_t <= 0.0:
 		soul -= SPELL_COST
 		spell_cd = 0.45
+		var crit := _take_crit()
+		var sdmg := 3 + (1 if eq(C.BRUTE) else 0)
 		main.spawn_projectile(global_position + Vector2(facing * 20, -4), Vector2(facing * 620.0, 0),
-			{"kind": "soulblade", "hostile": false, "radius": 14.0, "life": 1.1, "pierce": true, "damage": 3 + (1 if eq(C.BRUTE) else 0)})
+			{"kind": "soulblade", "hostile": false, "radius": 14.0, "life": 1.1, "pierce": true,
+			"damage": ceili(sdmg * CRIT_MULT) if crit else sdmg, "crit": crit})
 		recoil_t = 0.1
 		recoil_vx = -facing * 180.0
 		squash = Vector2(1.2, 0.85)
@@ -307,39 +387,89 @@ func _update_safe_spot() -> void:
 	if main.is_solid_at(l) and main.is_solid_at(r):
 		last_safe = global_position
 
+# Utilise le coup critique s'il est prêt
+func _take_crit() -> bool:
+	if crit_ready:
+		crit_ready = false
+		main.spawn_burst(global_position + Vector2(facing * 18, -4), Color(1.0, 0.8, 0.35), 14, 220.0, 0.0)
+		return true
+	return false
+
 func _start_attack(kind: String, adir: Vector2) -> void:
+	var wpn := weapon()
 	attack_kind = kind
 	attack_dir = adir
-	attack_cd = ATTACK_COOLDOWN * (1.3 if kind == "finisher" else 1.0)
-	attack_t = ATTACK_TIME * (1.4 if kind == "finisher" else 1.0)
+	attack_cd = ATTACK_COOLDOWN * (1.3 if kind == "finisher" else 1.0) * float(wpn["cd"])
+	attack_t = ATTACK_TIME * (1.4 if kind in ["finisher", "air_spin"] else 1.0)
 	attack_hit.clear()
+	attack_crit = _take_crit()
 	Audio.sfx("slash", 0.12, -2.0 if kind == "slash" else 1.0)
+	if wpn["ranged"]:
+		_throw_stars(kind, adir)
+
+# Shurikens : l'arme lancée
+func _throw_stars(kind: String, adir: Vector2) -> void:
+	var dmg := hit_damage()
+	var base := Vector2(facing, 0) if adir.y == 0.0 else adir
+	var dirs := [base]
+	var big := false
+	match kind:
+		"finisher", "air_spin":
+			dirs = [base.rotated(-0.18), base, base.rotated(0.18)]
+		"spin":
+			dirs = []
+			for i in 8:
+				dirs.append(Vector2.from_angle(i * TAU / 8.0))
+		"thrust":
+			big = true
+		"air_rise":
+			dirs = [Vector2(facing, -0.6).normalized()]
+		"low":
+			dirs = [Vector2(facing, 0)]
+	for d in dirs:
+		main.spawn_projectile(global_position + d * 14.0 + Vector2(0, 6 if kind == "low" else -4), d * (560.0 if not big else 480.0),
+			{"kind": "shuriken", "hostile": false, "radius": 14.0 if big else 8.0, "life": 0.6 if not big else 0.8,
+			"pierce": big, "damage": dmg, "crit": attack_crit})
+	attack_crit = false
 
 # Dégâts selon le type de coup
 func hit_damage() -> int:
+	var d := nail_damage() + int(weapon()["dmg"])
 	match attack_kind:
-		"finisher", "thrust":
-			return nail_damage() + 1
+		"finisher", "thrust", "air_spin", "plunge":
+			d += 1
 		"spin":
-			return nail_damage() * 2 + 1
-	return nail_damage()
+			d = d * 2 + 1
+	return ceili(d * CRIT_MULT) if attack_crit else d
 
 func attack_rect() -> Rect2:
 	var p := global_position
+	var wpn := weapon()
+	if wpn["ranged"]:
+		return Rect2(p, Vector2.ZERO)      # les shurikens touchent eux-mêmes
 	if attack_kind == "spin":
-		var rs := 84.0 * reach()
+		var rs := 84.0 * reach() * maxf(1.0, float(wpn["w"]) * 0.75)
 		return Rect2(p - Vector2(rs, rs * 0.8), Vector2(rs * 2.0, rs * 1.6))
+	if attack_kind == "air_spin":
+		var ra := 62.0 * reach()
+		return Rect2(p - Vector2(ra, ra), Vector2(ra * 2.0, ra * 2.0))
+	if attack_kind == "low":
+		var lw := 70.0 * reach() * float(wpn["w"])
+		var lx := p.x if facing > 0 else p.x - lw
+		return Rect2(Vector2(lx, p.y + 2), Vector2(lw, 18))
 	if attack_kind == "thrust":
 		var tw := 120.0 * reach()
 		var tx := p.x if facing > 0 else p.x - tw
 		return Rect2(Vector2(tx, p.y - 16), Vector2(tw, 26))
 	if attack_dir == Vector2.UP:
-		var hu := 62.0 * reach()
+		var hu := 62.0 * reach() * float(wpn["v"])
 		return Rect2(p + Vector2(-32, -SIZE.y / 2.0 + 4 - hu), Vector2(64, hu))
 	if attack_dir == Vector2.DOWN:
-		return Rect2(p + Vector2(-32, SIZE.y / 2.0 - 6), Vector2(64, 62.0 * reach()))
-	var w := 70.0 * reach() * (1.3 if attack_kind == "finisher" else 1.0)
-	var hgt := 54.0 * (1.25 if attack_kind == "finisher" else 1.0)
+		return Rect2(p + Vector2(-32, SIZE.y / 2.0 - 6), Vector2(64, 62.0 * reach() * float(wpn["v"])))
+	var w := 70.0 * reach() * (1.3 if attack_kind == "finisher" else 1.0) * float(wpn["w"])
+	var hgt := 54.0 * (1.25 if attack_kind == "finisher" else 1.0) * float(wpn["h"])
+	if attack_kind == "air_rise":
+		hgt *= 1.4
 	var x := p.x + SIZE.x / 2.0 - 4.0 if facing > 0 else p.x - SIZE.x / 2.0 - w + 4.0
 	return Rect2(Vector2(x, p.y - hgt * 0.55), Vector2(w, hgt))
 
@@ -351,16 +481,21 @@ func _do_attack_hits() -> void:
 		if e.get_rect().intersects(r):
 			attack_hit[e] = true
 			var kdir := attack_dir
-			if attack_kind == "spin":
+			if attack_kind in ["spin", "air_spin"]:
 				kdir = (e.global_position - global_position).normalized()
-			e.take_hit(hit_damage(), kdir * (1.6 if attack_kind == "finisher" else 1.0))
+			if attack_crit:
+				last_crit_t = 0.2
+			var wpn := weapon()
+			e.take_hit(hit_damage(), kdir * (1.6 if attack_kind == "finisher" else 1.0) * float(wpn["knock"]))
+			if float(wpn["stagger"]) > 0.0 and is_instance_valid(e) and not e.is_boss:
+				e.stun_t = maxf(e.stun_t, float(wpn["stagger"]))
 			Audio.sfx("hit")
 			soul = mini(soul + soul_per_hit(), SOUL_MAX)
 			ult = mini(ult + ult_per_hit(), ULT_MAX)
 			main.shake(4 if attack_kind == "slash" else 8)
 			main.hit_stop(0.04 if attack_kind == "slash" else 0.07)
-			if attack_kind == "spin" or attack_kind == "thrust":
-				pass   # pas de recul : le tourbillon et l'estoc traversent
+			if attack_kind in ["spin", "thrust", "air_spin", "air_rise"]:
+				pass   # pas de recul : ces coups traversent
 			elif attack_dir == Vector2.DOWN:
 				_pogo()
 			elif attack_dir.x != 0.0:
@@ -414,6 +549,12 @@ func receive_hit(from_pos: Vector2, source) -> bool:
 	return false
 
 func _on_parry(from_pos: Vector2, source) -> void:
+	# parade parfaite : le prochain coup sera critique (×1,5)
+	if parry_window() - parry_t <= PERFECT_PARRY:
+		crit_ready = true
+		crit_t = CRIT_TIME
+		perfect_t = 1.2
+		Audio.sfx("pickup", 0.0, 2.0)
 	parry_t = 0.0
 	parry_cd = 0.12
 	parry_flash = 0.25
@@ -429,6 +570,62 @@ func _on_parry(from_pos: Vector2, source) -> void:
 	recoil_t = 0.1
 	recoil_vx = velocity.x
 	main.on_parry(global_position + d * 18.0)
+
+# Arme tenue en main (dessinée dans le repère du personnage, pieds en 0, tourné à droite)
+func _draw_held(wid: String, bob: float) -> void:
+	match wid:
+		"fouet":
+			draw_arc(Vector2(13, -8 + bob), 5.0, 0.0, TAU, 12, Color(0.45, 0.65, 0.35), 2.0)
+			draw_line(Vector2(9, -12 + bob), Vector2(13, -3), Color(0.5, 0.7, 0.4), 2.0)
+		"marteau":
+			draw_line(Vector2(8, -14 + bob), Vector2(14, 0), Color(0.5, 0.4, 0.3), 3.0)
+			draw_rect(Rect2(Vector2(9, -2), Vector2(11, 8)), Color(0.55, 0.55, 0.62))
+		"shuriken":
+			var c := Vector2(13, -6 + bob)
+			for i in 4:
+				var a := i * PI / 2.0 + anim_t * 2.0
+				draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a - 0.35) * 3.0, c + Vector2.from_angle(a) * 7.0]), Color(0.8, 0.85, 0.95))
+		_:
+			draw_line(Vector2(8, -14 + bob), Vector2(16, -2), Color(0.8, 0.82, 0.9), 2.0)
+
+# ---------------------------------------------------------------- attaque plongée
+func _plunge_rect() -> Rect2:
+	return Rect2(global_position + Vector2(-18, SIZE.y / 2.0 - 10), Vector2(36, 40))
+
+func _plunge_hits() -> void:
+	var r := _plunge_rect()
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(e) and not attack_hit.has(e) and e.get_rect().intersects(r):
+			attack_hit[e] = true
+			attack_kind = "plunge"
+			if attack_crit:
+				last_crit_t = 0.2
+			e.take_hit(hit_damage(), Vector2.DOWN)
+			Audio.sfx("hit")
+			soul = mini(soul + soul_per_hit(), SOUL_MAX)
+			# rebond sur l'ennemi touché
+			plunging = false
+			attack_crit = false
+			_pogo()
+			main.shake(8)
+			return
+
+func _plunge_land() -> void:
+	plunging = false
+	attack_kind = "plunge"
+	squash = Vector2(1.45, 0.6)
+	main.shake(12)
+	Audio.sfx("kill", 0.0, 2.0)
+	var feet := global_position + Vector2(0, SIZE.y / 2.0)
+	main.spawn_burst(feet, Color(0.85, 0.9, 1.0), 26, 260.0, 300.0)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(e) and e.global_position.distance_to(feet) < 95.0:
+			if attack_crit:
+				last_crit_t = 0.2
+			e.take_hit(hit_damage(), (e.global_position - feet).normalized())
+	for d in [-1.0, 1.0]:
+		main.spawn_projectile(feet + Vector2(d * 20.0, -4.0), Vector2(d * 360.0, 0), {"kind": "wave", "hostile": false, "damage": 1, "life": 0.6})
+	attack_crit = false
 
 func take_damage(amount: int, from_x: float) -> void:
 	if dead:
@@ -523,7 +720,8 @@ func _draw() -> void:
 		var k := focus_t / focus_time()
 		draw_circle(Vector2(0, -4), 10.0 + 30.0 * k, Color(1, 1, 1, 0.12 + 0.2 * k))
 
-	draw_set_transform(Vector2(0, SIZE.y / 2.0), 0.0, Vector2(squash.x * facing, squash.y))
+	var sq := squash * (Vector2(1.15, 0.58) if crouching else Vector2.ONE)
+	draw_set_transform(Vector2(0, SIZE.y / 2.0), 0.0, Vector2(sq.x * facing, sq.y))
 	var cloak := Color(0.07, 0.06, 0.11)
 	var trim := Color(0.22, 0.2, 0.32)
 	# Écharpe qui flotte
@@ -552,10 +750,32 @@ func _draw() -> void:
 	var blink := 0.3 if fmod(anim_t, 3.7) < 0.12 else 2.6
 	draw_circle(Vector2(5, hy - 6), 5.0, Color(1.0, 0.7, 0.3, 0.25))
 	draw_colored_polygon(DU.ellipse(Vector2(5, hy - 6), Vector2(2.4, blink)), Color(1.0, 0.8, 0.4))
-	# Aiguille tenue au repos
+	# Arme tenue au repos
+	var wid: String = GameState.weapon()
 	if attack_t <= 0.0 and not sitting:
-		draw_line(Vector2(8, -14 + bob), Vector2(16, -2), Color(0.8, 0.82, 0.9), 2.0)
+		_draw_held(wid, bob)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# Coup critique prêt : lumière dorée au bout de l'arme
+	if crit_ready:
+		var tip := Vector2(facing * 17, 4.0 if crouching else -4.0)
+		var pulse := 1.0 + 0.25 * sin(anim_t * 12.0)
+		draw_circle(tip, 16.0 * pulse, Color(1.0, 0.7, 0.25, 0.18))
+		draw_circle(tip, 9.0 * pulse, Color(1.0, 0.75, 0.3, 0.35))
+		draw_circle(tip, 4.5 * pulse, Color(1.0, 0.95, 0.7))
+		for i in 4:
+			var a := anim_t * 3.0 + i * PI / 2.0
+			draw_line(tip + Vector2.from_angle(a) * 5.0, tip + Vector2.from_angle(a) * (11.0 + 3.0 * sin(anim_t * 9.0 + i)), Color(1.0, 0.85, 0.45, 0.85), 1.5)
+	if perfect_t > 0.0:
+		var pk := perfect_t / 1.2
+		var f := ThemeDB.fallback_font
+		var txt := "PARFAITE !"
+		var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+		draw_string(f, Vector2(-tw / 2.0, -50 - (1.0 - pk) * 14.0), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1.0, 0.85, 0.4, pk))
+	# Attaque plongée : traînée et lame pointée vers le bas
+	if plunging:
+		for i in 4:
+			draw_line(Vector2(-8 + i * 5, -20 - i * 6), Vector2(-8 + i * 5, -60 - i * 10), Color(0.75, 0.88, 1.0, 0.45), 2.0)
+		draw_line(Vector2(0, 0), Vector2(0, 30), Color(0.95, 0.97, 1.0), 4.0)
 
 	# Arc de l'attaque
 	# Coup chargé prêt : l'aiguille scintille
@@ -583,11 +803,42 @@ func _draw() -> void:
 				draw_colored_polygon(PackedVector2Array([tip + Vector2(facing * 14, 0), tip + Vector2(0, -6), tip + Vector2(0, 6)]), Color(1, 1, 1, k))
 				for i in 4:
 					draw_line(Vector2(-facing * (10 + i * 14), -14 + i * 7), Vector2(-facing * (40 + i * 14), -14 + i * 7), Color(0.7, 0.85, 1.0, 0.4 * k), 2.0)
+			"low":
+				if weapon()["ranged"]:
+					return
+				var kl := clampf(attack_t / ATTACK_TIME, 0.0, 1.0)
+				var lc := Color(1.0, 0.6, 0.25, kl) if attack_crit else Color(weapon()["color"], 0.9 * kl)
+				var pts := PackedVector2Array()
+				for i in 11:
+					var u := i / 10.0
+					pts.append(Vector2(facing * (6.0 + r.size.x * u), c.y + 4.0 - sin(u * PI) * 9.0))
+				draw_polyline(pts, lc, 6.0 * kl + 1.0)
+				draw_polyline(pts, Color(1, 1, 1, 0.5 * kl), 2.0)
+			"air_spin":
+				var k := clampf(attack_t / (ATTACK_TIME * 1.4), 0.0, 1.0)
+				var rot := (1.0 - k) * TAU * 2.0 * facing
+				draw_arc(Vector2(0, -2), 50.0, rot, rot + 4.5, 24, Color(0.75, 0.9, 1.0, 0.85 * k), 7.0 * k + 1.0)
 			_:
+				if weapon()["ranged"]:
+					return
+				if GameState.weapon() == "fouet" and attack_dir.y == 0.0:
+					# fouet : liane ondulée jusqu'au bout de la zone de coup
+					var k2 := clampf(attack_t / ATTACK_TIME, 0.0, 1.0)
+					var pts := PackedVector2Array()
+					var reachx := r.size.x + 10.0
+					for i in 13:
+						var u := i / 12.0
+						pts.append(Vector2(facing * reachx * u, c.y + sin(u * 9.0 + anim_t * 40.0) * 6.0 * (1.0 - u) - 4.0 * (1.0 - u)))
+					draw_polyline(pts, Color(0.6, 0.85, 0.45, k2), 4.0)
+					draw_circle(pts[12], 5.0, Color(0.85, 1.0, 0.65, k2))
+					return
 				var fin := attack_kind == "finisher"
 				var k := clampf(attack_t / (ATTACK_TIME * (1.4 if fin else 1.0)), 0.0, 1.0)
-				var col := Color(1.0, 0.88, 0.55, 0.95 * k) if fin else Color(0.95, 0.97, 1.0, 0.9 * k)
-				var rad := 40.0 if fin else 30.0
+				var wcol: Color = weapon()["color"]
+				var col := Color(1.0, 0.88, 0.55, 0.95 * k) if fin else Color(wcol, 0.9 * k)
+				if attack_crit:
+					col = Color(1.0, 0.6, 0.25, k)
+				var rad := (40.0 if fin else 30.0) * (1.25 if GameState.weapon() == "marteau" else 1.0)
 				draw_arc(c - attack_dir * 14.0, rad, ang - 1.3, ang + 1.3, 18, col, (10.0 if fin else 7.0) * k + 1.0)
 				draw_arc(c - attack_dir * 18.0, rad - 8.0, ang - 1.0, ang + 1.0, 14, Color(0.7, 0.85, 1.0, 0.5 * k), 3.0)
 				draw_line(Vector2.ZERO, attack_dir * 30.0 + Vector2(0, -4), Color(0.85, 0.87, 0.95), 2.0)

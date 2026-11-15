@@ -88,6 +88,23 @@ func _draw() -> void:
 			draw_line(Vector2(-14, -20 + bob), Vector2(-22, -14 + bob), Color(0.5, 0.45, 0.4), 2.0)
 			draw_circle(Vector2(-23, -9 + bob), 5.0 + sin(t * 3.0) * 0.6, Color(1.0, 0.8, 0.45))
 			draw_circle(Vector2(-23, -9 + bob), 11.0, Color(1.0, 0.8, 0.45, 0.2))
+		"arsenal":
+			# Arsenal : râtelier de bois avec les armes exposées et une enclume
+			var wood := Color(0.36, 0.27, 0.22)
+			draw_rect(Rect2(-34, -70, 68, 6), wood)
+			draw_rect(Rect2(-34, -40, 68, 5), wood)
+			draw_line(Vector2(-32, 0), Vector2(-32, -70), wood, 4.0)
+			draw_line(Vector2(32, 0), Vector2(32, -70), wood, 4.0)
+			draw_line(Vector2(-22, -64), Vector2(-14, -8), Color(0.8, 0.82, 0.9), 2.0)          # aiguille
+			draw_arc(Vector2(-4, -54), 7.0, 0.0, TAU, 14, Color(0.5, 0.75, 0.4), 2.5)           # fouet enroulé
+			draw_line(Vector2(-4, -47), Vector2(-2, -20), Color(0.5, 0.7, 0.4), 2.0)
+			draw_line(Vector2(12, -64), Vector2(12, -12), Color(0.5, 0.4, 0.3), 3.0)             # marteau
+			draw_rect(Rect2(5, -70, 14, 10), Color(0.55, 0.55, 0.62))
+			for i in 4:                                                                          # étoile
+				var a3 := i * PI / 2.0 + t
+				draw_colored_polygon(PackedVector2Array([Vector2(25, -52), Vector2(25, -52) + Vector2.from_angle(a3 - 0.4) * 3.0, Vector2(25, -52) + Vector2.from_angle(a3) * 7.0]), Color(0.8, 0.85, 0.95))
+			draw_colored_polygon(PackedVector2Array([Vector2(-18, 0), Vector2(18, 0), Vector2(12, -10), Vector2(22, -16), Vector2(-22, -16), Vector2(-12, -10)]), Color(0.25, 0.26, 0.32))
+			draw_circle(Vector2(0, -26), 3.0 + sin(t * 3.0), Color(1.0, 0.7, 0.35, 0.8))
 		"elevator":
 			# Ascenseur : cage de fer suspendue à des chaînes, panneau lumineux
 			var iron := Color(0.4, 0.42, 0.5)

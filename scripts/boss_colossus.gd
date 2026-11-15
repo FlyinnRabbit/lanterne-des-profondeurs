@@ -14,7 +14,7 @@ func _ready() -> void:
 func get_rect() -> Rect2:
 	var r := Rect2(global_position - size / 2.0, size)
 	if sweep_t > 0.0:
-		r = r.merge(Rect2(global_position + Vector2(dir * 40.0 - (110.0 if dir < 0 else 0.0), -20), Vector2(110, 60)))
+		r = r.merge(Rect2(global_position + Vector2(dir * 40.0 - (110.0 if dir < 0 else 0.0), 10), Vector2(110, 24)))   # balayage à hauteur de tête : s'accroupir ou sauter
 	return r
 
 func _choose() -> void:
@@ -117,7 +117,7 @@ func _draw() -> void:
 		var sh := Vector2(k * 38, -34 + breathe)
 		var hand := sh + (Vector2(k * 20, -60) if arm_up else Vector2(k * 18, 40))
 		if sweep_t > 0.0 and k == f:
-			hand = sh + Vector2(k * 110, 10)
+			hand = sh + Vector2(k * 110, 56)
 		draw_line(sh, hand, body_color(bone), 10.0)
 		draw_circle(hand, 15.0, body_color(bone))
 		draw_circle(sh, 10.0, body_color(bone.darkened(0.1)))

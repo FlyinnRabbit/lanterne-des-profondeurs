@@ -19,6 +19,8 @@ extends Node2D
 const TILE := 32
 const DU = preload("res://scripts/draw_util.gd")
 const PlayerScript = preload("res://scripts/player.gd")
+const TrapScript = preload("res://scripts/trap.gd")
+const PlatformScript = preload("res://scripts/platform.gd")
 const CrawlerScript = preload("res://scripts/crawler.gd")
 const FlyerScript = preload("res://scripts/flyer.gd")
 const BossScript = preload("res://scripts/boss.gd")
@@ -207,6 +209,34 @@ func _make_gate(cells: Array, closed: bool):
 	add_child(g)
 	return g
 
+func _make_trap(kind: String, pos: Vector2, opts: Dictionary):
+	var t := Node2D.new()
+	t.set_script(TrapScript)
+	t.main = self
+	t.kind = kind
+	t.position = pos
+	for k in opts:
+		t.set(k, opts[k])
+	add_child(t)
+	return t
+
+func _make_platform(kind: String, pos: Vector2, sz: Vector2):
+	var p := AnimatableBody2D.new()
+	p.set_script(PlatformScript)
+	p.main = self
+	p.kind = kind
+	p.size = sz
+	p.position = pos
+	add_child(p)
+	return p
+
+# vrai si le bloc fragile en x commence un groupe (groupes de 2 depuis le début de la rangée de C)
+func _crumble_start(row: String, x: int) -> bool:
+	var s := x
+	while s > 0 and row[s - 1] == "C":
+		s -= 1
+	return (x - s) % 2 == 0
+
 func _cell_feet(x: int, y: int, height: float) -> Vector2:
 	return Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE - height / 2.0 - 1.0)
 
@@ -258,6 +288,37 @@ func _spawn_everything() -> void:
 				"M":
 					var mp = _make_prop("merchant", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.5), 2.5)
 					interactables.append([mp, "merchant"])
+				"Z":
+					# totem à fléchettes : tire vers le côté le plus dégagé
+					var dl := 0
+					while x - dl - 1 > 0 and row[x - dl - 1] != "#":
+						dl += 1
+					var dr := 0
+					while x + dr + 1 < row.length() - 1 and row[x + dr + 1] != "#":
+						dr += 1
+					_make_trap("dart", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), {"dir": 1.0 if dr >= dl else -1.0})
+				"U":
+					var fy := y + 1
+					while fy < map_size.y - 1 and not solid.has(Vector2i(x, fy)):
+						fy += 1
+					_make_trap("blade", Vector2(x * TILE + TILE / 2.0, y * TILE), {"floor_y": float(fy * TILE)})
+				"V":
+					_make_trap("stalactite", Vector2(x * TILE + TILE / 2.0, y * TILE), {})
+				"H":
+					var xe := x
+					while xe + 1 < row.length() and row[xe + 1] != "#":
+						xe += 1
+					var mv = _make_platform("mover", Vector2(x * TILE, y * TILE), Vector2(3 * TILE, 16))
+					mv.x_min = x * TILE
+					mv.x_max = (xe + 1) * TILE - 3 * TILE
+				"C":
+					# blocs fragiles groupés par deux
+					if _crumble_start(row, x):
+						var n2 := 2 if x + 1 < row.length() and row[x + 1] == "C" else 1
+						_make_platform("crumble", Vector2(x * TILE, y * TILE), Vector2(n2 * TILE, TILE))
+				"A":
+					var ap = _make_prop("arsenal", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.7, 0.4), 2.2)
+					interactables.append([ap, "arsenal"])
 				"L":
 					var lp = _make_prop("elevator", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(0.6, 0.85, 1.0), 3.0)
 					interactables.append([lp, "elevator"])
@@ -404,10 +465,12 @@ func _process(delta: float) -> void:
 	interact_hint = ""
 	for it in interactables:
 		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
-			interact_hint = "{up|1} : %s" % ("parler au marchand" if it[1] == "merchant" else "appeler l'ascenseur")
+			interact_hint = "{up|1} : %s" % {"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur"}[it[1]]
 			if Input.is_action_just_pressed("up") and player.is_on_floor() and not get_tree().paused:
 				if it[1] == "merchant":
 					hub_ui.open_shop()
+				elif it[1] == "arsenal":
+					hub_ui.open_arsenal()
 				else:
 					hub_ui.open_elevator()
 	# Banc le plus proche
@@ -631,6 +694,8 @@ func on_damage_dealt(e, dmg: int) -> void:
 	if e.elite:
 		n += " (élite)"
 	var kind: String = player.attack_kind if player.attack_t > 0.0 or player.thrust_t > 0.0 else "autre"
+	if player.last_crit_t > 0.0:
+		kind = "crit"
 	hud.add_damage(dmg, n, kind, e.hp <= 0)
 
 # Coquille Épineuse : riposte quand le joueur est touché

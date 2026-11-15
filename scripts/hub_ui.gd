@@ -11,6 +11,12 @@ var shop_desc: Label
 var shop_status: Label
 var lift_list: VBoxContainer
 var lift_info: Label
+var ars_panel: PanelContainer
+var ars_list: VBoxContainer
+var ars_geo: Label
+var ars_desc: Label
+var ars_status: Label
+const Weapons = preload("res://scripts/weapons.gd")
 
 func _ready() -> void:
 	layer = 22
@@ -25,7 +31,8 @@ func _ready() -> void:
 	root.add_child(dim)
 	_build_shop(root)
 	_build_lift(root)
-	for p in [shop_panel, lift_panel]:
+	_build_arsenal(root)
+	for p in [shop_panel, lift_panel, ars_panel]:
 		p.resized.connect(_apply_scale)
 	Settings.changed.connect(_apply_scale)
 	visible = false
@@ -48,7 +55,7 @@ func _label(text: String, size: int, color: Color) -> Label:
 
 func _apply_scale() -> void:
 	var s: float = Settings.menu_scale
-	for p in [shop_panel, lift_panel]:
+	for p in [shop_panel, lift_panel, ars_panel]:
 		p.pivot_offset = p.size / 2.0
 		p.scale = Vector2(s, s)
 
@@ -187,11 +194,91 @@ func _descend(p: int) -> void:
 	Audio.sfx("door", 0.0)
 	GameState.start_descent(p, main.player)
 
+# ---------------------------------------------------------------- arsenal
+func _build_arsenal(root: Control) -> void:
+	ars_panel = _panel(root)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	ars_panel.add_child(v)
+	v.add_child(_label("L'arsenal", 32, Color(1.0, 0.75, 0.45)))
+	v.add_child(_label("Choisis l'arme de base de ta descente.", 15, Color(0.65, 0.7, 0.82)))
+	ars_geo = _label("", 20, Color(0.8, 0.9, 1.0))
+	v.add_child(ars_geo)
+	ars_list = VBoxContainer.new()
+	ars_list.add_theme_constant_override("separation", 6)
+	v.add_child(ars_list)
+	ars_desc = _label("", 16, Color(0.8, 0.82, 0.9))
+	ars_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	ars_desc.custom_minimum_size = Vector2(620, 66)
+	v.add_child(ars_desc)
+	ars_status = _label("", 16, Color(1.0, 0.85, 0.55))
+	v.add_child(ars_status)
+	var close: Button = main.menu._button("Fermer", close_all)
+	close.custom_minimum_size = Vector2(200, 40)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(close)
+	v.add_child(row)
+
+func open_arsenal() -> void:
+	ars_status.text = ""
+	ars_desc.text = ""
+	_open(ars_panel)
+	_refresh_arsenal()
+
+func _refresh_arsenal(focus_id: String = "") -> void:
+	for ch in ars_list.get_children():
+		ars_list.remove_child(ch)
+		ch.queue_free()
+	ars_geo.text = "Éclats : %d" % main.player.geo
+	var cur: String = GameState.weapon()
+	var to_focus: Button = null
+	for id in Weapons.ORDER:
+		var w: Dictionary = Weapons.W[id]
+		var b := Button.new()
+		var state := ""
+		if id == cur:
+			state = "ÉQUIPÉE"
+		elif GameState.owns_weapon(id):
+			state = "équiper"
+		else:
+			state = "%d éclats" % int(w["price"])
+		b.text = "%s — %s" % [w["name"], state]
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.custom_minimum_size = Vector2(600, 40)
+		b.add_theme_color_override("font_color", w["color"] if id != cur else Color(1.0, 0.9, 0.55))
+		if not GameState.owns_weapon(id) and main.player.geo < int(w["price"]):
+			b.add_theme_color_override("font_color", Color(0.6, 0.55, 0.55))
+		b.pressed.connect(_pick_weapon.bind(id))
+		b.focus_entered.connect(func(): ars_desc.text = w["desc"])
+		b.mouse_entered.connect(func(): ars_desc.text = w["desc"])
+		ars_list.add_child(b)
+		if (focus_id == "" and id == cur) or id == focus_id:
+			to_focus = b
+	if to_focus:
+		to_focus.grab_focus()
+
+func _pick_weapon(id: String) -> void:
+	if GameState.owns_weapon(id):
+		GameState.equip_weapon(id)
+		ars_status.text = "%s équipée." % Weapons.W[id]["name"]
+		Audio.sfx("pickup", 0.0, -3.0)
+	else:
+		var err: String = GameState.buy_weapon(id, main.player)
+		if err != "":
+			ars_status.text = err
+			return
+		Audio.sfx("pickup", 0.0)
+		Controls.rumble(0.3, 0.0, 0.1)
+		ars_status.text = "%s achetée et équipée !" % Weapons.W[id]["name"]
+	_refresh_arsenal(id)
+
 # ---------------------------------------------------------------- commun
 func _open(panel: PanelContainer) -> void:
 	visible = true
 	shop_panel.get_parent().visible = panel == shop_panel
 	lift_panel.get_parent().visible = panel == lift_panel
+	ars_panel.get_parent().visible = panel == ars_panel
 	_apply_scale()
 	get_tree().paused = true
 

@@ -48,6 +48,8 @@ Dans les Releases : `LanterneDesProfondeurs_Linux_SteamDeck.tar.gz` (Linux x86_6
 | Sauter (maintenir = plus haut) | Espace | A |
 | Frapper | J ou **clic gauche** | X |
 | Frapper vers le haut / le bas | Z ou S + J | haut/bas + X |
+| S'accroupir (esquive les attaques hautes) | S ou flèche bas (maintenir au sol) | bas |
+| Attaque plongée (en l'air) | S + K | bas + RT |
 | Ruée / esquive | K ou Maj | RT |
 | Parade | I ou **clic droit** | LB |
 | Sort d'âme (33 d'âme) | O ou clic milieu | RB |
@@ -106,11 +108,43 @@ Les boss sont aussi plus rapides et plus résistants selon la difficulté.
   le sauteur enchaîne deux bonds, le garde charge au bouclier.
 Les nouveaux ennemis et les élites deviennent plus fréquents en profondeur.
 
+## Combat : coups spéciaux
+- **Combo au sol** : 3 coups, le 3e est un coup final ; maintenir puis relâcher = **tourbillon** ;
+  frapper pendant la Ruée = **estoc**.
+- **Combo aérien** (différent du combo au sol) : entaille, **entaille montante** qui relance vers
+  le haut, puis **vrille** qui touche tout autour.
+- **Attaque plongée** : en l'air, bas + Ruée. Piqué vers le sol, rebond sur l'ennemi touché, ou
+  **onde de choc** à l'atterrissage.
+- **Accroupi** : maintenir bas au sol. Plus lent, mais les attaques hautes passent au-dessus
+  (estoc du lancier, balayage du Colosse, fléchettes, lames-pendules). Frapper accroupi = coup bas.
+- **Parade parfaite** : parer au tout dernier moment affiche « PARFAITE ! » ; une **lumière dorée**
+  brille au bout de l'arme et le prochain coup (normal, final, tourbillon, estoc, aérien, plongée
+  ou lame d'âme) est **critique : ×1,5 dégâts**. Le journal des dégâts affiche « CRITIQUE ».
+
+## L'arsenal (au Sanctuaire)
+| Arme | Prix | Style |
+|---|---|---|
+| Aiguille du Veilleur | — | équilibrée |
+| Fouet de Ronces | 150 | très longue portée devant et vers le haut, un peu plus lent |
+| Marteau d'Enclume | 220 | lent, +1 dégât, gros recul, étourdit |
+| Étoiles de Lune (shurikens) | 260 | à distance ; coup final = 3 étoiles, tourbillon = 8 en cercle, estoc = grande étoile perçante |
+
+## Pièges et plateformes
+Les niveaux ont maintenant du relief (le sol monte et descend d'une salle à l'autre) et de
+nouvelles salles : îlots flottants, puits en zigzag, chemins doubles, grottes basses, ponts fragiles,
+gouffres à plateforme mobile, couloirs de lames.
+- **Totem à fléchettes** : tire à hauteur de tête — s'accroupir, sauter ou parer.
+- **Lame-pendule** : son point bas passe juste au-dessus d'un héros accroupi.
+- **Stalactite** : se décroche quand on passe dessous.
+- **Blocs fragiles** : s'effondrent peu après qu'on s'y pose, puis se reforment.
+- **Plateforme mobile** : fait l'aller-retour au-dessus d'un gouffre.
+
 ## Le Sanctuaire et les paliers sans fin
 Après le tutoriel, on arrive au **Sanctuaire de la Lanterne**, la base du jeu :
 - **Banc** : repos, vie restaurée, changement d'emblèmes.
 - **Marchand** : échange les éclats contre des **fragments de vie** (+1 vie max, jusqu'à 4),
   des **encoches** d'emblème et les **emblèmes** pas encore trouvés.
+- **Arsenal** : achète et équipe ton arme de base (voir plus haut).
 - **Ascenseur** : choisit le **palier** où descendre.
 
 Un **palier = 2 niveaux générés** (biomes tirés au hasard parmi 9) **puis un boss**. Le terminer ramène

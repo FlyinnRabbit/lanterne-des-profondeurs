@@ -7,6 +7,7 @@ extends Node
 # Mort pendant une descente → retour au hub, le butin de la descente est perdu.
 # La progression est sauvegardée dans save.cfg (user:// ou dossier « sauvegardes » en mode portable).
 
+const WeaponsData = preload("res://scripts/weapons.gd")
 const Levels = preload("res://scripts/levels.gd")
 const Charms = preload("res://scripts/charms.gd")
 const Biomes = preload("res://scripts/biomes.gd")
@@ -109,7 +110,7 @@ func _ready() -> void:
 
 func _fresh() -> Dictionary:
 	return {"geo": 0, "can_dash": false, "owned": [], "equipped": [], "notches": 3, "collected": [],
-		"bonus_hp": 0, "notches_bought": 0}
+		"bonus_hp": 0, "notches_bought": 0, "weapon": "aiguille", "weapons_owned": []}
 
 # ---------------------------------------------------------------- niveaux
 func is_tutorial() -> bool:
@@ -330,6 +331,35 @@ func buy(kind: String, id: int, player) -> String:
 			prog["bonus_hp"] = max_hp_bonus() + 1
 			player.apply_equipment()
 			player.hp = player.max_hp
+	snapshot = prog.duplicate(true)
+	save_game()
+	return ""
+
+# ---------------------------------------------------------------- armes (arsenal)
+func weapon() -> String:
+	return str(prog.get("weapon", "aiguille"))
+
+func owns_weapon(id: String) -> bool:
+	return id == "aiguille" or (prog.get("weapons_owned", []) as Array).has(id)
+
+func equip_weapon(id: String) -> void:
+	if owns_weapon(id):
+		prog["weapon"] = id
+		snapshot = prog.duplicate(true)
+		save_game()
+
+func buy_weapon(id: String, player) -> String:
+	if owns_weapon(id):
+		return "Déjà possédée."
+	var price := int(WeaponsData.get_w(id)["price"])
+	if player.geo < price:
+		return "Pas assez d'éclats (%d nécessaires)." % price
+	player.geo -= price
+	prog["geo"] = player.geo
+	var arr: Array = prog.get("weapons_owned", [])
+	arr.append(id)
+	prog["weapons_owned"] = arr
+	prog["weapon"] = id
 	snapshot = prog.duplicate(true)
 	save_game()
 	return ""

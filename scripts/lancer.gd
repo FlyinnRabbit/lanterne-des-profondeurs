@@ -18,7 +18,7 @@ func _ready() -> void:
 func get_rect() -> Rect2:
 	var r := Rect2(global_position - size / 2.0, size)
 	if state == "thrust":
-		r = r.merge(Rect2(global_position + Vector2(dir * 14.0 - (76.0 if dir < 0 else 0.0), -10), Vector2(76, 14)))
+		r = r.merge(Rect2(global_position + Vector2(dir * 14.0 - (76.0 if dir < 0 else 0.0), -14), Vector2(76, 12)))   # coup haut : on l'esquive accroupi
 	return r
 
 func _physics_process(delta: float) -> void:
@@ -81,7 +81,7 @@ func _draw() -> void:
 	draw_colored_polygon(DU.ellipse(hd, Vector2(8, 7)), body_color(shell.darkened(0.2)))
 	draw_line(hd + Vector2(f * 2, -3), hd + Vector2(f * 9, -3), Color(1.0, 0.6, 0.3) if not tele else Color(1, 1, 0.7), 2.0)
 	# lance : en arrière pendant l'annonce, tendue pendant l'estoc
-	var hand := Vector2(f * 10, -2)
+	var hand := Vector2(f * 10, -8)
 	var back := -16.0 if tele else 0.0
 	var reach := 76.0 if state == "thrust" else 34.0
 	var a := hand + Vector2(f * back, 0)

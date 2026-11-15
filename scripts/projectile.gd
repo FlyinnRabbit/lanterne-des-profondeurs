@@ -15,6 +15,7 @@ var gravity := 0.0
 var kind := "spore"
 var pierce := false      # traverse les ennemis (lame d'âme)
 var damage := 3
+var crit := false
 var _hit := {}
 var t := 0.0
 
@@ -56,8 +57,15 @@ func _physics_process(delta: float) -> void:
 	else:
 		for e in get_tree().get_nodes_in_group("enemies"):
 			if is_instance_valid(e) and not e.dead and not _hit.has(e) and r.intersects(e.get_rect()):
+				if crit:
+					main.player.last_crit_t = 0.2
 				e.take_hit(damage, vel.normalized())
 				_hit[e] = true
+				if kind == "shuriken":
+					var pl = main.player
+					pl.soul = mini(pl.soul + 7, pl.SOUL_MAX)
+					pl.ult = mini(pl.ult + 4, pl.ULT_MAX)
+					Audio.sfx("hit", 0.1, -3.0)
 				if not pierce:
 					pop()
 					return
@@ -83,10 +91,14 @@ func _color() -> Color:
 		"acid": return Color(0.6, 1.0, 0.35)
 		"ember": return Color(0.55, 0.85, 1.0)
 		"soulblade": return Color(0.85, 0.95, 1.0)
+		"shuriken": return Color(0.8, 0.85, 0.95)
+		"dart": return Color(1.0, 0.55, 0.3)
 	return Color(0.85, 0.45, 0.95)
 
 func _draw() -> void:
 	var c := _color() if hostile else Color(0.6, 0.9, 1.0)
+	if crit and kind == "soulblade":
+		c = Color(1.0, 0.75, 0.35)
 	match kind:
 		"rock":
 			var pts := PackedVector2Array()
@@ -104,6 +116,18 @@ func _draw() -> void:
 			draw_circle(Vector2.ZERO, radius * 1.8, Color(c, 0.2))
 			draw_circle(Vector2.ZERO, radius, c)
 			draw_circle(Vector2(-2, -2), radius * 0.35, Color(1, 1, 1, 0.7))
+		"dart":
+			var dd := signf(vel.x)
+			draw_line(Vector2(-dd * 12, 0), Vector2(dd * 6, 0), Color(0.55, 0.4, 0.3), 2.0)
+			draw_colored_polygon(PackedVector2Array([Vector2(dd * 10, 0), Vector2(dd * 4, -3), Vector2(dd * 4, 3)]), Color(1.0, 0.6, 0.35))
+			draw_line(Vector2(-dd * 12, -3), Vector2(-dd * 9, 0), Color(0.9, 0.85, 0.7), 1.5)
+			draw_line(Vector2(-dd * 12, 3), Vector2(-dd * 9, 0), Color(0.9, 0.85, 0.7), 1.5)
+		"shuriken":
+			var cc := Color(1.0, 0.75, 0.35) if crit else Color(0.85, 0.9, 1.0)
+			for i in 4:
+				var a := i * PI / 2.0 + t * 25.0
+				draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2.from_angle(a - 0.4) * radius * 0.45, Vector2.from_angle(a) * radius]), cc)
+			draw_circle(Vector2.ZERO, radius * 0.22, Color(0.2, 0.22, 0.3))
 		"soulblade":
 			var d := signf(vel.x)
 			draw_circle(Vector2.ZERO, radius * 2.0, Color(0.7, 0.85, 1.0, 0.15))

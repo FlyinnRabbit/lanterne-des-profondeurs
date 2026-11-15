@@ -131,7 +131,8 @@ func _draw() -> void:
 			"spin": col = Color(1.0, 0.65, 0.35)
 			"thrust": col = Color(0.75, 0.95, 1.0)
 			"autre": col = Color(0.7, 0.85, 1.0)
-		var big := "-%d" % d[0]
+			"crit": col = Color(1.0, 0.45, 0.25)
+		var big := ("CRITIQUE -%d" if d[2] == "crit" else "-%d") % d[0]
 		var fs := 26 if d[0] >= 3 else 22
 		var x := sz.x - 24.0 + (1.0 - slide) * 30.0
 		var bw := font.get_string_size(big, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
