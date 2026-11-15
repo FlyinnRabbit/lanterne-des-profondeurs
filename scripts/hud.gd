@@ -2,6 +2,7 @@ extends Control
 # Interface : réceptacle d'âme, fragments de vie, éclats (monnaie), barre du boss, messages.
 
 const DU = preload("res://scripts/draw_util.gd")
+const G = preload("res://scripts/glyphs.gd")
 
 var main
 var message := ""
@@ -64,7 +65,8 @@ func _draw() -> void:
 	if uf >= 1.0:
 		var pulse := 0.5 + 0.5 * sin(t * 6.0)
 		draw_rect(Rect2(ux - 3, uy - 3, uw + 6, 14), Color(1.0, 0.85, 0.45, 0.4 * pulse), false, 2.0)
-		draw_string(font, Vector2(ux + uw + 10, uy + 9), "ULTIME : " + Controls.label("ultimate"), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(1.0, 0.88, 0.55))
+		var ut := "ULTIME : {ultimate|1}"
+		G.draw_rich(self, font, ux + uw + 10, G.rich_width(font, ut, 15), uy + 9, ut, 15, Color(1.0, 0.88, 0.55))
 	# Éclats (monnaie)
 	draw_colored_polygon(DU.diamond(Vector2(136, 96), Vector2(7, 9)), Color(0.75, 0.85, 0.95))
 	draw_string(font, Vector2(152, 104), str(p.geo), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.9, 0.92, 1.0))
@@ -86,18 +88,20 @@ func _draw() -> void:
 		for i in lines.size():
 			var fs := 34 if i == 0 else 22
 			var y := sz.y * 0.28 + i * 38.0
-			draw_string(font, Vector2(2, y + 2), lines[i], HORIZONTAL_ALIGNMENT_CENTER, sz.x, fs, Color(0, 0, 0, alpha * 0.7))
-			draw_string(font, Vector2(0, y), lines[i], HORIZONTAL_ALIGNMENT_CENTER, sz.x, fs, Color(0.92, 0.94, 1.0, alpha))
+			G.draw_rich(self, font, 0, sz.x, y, lines[i], fs, Color(0.92, 0.94, 1.0, alpha), true)
 	# Panneau du tutoriel
 	if main.sign_text != "":
 		var sl: PackedStringArray = main.sign_text.split("\n")
-		var bw := minf(900.0, sz.x - 40.0)
+		var bw := 200.0
+		for line in sl:
+			bw = maxf(bw, G.rich_width(font, line, 21) + 60.0)
+		bw = minf(bw, sz.x - 20.0)
 		var bh := 24.0 + sl.size() * 30.0
 		var bpos := Vector2((sz.x - bw) / 2.0, sz.y - 120.0 - bh)
 		draw_rect(Rect2(bpos, Vector2(bw, bh)), Color(0.03, 0.04, 0.08, 0.88))
 		draw_rect(Rect2(bpos, Vector2(bw, bh)), Color(0.6, 0.75, 0.95, 0.8), false, 2.0)
 		for i in sl.size():
-			draw_string(font, bpos + Vector2(0, 38 + i * 30), sl[i], HORIZONTAL_ALIGNMENT_CENTER, bw, 21, Color(0.95, 0.96, 1.0))
+			G.draw_rich(self, font, bpos.x, bw, bpos.y + 38 + i * 30, sl[i], 21, Color(0.95, 0.96, 1.0))
 	# Compteur d'images par seconde (Options)
 	if Settings.show_fps:
 		draw_string(font, Vector2(sz.x - 110, 28), "%d FPS" % Engine.get_frames_per_second(), HORIZONTAL_ALIGNMENT_RIGHT, 100, 16, Color(0.7, 1.0, 0.7, 0.9))
@@ -106,13 +110,10 @@ func _draw() -> void:
 	if main.interact_hint != "":
 		hint = main.interact_hint
 	elif not p.sitting and not p.dead and p.global_position.distance_to(main.bench_pos) < 48:
-		hint = "%s : se reposer sur le banc" % Controls.label("up")
+		hint = "{up|1} : se reposer sur le banc"
 	elif p.sitting:
-		hint = "%s : changer d'équipement    bouger : se lever" % Controls.label("inventory")
+		hint = "{inventory|1} : changer d'équipement    bouger : se lever"
 	elif t < 14.0 and not GameState.is_tutorial():
-		hint = "%s/%s : bouger    %s : sauter    %s : frapper (+ haut/bas)    %s : ruée    %s : parade    %s : ultime    %s (maintenir) : soin    %s : inventaire    %s : pause" % [
-			Controls.label("move_left"), Controls.label("move_right"), Controls.label("jump"),
-			Controls.label("attack"), Controls.label("dash"), Controls.label("parry"),
-			Controls.label("ultimate"), Controls.label("focus"), Controls.label("inventory"), Controls.pause_label()]
+		hint = "{move_left|1}{move_right|1} bouger   {jump|1} sauter   {attack|1} frapper   {dash|1} ruée   {parry|1} parade   {ultimate|1} ultime   {focus|1} soin   {inventory|1} inventaire   {pause|1} pause"
 	if hint != "" and (Settings.show_hints or main.interact_hint != ""):
-		draw_string(font, Vector2(0, sz.y - 20), hint, HORIZONTAL_ALIGNMENT_CENTER, sz.x, 16, Color(0.75, 0.8, 0.9, 0.85))
+		G.draw_rich(self, font, 0, sz.x, sz.y - 18, hint, 16, Color(0.75, 0.8, 0.9, 0.9))

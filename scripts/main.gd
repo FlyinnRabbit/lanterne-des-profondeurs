@@ -382,7 +382,7 @@ func _process(delta: float) -> void:
 	interact_hint = ""
 	for it in interactables:
 		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
-			interact_hint = "%s : %s" % [Controls.label("up"), "parler au marchand" if it[1] == "merchant" else "appeler l'ascenseur"]
+			interact_hint = "{up|1} : %s" % ("parler au marchand" if it[1] == "merchant" else "appeler l'ascenseur")
 			if Input.is_action_just_pressed("up") and player.is_on_floor() and not get_tree().paused:
 				if it[1] == "merchant":
 					hub_ui.open_shop()
@@ -405,7 +405,7 @@ func _process(delta: float) -> void:
 		dash_orb.queue_free()
 		dash_orb = null
 		shake(8)
-		show_message("Cape d'Ombre-Vive obtenue !\n%s pour faire une Ruée" % Controls.label("dash"), 4.0)
+		show_message("Cape d'Ombre-Vive obtenue !\n{dash} pour faire une Ruée", 4.0)
 	# Déclenchement du boss
 	if boss and not boss_started and not boss_dead and entry_gate and pp.x > entry_gate.rect.end.x + TILE * 3:
 		boss_started = true
@@ -418,7 +418,7 @@ func _process(delta: float) -> void:
 	sign_text = ""
 	for sg in signs:
 		if pp.distance_to(sg[0].position + Vector2(0, -20)) < 70.0:
-			sign_text = fmt(sg[1]["text"])
+			sign_text = sg[1]["text"]   # les {action} sont dessinés en icônes par le HUD
 			if not sg[2]:
 				sg[2] = true
 				sg[0].lit = true
@@ -432,7 +432,7 @@ func _process(delta: float) -> void:
 			if pk[1] == "charm":
 				GameState.add_charm(pk[2])
 				Audio.sfx("pickup", 0.0)
-				show_message("Emblème obtenu : %s\nÉquipe-le depuis l'inventaire (%s) en te reposant sur un banc." % [GameState.charm(pk[2])["name"], Controls.label("inventory")], 4.5)
+				show_message("Emblème obtenu : %s\nÉquipe-le depuis l'inventaire ({inventory|1}) en te reposant sur un banc." % GameState.charm(pk[2])["name"], 4.5)
 			else:
 				GameState.add_notch(pk[2])
 				Audio.sfx("pickup", 0.0)
@@ -456,7 +456,7 @@ func _process(delta: float) -> void:
 		spawn_burst(shrine.position + Vector2(0, -40), Color(1.0, 0.9, 0.6), 60, 300.0)
 		Audio.play_boss("res://music/sanctuaire.ogg")
 		Audio.sfx("door", 0.0)
-		show_message("Vous avez rallumé la Lanterne des Profondeurs.\nPartie n° %d terminée — merci d'avoir joué !  (%s : nouvelle partie)" % [GameState.run_seed, Controls.pause_label()], 9999.0)
+		show_message("Vous avez rallumé la Lanterne des Profondeurs.\nPartie n° %d terminée — merci d'avoir joué !  ({pause|1} : nouvelle partie)" % GameState.run_seed, 9999.0)
 
 # ---------------------------------------------------------------- utilitaires
 # Remplace {action} par les touches actuellement réglées

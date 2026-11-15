@@ -36,6 +36,8 @@ jobs:
           "$RUNNER_TEMP/godot" --headless --editor --quit || true
           mkdir -p build
           "$RUNNER_TEMP/godot" --headless --export-release "Windows Desktop" build/LanterneDesProfondeurs.exe
+          pip install --quiet pillow
+          python3 tools/peicon.py build/LanterneDesProfondeurs.exe art/icon_1024.png
           cd build && zip -9 LanterneDesProfondeurs_Windows.zip LanterneDesProfondeurs.exe
 
       - name: Artefact

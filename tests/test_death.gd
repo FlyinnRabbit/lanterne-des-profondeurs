@@ -5,7 +5,9 @@ func _run() -> void:
 	await process_frame
 	var gs = root.get_node("GameState")
 	gs.show_title = false
-	gs.level_index = 2
+	gs.mode = "descent"
+	gs.palier = 1
+	gs.step = 2
 	change_scene_to_file("res://main.tscn")
 	await process_frame
 	await process_frame
@@ -18,5 +20,5 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	await process_frame
-	print("nouvelle partie -> niveau ", gs.level_index, " difficulté ", gs.diff_name(), " pause: ", paused, " scène: ", current_scene.level["name"])
+	print("nouvelle partie -> mode ", gs.mode, " difficulté ", gs.diff_name(), " pause: ", paused, " scène: ", current_scene.level["name"])
 	quit()

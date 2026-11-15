@@ -1,5 +1,7 @@
 # Lanterne des Profondeurs
 
+<p align="center"><img src="art/icon_1024.png" width="160" alt="Logo : lanterne médiévale"></p>
+
 Petit metroidvania 2D pour **Godot 4.3+**, inspiré de Hollow Knight : grottes sombres,
 combat à l'aiguille, rebond sur les ennemis, soin avec l'âme, banc de repos et un boss.
 Tout est dessiné en code : aucune image à importer.
@@ -38,6 +40,11 @@ boutons latéraux). Les menus et l'inventaire se pilotent à la souris ; en jeu,
 cache après 2 s d'immobilité.
 Les réglages sont sauvegardés automatiquement (`user://controls.cfg`).
 Le stick gauche reste toujours actif pour se déplacer.
+
+### Icônes de commandes
+Les aides à l'écran, les panneaux, les messages et le menu Commandes affichent des **icônes** :
+touches et souris dessinées au clavier, boutons A/B/X/Y colorés, LB/RT… pour une manette Xbox,
+croix/rond/carré/triangle, L1/R2… pour une manette PlayStation (symboles génériques).
 
 ### Manette (XInput)
 Sous Windows, Godot lit les manettes Xbox via XInput : il suffit de la brancher.

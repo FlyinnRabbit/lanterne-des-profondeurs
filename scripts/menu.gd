@@ -2,6 +2,8 @@ extends CanvasLayer
 # Menu pause (Échap / bouton Menu) + écran « Commandes » (réaffectation clavier, souris, manette)
 # + écran « Options » (taille du HUD et des menus, caméra, secousses, plein écran…).
 
+const GlyphButtonScript = preload("res://scripts/glyph_button.gd")
+
 var main
 var dim: ColorRect
 var pause_panel: PanelContainer
@@ -71,6 +73,12 @@ func _build_title(root: Control) -> void:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)
 	title_panel.add_child(v)
+	var logo := TextureRect.new()
+	logo.texture = load("res://art/lantern_logo.png")
+	logo.custom_minimum_size = Vector2(150, 150)
+	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	v.add_child(logo)
 	var t := _title("Lanterne des Profondeurs")
 	t.add_theme_font_size_override("font_size", 42)
 	t.add_theme_color_override("font_color", Color(1.0, 0.88, 0.6))
@@ -318,6 +326,7 @@ func _build_controls(root: Control) -> void:
 		grid.add_child(name_l)
 		for slot in 3:
 			var b := Button.new()
+			b.set_script(GlyphButtonScript)
 			b.custom_minimum_size = Vector2(165, 28)
 			b.add_theme_font_size_override("font_size", 15)
 			b.clip_text = true
@@ -547,13 +556,23 @@ func _refresh() -> void:
 		return
 	for a in Controls.ACTIONS:
 		for slot in 3:
-			var b: Button = cells["%s:%d" % [a, slot]]
+			var b = cells["%s:%d" % [a, slot]]
+			b.glyph = {}
+			b.caption = ""
 			if a == waiting_action and slot == waiting_slot:
 				b.text = "…"
 			elif slot < 2:
-				b.text = Controls.key_name(Controls.keys[a][slot])
+				var k: int = Controls.keys[a][slot]
+				b.text = "—" if k == KEY_NONE else ""
+				if k != KEY_NONE:
+					b.glyph = {"key": k}
 			else:
-				b.text = Controls.pad_name(Controls.pad[a])
+				var pd: Dictionary = Controls.pad[a]
+				b.text = "—" if pd.is_empty() else ""
+				if not pd.is_empty():
+					b.glyph = {"pad": pd}
+					b.caption = Controls.pad_name(pd)
+			b.queue_redraw()
 	pad_info.text = Controls.pad_description()
 	if pad_header:
 		pad_header.text = "PlayStation" if Controls.pad_style() == "ps" else "Manette Xbox"

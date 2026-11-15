@@ -17,6 +17,7 @@ func _tap(i: int) -> void:
 	await process_frame
 func _run() -> void:
 	await process_frame
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://save.cfg"))
 	change_scene_to_file("res://main.tscn")
 	await process_frame
 	await process_frame
@@ -39,5 +40,5 @@ func _run() -> void:
 	await _tap(JOY_BUTTON_A)     # Normal (difficulté actuelle) -> lance la partie
 	await process_frame
 	await process_frame
-	print("partie lancée : ", not paused, " niveau ", root.get_node("GameState").level_index)
+	print("partie lancée : ", not paused, " mode ", root.get_node("GameState").mode)
 	quit()
