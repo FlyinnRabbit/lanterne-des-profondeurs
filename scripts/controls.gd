@@ -33,7 +33,7 @@ var DEFAULT_KEYS := {
 	"dash": [KEY_K, KEY_SHIFT], "parry": [KEY_I, -MOUSE_BUTTON_RIGHT], "spell": [KEY_O, -MOUSE_BUTTON_MIDDLE],
 	"ultimate": [KEY_U, KEY_R], "focus": [KEY_L, KEY_F],
 	"inventory": [KEY_TAB, KEY_B],
-	"map": [KEY_M, KEY_NONE],
+	"map": [KEY_M, KEY_SEMICOLON],   # « M » est sur l'une ou l'autre selon AZERTY / QWERTY
 }
 var DEFAULT_PAD := {
 	"move_left": {"type": "button", "index": JOY_BUTTON_DPAD_LEFT},
@@ -242,11 +242,32 @@ static func mouse_code(ev: InputEventMouseButton) -> int:
 		return -ev.button_index
 	return 0
 
+# Disposition du clavier pour les NOMS des touches (les touches sont enregistrées par position
+# physique : sur AZERTY les déplacements sont ZQSD, sur QWERTY WASD, sans rien régler).
+# 0 automatique (demandé au système), 1 AZERTY, 2 QWERTY, 3 QWERTZ.
+const LAYOUT_LABELS := ["Automatique", "AZERTY (France, Belgique)", "QWERTY (US, UK…)", "QWERTZ (Allemagne, Suisse)"]
+const LAYOUT_MAPS := {
+	1: {KEY_Q: "A", KEY_A: "Q", KEY_W: "Z", KEY_Z: "W", KEY_SEMICOLON: "M", KEY_M: ",", KEY_COMMA: ";",
+		KEY_PERIOD: ":", KEY_SLASH: "!", KEY_BRACKETLEFT: "^", KEY_BRACKETRIGHT: "$", KEY_APOSTROPHE: "Ù",
+		KEY_1: "&", KEY_2: "É", KEY_3: "\"", KEY_4: "'", KEY_5: "(", KEY_6: "-", KEY_7: "È", KEY_8: "_", KEY_9: "Ç", KEY_0: "À"},
+	3: {KEY_Y: "Z", KEY_Z: "Y", KEY_SEMICOLON: "Ö", KEY_APOSTROPHE: "Ä", KEY_BRACKETLEFT: "Ü", KEY_MINUS: "ß"},
+}
+
+const PUNCT := {KEY_SEMICOLON: ";", KEY_COMMA: ",", KEY_PERIOD: ".", KEY_SLASH: "/", KEY_APOSTROPHE: "'",
+	KEY_BRACKETLEFT: "[", KEY_BRACKETRIGHT: "]", KEY_MINUS: "-", KEY_EQUAL: "=", KEY_BACKSLASH: "\\", KEY_QUOTELEFT: "`"}
+const ARROWS := {KEY_UP: "↑", KEY_DOWN: "↓", KEY_LEFT: "←", KEY_RIGHT: "→"}
+
 func key_name(k: int) -> String:
 	if k == KEY_NONE:
 		return "—"
+	if ARROWS.has(k):
+		return ARROWS[k]
 	if k < 0:
 		return tr(MOUSE_NAMES[-k]) if MOUSE_NAMES.has(-k) else tr("Souris %d") % -k
+	var lay := int(Settings.kb_layout)
+	if lay > 0:
+		var m: Dictionary = LAYOUT_MAPS.get(lay, {})
+		return m[k] if m.has(k) else PUNCT.get(k, OS.get_keycode_string(k))
 	var local := DisplayServer.keyboard_get_keycode_from_physical(k)
 	var s := OS.get_keycode_string(local)
 	return s if s != "" else OS.get_keycode_string(k)
@@ -273,10 +294,16 @@ func pad_name(d: Dictionary) -> String:
 func label(action: String) -> String:
 	if using_pad:
 		return pad_name(pad[action])
+	# préfère une lettre (ex. « M » plutôt que « , » pour la carte sur AZERTY)
+	var first := ""
 	for k in keys[action]:
 		if k != KEY_NONE:
-			return key_name(k)
-	return "—"
+			var n := key_name(k)
+			if n.length() == 1 and n.to_upper() != n.to_lower() and first.length() == 1 and first.to_upper() == first.to_lower() and not first.is_valid_int():
+				return n
+			if first == "":
+				first = n
+	return first if first != "" else "—"
 
 # Toutes les commandes clavier/souris d'une action (« J / Clic gauche »), ou celle de la manette
 func label_all(action: String) -> String:

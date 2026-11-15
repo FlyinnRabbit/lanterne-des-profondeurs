@@ -429,6 +429,10 @@ const T := {
 		"Retourner au Sanctuaire et continuer": "Return to the Sanctuary and keep going",
 		"Terminer la partie (retour à l'écran titre)": "End the game (back to title screen)",
 		"Partie terminée — merci d'avoir joué !": "Game complete — thanks for playing!",
+		"AZERTY (France, Belgique)": "AZERTY (France, Belgium)",
+		"QWERTY (US, UK…)": "QWERTY (US, UK…)",
+		"QWERTZ (Allemagne, Suisse)": "QWERTZ (Germany, Switzerland)",
+		"Clavier :": "Keyboard:",
 	},
 	"es": {
 		"Les Profondeurs": "Las Profundidades",
@@ -859,6 +863,10 @@ const T := {
 		"Retourner au Sanctuaire et continuer": "Volver al Santuario y continuar",
 		"Terminer la partie (retour à l'écran titre)": "Terminar la partida (volver a la pantalla de título)",
 		"Partie terminée — merci d'avoir joué !": "Partida terminada — ¡gracias por jugar!",
+		"AZERTY (France, Belgique)": "AZERTY (Francia, Bélgica)",
+		"QWERTY (US, UK…)": "QWERTY (EE. UU., Reino Unido…)",
+		"QWERTZ (Allemagne, Suisse)": "QWERTZ (Alemania, Suiza)",
+		"Clavier :": "Teclado:",
 	},
 	"de": {
 		"Les Profondeurs": "Die Tiefen",
@@ -1289,5 +1297,9 @@ const T := {
 		"Retourner au Sanctuaire et continuer": "Zum Heiligtum zurückkehren und weitermachen",
 		"Terminer la partie (retour à l'écran titre)": "Spiel beenden (zurück zum Titelbildschirm)",
 		"Partie terminée — merci d'avoir joué !": "Spiel abgeschlossen — danke fürs Spielen!",
+		"AZERTY (France, Belgique)": "AZERTY (Frankreich, Belgien)",
+		"QWERTY (US, UK…)": "QWERTY (USA, UK…)",
+		"QWERTZ (Allemagne, Suisse)": "QWERTZ (Deutschland, Schweiz)",
+		"Clavier :": "Tastatur:",
 	},
 }

@@ -30,7 +30,13 @@ static func for_action(action: String) -> Array:
 	var out := []
 	for k in c.keys[action]:
 		if k != KEY_NONE:
-			out.append({"key": k})
+			var n: String = c.key_name(k)
+			var letter := n.length() == 1 and n.to_upper() != n.to_lower()
+			# une lettre passe devant un simple signe de ponctuation (ex. « M » plutôt que « , »)
+			if letter and not out.is_empty() and out[0].get("punct", false):
+				out.push_front({"key": k})
+			else:
+				out.append({"key": k, "punct": n.length() == 1 and not letter and not n.is_valid_int()})
 	return out
 
 static func _style() -> String:

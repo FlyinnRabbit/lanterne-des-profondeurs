@@ -430,6 +430,10 @@ T = {
 "Retourner au Sanctuaire et continuer": ("Return to the Sanctuary and keep going", "Volver al Santuario y continuar", "Zum Heiligtum zurückkehren und weitermachen"),
 "Terminer la partie (retour à l'écran titre)": ("End the game (back to title screen)", "Terminar la partida (volver a la pantalla de título)", "Spiel beenden (zurück zum Titelbildschirm)"),
 "Partie terminée — merci d'avoir joué !": ("Game complete — thanks for playing!", "Partida terminada — ¡gracias por jugar!", "Spiel abgeschlossen — danke fürs Spielen!"),
+"AZERTY (France, Belgique)": ("AZERTY (France, Belgium)", "AZERTY (Francia, Bélgica)", "AZERTY (Frankreich, Belgien)"),
+"QWERTY (US, UK…)": ("QWERTY (US, UK…)", "QWERTY (EE. UU., Reino Unido…)", "QWERTY (USA, UK…)"),
+"QWERTZ (Allemagne, Suisse)": ("QWERTZ (Germany, Switzerland)", "QWERTZ (Alemania, Suiza)", "QWERTZ (Deutschland, Schweiz)"),
+"Clavier :": ("Keyboard:", "Teclado:", "Tastatur:"),
 }
 LANGS = ["en", "es", "de"]
 def gd(s):

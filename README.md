@@ -55,6 +55,11 @@ Dans les Releases : `LanterneDesProfondeurs_Linux_SteamDeck.tar.gz` (Linux x86_6
 3. Appuie sur **F5**.
 
 ## Commandes par défaut (clavier AZERTY ou QWERTY, manette Xbox / XInput)
+
+Les touches sont enregistrées **par position** sur le clavier : sur AZERTY on se déplace avec
+**Z Q S D**, sur QWERTY avec **W A S D**, sur QWERTZ pareil — sans rien régler. Les noms affichés
+(menu Commandes, aides à l'écran) suivent la disposition du système ; si elle est mal détectée
+(machine virtuelle, Steam Deck…), choisir **Commandes → Clavier : AZERTY / QWERTY / QWERTZ**.
 | Action | Clavier | Manette |
 |---|---|---|
 | Bouger | Q / D ou flèches | Stick gauche / croix |

@@ -33,6 +33,7 @@ var waiting_action := ""
 var waiting_slot := -1
 var wait_t := 0.0
 var info: Label
+var layout_btn: OptionButton
 var ach_panel: PanelContainer
 var slots_panel: PanelContainer
 var slots_box: VBoxContainer
@@ -439,6 +440,22 @@ func _build_controls(root: Control) -> void:
 	pad_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pad_info.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
 	v.add_child(pad_info)
+	# disposition du clavier (noms des touches affichés)
+	var lrow := HBoxContainer.new()
+	lrow.alignment = BoxContainer.ALIGNMENT_CENTER
+	lrow.add_theme_constant_override("separation", 10)
+	var ll := Label.new()
+	ll.text = "Clavier :"
+	lrow.add_child(ll)
+	layout_btn = OptionButton.new()
+	for lt in Controls.LAYOUT_LABELS:
+		layout_btn.add_item(lt)
+	layout_btn.selected = int(Settings.kb_layout)
+	layout_btn.item_selected.connect(func(i):
+		Settings.set_value("kb_layout", i)
+		_refresh())
+	lrow.add_child(layout_btn)
+	v.add_child(lrow)
 	# En-têtes fixes, puis liste défilante (molette, glisser, ou navigation clavier/manette)
 	var header := GridContainer.new()
 	header.columns = 4
