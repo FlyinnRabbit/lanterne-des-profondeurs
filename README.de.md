@@ -200,7 +200,9 @@ besiege ihn, um sie zurückzuholen (ein neuer Tod ersetzt ihn).
 
 Vom Aufzug aus kannst du außerdem:
 - jede Ebene mit einem **Fluch** spielen (Eile, Dunkelheit, Zerbrechlichkeit) für +50 bis 60 % Splitter;
-- den **Abstieg des Tages** spielen (dieselbe Ebene für alle, Bestzeit);
+- den **Abstieg des Tages** spielen (dieselbe Ebene für alle, Bestzeit), mit einer **Online-Rangliste** pro
+  Schwierigkeit: Deine Zeit wird am Ende mit deinem gewählten Namen gesendet (Aufzug → „Tagesrangliste"),
+  und du siehst die Top 10 und deinen Platz. Das Senden lässt sich auf demselben Bildschirm abschalten;
 - nach Ebene 6 die **Boss-Herausforderung** annehmen (Bosse nacheinander, mit Zeitmessung).
 
 Es gibt 29 **Erfolge**, einsehbar über den Titelbildschirm oder das Pausenmenü.
@@ -483,6 +485,11 @@ Optionen; die Musik wird leiser, wenn das Spiel pausiert.
 `tests/test_run.gd` durchläuft die Zonen automatisch (simulierte Eingaben, Bosse, Menüs):
 `godot --headless --fixed-fps 120 -s res://tests/test_run.gd`.
 `tests/dump_maps.gd` erzeugt Hunderte Zonen, um zu prüfen, dass alle schaffbar sind.
+
+**Ranglisten-Server**: `server/` (Cloudflare Worker + D1), bereitgestellt durch den Workflow
+„Classement (Cloudflare)" mit den Secrets `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID`.
+`node server/test_worker.mjs` testet ihn; `node server/dev_server.mjs` startet ihn lokal (Spiel mit
+`LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787` starten).
 
 ## Lizenz
 Code, Musik (für das Spiel erzeugt) und Soundeffekte: **MIT**-Lizenz — siehe `LICENSE`.

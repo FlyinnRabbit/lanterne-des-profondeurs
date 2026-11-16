@@ -30,6 +30,9 @@ var crouch_toggle := false # appuyer sur bas pour s'accroupir / se relever
 var game_speed := 0        # index dans SPEED_CHOICES
 var last_slot := 1         # dernier emplacement de sauvegarde utilisé
 var auto_update := true  # télécharger les mises à jour au lancement (voir updater.gd)
+var player_name := ""      # pseudo affiché au classement de la Descente du jour
+var player_id := ""        # identifiant aléatoire de l'installation (classement)
+var board_online := true   # envoyer ses temps au classement en ligne
 var kb_layout := 0         # disposition du clavier pour les noms de touches (voir controls.gd)
 
 const SPEED_CHOICES := [1.0, 0.9, 0.8, 0.7]
@@ -106,7 +109,7 @@ func reset_defaults() -> void:
 
 const KEYS := ["hud_scale", "menu_scale", "shake", "zoom", "fullscreen", "vsync", "hitstop", "show_hints",
 	"master_volume", "music_volume", "sfx_volume", "fps_cap", "show_fps", "pad_style", "enemy_bars", "damage_numbers", "language",
-	"minimap", "telegraphs", "colorblind", "crouch_toggle", "game_speed", "last_slot", "kb_layout", "auto_update"]
+	"minimap", "telegraphs", "colorblind", "crouch_toggle", "game_speed", "last_slot", "kb_layout", "auto_update", "player_name", "player_id", "board_online"]
 
 func save_settings() -> void:
 	var cfg := ConfigFile.new()

@@ -201,7 +201,9 @@ mort la remplace).
 
 Depuis l'ascenseur, on peut aussi :
 - jouer n'importe quel palier avec une **malédiction** (Hâte, Obscurité, Fragilité) pour +50 à 60 % d'éclats ;
-- jouer la **Descente du jour** (même niveau pour tout le monde, meilleur temps) ;
+- jouer la **Descente du jour** (même niveau pour tout le monde, meilleur temps), avec un **classement en
+  ligne** par difficulté : ton temps est envoyé à la fin avec le pseudo que tu choisis (Ascenseur →
+  « Classement du jour »), et tu vois le top 10 et ton rang. L'envoi se coupe sur le même écran ;
 - relever le **Défi des boss** (boss à la chaîne, chronométré) une fois le palier 6 terminé.
 
 Il y a 29 **succès**, consultables depuis l'écran-titre ou le menu pause.
@@ -487,6 +489,11 @@ la musique baisse un peu quand le jeu est en pause.
 `tests/test_run.gd` parcourt les niveaux automatiquement (entrées simulées, boss, menus) :
 `godot --headless --fixed-fps 120 -s res://tests/test_run.gd`.
 `tests/dump_maps.gd` génère des centaines de niveaux pour vérifier qu'ils sont tous faisables.
+
+**Serveur du classement** : `server/` (Cloudflare Worker + D1), déployé par le workflow « Classement
+(Cloudflare) » avec les secrets `CLOUDFLARE_API_TOKEN` et `CLOUDFLARE_ACCOUNT_ID`. `node server/test_worker.mjs`
+le teste ; `node server/dev_server.mjs` le lance en local (jeu lancé avec
+`LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787`).
 
 ## Licence
 Code, musique (générée pour le jeu) et bruitages : licence **MIT** — voir `LICENSE`.

@@ -197,7 +197,9 @@ the lost shards where you fell: return to the same tier and defeat it to get the
 
 From the elevator you can also:
 - play any tier with a **curse** (Haste, Darkness, Frailty) for +50 to 60% shards;
-- play the **Daily descent** (same level for everyone, best time);
+- play the **Daily descent** (same level for everyone, best time), with an **online leaderboard** per
+  difficulty: your time is sent at the end with the name you pick (Elevator → "Daily leaderboard"), and
+  you see the top 10 and your rank. Sending can be switched off on the same screen;
 - take on the **Boss rush** (bosses in a row, timed) once tier 6 is cleared.
 
 There are 29 **achievements**, viewable from the title screen or the pause menu.
@@ -484,6 +486,11 @@ when the game is paused.
 `tests/test_run.gd` plays through the levels automatically (simulated inputs, bosses, menus):
 `godot --headless --fixed-fps 120 -s res://tests/test_run.gd`.
 `tests/dump_maps.gd` generates hundreds of levels to check that they can be completed.
+
+**Leaderboard server**: `server/` (Cloudflare Worker + D1), deployed by the "Classement (Cloudflare)"
+workflow with the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets. `node server/test_worker.mjs`
+tests it; `node server/dev_server.mjs` runs it locally (start the game with
+`LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787`).
 
 ## License
 Code, music (generated for the game) and sound effects: **MIT** license — see `LICENSE`.

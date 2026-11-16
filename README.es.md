@@ -200,7 +200,9 @@ guarda las esquirlas perdidas donde caíste: vuelve al mismo nivel y derrótala 
 
 Desde el ascensor también puedes:
 - jugar cualquier nivel con una **maldición** (Prisa, Oscuridad, Fragilidad) por +50 a 60 % de esquirlas;
-- jugar el **Descenso del día** (el mismo nivel para todos, mejor tiempo);
+- jugar el **Descenso del día** (el mismo nivel para todos, mejor tiempo), con una **clasificación en línea**
+  por dificultad: tu tiempo se envía al final con el apodo que elijas (Ascensor → «Clasificación del día»),
+  y ves el top 10 y tu puesto. El envío se desactiva en la misma pantalla;
 - afrontar el **Desafío de jefes** (jefes seguidos, cronometrado) tras superar el nivel 6.
 
 Hay 29 **logros**, visibles desde la pantalla de título o el menú de pausa.
@@ -486,6 +488,11 @@ Opciones; la música baja un poco cuando el juego está en pausa.
 `tests/test_run.gd` recorre las zonas automáticamente (entradas simuladas, jefes, menús):
 `godot --headless --fixed-fps 120 -s res://tests/test_run.gd`.
 `tests/dump_maps.gd` genera cientos de zonas para comprobar que todas se pueden completar.
+
+**Servidor de la clasificación**: `server/` (Cloudflare Worker + D1), desplegado por el workflow
+«Classement (Cloudflare)» con los secretos `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID`.
+`node server/test_worker.mjs` lo prueba; `node server/dev_server.mjs` lo ejecuta en local (juego lanzado con
+`LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787`).
 
 ## Licencia
 Código, música (generada para el juego) y efectos de sonido: licencia **MIT** — ver `LICENSE`.

@@ -219,6 +219,8 @@ func open_elevator() -> void:
 		dl += "  — " + tr("meilleur : %d:%02d") % [int(dbest) / 60, int(dbest) % 60]
 	var db := _lift_button(dl, _daily)
 	db.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
+	var cb := _lift_button(tr("Classement du jour (en ligne)"), _show_board)
+	cb.add_theme_color_override("font_color", Color(0.75, 0.95, 0.85))
 	if GameState.record >= 6:
 		var rbest := float(Achievements.counters.get("rush_best", 0.0))
 		var rl := tr("Défi des boss : les %d boss à la suite") % GameState.RUSH_ORDER.size()
@@ -230,6 +232,90 @@ func open_elevator() -> void:
 		var lk := _lift_button(tr("Défi des boss : termine le palier 6 pour le débloquer"), func(): pass)
 		lk.disabled = true
 	first.grab_focus()
+
+# ---------------------------------------------------------------- classement du jour
+var _board_status: Label
+var _board_rows: VBoxContainer
+
+static func _fmt_time(t: float) -> String:
+	var cs := int(round(t * 100.0))
+	return "%d:%02d.%02d" % [cs / 6000, (cs / 100) % 60, cs % 100]
+
+func _show_board() -> void:
+	_clear(lift_list)
+	var seed := GameState.today_seed()
+	lift_info.text = tr("Classement du jour — %s — même niveau pour tous, meilleur temps de chacun.") % GameState.diff_name()
+	# pseudo
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	var pl := Label.new()
+	pl.text = tr("Pseudo :")
+	row.add_child(pl)
+	var le := LineEdit.new()
+	le.text = String(Settings.player_name)
+	le.placeholder_text = GameState.LeaderboardScript.player_name()
+	le.max_length = 16
+	le.custom_minimum_size = Vector2(260, 38)
+	var save_name := func(_t = ""):
+		Settings.set_value("player_name", le.text.strip_edges())
+	le.text_submitted.connect(save_name)
+	le.focus_exited.connect(save_name)
+	row.add_child(le)
+	lift_list.add_child(row)
+	var on := CheckButton.new()
+	on.text = tr("Envoyer mes temps au classement")
+	on.button_pressed = bool(Settings.board_online)
+	on.toggled.connect(func(v: bool): Settings.set_value("board_online", v))
+	lift_list.add_child(on)
+	_board_status = _label(tr("Chargement du classement…"), 16, Color(0.65, 0.7, 0.82))
+	lift_list.add_child(_board_status)
+	_board_rows = VBoxContainer.new()
+	_board_rows.add_theme_constant_override("separation", 2)
+	lift_list.add_child(_board_rows)
+	var back := _lift_button(tr("Retour"), open_elevator)
+	back.grab_focus()
+	var rows_ref := _board_rows
+	GameState.board.fetch_top(seed, GameState.difficulty, func(d: Dictionary):
+		if not is_instance_valid(rows_ref) or not rows_ref.is_inside_tree():
+			return
+		_fill_board(d))
+
+func _fill_board(d: Dictionary) -> void:
+	if d.has("error"):
+		_board_status.text = tr("Classement indisponible (pas de connexion ?).")
+		return
+	var top: Array = d.get("top", [])
+	if top.is_empty():
+		_board_status.text = tr("Personne n'a encore terminé la descente d'aujourd'hui dans cette difficulté.")
+		return
+	_board_status.text = tr("%d joueurs aujourd'hui") % int(d.get("total", top.size()))
+	var you_shown := false
+	for e in top:
+		var you: bool = bool(e.get("you", false))
+		you_shown = you_shown or you
+		_board_rows.add_child(_board_line(int(e["rank"]), String(e["name"]), float(e["time"]), you))
+	var me = d.get("me")
+	if me is Dictionary and not you_shown:
+		_board_rows.add_child(_label("…", 16, Color(0.5, 0.55, 0.65)))
+		_board_rows.add_child(_board_line(int(me["rank"]), String(me["name"]), float(me["time"]), true))
+
+func _board_line(rank: int, name: String, t: float, you: bool) -> Control:
+	var h := HBoxContainer.new()
+	var col := Color(1.0, 0.88, 0.5) if you else (Color(0.95, 0.8, 0.45) if rank == 1 else Color(0.82, 0.85, 0.95))
+	var a := _label("%d." % rank, 18, col)
+	a.custom_minimum_size = Vector2(56, 0)
+	a.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	h.add_child(a)
+	var b := _label("  " + name + (tr("  (toi)") if you else ""), 18, col)
+	b.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	h.add_child(b)
+	var c := _label(_fmt_time(t), 18, col)
+	c.custom_minimum_size = Vector2(110, 0)
+	c.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	h.add_child(c)
+	return h
 
 func _clear(box: Control) -> void:
 	for ch in box.get_children():
@@ -503,6 +589,12 @@ func close_all() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not visible:
+		return
+	# en tapant le pseudo, seules Échap / Entrée comptent (B, P… sont des lettres)
+	if get_viewport().gui_get_focus_owner() is LineEdit and event is InputEventKey:
+		if event.pressed and event.keycode == KEY_ESCAPE:
+			get_viewport().gui_release_focus()
+			get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("pause_menu") or event.is_action_pressed("inventory") or (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_B):
 		close_all()

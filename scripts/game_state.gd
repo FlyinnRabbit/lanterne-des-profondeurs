@@ -126,6 +126,8 @@ func scaled(key: String) -> float:
 
 # Cosmétiques du héros (communs à toutes les parties) — voir cosmetics.gd
 const LoadingScript = preload("res://scripts/loading.gd")
+const LeaderboardScript = preload("res://scripts/leaderboard.gd")
+var board    # classement en ligne de la Descente du jour (leaderboard.gd)
 const CosmeticsScript = preload("res://scripts/cosmetics.gd")
 var cos
 
@@ -144,6 +146,8 @@ func elite_chance() -> float:
 
 func _ready() -> void:
 	_migrate_old_save()
+	board = LeaderboardScript.new()
+	add_child(board)
 	cos = CosmeticsScript.new()
 	slot = clampi(int(Settings.last_slot), 1, SLOTS)
 	prog = _fresh()
@@ -324,6 +328,13 @@ func go_next_level(player) -> void:
 			Achievements.counters[dkey] = t2
 			Achievements.save()
 		Achievements.unlock("daily")
+		# classement en ligne : le rang s'affiche au Sanctuaire dès que le serveur répond
+		var dseed := run_seed
+		board.submit(dseed, difficulty, t2, func(d: Dictionary):
+			if d.has("me") and d["me"] is Dictionary:
+				var sc = get_tree().current_scene
+				if sc and sc.has_method("show_message"):
+					sc.show_message(tr("Classement du jour : %d sur %d") % [int(d["me"]["rank"]), int(d.get("total", 0))], 4.0))
 		_end_special()
 		pending_message = tr("Descente du jour réussie en %d:%02d !") % [int(t2) / 60, int(t2) % 60] + "\n" + tr("Meilleur temps du jour : %d:%02d") % [int(Achievements.counters[dkey]) / 60, int(Achievements.counters[dkey]) % 60] + "\n" + Achievements.run_summary()
 		save_game()

@@ -1,0 +1,15 @@
+name = "lanterne-classement"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lanterne-classement"
+# Remplacé automatiquement par le workflow GitHub (base créée au premier déploiement).
+database_id = "D1_DATABASE_ID_PLACEHOLDER"
+
+[vars]
+# Temps minimal plausible pour une Descente du jour (secondes) : en dessous, refusé.
+MIN_TIME = "45"
+# Envois maximum par adresse et par jour.
+MAX_POSTS_PER_DAY = "60"
