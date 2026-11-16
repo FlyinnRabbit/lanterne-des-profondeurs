@@ -11,6 +11,14 @@ Dernière version : onglet **Releases** → `LanterneDesProfondeurs_Windows.zip`
 lancer `LanterneDesProfondeurs.exe`. L'exe n'étant pas signé, Windows SmartScreen peut afficher
 « Windows a protégé votre ordinateur » → *Informations complémentaires* → *Exécuter quand même*.
 
+## Jouer dans le navigateur (PC, Xbox, tablette)
+**https://flyinnrabbit.github.io/lanterne-des-profondeurs/** — mise à jour automatiquement à chaque
+envoi sur GitHub. Clavier, souris et manette fonctionnent ; les sauvegardes restent dans le navigateur.
+- **Xbox Series** : ouvrir **Microsoft Edge**, aller à l'adresse ci-dessus, puis passer en plein écran.
+- Le premier chargement télécharge environ 55 Mo.
+- Dans le navigateur, le nom des touches suit la disposition QWERTY par défaut :
+  choisir AZERTY dans **Commandes → Clavier** si besoin.
+
 ## macOS (Intel et Apple Silicon)
 1. Télécharger `LanterneDesProfondeurs_macOS.zip` dans la Release, le décompresser et glisser
    **Lanterne des Profondeurs** dans le dossier Applications.

@@ -1,0 +1,55 @@
+# Version jouable dans le navigateur (PC, Xbox via Microsoft Edge, tablettes…), publiée sur GitHub Pages
+# à chaque envoi sur la branche main : https://flyinnrabbit.github.io/lanterne-des-profondeurs/
+name: Version web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Installer Godot 4.3 et le modèle d'export web
+        run: |
+          cd "$RUNNER_TEMP"
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          mv Godot_v4.3-stable_linux.x86_64 godot && chmod +x godot
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          unzip -qj Godot_v4.3-stable_export_templates.tpz templates/web_nothreads_release.zip templates/version.txt \
+            -d ~/.local/share/godot/export_templates/4.3.stable
+          rm Godot_v4.3-stable_export_templates.tpz
+
+      - name: Exporter pour le web
+        run: |
+          "$RUNNER_TEMP/godot" --headless --editor --quit || true
+          mkdir -p build/web
+          "$RUNNER_TEMP/godot" --headless --export-release "Web" build/web/index.html
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

@@ -66,7 +66,8 @@ func apply_display() -> void:
 	var want := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
 	if DisplayServer.window_get_mode() != want:
 		DisplayServer.window_set_mode(want)
-	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
+	if not OS.has_feature("web"):   # le navigateur gère lui-même la synchronisation
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
 	# Plafond d'images par seconde (0 = illimité ; avec la VSync, l'écran limite aussi)
 	Engine.max_fps = FPS_CHOICES[clampi(fps_cap, 0, FPS_CHOICES.size() - 1)]
 

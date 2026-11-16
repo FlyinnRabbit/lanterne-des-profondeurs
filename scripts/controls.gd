@@ -265,6 +265,8 @@ func key_name(k: int) -> String:
 	if k < 0:
 		return tr(MOUSE_NAMES[-k]) if MOUSE_NAMES.has(-k) else tr("Souris %d") % -k
 	var lay := int(Settings.kb_layout)
+	if lay == 0 and OS.has_feature("web"):
+		lay = 2      # le navigateur ne donne pas la disposition : noms QWERTY (réglable dans Commandes)
 	if lay > 0:
 		var m: Dictionary = LAYOUT_MAPS.get(lay, {})
 		return m[k] if m.has(k) else PUNCT.get(k, OS.get_keycode_string(k))

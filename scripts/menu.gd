@@ -121,7 +121,8 @@ func _build_title(root: Control) -> void:
 	v.add_child(_button("Commandes", _open_controls))
 	v.add_child(_button("Options", _open_options))
 	v.add_child(_button("Succès", _open_achievements))
-	v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
+	if not OS.has_feature("web"):   # dans un navigateur, on ferme simplement l'onglet
+		v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
 
 func _build_difficulty(root: Control) -> void:
 	diff_panel = _centered_panel(root)
@@ -366,7 +367,8 @@ func _build_pause(root: Control) -> void:
 	if GameState.mode == "descent":
 		v.add_child(_button("Abandonner la descente", func(): GameState.abandon_descent()))
 	v.add_child(_button("Parties…", _open_slots))
-	v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
+	if not OS.has_feature("web"):   # dans un navigateur, on ferme simplement l'onglet
+		v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
 
 # Textes composés du menu (à refaire quand la langue change)
 func _update_info() -> void:
