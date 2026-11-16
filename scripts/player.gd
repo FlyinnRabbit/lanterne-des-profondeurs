@@ -106,6 +106,9 @@ var sit_t := 0.0
 # après s'être relevé : empêche d'enchaîner frappe → banc (intouchable) → frappe.
 const BENCH_LOCK := 1.5
 var bench_lock_t := 0.0
+# Treuil : le héros est hissé le long de ces points (contrôle rendu à l'arrivée)
+var hoist_path: Array = []
+var hoist_t := 0.0
 var dead := false
 var anim_t := 0.0
 var squash := Vector2.ONE
@@ -220,9 +223,12 @@ func _physics_process(delta: float) -> void:
 		crit_light.energy = 1.1 + 0.4 * sin(anim_t * 10.0)
 		crit_light.position = Vector2(facing * 16, -2)
 	squash = squash.lerp(Vector2.ONE, minf(delta * 12.0, 1.0))
-	modulate.a = 0.35 if (invuln_t > 0.0 and fmod(invuln_t, 0.16) < 0.08 and not sitting) else 1.0
+	modulate.a = 0.35 if (invuln_t > 0.0 and fmod(invuln_t, 0.16) < 0.08 and not sitting and hoist_path.is_empty()) else 1.0
 	queue_redraw()
 	if dead:
+		return
+	if not hoist_path.is_empty():
+		_hoist_step(delta)
 		return
 	if sitting:
 		velocity = Vector2.ZERO
@@ -919,6 +925,37 @@ func respawn(pos: Vector2) -> void:
 
 # En se relevant du banc : une seconde d'invulnérabilité et les ennemis collés au banc
 # sont repoussés (et brièvement étourdis), pour ne pas prendre un coup en se levant.
+# Treuil : montée verticale puis petit pas de côté sur le sol du haut, en ~1,5 s au total.
+func hoist(path: Array) -> void:
+	hoist_path = path
+	hoist_t = 0.0
+	velocity = Vector2.ZERO
+	attack_t = 0.0
+	dash_t = 0.0
+	charge_t = 0.0
+	if crouching:
+		_set_crouch(false)
+
+func _hoist_step(delta: float) -> void:
+	hoist_t += delta
+	velocity = Vector2.ZERO
+	invuln_t = maxf(invuln_t, 0.2)
+	var a: Vector2 = hoist_path[0]
+	var b: Vector2 = hoist_path[1]
+	var c: Vector2 = hoist_path[2]
+	var up_time := clampf(a.distance_to(b) / 520.0, 0.6, 1.4)
+	if hoist_t < up_time:
+		var k := hoist_t / up_time
+		k = k * k * (3.0 - 2.0 * k)
+		global_position = a.lerp(b, k)
+	elif hoist_t < up_time + 0.25:
+		global_position = b.lerp(c, (hoist_t - up_time) / 0.25)
+	else:
+		global_position = c
+		hoist_path = []
+		last_safe = c
+		invuln_t = maxf(invuln_t, 0.4)
+
 func _leave_bench() -> void:
 	invuln_t = maxf(invuln_t, 1.0)
 	for e in get_tree().get_nodes_in_group("enemies"):

@@ -220,6 +220,23 @@ Il y a 29 **succès**, consultables depuis l'écran-titre ou le menu pause.
 | La Ruche Bourdonnante | couloirs étroits envahis de volants |
 | L'Ossuaire | collines et arènes, rampants et cracheurs |
 
+### Profondeurs : grottes et strates
+
+| | | |
+|---|---|---|
+| ![Grotte des Jardins Fongiques](docs/screenshots/grotto_gardens.jpg) | ![Grotte de la Bibliothèque Silencieuse](docs/screenshots/grotto_library.jpg) | ![Treuil au pied d'un puits (Mines de Cristal)](docs/screenshots/strata_winch.jpg) |
+
+Les niveaux ne sont plus de simples bandes à plat :
+- **Grottes** (tous les biomes) : des trous dans le chemin mènent à une grotte creusée sous le niveau,
+  aménagée selon le biome (champignons géants, rayonnages, alvéoles, salle inondée, crypte d'os,
+  stalagmites de cristal, pont de glace fragile, fosses de braises…). Chacune cache un **coffre**, des
+  ennemis, et parfois un **marchand** ou un emblème.
+- **Strates** (les Profondeurs, les Mines de Cristal, les Abysses Gelés, la Forge Ardente) : le niveau
+  s'enfonce en trois étages. Le premier va vers la droite, le deuxième revient vers la gauche, le
+  troisième repart vers la droite jusqu'à la sortie. Un large puits relie chaque étage au suivant.
+- **Treuil** : au pied de chaque grotte et de chaque puits, une corde pend d'un treuil. **Haut** à côté
+  te hisse en haut en ~1,5 s : pas besoin de refaire la fosse en plateforme.
+
 ### Salles spéciales
 - **Trésor** : un sol fissuré cache un coffre ; le briser (coups vers le bas ou piqué).
 - **Défi chronométré** : toucher la stèle au sablier, puis atteindre le drapeau en 13 secondes.

@@ -219,6 +219,23 @@ Es gibt 29 **Erfolge**, einsehbar über den Titelbildschirm oder das Pausenmenü
 | Der Summende Stock | enge Gänge voller Flieger |
 | Das Beinhaus | Hügel und Arenen, Kriecher und Spucker |
 
+### Tiefen: Grotten und Schichten
+
+| | | |
+|---|---|---|
+| ![Grotte der Pilzgärten](docs/screenshots/grotto_gardens.jpg) | ![Grotte der Stillen Bibliothek](docs/screenshots/grotto_library.jpg) | ![Seilwinde am Fuß eines Schachts (Kristallminen)](docs/screenshots/strata_winch.jpg) |
+
+Die Zonen sind keine flachen Streifen mehr:
+- **Grotten** (alle Biome): Löcher im Weg führen in eine Grotte unter der Zone, gestaltet nach dem
+  Biom (Riesenpilze, Bücherregale, Wabenzellen, überflutete Halle, Knochengruft, Kristallstalagmiten,
+  brüchige Eisbrücke, Glutgruben …). Jede verbirgt eine **Truhe**, Gegner und manchmal einen
+  **Händler** oder ein Emblem.
+- **Schichten** (die Tiefen, die Kristallminen, der Eisige Abgrund, die Glühende Schmiede): Die Zone
+  führt über drei Etagen hinab. Die erste geht nach rechts, die zweite zurück nach links, die dritte
+  wieder nach rechts bis zum Ausgang. Ein breiter Schacht verbindet jede Etage mit der nächsten.
+- **Seilwinde**: Am Fuß jeder Grotte und jedes Schachts hängt ein Seil an einer Winde. **Oben** daneben
+  zieht dich in ~1,5 s hinauf: Du musst die Grube nicht erneut springend überwinden.
+
 ### Besondere Räume
 - **Schatz**: Ein rissiger Boden verbirgt eine Truhe; zerschlage ihn (Schläge nach unten oder Sturzangriff).
 - **Zeitprüfung**: Berühre die Sanduhr-Spur und erreiche die Flagge in 13 Sekunden.

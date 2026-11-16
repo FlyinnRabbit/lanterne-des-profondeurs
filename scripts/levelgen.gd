@@ -4,7 +4,11 @@ extends RefCounted
 # niveau du sol (rangée F) à leurs bords, et respectent les capacités du héros :
 # saut ≈ 4 cases de haut / 6 de long, Ruée ≈ 9-10 cases.
 
-const H := 26        # hauteur de la carte (cases)
+# hauteur d'une bande de niveau (cases) : 26 sans grottes, 40 avec les grottes sous le chemin
+var H := 26
+const BAND_H := 40
+# biomes dont les niveaux descendent par strates (les autres : chemin horizontal + grottes)
+const STRATA := ["profondeurs", "cristal", "glace", "forge"]
 const CEIL := 3      # rangées 0..CEIL = plafond
 const F := 20        # rangée du sol (surface)
 
@@ -75,6 +79,10 @@ func _width(kind: String) -> int:
 		"treasure": return rng.randi_range(14, 18)
 		"challenge": return 12
 		"altar": return rng.randi_range(22, 26)
+		"grotto": return rng.randi_range(22, 26)
+		"drop": return 12
+		"landing": return 14
+		"landing_rest": return 16
 	return 12
 
 # hauteur de sol minimale (rangée la plus haute) selon la salle, pour garder de la place au-dessus
@@ -90,6 +98,9 @@ const LOW_CEIL := ["corridor", "arena", "cave"]
 
 var f := F           # rangée du sol de la salle en cours (varie d'une salle à l'autre)
 var challenge_x := -1
+var biome_id := ""
+var cave_spots := []     # ennemis garantis dans les grottes
+var mark := {}           # repères d'une bande : trou de chute, point d'atterrissage
 var trap_p := 0.3    # probabilité d'ajouter des pièges dans une salle
 
 func _trap() -> bool:
@@ -314,6 +325,23 @@ func _chunk(kind: String, x0: int, w: int, boss_char: String) -> void:
 			# arène d'élites : l'autel invoque trois élites, récompense à la clé
 			fill(x0 + 1, CEIL + 1, x1 - 1, f - 11, "#")
 			put(x0 + w / 2, f - 1, "R")
+		"grotto":
+			_grotto(x0, x1)
+		"drop":
+			# fin de strate : un large puits s'ouvre dans le sol et mène à la strate du dessous
+			var hx := x0 + 6
+			fill(hx - 1, f, hx + 1, H - 1, ".")
+			put(x0 + 3, f - 1, "u")          # point d'arrivée du treuil (côté d'où l'on vient)
+			mark["drop_x"] = hx
+			mark["drop_f"] = f
+		"landing", "landing_rest":
+			# arrivée d'une strate : on tombe du puits au centre de la salle
+			mark["land_x"] = x0 + 6
+			mark["land_f"] = f
+			if kind == "landing_rest":
+				put(x0 + 11, f - 1, "B")
+				if rng.randf() < 0.45:
+					put(x0 + 14, f - 1, "M")
 		"boss":
 			fill(x0 + 3, CEIL + 1, x1 - 3, f - 13, "#")
 			for y in range(f - 12, f):
@@ -322,6 +350,97 @@ func _chunk(kind: String, x0: int, w: int, boss_char: String) -> void:
 			for sx2 in [x0 + 8, x0 + 16, x0 + 25, x0 + 32]:
 				put(sx2, f - 12, "#")
 			put(x0 + 30, f - 1, boss_char)
+
+# Grotte sous le chemin : un puits de 2 cases descend vers une salle creusée dans la roche,
+# aménagée selon le biome, avec un coffre, des ennemis, parfois un marchand ou un objet.
+# Un treuil (« ~ » en bas, « u » en haut) remonte le héros au chemin.
+func _grotto(x0: int, x1: int) -> void:
+	var hx := x0 + 3
+	var ct := f + 6           # plafond intérieur
+	var cf := f + 16          # sol de la grotte (rangée pleine)
+	fill(hx, f, hx + 1, ct - 1, ".")
+	fill(x0 + 1, ct, x1 - 1, cf - 1, ".")
+	put(hx, cf - 1, "~")
+	put(x0 + 7, f - 1, "u")
+	var a := x0 + 6           # zone aménageable (après le treuil)
+	var b := x1 - 2
+	var mid := (a + b) / 2
+	match biome_id:
+		"jardins":
+			# champignons géants : pieds fins et chapeaux plats à hauteurs variées
+			var mx := a + 1
+			while mx <= b - 2:
+				var top := cf - rng.randi_range(2, 4)
+				fill(mx, top + 1, mx, cf - 1, "#")
+				fill(mx - 1, top, mx + 1, top, "#")
+				item_spots.append(Vector2i(mx, top - 1))
+				mx += rng.randi_range(4, 6)
+		"bibliotheque":
+			# rayonnages : étagères sur deux niveaux, avec des trous pour sauter
+			for row in [cf - 4, cf - 8]:
+				var sx := a + rng.randi_range(0, 2)
+				while sx <= b - 2:
+					var sw := rng.randi_range(3, 5)
+					fill(sx, row, mini(sx + sw - 1, b), row, "#")
+					sx += sw + 2
+			item_spots.append(Vector2i(mid, cf - 9))
+		"ruche":
+			# alvéoles : cloisons qui pendent du plafond et laissent passer en bas
+			var cx := a + 4
+			while cx <= b - 3:
+				fill(cx, ct, cx, cf - 5, "#")
+				fill(cx - 1, cf - 5, cx + 1, cf - 5, "#")
+				cx += rng.randi_range(5, 6)
+			item_spots.append(Vector2i(b - 1, cf - 1))
+		"citadelle":
+			# salle inondée : bassin de pics au milieu, îlots pour traverser
+			fill(a + 2, cf - 1, b - 3, cf - 1, "^")
+			var ix := a + 3
+			while ix <= b - 4:
+				fill(ix, cf - 3, ix + 1, cf - 3, "#")
+				ix += rng.randi_range(3, 4)
+			item_spots.append(Vector2i(mid, cf - 4))
+		"ossuaire":
+			# crypte : plafond bas soutenu par des piliers d'os, niches entre eux
+			fill(x0 + 1, ct, x1 - 1, ct + 2, "#")
+			fill(hx, ct, hx + 1, ct + 2, ".")
+			var px := a + 3
+			while px <= b - 2:
+				fill(px, ct + 3, px, cf - 4, "#")
+				px += rng.randi_range(4, 5)
+			item_spots.append(Vector2i(a + 1, cf - 1))
+		"cristal":
+			# stalagmites de cristal de hauteurs variées
+			var sx := a + 2
+			while sx <= b - 2:
+				var hgt := rng.randi_range(2, 4)
+				fill(sx, cf - hgt, sx + rng.randi_range(0, 1), cf - 1, "#")
+				sx += rng.randi_range(4, 6)
+			item_spots.append(Vector2i(mid, cf - 6))
+		"glace":
+			# pont de glace fragile au-dessus d'une fosse
+			fill(a + 2, cf - 1, b - 3, cf - 1, "^")
+			fill(a + 2, cf - 3, b - 3, cf - 3, "C")
+			item_spots.append(Vector2i(b - 1, cf - 1))
+		"forge":
+			# fosses de braises et passerelles
+			for px in [a + 2, mid + 2]:
+				fill(px, cf - 1, px + 2, cf - 1, "^")
+				fill(px - 1, cf - 4, px + 3, cf - 4, "#")
+			item_spots.append(Vector2i(mid, cf - 5))
+		_:
+			# puits secondaires et corniches
+			fill(a + 3, cf - 1, a + 5, cf - 1, "^")
+			fill(a + 2, cf - 4, a + 6, cf - 4, "#")
+			fill(b - 6, cf - 6, b - 3, cf - 6, "#")
+			item_spots.append(Vector2i(b - 4, cf - 7))
+	# coffre au fond, marchand parfois, ennemis garantis
+	put(b, cf - 1, "$")
+	if rng.randf() < 0.3:
+		put(x0 + 5, cf - 1, "M")
+	cave_spots.append(Vector2i(mid, cf - 1))
+	if rng.randf() < 0.6:
+		cave_spots.append(Vector2i(b - 3, cf - 1))
 
 # mélange reproductible (même graine = même niveau)
 func _shuffled(a: Array) -> Array:
@@ -333,44 +452,9 @@ func _shuffled(a: Array) -> Array:
 		b[j] = tmp
 	return b
 
-# ---------------------------------------------------------------- génération
-# Renvoie la carte (tableau de chaînes) d'un niveau.
-#  depth : 1..N (difficulté)   boss : "" / "K" / "Q"   final : sanctuaire à la fin
-func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, final: bool, diff: Dictionary = {}, rush := false) -> Array:
-	rng.seed = seed_value
-	challenge_x = -1
-	ground_spots.clear()
-	air_spots.clear()
-	item_spots.clear()
-	trap_p = clampf(0.2 + depth * 0.06, 0.2, 0.5)
-	var kinds := ["start"]
-	var n := 0 if rush else mini(6 + depth, 11)
-	# toutes les salles possibles un peu partout, celles du biome bien plus souvent
-	var weights: Dictionary = {}
-	for k in ["flat", "platforms", "pit", "hill", "pillars", "bridge", "islands", "zigzag", "split", "moving", "crumble", "cave", "blades"]:
-		weights[k] = 0.35
-	for k in biome["chunks"]:
-		weights[k] = float(weights.get(k, 0.0)) + float(biome["chunks"][k])
-	weights["treasure"] = 0.45
-	weights["challenge"] = 0.4
-	weights["altar"] = 0.35
-	var recent := []
-	for i in n:
-		if i == n / 2:
-			kinds.append("rest")   # banc à mi-parcours
-		var wsel := weights.duplicate()
-		for r in recent:
-			wsel.erase(r)            # pas deux fois la même salle de suite (ni à une salle d'écart)
-		var k := _pick(wsel)
-		if k in ["treasure", "challenge", "altar"]:
-			weights.erase(k)      # au plus une salle spéciale de chaque sorte
-		kinds.append(k)
-		recent.append(k)
-		if recent.size() > 2:
-			recent.pop_front()
-	if boss != "":
-		kinds.append("boss")
-	kinds.append("shrine" if final else "exit")
+# Pose une suite de salles de gauche à droite dans une grille neuve (W x H).
+func _build(kinds: Array, boss: String) -> void:
+	mark = {}
 	var widths := []
 	var total := 2
 	for k in kinds:
@@ -386,9 +470,7 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 	for i in kinds.size():
 		var k: String = kinds[i]
 		var prev := f
-		if k == "start":
-			f = F
-		elif k == "boss":
+		if k in ["start", "boss", "landing", "landing_rest"]:
 			f = F
 		elif k in LOW_CEIL or k in ["exit", "shrine"]:
 			pass
@@ -414,6 +496,162 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 			for gx in range(maxi(0, boss_x0 - 30), mini(W, boss_x1 + 30)):
 				if g[gy][gx] == "Z":
 					g[gy][gx] = "."
+
+# Niveau en trois strates empilées : la 1re de gauche à droite, la 2e de droite à gauche
+# (salles retournées), la 3e de nouveau vers la droite jusqu'à la sortie. Un large puits relie
+# chaque strate à la suivante ; un treuil au pied du puits permet de remonter.
+func _build_strata(chunks: Array, end_kinds: Array, boss: String) -> void:
+	H = BAND_H
+	var parts := [[], [], []]
+	for i in chunks.size():
+		parts[mini(i * 3 / maxi(chunks.size(), 1), 2)].append(chunks[i])
+	# une grotte dans chacune des deux premières strates
+	for bi in 2:
+		parts[bi].insert(rng.randi_range(0, parts[bi].size()), "grotto")
+	var band_kinds := [["start"] + parts[0] + ["drop"], ["landing_rest"] + parts[1] + ["drop"], ["landing"] + parts[2] + end_kinds]
+	var bands := []
+	for bi in 3:
+		var kinds: Array = band_kinds[bi]
+		# salles retournées dans la strate du milieu : pas de plateforme mobile (elle part vers la droite)
+		if bi == 1:
+			kinds = kinds.map(func(k): return "crumble" if k == "moving" else k)
+		ground_spots.clear()
+		air_spots.clear()
+		cave_spots.clear()
+		var items_before := item_spots.size()
+		_build(kinds, boss if bi == 2 else "")
+		var band := {"g": g, "w": W, "mark": mark.duplicate(), "ground": ground_spots.duplicate(),
+			"air": air_spots.duplicate(), "items": item_spots.slice(items_before), "caves": cave_spots.duplicate(), "mirror": bi == 1}
+		item_spots = item_spots.slice(0, items_before)
+		bands.append(band)
+	# retournement de la strate du milieu
+	var mb: Dictionary = bands[1]
+	var mw: int = mb["w"]
+	for y in H:
+		var row: Array = mb["g"][y]
+		row.reverse()
+	for key in ["ground", "air", "items", "caves"]:
+		var arr: Array = mb[key]
+		for i in arr.size():
+			arr[i] = Vector2i(mw - 1 - arr[i].x, arr[i].y)
+	for key in ["drop_x", "land_x"]:
+		if mb["mark"].has(key):
+			mb["mark"][key] = mw - 1 - int(mb["mark"][key])
+	# alignement : chaque puits tombe au milieu de l'atterrissage de la strate suivante
+	var ox := [0, 0, 0]
+	ox[1] = int(bands[0]["mark"]["drop_x"]) - int(bands[1]["mark"]["land_x"])
+	ox[2] = ox[1] + int(bands[1]["mark"]["drop_x"]) - int(bands[2]["mark"]["land_x"])
+	var minx: int = mini(0, mini(ox[1], ox[2]))
+	var maxx := 0
+	for bi in 3:
+		ox[bi] -= minx
+		maxx = maxi(maxx, ox[bi] + int(bands[bi]["w"]))
+	# grille finale : roche partout, puis on recopie les strates
+	var total_h := H * 3
+	var total_w := maxx
+	var big := []
+	for y in total_h:
+		var row := []
+		row.resize(total_w)
+		row.fill("#")
+		big.append(row)
+	ground_spots.clear()
+	air_spots.clear()
+	cave_spots.clear()
+	for bi in 3:
+		var bd: Dictionary = bands[bi]
+		var oy := bi * H
+		for y in H:
+			for x in int(bd["w"]):
+				var c: String = bd["g"][y][x]
+				# plafond de la strate et ses bords gauche/droit : roche
+				big[oy + y][ox[bi] + x] = "#" if (y <= CEIL or x == 0 or x == int(bd["w"]) - 1) else c
+		for key in ["ground", "air", "caves"]:
+			for p in bd[key]:
+				var q := Vector2i(p.x + ox[bi], p.y + oy)
+				if key == "ground":
+					ground_spots.append(q)
+				elif key == "air":
+					air_spots.append(q)
+				else:
+					cave_spots.append(q)
+		for p in bd["items"]:
+			item_spots.append(Vector2i(p.x + ox[bi], p.y + oy))
+	# puits entre strates (à travers le plafond de la strate du dessous) et treuils
+	for bi in 2:
+		var hx: int = ox[bi] + int(bands[bi]["mark"]["drop_x"])
+		var oy2 := (bi + 1) * H
+		for y in range(oy2, oy2 + CEIL + 1):
+			for dx in [-1, 0, 1]:
+				big[y][hx + dx] = "."
+		var lf: int = int(bands[bi + 1]["mark"]["land_f"])
+		big[oy2 + lf - 1][hx] = "~"
+	W = total_w
+	H = total_h
+	g = big
+
+# ---------------------------------------------------------------- génération
+# Renvoie la carte (tableau de chaînes) d'un niveau.
+#  depth : 1..N (difficulté)   boss : "" / "K" / "Q"   final : sanctuaire à la fin
+func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, final: bool, diff: Dictionary = {}, rush := false) -> Array:
+	rng.seed = seed_value
+	challenge_x = -1
+	ground_spots.clear()
+	air_spots.clear()
+	item_spots.clear()
+	cave_spots.clear()
+	biome_id = String(biome.get("id", ""))
+	trap_p = clampf(0.2 + depth * 0.06, 0.2, 0.5)
+	var n := 0 if rush else mini(6 + depth, 11)
+	# toutes les salles possibles un peu partout, celles du biome bien plus souvent
+	var weights: Dictionary = {}
+	for k in ["flat", "platforms", "pit", "hill", "pillars", "bridge", "islands", "zigzag", "split", "moving", "crumble", "cave", "blades"]:
+		weights[k] = 0.35
+	for k in biome["chunks"]:
+		weights[k] = float(weights.get(k, 0.0)) + float(biome["chunks"][k])
+	weights["treasure"] = 0.45
+	weights["challenge"] = 0.4
+	weights["altar"] = 0.35
+	var strata: bool = biome_id in STRATA and not rush
+	if strata:
+		weights.erase("challenge")    # le drapeau du défi se cherche vers la droite : pas en strates
+	var chunks := []
+	var recent := []
+	for i in n:
+		var wsel := weights.duplicate()
+		for r in recent:
+			wsel.erase(r)            # pas deux fois la même salle de suite (ni à une salle d'écart)
+		var k := _pick(wsel)
+		if k in ["treasure", "challenge", "altar"]:
+			weights.erase(k)      # au plus une salle spéciale de chaque sorte
+		chunks.append(k)
+		recent.append(k)
+		if recent.size() > 2:
+			recent.pop_front()
+	var end_kinds := []
+	if boss != "":
+		end_kinds.append("boss")
+	end_kinds.append("shrine" if final else "exit")
+	if rush:
+		H = 26
+		_build(["start"] + chunks + end_kinds, boss)
+	elif not strata:
+		# chemin horizontal, banc à mi-parcours, et 2-3 grottes sous le chemin
+		H = BAND_H
+		var kinds := ["start"]
+		var caves := 2 if n < 9 else 3
+		var cave_at := []
+		for c in caves:
+			cave_at.append(1 + (c * n) / caves + rng.randi_range(0, maxi(n / caves - 2, 0)))
+		for i in n:
+			if i == n / 2:
+				kinds.append("rest")
+			if i in cave_at:
+				kinds.append("grotto")
+			kinds.append(chunks[i])
+		_build(kinds + end_kinds, boss)
+	else:
+		_build_strata(chunks, end_kinds, boss)
 	# défi chronométré : drapeau d'arrivée ~45 cases plus loin, sur un sol (avant le boss)
 	if challenge_x >= 0:
 		var limit := W - 12 - (40 if boss != "" else 0)
@@ -461,6 +699,18 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 			var p: Vector2i = ground.pop_back()
 			if g[p.y][p.x] == "." and g[p.y + 1][p.x] == "#":
 				put(p.x, p.y, k if k in ["s", "h", "g", "b", "l"] else "c")
+	# ennemis garantis dans les grottes (sur un sol sûr près du point prévu)
+	var gtypes: Dictionary = {}
+	for k in ew:
+		if not k in ["f", "w", "r"]:
+			gtypes[k] = ew[k]
+	for p in cave_spots:
+		for dx in [0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5]:
+			var q := Vector2i(p.x + dx, p.y)
+			if q.x > 0 and q.x < W - 1 and q.y + 1 < H and g[q.y][q.x] == "." and g[q.y + 1][q.x] == "#":
+				var k := _pick(gtypes) if not gtypes.is_empty() else "c"
+				put(q.x, q.y, k if k in ["s", "h", "g", "b", "l"] else "c")
+				break
 	# emblèmes (« * ») et encoche
 	item_spots = _shuffled(item_spots)
 	var items := 2 if depth <= 3 else 1

@@ -216,6 +216,23 @@ There are 29 **achievements**, viewable from the title screen or the pause menu.
 | The Humming Hive | narrow corridors overrun with flyers |
 | The Ossuary | hills and arenas, crawlers and spitters |
 
+### Depths: grottos and strata
+
+| | | |
+|---|---|---|
+| ![Grotto in the Fungal Gardens](docs/screenshots/grotto_gardens.jpg) | ![Grotto in the Silent Library](docs/screenshots/grotto_library.jpg) | ![Winch at the foot of a shaft (Crystal Mines)](docs/screenshots/strata_winch.jpg) |
+
+Levels are no longer flat strips:
+- **Grottos** (every biome): holes in the path lead to a cave dug under the level, laid out
+  for its biome (giant mushrooms, library shelves, honeycomb cells, a flooded hall, a bone crypt,
+  crystal stalagmites, a fragile ice bridge, ember pits…). Each one hides a **chest**, enemies, and
+  sometimes a **merchant** or a charm.
+- **Strata** (the Depths, Crystal Mines, Frozen Abyss, Blazing Forge): the level sinks in three
+  layers. The first runs to the right, the second back to the left, the third to the right again
+  down to the exit. A wide shaft drops from one layer to the next.
+- **Winch**: at the bottom of every grotto and every shaft a rope hangs from a winch. **Up** next to
+  it hoists you back up in about 1.5 s, so no climbing back through a pit.
+
 ### Special rooms
 - **Treasure**: a cracked floor hides a chest; break it (downward strikes or a dive).
 - **Timed challenge**: touch the hourglass stele, then reach the flag within 13 seconds.

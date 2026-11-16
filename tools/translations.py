@@ -321,6 +321,7 @@ T = {
 "appeler l'ascenseur": ("call the elevator", "llamar al ascensor", "Aufzug rufen"),
 "Vous vous reposez. Santé restaurée.": ("You rest. Health restored.", "Descansas. Vida restaurada.", "Du ruhst dich aus. Leben aufgefüllt."),
 "Trop agité pour se reposer…": ("Too restless to rest…", "Demasiado agitado para descansar…", "Zu unruhig, um zu rasten…"),
+"se faire hisser": ("get hoisted up", "subir con el torno", "hochziehen lassen"),
 "Une seule vie : la partie s'efface à la première mort": ("One life: the save is erased on your first death", "Una sola vida: la partida se borra a la primera muerte", "Nur ein Leben: Der Spielstand wird beim ersten Tod gelöscht"),
 "Une seule vie": ("One life", "Una sola vida", "Nur ein Leben"),
 "Une seule vie : la partie est terminée.": ("One life: the game is over.", "Una sola vida: la partida ha terminado.", "Nur ein Leben: Das Spiel ist vorbei."),

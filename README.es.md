@@ -219,6 +219,23 @@ Hay 29 **logros**, visibles desde la pantalla de título o el menú de pausa.
 | La Colmena Zumbante | pasillos estrechos invadidos por voladores |
 | El Osario | colinas y arenas, reptantes y escupidores |
 
+### Profundidades: grutas y estratos
+
+| | | |
+|---|---|---|
+| ![Gruta de los Jardines Fúngicos](docs/screenshots/grotto_gardens.jpg) | ![Gruta de la Biblioteca Silenciosa](docs/screenshots/grotto_library.jpg) | ![Torno al pie de un pozo (Minas de Cristal)](docs/screenshots/strata_winch.jpg) |
+
+Los niveles ya no son simples franjas planas:
+- **Grutas** (todos los biomas): agujeros en el camino llevan a una gruta excavada bajo el nivel,
+  dispuesta según el bioma (setas gigantes, estanterías, celdas de panal, sala inundada, cripta de
+  huesos, estalagmitas de cristal, puente de hielo frágil, fosas de brasas…). Cada una esconde un
+  **cofre**, enemigos y a veces un **mercader** o un emblema.
+- **Estratos** (las Profundidades, las Minas de Cristal, el Abismo Helado, la Forja Ardiente): el nivel
+  se hunde en tres pisos. El primero va hacia la derecha, el segundo vuelve hacia la izquierda y el
+  tercero va de nuevo a la derecha hasta la salida. Un pozo ancho une cada piso con el siguiente.
+- **Torno**: al pie de cada gruta y de cada pozo cuelga una cuerda de un torno. **Arriba** a su lado te
+  sube en ~1,5 s: no hace falta volver a cruzar la fosa saltando.
+
 ### Salas especiales
 - **Tesoro**: un suelo agrietado esconde un cofre; rómpelo (golpes hacia abajo o picado).
 - **Desafío cronometrado**: toca la estela del reloj de arena y llega a la bandera en 13 segundos.

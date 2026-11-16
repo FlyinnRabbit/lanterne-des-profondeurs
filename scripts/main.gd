@@ -28,6 +28,7 @@ const GateScript = preload("res://scripts/gate.gd")
 const LevelArtScript = preload("res://scripts/level_art.gd")
 const BackgroundScript = preload("res://scripts/background.gd")
 const PropScript = preload("res://scripts/prop.gd")
+const WinchScript = preload("res://scripts/winch.gd")
 const HudScript = preload("res://scripts/hud.gd")
 const SpitterScript = preload("res://scripts/spitter.gd")
 const ProjectileScript = preload("res://scripts/projectile.gd")
@@ -98,6 +99,8 @@ var sign_text := ""
 var benches := []   # positions des bancs
 var pal: Dictionary = {}
 var level: Dictionary = {}
+var winch_low := []    # pieds de corde (« ~ »)
+var winch_top := []    # arrivées en haut (« u »)
 var interactables := []   # [prop, "merchant"/"elevator"]
 var interact_hint := ""
 var hub_ui
@@ -112,6 +115,7 @@ func _ready() -> void:
 	light_tex = DU.radial_texture()
 	_build_level()
 	_spawn_everything()
+	_make_winches()
 	_spawn_shade()
 	_setup_camera_and_fx()
 	var layer := CanvasLayer.new()
@@ -292,6 +296,10 @@ func _spawn_everything() -> void:
 		var row: String = MAP[y]
 		for x in row.length():
 			match row[x]:
+				"~":
+					winch_low.append(Vector2i(x, y))
+				"u":
+					winch_top.append(Vector2i(x, y))
 				"P":
 					player = CharacterBody2D.new()
 					player.set_script(PlayerScript)
@@ -475,6 +483,24 @@ func _random_charm(x: int) -> int:
 	var id: int = free[r.randi_range(0, free.size() - 1)]
 	_charms_in_level.append(id)
 	return id
+
+# Treuils : chaque pied de corde est relié à l'arrivée « u » la plus proche au-dessus.
+func _make_winches() -> void:
+	for lo in winch_low:
+		var best := Vector2i(-1, -1)
+		for tp in winch_top:
+			if tp.y < lo.y and absi(tp.x - lo.x) <= 8 and (best.x < 0 or tp.y > best.y):
+				best = tp
+		if best.x < 0:
+			continue
+		var w := Node2D.new()
+		w.set_script(WinchScript)
+		w.main = self
+		w.position = Vector2(lo.x * TILE + TILE / 2.0, (lo.y + 1) * TILE)
+		w.top = Vector2(lo.x * TILE + TILE / 2.0, (best.y + 1) * TILE)
+		w.arrive = _cell_feet(best.x, best.y, 34)
+		add_child(w)
+		interactables.append([w, "winch"])
 
 func _make_prop(kind: String, pos: Vector2, light_color: Color, light_scale: float):
 	var p := Node2D.new()
@@ -743,7 +769,7 @@ func _process(delta: float) -> void:
 		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
 			var verbs := {"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur",
 				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "cartographer": "parler au cartographe", "elder": "écouter l'ancien",
-				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau"}
+				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau", "winch": "se faire hisser"}
 			if it[1] == "altar" and altar_state != "":
 				continue
 			if it[1] == "gift" and not it[0].lit:
@@ -767,6 +793,12 @@ func _process(delta: float) -> void:
 					hub_ui.open_wardrobe()
 				elif it[1] == "gift":
 					_open_gift(it[0])
+				elif it[1] == "winch":
+					var wn = it[0]
+					wn.pulling = 1.6
+					var bottom := Vector2(wn.position.x, player.global_position.y)
+					player.hoist([bottom, Vector2(wn.position.x, wn.arrive.y), wn.arrive])
+					Audio.sfx("door", 0.0, -6.0)
 				else:
 					hub_ui.open_elevator()
 	# Banc le plus proche
