@@ -22,24 +22,29 @@ var panel: PanelContainer
 # ---------------------------------------------------------------- case d'emblème dessinée
 class CharmSlot extends Button:
 	const DU = preload("res://scripts/draw_util.gd")
+	const CharmIcon = preload("res://scripts/charm_icon.gd")
+	func _process(_d: float) -> void:
+		if is_visible_in_tree():
+			queue_redraw()
 	var charm_id := 0
 	func _draw() -> void:
 		var owned: bool = GameState.owns(charm_id)
-		var c := Vector2(size.x / 2.0, size.y / 2.0 - 10.0)
+		var c := Vector2(size.x / 2.0, size.y / 2.0 - 8.0)
 		if owned:
 			var col: Color = GameState.charm(charm_id)["color"]
-			if GameState.has_charm(charm_id):
-				draw_circle(c, 26.0, Color(col, 0.25))
-				draw_arc(c, 26.0, 0.0, TAU, 32, Color(1.0, 0.9, 0.6), 2.0)
-			draw_colored_polygon(DU.diamond(c, Vector2(16, 21)), col)
-			draw_colored_polygon(DU.diamond(c, Vector2(7, 10)), Color(1, 1, 1, 0.75))
+			var eq: bool = GameState.has_charm(charm_id)
+			CharmIcon.draw(self, c, 22.0, charm_id, col, eq, Time.get_ticks_msec() / 1000.0)
+			if eq:
+				draw_arc(c, 25.0, 0.0, TAU, 32, Color(1.0, 0.9, 0.6), 2.0)
 			# coût en petites encoches
 			var cost: int = GameState.charm(charm_id)["cost"]
 			for i in cost:
-				draw_circle(Vector2(size.x / 2.0 - (cost - 1) * 6.0 + i * 12.0, size.y - 14.0), 4.0, Color(1.0, 0.9, 0.6))
+				var np := Vector2(size.x / 2.0 - (cost - 1) * 6.0 + i * 12.0, size.y - 12.0)
+				draw_circle(np, 4.2, Color(0.25, 0.2, 0.1))
+				draw_circle(np, 3.2, Color(1.0, 0.88, 0.55))
+				draw_circle(np + Vector2(-1, -1), 1.0, Color(1, 1, 0.9))
 		else:
-			draw_colored_polygon(DU.diamond(c, Vector2(16, 21)), Color(0.15, 0.16, 0.22))
-			draw_string(ThemeDB.fallback_font, c + Vector2(-5, 8), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.4, 0.42, 0.5))
+			CharmIcon.draw_locked(self, c, 22.0)
 
 # ---------------------------------------------------------------- barre d'encoches
 class NotchBar extends Control:

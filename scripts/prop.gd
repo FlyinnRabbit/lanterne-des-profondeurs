@@ -4,6 +4,8 @@ extends Node2D
 const DU = preload("res://scripts/draw_util.gd")
 
 var kind := "bench"
+var charm_id := -1
+const CharmIcon = preload("res://scripts/charm_icon.gd")
 var color := Color(1, 1, 1)
 var lit := false
 
@@ -48,11 +50,17 @@ func _draw() -> void:
 		"door":
 			_door()
 		"charm":
+			# emblème qui flotte : médaillon gravé, halo et éclats qui tournent
 			var y := sin(t * 2.2) * 4.0
-			DU.ball(self, Vector2(0, y), 18.0, Color(color, 0.15))
-			DU.poly(self, DU.diamond(Vector2(0, y), Vector2(9, 12)), color)
-			DU.poly(self, DU.diamond(Vector2(0, y), Vector2(4, 6)), Color(1, 1, 1, 0.8))
-			draw_arc(Vector2(0, y), 14.0, t, t + 4.0, 16, Color(color, 0.6), 1.5)
+			DU.glow(self, Vector2(0, y), 30.0, color, 0.45)
+			if charm_id >= 0:
+				CharmIcon.draw(self, Vector2(0, y), 13.0, charm_id, color, false, t)
+			else:
+				DU.flat(self, DU.diamond(Vector2(0, y), Vector2(9, 12)), color)
+			draw_arc(Vector2(0, y), 18.0, t, t + 4.0, 16, Color(color, 0.6), 1.5)
+			for k in 3:
+				var a := t * 2.0 + k * TAU / 3.0
+				draw_circle(Vector2(cos(a) * 20.0, y + sin(a) * 7.0), 1.4, Color(color.lightened(0.4), 0.9))
 		"notch":
 			var y2 := sin(t * 2.0) * 4.0
 			DU.ball(self, Vector2(0, y2), 16.0, Color(1.0, 0.9, 0.6, 0.15))
@@ -412,22 +420,70 @@ func _draw() -> void:
 				var sy2 := -46.0 - fmod(t * 14.0 + i * 15.0, 45.0)
 				draw_circle(Vector2(-62 + sin(t + i) * 5.0, sy2), 3.0 + i, Color(0.7, 0.7, 0.75, 0.15))
 		"arsenal":
-			# Arsenal : râtelier de bois avec les armes exposées et une enclume
-			var wood := Color(0.36, 0.27, 0.22)
-			DU.box(self, Rect2(-34, -70, 68, 6), wood)
-			DU.box(self, Rect2(-34, -40, 68, 5), wood)
-			draw_line(Vector2(-32, 0), Vector2(-32, -70), wood, 4.0)
-			draw_line(Vector2(32, 0), Vector2(32, -70), wood, 4.0)
-			draw_line(Vector2(-22, -64), Vector2(-14, -8), Color(0.8, 0.82, 0.9), 2.0)          # aiguille
-			draw_arc(Vector2(-4, -54), 7.0, 0.0, TAU, 14, Color(0.5, 0.75, 0.4), 2.5)           # fouet enroulé
-			draw_line(Vector2(-4, -47), Vector2(-2, -20), Color(0.5, 0.7, 0.4), 2.0)
-			draw_line(Vector2(12, -64), Vector2(12, -12), Color(0.5, 0.4, 0.3), 3.0)             # marteau
-			DU.box(self, Rect2(5, -70, 14, 10), Color(0.55, 0.55, 0.62))
-			for i in 4:                                                                          # étoile
-				var a3 := i * PI / 2.0 + t
-				DU.poly(self, PackedVector2Array([Vector2(25, -52), Vector2(25, -52) + Vector2.from_angle(a3 - 0.4) * 3.0, Vector2(25, -52) + Vector2.from_angle(a3) * 7.0]), Color(0.8, 0.85, 0.95))
-			DU.poly(self, PackedVector2Array([Vector2(-18, 0), Vector2(18, 0), Vector2(12, -10), Vector2(22, -16), Vector2(-22, -16), Vector2(-12, -10)]), Color(0.25, 0.26, 0.32))
-			DU.ball(self, Vector2(0, -26), 3.0 + sin(t * 3.0), Color(1.0, 0.7, 0.35, 0.8))
+			# Arsenal : présentoir de bois à auvent, fond de planches, bannière,
+			# les quatre armes exposées sur leurs crochets, caisse et lanterne
+			var wood := Color(0.36, 0.26, 0.19)
+			var dark := wood.darkened(0.45)
+			# fond de planches
+			for k in 6:
+				DU.box(self, Rect2(-36 + k * 12, -84, 12, 84), wood.darkened(0.25 + 0.04 * (k % 2)))
+				draw_circle(Vector2(-30 + k * 12, -80), 0.9, Color(0.6, 0.55, 0.5))
+			# montants et auvent de bardeaux
+			for x in [-39.0, 39.0]:
+				DU.box(self, Rect2(x - 3, -92, 6, 92), wood)
+			var roof := PackedVector2Array([Vector2(-48, -88), Vector2(48, -88), Vector2(40, -104), Vector2(-40, -104)])
+			DU.poly(self, roof, Color(0.42, 0.2, 0.16))
+			for k in 8:
+				draw_line(Vector2(-44 + k * 12, -88), Vector2(-38 + k * 11, -104), Color(0.3, 0.13, 0.1), 1.0)
+			for k in 7:
+				DU.flat(self, DU.ellipse(Vector2(-42 + k * 14, -88), Vector2(7, 3), 10, 0.0, PI), Color(0.48, 0.24, 0.18))
+			# bannière aux armes croisées
+			DU.poly(self, PackedVector2Array([Vector2(-8, -86), Vector2(8, -86), Vector2(8, -66), Vector2(0, -61), Vector2(-8, -66)]), Color(0.55, 0.15, 0.18))
+			draw_line(Vector2(-5, -82), Vector2(5, -68), Color(0.9, 0.78, 0.4), 1.4)
+			draw_line(Vector2(5, -82), Vector2(-5, -68), Color(0.9, 0.78, 0.4), 1.4)
+			draw_circle(Vector2(0, -75), 1.8, Color(0.95, 0.85, 0.5))
+			# étagère et crochets
+			DU.box(self, Rect2(-38, -44, 76, 5), wood.lightened(0.05))
+			for x in [-26.0, -9.0, 9.0, 26.0]:
+				draw_line(Vector2(x, -60), Vector2(x + 3, -57), Color(0.6, 0.6, 0.66), 1.6)
+			# aiguille : lame, garde dorée, poignée
+			draw_line(Vector2(-26, -58), Vector2(-26, -50), Color(0.35, 0.25, 0.18), 2.6)
+			draw_line(Vector2(-30, -50), Vector2(-22, -50), Color(0.85, 0.7, 0.35), 2.0)
+			DU.flat(self, PackedVector2Array([Vector2(-27.5, -49), Vector2(-26, -16), Vector2(-24.5, -49)]), Color(0.86, 0.9, 0.98))
+			draw_line(Vector2(-26.6, -48), Vector2(-26.2, -20), Color(1, 1, 1, 0.8), 0.8)
+			# fouet de ronces enroulé
+			draw_arc(Vector2(-9, -52), 7.0, 0.0, TAU, 16, Color(0.3, 0.45, 0.22), 3.4)
+			draw_arc(Vector2(-9, -52), 7.0, 0.0, TAU, 16, Color(0.55, 0.78, 0.42), 1.8)
+			draw_arc(Vector2(-9, -52), 3.5, 0.0, TAU, 12, Color(0.5, 0.72, 0.38), 1.6)
+			for k in 6:
+				var aa := k * TAU / 6.0
+				draw_line(Vector2(-9, -52) + Vector2.from_angle(aa) * 7.0, Vector2(-9, -52) + Vector2.from_angle(aa + 0.3) * 9.5, Color(0.8, 0.88, 0.6), 1.0)
+			draw_polyline(PackedVector2Array([Vector2(-9, -45), Vector2(-7, -36), Vector2(-10, -28), Vector2(-8, -20)]), Color(0.5, 0.72, 0.38), 2.0)
+			# marteau d'enclume
+			draw_line(Vector2(9, -60), Vector2(9, -18), Color(0.3, 0.2, 0.12), 3.6)
+			draw_line(Vector2(8.4, -60), Vector2(8.4, -18), Color(0.58, 0.42, 0.27), 1.4)
+			DU.box(self, Rect2(1, -62, 16, 11), Color(0.5, 0.52, 0.6))
+			draw_line(Vector2(1, -61), Vector2(17, -61), Color(0.85, 0.87, 0.95), 1.0)
+			# étoiles de lune sur un coussin
+			DU.poly(self, DU.ellipse(Vector2(26, -47), Vector2(8, 3.5), 14), Color(0.3, 0.3, 0.55))
+			for j in 2:
+				var sc := Vector2(23 + j * 7, -53 - j * 3)
+				for i in 4:
+					var a3 := i * PI / 2.0 + t * (1.0 + j)
+					DU.flat(self, PackedVector2Array([sc, sc + Vector2.from_angle(a3 - 0.4) * 2.6, sc + Vector2.from_angle(a3) * 6.0]), Color(0.82, 0.88, 0.98))
+				draw_circle(sc, 1.2, Color(0.3, 0.35, 0.45))
+			DU.glow(self, Vector2(26, -52), 14.0, Color(0.7, 0.85, 1.0), 0.35)
+			# caisse et lanterne
+			DU.box(self, Rect2(-36, -14, 22, 14), wood.lightened(0.08))
+			draw_line(Vector2(-36, -14), Vector2(-14, 0), dark, 1.2)
+			draw_line(Vector2(-14, -14), Vector2(-36, 0), dark, 1.2)
+			DU.glow(self, Vector2(30, -70), 18.0, Color(1.0, 0.8, 0.45), 0.5)
+			draw_line(Vector2(30, -88), Vector2(30, -76), Color(0.4, 0.4, 0.45), 1.2)
+			DU.box(self, Rect2(26, -77, 8, 2), Color(0.35, 0.33, 0.36))
+			draw_rect(Rect2(27, -75, 6, 8), Color(1.0, 0.82, 0.45, 0.9))
+			DU.box(self, Rect2(26, -67, 8, 2), Color(0.35, 0.33, 0.36))
+			# petite enclume de démonstration
+			DU.poly(self, PackedVector2Array([Vector2(4, 0), Vector2(22, 0), Vector2(18, -6), Vector2(26, -11), Vector2(0, -11), Vector2(8, -6)]), Color(0.27, 0.28, 0.34))
 		"elevator":
 			# Monte-charge de bois : cabine à claire-voie, cordes, grande roue de treuil et levier
 			var wood := Color(0.42, 0.3, 0.2)

@@ -690,21 +690,68 @@ func _on_parry(from_pos: Vector2, source) -> void:
 	main.on_parry(global_position + d * 18.0)
 
 # Arme tenue en main (dessinée dans le repère du personnage, pieds en 0, tourné à droite)
+# traînée de coup « peinte » : croissant effilé, bord extérieur vif qui s'estompe vers l'intérieur
+func _smear(piv: Vector2, rad: float, a0: float, a1: float, thick: float, col: Color, k: float) -> void:
+	var n := 16
+	var outer := PackedVector2Array()
+	var inner := PackedVector2Array()
+	for i in n + 1:
+		var u := float(i) / n
+		var a := lerpf(a0, a1, u)
+		var th := thick * sin(u * PI) * (0.5 + 0.7 * u)
+		outer.append(piv + Vector2.from_angle(a) * rad)
+		inner.append(piv + Vector2.from_angle(a) * (rad - th))
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	for i in n + 1:
+		pts.append(outer[i])
+		var u := float(i) / n
+		cols.append(Color(col.lightened(0.6), (0.45 + 0.55 * u) * k))
+	for i in range(n, -1, -1):
+		pts.append(inner[i])
+		cols.append(Color(col.darkened(0.1), 0.18 * k))
+	if Geometry2D.triangulate_polygon(pts).is_empty():
+		return
+	draw_polygon(pts, cols)
+	draw_polyline(outer, Color(1, 1, 1, 0.7 * k), 1.4)
+
 func _draw_held(wid: String, bob: float) -> void:
 	match wid:
 		"fouet":
-			draw_arc(Vector2(13, -8 + bob), 5.0, 0.0, TAU, 12, Color(0.45, 0.65, 0.35), 2.0)
-			draw_line(Vector2(9, -12 + bob), Vector2(13, -3), Color(0.5, 0.7, 0.4), 2.0)
+			# liane enroulée à la ceinture, épines
+			var c := Vector2(13, -8 + bob)
+			draw_arc(c, 5.0, 0.0, TAU, 14, Color(0.3, 0.45, 0.22), 3.0)
+			draw_arc(c, 5.0, 0.0, TAU, 14, Color(0.55, 0.78, 0.4), 1.6)
+			for i in 4:
+				var a := i * TAU / 4.0 + 0.4
+				draw_line(c + Vector2.from_angle(a) * 5.0, c + Vector2.from_angle(a) * 7.5, Color(0.75, 0.85, 0.55), 1.0)
+			draw_line(Vector2(9, -12 + bob), Vector2(13, -3), Color(0.45, 0.65, 0.35), 2.0)
+			draw_circle(Vector2(13, -2), 1.8, Color(0.85, 1.0, 0.65))
 		"marteau":
-			draw_line(Vector2(8, -14 + bob), Vector2(14, 0), Color(0.5, 0.4, 0.3), 3.0)
-			draw_rect(Rect2(Vector2(9, -2), Vector2(11, 8)), Color(0.55, 0.55, 0.62))
+			# manche de bois cerclé, tête d'acier
+			draw_line(Vector2(8, -14 + bob), Vector2(14, 0), Color(0.3, 0.2, 0.12), 3.6)
+			draw_line(Vector2(8, -14 + bob), Vector2(14, 0), Color(0.55, 0.4, 0.26), 1.6)
+			draw_line(Vector2(9.5, -10 + bob), Vector2(11.5, -10.5 + bob), Color(0.7, 0.6, 0.3), 1.4)
+			DU.box(self, Rect2(Vector2(8, -2), Vector2(13, 8)), Color(0.5, 0.52, 0.6))
+			draw_line(Vector2(19, -1), Vector2(19, 5), Color(0.85, 0.87, 0.95), 1.0)
 		"shuriken":
 			var c := Vector2(13, -6 + bob)
 			for i in 4:
 				var a := i * PI / 2.0 + anim_t * 2.0
-				DU.flat(self, PackedVector2Array([c, c + Vector2.from_angle(a - 0.35) * 3.0, c + Vector2.from_angle(a) * 7.0]), Color(0.8, 0.85, 0.95))
+				DU.flat(self, PackedVector2Array([c, c + Vector2.from_angle(a - 0.35) * 3.0, c + Vector2.from_angle(a) * 7.0]), Color(0.82, 0.88, 0.98))
+				draw_line(c, c + Vector2.from_angle(a) * 6.5, Color(1, 1, 1, 0.6), 0.8)
+			draw_circle(c, 1.6, Color(0.3, 0.35, 0.45))
+			DU.glow(self, c, 9.0, Color(0.7, 0.85, 1.0), 0.3)
 		_:
-			draw_line(Vector2(8, -14 + bob), Vector2(16, -2), Color(0.8, 0.82, 0.9), 2.0)
+			# aiguille : lame fine, garde dorée, poignée tressée
+			var hand := Vector2(8, -14 + bob)
+			var tip := Vector2(17, -1)
+			var d := (tip - hand).normalized()
+			var nn := d.orthogonal()
+			draw_line(hand - d * 3.0, hand + d * 1.5, Color(0.35, 0.25, 0.2), 2.6)
+			draw_line(hand + d * 1.5 + nn * 3.0, hand + d * 1.5 - nn * 3.0, Color(0.8, 0.65, 0.35), 2.0)
+			DU.flat(self, PackedVector2Array([hand + d * 2.5 + nn * 1.3, tip, hand + d * 2.5 - nn * 1.3]), Color(0.86, 0.89, 0.97))
+			draw_line(hand + d * 3.0, tip - d * 1.5, Color(1, 1, 1, 0.7), 0.8)
 
 # ---------------------------------------------------------------- attaque plongée
 func _plunge_rect() -> Rect2:
@@ -947,8 +994,8 @@ func _draw() -> void:
 				var k := clampf(attack_t / SPIN_TIME, 0.0, 1.0)
 				var rot := (1.0 - k) * TAU * 1.5 * facing
 				for i in 3:
-					draw_arc(Vector2(0, -4), 40.0 + i * 16.0, rot + i * 2.1, rot + i * 2.1 + 2.4, 20, Color(1.0, 0.95, 0.8, 0.8 * k), 6.0 * k + 1.0)
-				draw_circle(Vector2(0, -4), 80.0 * (1.2 - k), Color(1.0, 0.9, 0.6, 0.12 * k))
+					_smear(Vector2(0, -4), 40.0 + i * 16.0, rot + i * 2.1, rot + i * 2.1 + 2.4 * facing, 10.0, Color(1.0, 0.92, 0.7), k)
+				DU.glow(self, Vector2(0, -4), 80.0 * (1.2 - k), Color(1.0, 0.9, 0.6), 0.3 * k)
 			"thrust":
 				var k := clampf(attack_t / THRUST_TIME, 0.0, 1.0)
 				var tip := Vector2(facing * r.size.x, -4)
@@ -970,7 +1017,7 @@ func _draw() -> void:
 			"air_spin":
 				var k := clampf(attack_t / (ATTACK_TIME * 1.4), 0.0, 1.0)
 				var rot := (1.0 - k) * TAU * 2.0 * facing
-				draw_arc(Vector2(0, -2), 50.0, rot, rot + 4.5, 24, Color(0.75, 0.9, 1.0, 0.85 * k), 7.0 * k + 1.0)
+				_smear(Vector2(0, -2), 50.0, rot, rot + 4.5 * facing, 12.0, Color(0.75, 0.9, 1.0), k)
 			_:
 				if weapon()["ranged"]:
 					return
@@ -994,10 +1041,37 @@ func _draw() -> void:
 				var fin := attack_kind == "finisher"
 				var k := clampf(attack_t / (ATTACK_TIME * (1.4 if fin else 1.0)), 0.0, 1.0)
 				var wcol: Color = weapon()["color"]
-				var col := Color(1.0, 0.88, 0.55, 0.95 * k) if fin else Color(wcol, 0.9 * k)
+				var col := Color(1.0, 0.88, 0.55) if fin else wcol
 				if attack_crit:
-					col = Color(1.0, 0.6, 0.25, k)
-				var rad := (40.0 if fin else 30.0) * (1.25 if GameState.weapon() == "marteau" else 1.0)
-				draw_arc(c - attack_dir * 14.0, rad, ang - 1.3, ang + 1.3, 18, col, (10.0 if fin else 7.0) * k + 1.0)
-				draw_arc(c - attack_dir * 18.0, rad - 8.0, ang - 1.0, ang + 1.0, 14, Color(0.7, 0.85, 1.0, 0.5 * k), 3.0)
-				draw_line(Vector2.ZERO, attack_dir * 30.0 + Vector2(0, -4), Color(0.85, 0.87, 0.95), 2.0)
+					col = Color(1.0, 0.6, 0.25)
+				var hammer := GameState.weapon() == "marteau"
+				var rad := (40.0 if fin else 30.0) * (1.25 if hammer else 1.0)
+				var piv := c - attack_dir * 14.0
+				var prog := 1.0 - k
+				var ease := 1.0 - pow(1.0 - prog, 3.0)
+				# sens du coup : de haut en bas devant soi, et pour les coups verticaux dans le sens du regard
+				var sweep: float = 1.3 * (float(facing) if attack_dir.y != 0.0 else 1.0)
+				var a0: float = ang - sweep
+				var a_now := lerpf(a0, ang + sweep, minf(ease * 1.15, 1.0))
+				var thick := (20.0 if fin else 15.0) * (1.4 if hammer else 1.0)
+				_smear(piv, rad, a0, a_now, thick, col, k)
+				if fin:
+					_smear(piv, rad - 9.0, a0 + 0.3 * signf(sweep), a_now, thick * 0.6, Color(1, 1, 1), k * 0.7)
+				# l'arme suit le coup
+				var wdir := Vector2.from_angle(a_now)
+				if hammer:
+					var hp := piv + wdir * (rad + 2.0)
+					draw_line(piv + wdir * 6.0, hp, Color(0.45, 0.32, 0.2), 3.4)
+					var hn := wdir.orthogonal()
+					DU.poly(self, PackedVector2Array([hp - hn * 8.0 - wdir * 4.0, hp + hn * 8.0 - wdir * 4.0, hp + hn * 8.0 + wdir * 5.0, hp - hn * 8.0 + wdir * 5.0]), Color(0.55, 0.56, 0.64))
+				else:
+					var tip := piv + wdir * (rad + 6.0)
+					var hn := wdir.orthogonal()
+					draw_line(piv + wdir * 5.0 + hn * 3.0, piv + wdir * 5.0 - hn * 3.0, Color(0.75, 0.6, 0.32), 2.2)
+					DU.flat(self, PackedVector2Array([piv + wdir * 6.0 + hn * 1.6, tip, piv + wdir * 6.0 - hn * 1.6]), Color(0.9, 0.93, 1.0))
+					draw_line(piv + wdir * 7.0, tip - wdir * 2.0, Color(1, 1, 1, 0.8), 1.0)
+				# éclats le long du coup
+				for i in 4:
+					var aa := lerpf(a0, a_now, 0.25 + i * 0.22)
+					var sp := piv + Vector2.from_angle(aa) * (rad + 4.0 + fposmod(i * 7.3, 6.0))
+					draw_circle(sp, 1.4 * k + 0.4, Color(col.lightened(0.5), k))

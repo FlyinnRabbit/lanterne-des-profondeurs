@@ -21,6 +21,7 @@ var ars_geo: Label
 var ars_desc: Label
 var ars_status: Label
 const Weapons = preload("res://scripts/weapons.gd")
+const CharmIcon = preload("res://scripts/charm_icon.gd")
 
 func _ready() -> void:
 	layer = 22
@@ -123,6 +124,21 @@ func _refresh_shop() -> void:
 		b.disabled = it["sold_out"]
 		if not it["sold_out"] and main.player.geo < int(it["price"]):
 			b.add_theme_color_override("font_color", Color(0.6, 0.55, 0.55))
+		# icône à gauche : médaillon de l'emblème, du fragment de vie ou de l'encoche
+		var img := Image.create(30, 30, false, Image.FORMAT_RGBA8)
+		b.icon = ImageTexture.create_from_image(img)
+		var ic := Control.new()
+		ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		ic.position = Vector2(4, 2)
+		ic.size = Vector2(34, 34)
+		var kind_s: String = it["kind"]
+		var iid: int = it["id"]
+		ic.draw.connect(func():
+			if kind_s == "charm":
+				CharmIcon.draw(ic, Vector2(17, 17), 15.0, iid, GameState.charm(iid)["color"])
+			else:
+				CharmIcon.draw_item(ic, Vector2(17, 17), 15.0, kind_s))
+		b.add_child(ic)
 		b.pressed.connect(_buy.bind(it["kind"], it["id"]))
 		b.focus_entered.connect(func(): shop_desc.text = it["desc"])
 		b.mouse_entered.connect(func(): shop_desc.text = it["desc"])
@@ -307,6 +323,15 @@ func _refresh_arsenal(focus_id: String = "") -> void:
 		b.add_theme_color_override("font_color", w["color"] if id != cur else Color(1.0, 0.9, 0.55))
 		if not GameState.owns_weapon(id) and main.player.geo < int(w["price"]):
 			b.add_theme_color_override("font_color", Color(0.6, 0.55, 0.55))
+		var wimg := Image.create(30, 30, false, Image.FORMAT_RGBA8)
+		b.icon = ImageTexture.create_from_image(wimg)
+		var wic := Control.new()
+		wic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wic.position = Vector2(4, 3)
+		wic.size = Vector2(34, 34)
+		var wid_s: String = id
+		wic.draw.connect(func(): CharmIcon.draw_weapon(wic, Vector2(17, 17), 15.0, wid_s))
+		b.add_child(wic)
 		b.pressed.connect(_pick_weapon.bind(id))
 		var full := func() -> String:
 			return tr(w["desc"]) + "\n" + tr(Weapons.UP[id]["desc"]) + ("" if lvl >= 2 else (" " + tr("(forgeronne : palier 1 terminé)") if not forge else ""))

@@ -148,7 +148,10 @@ Tout reste dessiné en code (aucune image), dans un style plus détaillé et « 
 - **fonds en parallaxe** sur trois plans avec brume et rayons de lumière (champignons géants, arcades gothiques, flèches de cristal, cheminées, bibliothèques, ruches…) ;
 - **héros, ennemis, 10 boss et habitants du Sanctuaire** redessinés (ombrage, reflets, détails) ;
 - **pièges, herses, piliers d'attaque, portail de fin** (un par biome) et **animation de fin** refaits ;
-- les panneaux du tutoriel s'affichent en bas de l'écran pour garder le centre dégagé.
+- les panneaux du tutoriel s'affichent en bas de l'écran pour garder le centre dégagé ;
+- **emblèmes** : chacun a son médaillon gravé et son icône (inventaire, marchand, emblème au sol) ;
+- **coups d'armes** : traînées « peintes » pour l'aiguille, le coup final, le marteau et les tourbillons, armes tenues détaillées ;
+- **arsenal** du Sanctuaire redessiné (présentoir à auvent, armes exposées) et icônes d'armes dans son menu.
 
 ## Combat : coups spéciaux
 - **Combo au sol** : 3 coups, le 3e est un coup final ; maintenir puis relâcher = **tourbillon** ;

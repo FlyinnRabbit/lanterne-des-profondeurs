@@ -306,12 +306,14 @@ func _spawn_everything() -> void:
 					if not GameState.owns(id):
 						var cp = _make_prop("charm", Vector2(x * TILE + TILE / 2.0, y * TILE + TILE / 2.0), GameState.charm(id)["color"], 1.6)
 						cp.color = GameState.charm(id)["color"]
+						cp.charm_id = id
 						pickups.append([cp, "charm", id])
 				"*":
 					var cid := _random_charm(x)
 					if cid >= 0:
 						var rp = _make_prop("charm", Vector2(x * TILE + TILE / 2.0, y * TILE + TILE / 2.0), GameState.charm(cid)["color"], 1.6)
 						rp.color = GameState.charm(cid)["color"]
+						rp.charm_id = cid
 						pickups.append([rp, "charm", cid])
 				"N":
 					var key := "%d-%d-%d:%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, x, y]
@@ -560,6 +562,7 @@ func _update_rooms(delta: float) -> void:
 			if cid >= 0:
 				var rp = _make_prop("charm", pp + Vector2(0, -60), GameState.charm(cid)["color"], 1.6)
 				rp.color = GameState.charm(cid)["color"]
+				rp.charm_id = cid
 				pickups.append([rp, "charm", cid])
 			Audio.sfx("pickup", 0.0, 3.0)
 			show_message(tr("Arène vaincue ! +%d éclats") % reward2, 3.0)
