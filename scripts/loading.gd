@@ -58,7 +58,12 @@ static func _make(tree: SceneTree, k: String) -> CanvasLayer:
 	var l := CanvasLayer.new()
 	l.set_script(load("res://scripts/loading.gd"))
 	l.kind = k
-	tree.root.add_child(l)
+	# Au lancement, la racine est encore en train de monter la scène principale : add_child
+	# échouerait (« parent busy »), on l'ajoute donc à la frame suivante.
+	if k == "launch":
+		tree.root.add_child.call_deferred(l)
+	else:
+		tree.root.add_child(l)
 	return l
 
 # Au lancement : lanterne qui s'allume et titre. On ne la montre qu'une fois.
