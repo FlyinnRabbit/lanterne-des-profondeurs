@@ -6,6 +6,7 @@ func _initialize() -> void:
 	shots = "--shots" in OS.get_cmdline_user_args()
 	_run()
 func _frames(n: int) -> void:
+	await process_frame   # laisse passer un éventuel changement de scène différé
 	for i in n:
 		await physics_frame
 func _shot(n: String) -> void:
@@ -17,6 +18,8 @@ func _shot(n: String) -> void:
 		root.get_viewport().get_texture().get_image().save_png("/tmp/%s.png" % n)
 func _scene() -> void:
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	paused = false
 	Engine.time_scale = 1.0
 	await _frames(5)

@@ -120,42 +120,75 @@ func _tick(delta: float) -> void:
 
 func _draw() -> void:
 	var tele := telegraphing()
-	var metal := body_color(Color(0.22, 0.2, 0.26))
+	var metal := body_color(Color(0.24, 0.21, 0.28))
 	if tele and fmod(anim_t, 0.12) < 0.06:
 		metal = Color(1, 0.95, 0.8)
 	if stun_t > 0.0:
 		metal = metal.darkened(0.3)
+	var brass := body_color(Color(0.55, 0.42, 0.22))
 	var bob := sin(anim_t * 2.0) * 3.0
-	# halo d'ombre
-	draw_circle(Vector2(0, bob), 70.0, Color(0.15, 0.05, 0.25, 0.25))
-	# anneau et chaîne
-	draw_arc(Vector2(0, -46 + bob), 10.0, PI, TAU, 12, metal, 3.0)
-	for i in 4:
-		draw_arc(Vector2(0, -60 - i * 12 + bob), 4.0, 0.0, TAU, 8, Color(0.3, 0.28, 0.34), 2.0)
-	# toit
-	draw_colored_polygon(PackedVector2Array([Vector2(-26, -30 + bob), Vector2(26, -30 + bob), Vector2(0, -48 + bob)]), metal)
-	# cage
-	var cage := Rect2(-24, -30 + bob, 48, 56)
-	draw_rect(cage, Color(0.05, 0.02, 0.08, 0.9))
-	# flamme d'ombre (violette, plus vive en phase 2)
-	var fl := 1.0 + 0.2 * sin(anim_t * 9.0)
 	var core := Color(0.6, 0.3, 1.0) if phase == 1 else Color(1.0, 0.35, 0.6)
-	draw_colored_polygon(DU.ellipse(Vector2(0, -2 + bob), Vector2(12 * fl, 18 * fl)), Color(core, 0.8))
-	draw_colored_polygon(DU.ellipse(Vector2(0, 2 + bob), Vector2(6, 10)), Color(1.0, 0.9, 1.0, 0.9))
-	# yeux dans la flamme
-	draw_circle(Vector2(-5, -4 + bob), 2.5, Color(0.05, 0.0, 0.08))
-	draw_circle(Vector2(5, -4 + bob), 2.5, Color(0.05, 0.0, 0.08))
+	# halo d'ombre et volutes de fumée
+	DU.glow(self, Vector2(0, bob), 110.0, Color(0.25, 0.08, 0.4), 0.55)
+	DU.glow(self, Vector2(0, -2 + bob), 50.0, core, 0.35)
+	for k in 5:
+		var t := fposmod(anim_t * 0.35 + k * 0.2, 1.0)
+		var sp := Vector2(sin(anim_t + k * 1.7) * 30.0, 30.0 - t * 110.0 + bob)
+		draw_circle(sp, 8.0 + t * 10.0, Color(0.12, 0.04, 0.2, 0.25 * (1.0 - t)))
+	# chaîne qui monte hors de l'écran
+	for i in 6:
+		var cy := -60.0 - i * 11.0 + bob
+		if i % 2 == 0:
+			draw_arc(Vector2(0, cy), 4.5, 0.0, TAU, 10, metal.darkened(0.3), 3.0)
+			draw_arc(Vector2(0, cy), 4.5, PI * 1.1, PI * 1.6, 5, DU.lit(metal, 1.8, 0.1), 1.0)
+		else:
+			draw_line(Vector2(0, cy - 5), Vector2(0, cy + 5), metal.darkened(0.3), 3.0)
+	draw_arc(Vector2(0, -50 + bob), 10.0, PI, TAU, 14, brass, 3.5)
+	# toit à pans, fleuron
+	var roof := PackedVector2Array([Vector2(-30, -30 + bob), Vector2(-20, -40 + bob), Vector2(0, -50 + bob), Vector2(20, -40 + bob), Vector2(30, -30 + bob)])
+	DU.poly(self, roof, metal)
+	for k in 4:
+		draw_line(Vector2(-22 + k * 14.5, -31 + bob), Vector2(0, -48 + bob), metal.darkened(0.45), 1.0)
+	draw_rect(Rect2(-31, -32 + bob, 62, 4), brass)
+	# verre fumé de la cage
+	var cage := Rect2(-24, -28 + bob, 48, 52)
+	draw_rect(cage, Color(0.04, 0.01, 0.07, 0.92))
+	DU.vgrad(self, cage, Color(core, 0.1), Color(core, 0.25))
+	# flamme d'ombre (violette, plus vive en phase 2) : couches et langues
+	var fl := 1.0 + 0.2 * sin(anim_t * 9.0)
+	for layer in 3:
+		var sc := 1.0 - layer * 0.3
+		var pts := PackedVector2Array()
+		for k in 16:
+			var a := k * TAU / 16.0
+			var tongue := 1.0 + (0.5 + 0.3 * sin(anim_t * 11.0 + k)) * maxf(0.0, -sin(a))
+			pts.append(Vector2(cos(a) * 12.0 * fl * sc, -2 + sin(a) * 15.0 * fl * sc * tongue) + Vector2(0, bob + 4))
+		var col := core.lerp(Color(1, 0.92, 1), layer * 0.45)
+		col.a = 0.75 + layer * 0.08
+		DU.flat(self, pts, col)
+	# yeux et sourire dans la flamme
+	for ex in [-5.0, 5.0]:
+		DU.flat(self, DU.ellipse(Vector2(ex, -2 + bob), Vector2(2.4, 3.2 if not tele else 1.4)), Color(0.05, 0.0, 0.08))
+	draw_arc(Vector2(0, 4 + bob), 5.0, 0.3, PI - 0.3, 8, Color(0.05, 0.0, 0.08), 1.4)
+	# barreaux ouvragés
 	for i in 5:
 		var x := -24.0 + i * 12.0
-		draw_line(Vector2(x, -30 + bob), Vector2(x, 26 + bob), metal, 3.0)
-	draw_rect(Rect2(-28, 24 + bob, 56, 8), metal)
+		draw_line(Vector2(x, -28 + bob), Vector2(x, 24 + bob), metal.darkened(0.4), 4.0)
+		draw_line(Vector2(x - 0.8, -28 + bob), Vector2(x - 0.8, 24 + bob), DU.lit(metal, 1.6, 0.06), 1.2)
+	draw_line(Vector2(-24, -2 + bob), Vector2(24, -2 + bob), metal.darkened(0.3), 2.0)
+	# socle à griffes
+	DU.poly(self, PackedVector2Array([Vector2(-30, 24 + bob), Vector2(30, 24 + bob), Vector2(26, 32 + bob), Vector2(-26, 32 + bob)]), brass)
+	for k in [-1.0, 1.0]:
+		DU.poly(self, PackedVector2Array([Vector2(k * 22, 32 + bob), Vector2(k * 30, 32 + bob), Vector2(k * 34, 42 + bob)]), metal)
 	# fissures (phase 2)
 	if crack > 0.0:
-		draw_line(Vector2(-18, -26 + bob), Vector2(-4, 4 + bob), Color(1.0, 0.5, 0.8), 2.0)
-		draw_line(Vector2(-4, 4 + bob), Vector2(-14, 20 + bob), Color(1.0, 0.5, 0.8), 2.0)
-		draw_line(Vector2(16, -24 + bob), Vector2(8, 10 + bob), Color(1.0, 0.5, 0.8), 2.0)
+		var cc := Color(1.0, 0.5, 0.8)
+		draw_polyline(PackedVector2Array([Vector2(-18, -26 + bob), Vector2(-4, 4 + bob), Vector2(-14, 20 + bob)]), cc, 2.0)
+		draw_polyline(PackedVector2Array([Vector2(16, -24 + bob), Vector2(8, 10 + bob), Vector2(14, 18 + bob)]), cc, 2.0)
+		DU.glow(self, Vector2(-4, 4 + bob), 20.0, cc, 0.4)
 	# cendres annoncées : lueur au plafond
 	for d in drops:
 		var lp := Vector2(d[0], floor_y - 500.0) - global_position
-		draw_circle(lp, 8.0 + 4.0 * sin(anim_t * 20.0), Color(1.0, 0.5, 0.2, 0.6))
+		DU.glow(self, lp, 18.0, Color(1.0, 0.5, 0.2), 0.7)
+		draw_circle(lp, 5.0 + 3.0 * sin(anim_t * 20.0), Color(1.0, 0.6, 0.25, 0.8))
 	draw_stun(-70.0)

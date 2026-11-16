@@ -66,21 +66,39 @@ func _physics_process(delta: float) -> void:
 
 func _draw() -> void:
 	var f := facing
-	var dark := Color(0.1, 0.1, 0.13)
+	var dark := body_color(Color(0.1, 0.1, 0.13))
 	var step := sin(anim_t * 10.0) * 3.0 if absf(velocity.x) > 5.0 else 0.0
 	for i in 3:
 		var lx := -10.0 + i * 9.0
-		draw_line(Vector2(lx, 8), Vector2(lx + (step if i % 2 == 0 else -step), 15), dark, 3.0)
-	# carapace
-	draw_colored_polygon(DU.ellipse(Vector2(-f * 2, 2), Vector2(15, 13)), body_color(Color(0.4, 0.38, 0.32)))
-	draw_arc(Vector2(-f * 2, 2), 9.0, PI + 0.3, TAU - 0.3, 10, body_color(Color(0.55, 0.52, 0.44)), 2.0)
-	draw_circle(Vector2(f * 8, -6), 3.0, Color(1.0, 0.5, 0.3) if stun_t <= 0.0 else Color(0.4, 0.4, 0.4))
-	# bouclier
-	var sh := Color(0.75, 0.72, 0.6) if block_flash <= 0.0 else Color(1, 1, 0.85)
+		var sw := step if i % 2 == 0 else -step
+		leg(Vector2(lx, 7), Vector2(lx - f * 2 + sw * 0.4, 11), Vector2(lx + sw, 15), dark, 2.6)
+	# carapace en bandes d'armure
+	var arm := body_color(Color(0.42, 0.4, 0.34))
+	DU.poly(self, DU.ellipse(Vector2(-f * 2, 2), Vector2(15, 13), 24), arm)
+	for i in 3:
+		var bx := -f * (8 - i * 5)
+		draw_arc(Vector2(bx, 3), 11.0 - i, PI + 0.5, TAU - 0.5, 10, arm.darkened(0.45), 1.4)
+	for i in 4:
+		draw_circle(Vector2(-f * (11 - i * 5), -7 + absf(i - 1.5) * 2.0), 1.1, arm.lightened(0.4))
+	# casque et visière
+	var hd := Vector2(f * 7, -6)
+	DU.poly(self, PackedVector2Array([hd + Vector2(-f * 6, 4), hd + Vector2(-f * 6, -4), hd + Vector2(-f * 2, -8), hd + Vector2(f * 5, -6), hd + Vector2(f * 6, 3)]), body_color(Color(0.55, 0.52, 0.44)))
+	draw_line(hd + Vector2(-f * 3, -9), hd + Vector2(-f * 10, -14), Color(0.7, 0.2, 0.18), 2.0)
+	draw_line(hd + Vector2(-f * 1, -1), hd + Vector2(f * 5, -1), Color(0.05, 0.04, 0.05), 2.4)
+	var eye := Color(1.0, 0.5, 0.3) if stun_t <= 0.0 else Color(0.4, 0.4, 0.4)
+	draw_circle(hd + Vector2(f * 3, -1), 1.4, eye)
+	DU.glow(self, hd + Vector2(f * 3, -1), 6.0, eye, 0.4)
+	# bouclier : bord, umbo, rivets
+	var sh := Color(0.75, 0.7, 0.55) if block_flash <= 0.0 else Color(1, 1, 0.85)
 	var sx := f * 17.0
-	draw_colored_polygon(PackedVector2Array([Vector2(sx, -15), Vector2(sx + f * 5, -8), Vector2(sx + f * 5, 8), Vector2(sx, 15), Vector2(sx - f * 3, 0)]), body_color(sh))
-	draw_line(Vector2(sx + f * 2, -10), Vector2(sx + f * 2, 10), Color(0.45, 0.42, 0.35), 2.0)
-	if stun_t > 0.0:
-		for i in 3:
-			var a := anim_t * 4.0 + i * TAU / 3.0
-			draw_circle(Vector2(cos(a) * 12.0, -24.0 + sin(a) * 3.0), 2.0, Color(1, 1, 0.7))
+	var shield := PackedVector2Array([Vector2(sx, -15), Vector2(sx + f * 5, -8), Vector2(sx + f * 5, 8), Vector2(sx, 15), Vector2(sx - f * 3, 0)])
+	DU.poly(self, shield, body_color(sh.darkened(0.25)))
+	var inner := PackedVector2Array([Vector2(sx + f * 0.5, -11), Vector2(sx + f * 3.5, -6), Vector2(sx + f * 3.5, 6), Vector2(sx + f * 0.5, 11), Vector2(sx - f * 1.5, 0)])
+	DU.poly(self, inner, body_color(sh), false)
+	draw_circle(Vector2(sx + f * 1.5, 0), 2.6, body_color(sh.darkened(0.4)))
+	draw_circle(Vector2(sx + f * 1.0, -0.8), 1.0, Color(1, 1, 0.9, 0.8))
+	for yy in [-9.0, 9.0]:
+		draw_circle(Vector2(sx + f * 1.5, yy), 0.9, sh.darkened(0.5))
+	if block_flash > 0.0:
+		DU.glow(self, Vector2(sx, 0), 22.0, Color(1, 1, 0.8), 0.6)
+	draw_stun(-26.0)

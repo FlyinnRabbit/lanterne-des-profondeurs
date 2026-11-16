@@ -84,34 +84,82 @@ func _tick(delta: float) -> void:
 
 func _draw() -> void:
 	var f := float(dir)
-	var flap := absf(sin(anim_t * 32.0))
+	var flap := sin(anim_t * 32.0)
 	var tele := telegraphing()
-	var body := Color(0.95, 0.75, 0.2) if not tele or fmod(anim_t, 0.12) > 0.06 else Color(1, 0.4, 0.3)
+	var body := Color(0.95, 0.72, 0.18) if not tele or fmod(anim_t, 0.12) > 0.06 else Color(1, 0.4, 0.3)
 	if stun_t > 0.0:
 		body = body.darkened(0.4)
-	var dark := Color(0.12, 0.09, 0.05)
-	# ailes
-	for k in [-1.0, 1.0]:
-		var wc := Vector2(k * 18 - f * 6, -26)
-		draw_colored_polygon(DU.ellipse(wc + Vector2(k * 14, -6 * flap), Vector2(30, 10 + 12 * flap), 18), Color(0.8, 0.92, 1.0, 0.35))
-	# abdomen rayé + dard
+	body = body_color(body)
+	var dark := body_color(Color(0.12, 0.09, 0.05))
+	var fur := body_color(Color(0.45, 0.3, 0.12))
+	DU.glow(self, Vector2(0, -10), 70.0, Color(1.0, 0.8, 0.3), 0.18)
+	# ailes du fond
+	_wing(Vector2(-f * 6, -20), f, -2.0 + flap * 0.5, 0.2)
+	# pattes pendantes à trois segments
+	for i in 3:
+		var lx := f * (2 + i * 9)
+		var sw := sin(anim_t * 8.0 + i) * 3.0
+		leg(Vector2(lx, 8), Vector2(lx + f * 4, 16 + sw * 0.3), Vector2(lx - f * 4 + sw, 26), dark, 2.6)
+		draw_line(Vector2(lx - f * 4 + sw, 26), Vector2(lx - f * 7 + sw, 28), dark, 1.6)
+	# abdomen : anneaux rayés, duvet, dard
 	var ab := Vector2(-f * 26, 6)
-	draw_colored_polygon(DU.ellipse(ab, Vector2(30, 20)), body_color(body))
-	for i in 3:
-		draw_line(ab + Vector2(-f * (i * 12 - 12), -18), ab + Vector2(-f * (i * 12 - 12), 18), body_color(dark), 5.0)
-	draw_colored_polygon(PackedVector2Array([ab + Vector2(-f * 26, -5), ab + Vector2(-f * 48, 4), ab + Vector2(-f * 26, 8)]), body_color(Color(0.9, 0.9, 0.85)))
-	# thorax et tête
-	draw_colored_polygon(DU.ellipse(Vector2(f * 8, -2), Vector2(18, 15)), body_color(dark.lightened(0.1)))
+	DU.poly(self, DU.ellipse(ab, Vector2(30, 20), 30), body)
+	for i in 4:
+		var sx := ab.x + f * (12.0 - i * 9.0)
+		var band := PackedVector2Array()
+		for k in 9:
+			var t := k / 8.0
+			var yy := lerpf(-19.0, 19.0, t)
+			var bulge := sqrt(maxf(0.0, 1.0 - pow(yy / 20.0, 2.0))) * 3.0
+			band.append(Vector2(sx - f * bulge, ab.y + yy * (1.0 - absf(sx - ab.x) / 40.0)))
+		draw_polyline(band, dark, 5.0)
+	draw_arc(ab + Vector2(f * 4, -4), 16.0, PI * 1.1, PI * 1.5, 10, Color(1, 0.95, 0.7, 0.6), 2.4)
+	DU.poly(self, PackedVector2Array([ab + Vector2(-f * 27, -5), ab + Vector2(-f * 50, 3), ab + Vector2(-f * 27, 8)]), body_color(Color(0.92, 0.9, 0.84)))
+	if tele:
+		draw_circle(ab + Vector2(-f * 50, 3), 3.0, Color(1, 0.9, 0.6))
+	# thorax velu
+	var th := Vector2(f * 8, -2)
+	DU.poly(self, DU.ellipse(th, Vector2(18, 15), 26), fur)
+	for i in 12:
+		var a := i * TAU / 12.0
+		var bp := th + Vector2(cos(a) * 17.0, sin(a) * 14.0)
+		draw_line(bp, bp + Vector2(cos(a), sin(a)) * 3.5, fur.lightened(0.15), 1.4)
+	# collerette royale
+	for i in 5:
+		var a := -PI * 0.9 + i * 0.4
+		DU.poly(self, PackedVector2Array([th + Vector2(f * 14, -2), th + Vector2(f * 14, -2) + Vector2(cos(a) * 9.0 * f, sin(a) * 9.0), th + Vector2(f * 14, -2) + Vector2(cos(a + 0.3) * 9.0 * f, sin(a + 0.3) * 9.0)]), body_color(Color(0.95, 0.92, 0.85)))
+	# tête : gros yeux composés, mandibules, antennes
 	var hd := Vector2(f * 30, -8)
-	draw_colored_polygon(DU.ellipse(hd, Vector2(15, 13)), body_color(body))
-	draw_circle(hd + Vector2(f * 6, -3), 5.5, Color(0.1, 0.0, 0.05))
-	draw_circle(hd + Vector2(f * 7, -4), 2.5, Color(1.0, 0.3, 0.2) if not tele else Color(1, 1, 0.6))
-	# couronne
-	for i in 3:
-		var cx := hd.x - 8 + i * 8
-		draw_colored_polygon(PackedVector2Array([Vector2(cx - 4, hd.y - 11), Vector2(cx + 4, hd.y - 11), Vector2(cx, hd.y - 22 - (i % 2) * 5)]), body_color(Color(1.0, 0.9, 0.5)))
-	# pattes
-	for i in 3:
-		var lx := f * (2 + i * 8)
-		draw_line(Vector2(lx, 10), Vector2(lx - f * 6, 24 + sin(anim_t * 8 + i) * 3), dark, 2.0)
+	DU.poly(self, DU.ellipse(hd, Vector2(15, 13), 22), body)
+	var eye := Color(1.0, 0.3, 0.2) if not tele else Color(1, 1, 0.6)
+	DU.poly(self, DU.ellipse(hd + Vector2(f * 6, -3), Vector2(6.5, 8), 16), Color(0.12, 0.02, 0.06))
+	for k in 6:
+		draw_circle(hd + Vector2(f * (4.0 + (k % 2) * 3.0), -8 + k * 2.2), 1.2, Color(eye, 0.75))
+	DU.glow(self, hd + Vector2(f * 6, -3), 12.0, eye, 0.35)
+	DU.poly(self, PackedVector2Array([hd + Vector2(f * 11, 7), hd + Vector2(f * 19, 10), hd + Vector2(f * 12, 12)]), dark)
+	for k in [0.0, 1.0]:
+		draw_polyline(PackedVector2Array([hd + Vector2(f * (2 + k * 4), -12), hd + Vector2(f * (6 + k * 6), -24), hd + Vector2(f * (14 + k * 6), -28 + sin(anim_t * 4.0 + k) * 2.0)]), dark, 1.6)
+	# couronne d'or à gemmes
+	var crown := PackedVector2Array([Vector2(hd.x - 11, hd.y - 10)])
+	for i in 5:
+		crown.append(Vector2(hd.x - 11 + i * 5.5, hd.y - (24.0 if i % 2 == 0 else 15.0) - (5.0 if i == 2 else 0.0)))
+	crown.append(Vector2(hd.x + 11, hd.y - 10))
+	DU.poly(self, crown, body_color(Color(1.0, 0.86, 0.45)))
+	DU.ball(self, Vector2(hd.x, hd.y - 15), 2.4, Color(0.9, 0.2, 0.3))
+	# aile de devant
+	_wing(Vector2(-f * 2, -18), f, -1.6 - flap * 0.5, 0.32)
 	draw_stun(-50.0)
+
+func _wing(root: Vector2, f: float, ang: float, a: float) -> void:
+	var dir_v := Vector2.from_angle(ang if f > 0 else PI - ang)
+	var side := dir_v.orthogonal() * 12.0
+	var pts := PackedVector2Array()
+	for i in 15:
+		var t := i / 14.0
+		pts.append(root + dir_v * 46.0 * t + side * sin(t * PI) * (1.0 + 0.3 * t))
+	pts.append(root)
+	DU.flat(self, pts, Color(0.8, 0.92, 1.0, a))
+	draw_polyline(pts, Color(0.9, 0.97, 1.0, a + 0.3), 1.2)
+	for k in 3:
+		draw_line(root, root + dir_v * (20.0 + k * 12.0) + side * (0.9 - k * 0.3), Color(0.35, 0.4, 0.45, a + 0.2), 0.9)
+	draw_line(root + dir_v * 18.0 + side * 0.9, root + dir_v * 34.0 + side * 0.2, Color(0.35, 0.4, 0.45, a + 0.2), 0.8)

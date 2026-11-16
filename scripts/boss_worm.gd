@@ -120,25 +120,49 @@ func _acid(n: int) -> void:
 
 func _draw() -> void:
 	var tele := telegraphing()
-	var skin := Color(0.55, 0.38, 0.45)
+	var skin := Color(0.55, 0.36, 0.44)
 	if tele and fmod(anim_t, 0.12) < 0.06:
 		skin = Color(1.0, 0.5, 0.4)
 	if stun_t > 0.0:
 		skin = skin.darkened(0.35)
-	# anneaux du corps (du plus loin au plus proche)
+	skin = body_color(skin)
+	var plate := body_color(Color(0.36, 0.28, 0.3))
+	# anneaux du corps (du plus loin au plus proche) : chair, plaque dorsale, soies
 	for i in range(trail.size() - 1, 0, -1):
-		var lp: Vector2 = trail[i] - global_position
+		var lp: Vector2 = trail[i] - global_position + Vector2(0, 4)
 		var r := 24.0 - i * 1.6
-		draw_circle(lp + Vector2(0, 4), r, body_color(skin.darkened(0.15 + i * 0.03)))
-		draw_arc(lp + Vector2(0, 4), r, PI * 1.1, PI * 1.9, 10, body_color(skin.lightened(0.15)), 2.0)
-	# tête : gueule circulaire à dents
+		var sk := skin.darkened(0.12 + i * 0.03)
+		DU.ball(self, lp, r, sk)
+		draw_arc(lp, r * 0.92, PI * 1.08, PI * 1.92, 12, plate.darkened(i * 0.03), r * 0.35)
+		draw_arc(lp, r * 0.92, PI * 1.25, PI * 1.6, 8, DU.lit(plate, 1.6, 0.06), 1.4)
+		draw_arc(lp, r, PI * 0.15, PI * 0.85, 10, sk.darkened(0.4), 1.6)
+		for k in 3:
+			var a := PI * (0.3 + k * 0.2)
+			draw_line(lp + Vector2.from_angle(a) * r, lp + Vector2.from_angle(a) * (r + 5.0), sk.darkened(0.5), 1.2)
+	# tête : collerette de plaques, gueule circulaire à dents en spirale
 	var f := float(dir)
-	draw_circle(Vector2.ZERO, 28.0, body_color(skin))
+	for k in 6:
+		var a := PI * 1.05 + k * 0.17
+		DU.poly(self, PackedVector2Array([Vector2.from_angle(a) * 20.0, Vector2.from_angle(a - 0.12) * 34.0, Vector2.from_angle(a + 0.12) * 32.0]), plate)
+	DU.ball(self, Vector2.ZERO, 28.0, skin)
+	draw_arc(Vector2.ZERO, 22.0, PI * 1.15, PI * 1.55, 10, Color(1, 0.9, 0.9, 0.35), 2.4)
 	var mouth := Vector2(f * 12, -6)
-	draw_circle(mouth, 13.0, Color(0.15, 0.03, 0.06))
-	for i in 8:
-		var a := i * TAU / 8.0 + anim_t * 0.5
-		var tp := mouth + Vector2(cos(a), sin(a)) * 12.0
-		draw_colored_polygon(PackedVector2Array([tp, tp + Vector2(cos(a + 0.5), sin(a + 0.5)) * 4.0, mouth + Vector2(cos(a), sin(a)) * 5.0]), Color(0.95, 0.92, 0.85))
-	draw_circle(Vector2(-f * 8, -16), 4.0, Color(1.0, 0.85, 0.3) if not tele else Color(1, 1, 0.8))
+	DU.ball(self, mouth, 14.5, skin.darkened(0.35))
+	draw_circle(mouth, 12.5, Color(0.12, 0.02, 0.05))
+	draw_circle(mouth, 6.0, Color(0.35, 0.05, 0.12) if not tele else Color(1.0, 0.5, 0.3))
+	if tele:
+		DU.glow(self, mouth, 22.0, Color(1.0, 0.5, 0.3), 0.6)
+	for ring in 2:
+		for i in 9:
+			var a := i * TAU / 9.0 + anim_t * (0.5 if ring == 0 else -0.8) + ring * 0.35
+			var rr := 12.0 - ring * 5.0
+			var tp := mouth + Vector2(cos(a), sin(a)) * rr
+			DU.poly(self, PackedVector2Array([tp, tp + Vector2(cos(a + 0.6), sin(a + 0.6)) * (4.5 - ring), mouth + Vector2(cos(a), sin(a)) * (rr - 6.0)]), Color(0.95, 0.92, 0.82), false)
+	# yeux multiples
+	var ec := Color(1.0, 0.85, 0.3) if not tele else Color(1, 1, 0.8)
+	for k in 3:
+		var ep := Vector2(-f * (4 + k * 7), -18 + k * 3)
+		draw_circle(ep, 3.6 - k * 0.6, Color(0.08, 0.04, 0.04))
+		draw_circle(ep, 2.4 - k * 0.4, ec)
+	DU.glow(self, Vector2(-f * 10, -16), 14.0, ec, 0.4)
 	draw_stun(-44.0)

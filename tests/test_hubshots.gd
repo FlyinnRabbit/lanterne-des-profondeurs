@@ -9,6 +9,8 @@ func _run() -> void:
 	gs.record = 7
 	root.get_node("Settings").zoom = 1.0
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	paused = false
 	for i in 5:
 		await physics_frame

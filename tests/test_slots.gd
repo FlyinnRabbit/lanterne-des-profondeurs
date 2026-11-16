@@ -14,6 +14,8 @@ func _run() -> void:
 	gs.show_title = false
 	gs.mode = "hub"
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	await _frames(6)
 	gs.new_game(true, 0, 1)        # facile dans l'emplacement 1
 	await _frames(6)
@@ -34,6 +36,8 @@ func _run() -> void:
 	gs.show_title = true
 	gs.mode = "hub"
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	await _frames(8)
 	var menu = current_scene.menu
 	if shots:

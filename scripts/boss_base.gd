@@ -136,4 +136,4 @@ func draw_stun(y: float) -> void:
 	if stun_t > 0.0:
 		for i in 4:
 			var a := anim_t * 4.0 + i * TAU / 4.0
-			draw_circle(Vector2(cos(a) * 26.0, y + sin(a) * 5.0), 3.0, Color(1, 1, 0.7))
+			DU.ball(self, Vector2(cos(a) * 26.0, y + sin(a) * 5.0), 3.0, Color(1, 1, 0.7))

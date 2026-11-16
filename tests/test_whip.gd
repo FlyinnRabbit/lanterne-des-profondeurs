@@ -15,6 +15,8 @@ func _run() -> void:
 	gs.mode = "hub"
 	gs.prog["weapon"] = "fouet"
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	paused = false
 	for i in 10:
 		await physics_frame

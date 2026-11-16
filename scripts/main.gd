@@ -384,7 +384,7 @@ func _spawn_everything() -> void:
 					var lp = _make_prop("elevator", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(0.6, 0.85, 1.0), 3.0)
 					interactables.append([lp, "elevator"])
 				"O":
-					exit_door = _make_prop("door", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(0.6, 0.85, 1.0), 3.5)
+					exit_door = _make_prop("door", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), PropScript.door_color(String(pal.get("id", ""))), 3.5)
 				"E":
 					shrine = _make_prop("shrine", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.85, 0.55), 4.0)
 				"c":
@@ -483,6 +483,7 @@ func _setup_camera_and_fx() -> void:
 		mod.color = (pal["ambient"] as Color).darkened(0.65)
 		_make_darkness()
 	add_child(mod)
+	_make_vignette()
 	camera = Camera2D.new()
 	camera.zoom = Vector2(Settings.zoom, Settings.zoom)
 	Settings.changed.connect(func():
@@ -608,6 +609,30 @@ void fragment() {
 	COLOR = vec4(0.0, 0.0, 0.02, a * 0.94);
 }
 """
+const VIGNETTE_SHADER := """
+shader_type canvas_item;
+void fragment() {
+	vec2 q = SCREEN_UV - 0.5;
+	q.x *= 1.25;
+	float d = length(q);
+	COLOR = vec4(0.0, 0.0, 0.01, smoothstep(0.42, 0.95, d) * 0.55);
+}
+"""
+# Vignette : bords de l'écran assombris (profondeur, ambiance)
+func _make_vignette() -> void:
+	var cl := CanvasLayer.new()
+	cl.layer = 4
+	add_child(cl)
+	var r := ColorRect.new()
+	r.set_anchors_preset(Control.PRESET_FULL_RECT)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sh := Shader.new()
+	sh.code = VIGNETTE_SHADER
+	var mat := ShaderMaterial.new()
+	mat.shader = sh
+	r.material = mat
+	cl.add_child(r)
+
 func _make_darkness() -> void:
 	var cl := CanvasLayer.new()
 	cl.layer = 5          # au-dessus du niveau, sous le HUD (10) et les menus
@@ -741,7 +766,7 @@ func _process(delta: float) -> void:
 	if exit_door and not leaving and pp.distance_to(exit_door.position + Vector2(0, -20)) < 40:
 		leaving = true
 		show_message("…", 1.0)
-		spawn_burst(exit_door.position + Vector2(0, -30), Color(0.6, 0.85, 1.0), 40, 200.0, -50.0)
+		spawn_burst(exit_door.position + Vector2(0, -30), PropScript.door_color(String(pal.get("id", ""))), 40, 200.0, -50.0)
 		await get_tree().create_timer(0.6).timeout
 		Audio.sfx("door", 0.0)
 		GameState.go_next_level(player)

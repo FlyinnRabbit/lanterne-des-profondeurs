@@ -55,21 +55,34 @@ func _physics_process(delta: float) -> void:
 
 func _draw() -> void:
 	var f := float(dir)
-	var leg := sin(anim_t * 14.0) * 2.5
-	var dark := Color(0.12, 0.1, 0.14)
-	for i in 3:
-		var lx := -8.0 + i * 8.0
-		draw_line(Vector2(lx, 6), Vector2(lx + (leg if i % 2 == 0 else -leg), 11), dark, 2.0)
-	# Carapace en dôme
-	var shell := DU.ellipse(Vector2(0, 6), Vector2(16, 15), 20, PI, TAU)
-	draw_colored_polygon(shell, body_color(Color(0.62, 0.58, 0.7)))
-	draw_line(Vector2(-16, 6), Vector2(16, 6), body_color(Color(0.35, 0.32, 0.42)), 2.0)
-	for i in 3:
-		draw_arc(Vector2(0, 6), 6.0 + i * 4.0, PI + 0.3, TAU - 0.3, 10, body_color(Color(0.45, 0.42, 0.55)), 1.2)
-	# Tête et œil
-	draw_circle(Vector2(f * 15, 3), 5.0, body_color(dark))
-	draw_circle(Vector2(f * 17, 2), 1.8, Color(1.0, 0.55, 0.3) if stun_t <= 0.0 else Color(0.4, 0.4, 0.4))
-	if stun_t > 0.0:
+	var leg_a := sin(anim_t * 14.0) * 2.5
+	var dark := body_color(Color(0.13, 0.1, 0.15))
+	var shell_c := body_color(Color(0.62, 0.56, 0.72))
+	if windup_t > 0.0 and fmod(anim_t, 0.1) < 0.05:
+		shell_c = Color(1.0, 0.8, 0.6)
+	# pattes du fond puis de devant
+	for side in [0, 1]:
 		for i in 3:
-			var a := Time.get_ticks_msec() / 250.0 + i * TAU / 3.0
-			draw_circle(Vector2(cos(a) * 12.0, -16.0 + sin(a) * 3.0), 2.0, Color(1, 1, 0.7))
+			var lx := -9.0 + i * 8.0
+			var sw := (leg_a if (i + side) % 2 == 0 else -leg_a)
+			var col := dark.darkened(0.35) if side == 0 else dark
+			leg(Vector2(lx, 5), Vector2(lx - f * 3 + sw * 0.4, 7 - side), Vector2(lx + sw - f * 1, 11), col, 2.0)
+	# tête, mandibules et antennes
+	var hd := Vector2(f * 14, 3)
+	draw_line(hd + Vector2(f * 2, -3), hd + Vector2(f * 9, -11 + sin(anim_t * 5.0) * 1.5), dark, 1.2)
+	draw_line(hd + Vector2(f * 1, -4), hd + Vector2(f * 6, -12 - sin(anim_t * 4.0) * 1.5), dark, 1.0)
+	DU.poly(self, DU.ellipse(hd, Vector2(5.5, 4.6)), body_color(Color(0.2, 0.16, 0.22)))
+	draw_line(hd + Vector2(f * 4, 2), hd + Vector2(f * 8, 4), Color(0.75, 0.7, 0.6), 1.4)
+	# carapace en dôme : plaques, couture centrale, reflets
+	var shell := DU.ellipse(Vector2(0, 6), Vector2(16, 15), 22, PI, TAU)
+	DU.poly(self, shell, shell_c)
+	for i in 3:
+		draw_arc(Vector2(0, 6), 5.0 + i * 4.0, PI + 0.25, TAU - 0.25, 12, shell_c.darkened(0.4), 1.1)
+	draw_line(Vector2(-f * 1, -8.5), Vector2(-f * 1, 6), shell_c.darkened(0.45), 1.2)
+	draw_line(Vector2(-16, 6), Vector2(16, 6), shell_c.darkened(0.55), 2.0)
+	draw_arc(Vector2(-3, 5), 11.0, PI + 0.6, PI + 1.3, 8, Color(1, 1, 1, 0.35), 1.6)
+	# œil
+	var eye := Color(1.0, 0.55, 0.3) if stun_t <= 0.0 else Color(0.4, 0.4, 0.4)
+	draw_circle(hd + Vector2(f * 2.5, -1), 3.5, Color(eye, 0.25))
+	draw_circle(hd + Vector2(f * 2.5, -1), 1.8, eye)
+	draw_stun(-16.0)

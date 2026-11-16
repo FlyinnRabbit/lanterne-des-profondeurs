@@ -139,6 +139,17 @@ Les boss sont aussi plus rapides et plus résistants selon la difficulté.
   le sauteur enchaîne deux bonds, le garde charge au bouclier.
 Les nouveaux ennemis et les élites deviennent plus fréquents en profondeur.
 
+## Graphismes (v2.2)
+
+Tout reste dessiné en code (aucune image), dans un style plus détaillé et « peint » :
+
+- **Roche** texturée par shader selon le biome (strates, pierres taillées, cristal, veines de lave, glace, alvéoles, ossements), plus sombre en profondeur, arêtes éclairées ;
+- **sols décorés** par biome (herbe, champignons lumineux, cristaux, crânes, livres, bougies, neige, miel) ;
+- **fonds en parallaxe** sur trois plans avec brume et rayons de lumière (champignons géants, arcades gothiques, flèches de cristal, cheminées, bibliothèques, ruches…) ;
+- **héros, ennemis, 10 boss et habitants du Sanctuaire** redessinés (ombrage, reflets, détails) ;
+- **pièges, herses, piliers d'attaque, portail de fin** (un par biome) et **animation de fin** refaits ;
+- les panneaux du tutoriel s'affichent en bas de l'écran pour garder le centre dégagé.
+
 ## Combat : coups spéciaux
 - **Combo au sol** : 3 coups, le 3e est un coup final ; maintenir puis relâcher = **tourbillon** ;
   frapper pendant la Ruée = **estoc**.

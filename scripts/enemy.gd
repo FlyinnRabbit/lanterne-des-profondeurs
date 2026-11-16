@@ -115,3 +115,19 @@ func body_color(base: Color) -> Color:
 	if flash_t > 0.0:
 		return Color(1, 1, 1)
 	return base.lerp(Color(1.0, 0.35, 0.3), 0.35) if elite else base
+
+# Étoiles d'étourdissement au-dessus de la tête
+func draw_stun(y: float) -> void:
+	if stun_t <= 0.0:
+		return
+	for i in 3:
+		var a := anim_t * 4.0 + i * TAU / 3.0
+		var c := Vector2(cos(a) * 12.0, y + sin(a) * 3.0)
+		DU.flat(self, DU.diamond(c, Vector2(2.6, 3.4)), Color(1, 1, 0.7))
+		draw_circle(c, 4.0, Color(1, 1, 0.6, 0.2))
+
+# Pattes articulées (cuisse puis tibia), dessinées en deux traits
+func leg(a: Vector2, knee: Vector2, foot: Vector2, col: Color, w := 2.2) -> void:
+	draw_line(a, knee, col, w)
+	draw_line(knee, foot, col, w * 0.8)
+	draw_circle(knee, w * 0.55, col)

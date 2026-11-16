@@ -23,6 +23,8 @@ func _run() -> void:
 		gs.show_title = true
 		gs.mode = "hub"
 		change_scene_to_file("res://main.tscn")
+		await process_frame   # le changement de scène est différé
+		await process_frame
 		await _frames(8)
 		var main = current_scene
 		await _shot("lang_title_" + code)

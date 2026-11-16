@@ -11,6 +11,12 @@ static func C(r: float, g: float, b: float, a := 1.0) -> Color:
 	return Color(r, g, b, a)
 
 static func all() -> Array:
+	var arr := _all()
+	for b in arr:
+		b["pal"]["id"] = b["id"]
+	return arr
+
+static func _all() -> Array:
 	return [
 		{"id": "profondeurs", "extras": {"w": 1.0}, "name": "Les Profondeurs",
 			"music": [M + "profondeurs_puits_d_ombre.ogg", M + "profondeurs_lanternes_eteintes.ogg"],

@@ -20,6 +20,8 @@ func _run() -> void:
 	gs.prog["weapons_owned"] = ["fouet"]
 	gs.prog["weapon_lv"] = {"fouet": 2}
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	paused = false
 	Engine.time_scale = 1.0
 	await _frames(5)
@@ -55,6 +57,8 @@ func _run() -> void:
 	# boss : pas d'étourdissement en boucle
 	gs.mode = "descent"; gs.palier = 1; gs.step = 2
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	await _frames(5)
 	main = current_scene
 	var b = main.boss

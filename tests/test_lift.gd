@@ -11,6 +11,8 @@ func _run() -> void:
 	gs.difficulty = 2
 	gs.prog["weapon"] = "fouet"
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	paused = false
 	for i in 30:
 		await physics_frame

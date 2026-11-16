@@ -66,19 +66,54 @@ func _physics_process(delta: float) -> void:
 
 func _draw() -> void:
 	var f := -1.0 if velocity.x < 0.0 else 1.0
-	var flap := absf(sin(anim_t * 30.0))
-	# Ailes translucides
-	draw_colored_polygon(DU.ellipse(Vector2(-4, -12), Vector2(7, 3 + 6 * flap), 14), Color(0.75, 0.9, 1.0, 0.35))
-	draw_colored_polygon(DU.ellipse(Vector2(5, -12), Vector2(7, 3 + 6 * flap), 14), Color(0.75, 0.9, 1.0, 0.35))
-	# Corps
-	draw_colored_polygon(DU.ellipse(Vector2.ZERO, Vector2(12, 10), 20), body_color(Color(0.42, 0.3, 0.38)))
-	# Épines
-	for i in 4:
-		var a := PI * 0.6 + i * 0.35
-		var base := Vector2(cos(a) * -f * 10.0, sin(a) * 8.0)
-		draw_line(base, base * 1.6, body_color(Color(0.25, 0.18, 0.22)), 2.0)
-	# Dard
-	draw_colored_polygon(PackedVector2Array([Vector2(-f * 10, 3), Vector2(-f * 20, 6), Vector2(-f * 10, 7)]), body_color(Color(0.85, 0.8, 0.7)))
-	# Œil
-	draw_circle(Vector2(f * 5, -2), 4.0, Color(0.05, 0.03, 0.05))
-	draw_circle(Vector2(f * 6, -2), 2.0, Color(1.0, 0.45, 0.3))
+	var flap := sin(anim_t * 32.0)
+	var metal := body_color(Color(0.16, 0.32, 0.3))
+	var dark := body_color(Color(0.06, 0.08, 0.09))
+	DU.glow(self, Vector2(0, -2), 22.0, Color(0.4, 0.9, 0.7), 0.15)
+	# aile du fond (floue, battement)
+	_wing(Vector2(-f * 2, -8), f, -0.9 + flap * 0.7, 0.18)
+	# pattes velues pendantes
+	for i in 3:
+		var lx := f * (2.0 - i * 4.0)
+		var sw := sin(anim_t * 7.0 + i) * 1.5
+		leg(Vector2(lx, 6), Vector2(lx + f * 2 + sw * 0.3, 11), Vector2(lx - f * 1 + sw, 16), dark, 1.4)
+	# abdomen métallique segmenté, reflet
+	var ab := Vector2(-f * 8, 3)
+	DU.poly(self, DU.ellipse(ab, Vector2(9, 7), 20), metal)
+	for i in 3:
+		var sx := ab.x + f * (3.0 - i * 3.5)
+		draw_line(Vector2(sx, ab.y - 6), Vector2(sx - f * 1.5, ab.y + 6), metal.darkened(0.5), 1.2)
+	draw_arc(ab + Vector2(0, -1), 6.0, PI * 1.15, PI * 1.6, 8, Color(0.7, 1.0, 0.9, 0.55), 1.6)
+	# dard
+	DU.poly(self, PackedVector2Array([ab + Vector2(-f * 8, -1), ab + Vector2(-f * 16, 2), ab + Vector2(-f * 8, 3)]), body_color(Color(0.8, 0.75, 0.6)))
+	# thorax poilu
+	var th := Vector2(f * 2, -1)
+	DU.poly(self, DU.ellipse(th, Vector2(8, 7.5), 20), body_color(Color(0.12, 0.2, 0.2)))
+	for i in 7:
+		var a := -PI * 0.95 + i * 0.3
+		var bp := th + Vector2(cos(a) * 7.5, sin(a) * 7.0)
+		draw_line(bp, bp + Vector2(cos(a), sin(a)) * 2.5, dark, 1.0)
+	# tête : deux gros yeux composés rouges, trompe
+	var hd := th + Vector2(f * 8, 1)
+	DU.ball(self, hd, 4.5, dark.lightened(0.05))
+	for k in [0, 1]:
+		var ec := hd + Vector2(f * (1.5 - k * 1.0), -2.5 + k * 3.5)
+		DU.ball(self, ec, 3.6 - k * 0.6, body_color(Color(0.75, 0.12, 0.1)))
+		for j in 3:
+			draw_circle(ec + Vector2(-0.8 + j * 0.9, -0.6 + (j % 2) * 1.0), 0.45, Color(1, 0.6, 0.5, 0.8))
+	draw_line(hd + Vector2(f * 3, 3), hd + Vector2(f * 6, 7 + sin(anim_t * 5.0)), dark, 1.3)
+	# aile de devant
+	_wing(Vector2(f * 1, -9), f, -1.2 - flap * 0.7, 0.32)
+
+func _wing(root: Vector2, f: float, ang: float, a: float) -> void:
+	var dir := Vector2.from_angle(ang if f > 0 else PI - ang)
+	var side := dir.orthogonal() * 4.0
+	var pts := PackedVector2Array()
+	for i in 13:
+		var t := i / 12.0
+		pts.append(root + dir * 15.0 * t + side * sin(t * PI) * (1.0 + 0.4 * t))
+	pts.append(root)
+	DU.flat(self, pts, Color(0.75, 0.92, 1.0, a))
+	draw_polyline(pts, Color(0.85, 0.95, 1.0, a + 0.25), 0.9)
+	draw_line(root, root + dir * 13.0 + side * 0.6, Color(0.2, 0.3, 0.35, a + 0.3), 0.8)
+	draw_line(root + dir * 4.0, root + dir * 9.0 + side * 1.4, Color(0.2, 0.3, 0.35, a + 0.2), 0.7)

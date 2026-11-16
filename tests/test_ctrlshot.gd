@@ -10,6 +10,8 @@ func _run() -> void:
 	root.get_node("Lang").apply()
 	root.get_node("Settings").kb_layout = 1
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	for i in 6:
 		await process_frame
 	current_scene.menu.open()

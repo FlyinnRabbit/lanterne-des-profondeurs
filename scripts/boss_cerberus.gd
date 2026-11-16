@@ -125,39 +125,91 @@ func _tick(delta: float) -> void:
 func _draw() -> void:
 	var f := float(dir)
 	var tele := telegraphing()
-	var fur := body_color(Color(0.22, 0.16, 0.18))
+	var fur := body_color(Color(0.24, 0.16, 0.18))
 	if tele and fmod(anim_t, 0.12) < 0.06:
 		fur = Color(1.0, 0.85, 0.7)
 	if stun_t > 0.0:
 		fur = fur.darkened(0.3)
-	var run := sin(anim_t * 10.0) * (4.0 if absf(velocity.x) > 20.0 else 0.0)
-	# pattes
+	var belly := fur.lerp(Color(0.45, 0.3, 0.25), 0.4)
+	var moving := absf(velocity.x) > 20.0
+	var run := sin(anim_t * 10.0) * (4.0 if moving else 0.0)
+	var ember := Color(1.0, 0.5, 0.15)
+	DU.glow(self, Vector2(-f * 10, 0), 90.0, ember, 0.15)
+	# pattes du fond (plus sombres), puis corps, puis pattes de devant
 	for k in [-1.0, 1.0]:
-		draw_line(Vector2(k * 34, 14), Vector2(k * 38 + run * k, 42), fur, 9.0)
-		draw_line(Vector2(k * 18, 14), Vector2(k * 16 - run * k, 42), fur, 9.0)
-	# corps et queue de flammes
-	draw_colored_polygon(DU.ellipse(Vector2(-f * 4, 0), Vector2(56, 26)), fur)
-	for i in 4:
-		var tp := Vector2(-f * (56 + i * 8), -10 - i * 6 + sin(anim_t * 8.0 + i) * 4.0)
-		draw_circle(tp, 7.0 - i, Color(1.0, 0.5 + 0.1 * i, 0.2, 0.8))
-	# trois têtes
-	for h in 3:
+		_paw(Vector2(k * 30 + f * 4, 10), -run * k, fur.darkened(0.4), f)
+	# queue de flammes
+	for i in 6:
+		var tp := Vector2(-f * (54 + i * 7), -8 - i * 6 + sin(anim_t * 8.0 + i) * 4.0)
+		draw_circle(tp, 9.0 - i, Color(1.0, 0.35 + 0.1 * i, 0.15, 0.5))
+		draw_circle(tp, 5.0 - i * 0.6, Color(1.0, 0.8, 0.4, 0.8))
+	# corps musclé : dos, ventre clair, côtes, crinière de pointes
+	var body := DU.ellipse(Vector2(-f * 4, 0), Vector2(56, 26), 32)
+	DU.poly(self, body, fur)
+	DU.poly(self, DU.ellipse(Vector2(-f * 2, 12), Vector2(40, 10), 20, 0.0, PI), belly, false)
+	for k in 4:
+		draw_arc(Vector2(-f * (8 + k * 9), 2), 14.0, PI * 0.3, PI * 0.7, 6, fur.darkened(0.4), 1.4)
+	for k in 9:
+		var mx := -f * (40 - k * 8)
+		var spike := PackedVector2Array([Vector2(mx - 5, -20 + absf(k - 4) * 0.8), Vector2(mx + 5, -21 + absf(k - 4) * 0.8), Vector2(mx - f * 4, -32 + absf(k - 4) * 1.2 + sin(anim_t * 6.0 + k))])
+		DU.poly(self, spike, fur.darkened(0.25), false)
+	# braises sur le dos
+	for k in 3:
+		var t := fposmod(anim_t * 0.7 + k * 0.33, 1.0)
+		draw_circle(Vector2(-f * (10 + k * 14), -24 - t * 30.0), 1.8 * (1.0 - t), Color(1.0, 0.6, 0.2, 1.0 - t))
+	for k in [-1.0, 1.0]:
+		_paw(Vector2(k * 26 - f * 4, 12), run * k, fur, f)
+	# collier à pointes
+	draw_line(Vector2(f * 22, -18), Vector2(f * 30, 6), Color(0.3, 0.22, 0.18), 6.0)
+	for i in 5:
+		var cp := Vector2(f * (22 + i * 2), -16 + i * 5)
+		DU.poly(self, PackedVector2Array([cp + Vector2(-3, 0), cp + Vector2(3, 0), cp + Vector2(f * 6, -4)]), Color(0.78, 0.72, 0.6))
+	# trois têtes de loup
+	for h in [0, 2, 1]:
 		var hc := Vector2(f * (46 + h * 6), -30 + (h - 1) * 16 + sin(anim_t * 3.0 + h) * 2.0)
 		if state == "bite" or bite_t > 0.0:
 			hc.x += f * 16.0
-		draw_line(Vector2(f * 30, -10), hc, fur, 12.0)
-		draw_colored_polygon(DU.ellipse(hc, Vector2(18, 13)), fur)
-		draw_colored_polygon(PackedVector2Array([hc + Vector2(f * 10, -2), hc + Vector2(f * 28, 2), hc + Vector2(f * 10, 8)]), fur.darkened(0.2))
-		draw_colored_polygon(PackedVector2Array([hc + Vector2(-f * 6, -10), hc + Vector2(-f * 2, -24), hc + Vector2(f * 4, -10)]), fur)
-		var ec := Color(1.0, 0.45, 0.15).lerp(Color(1.0, 0.95, 0.6), head_glow[h])
-		draw_circle(hc + Vector2(f * 6, -3), 3.0, ec)
-		if head_glow[h] > 0.0:
-			draw_circle(hc + Vector2(f * 26, 3), 6.0 * head_glow[h], Color(1.0, 0.6, 0.2, 0.6))
-	# collier à pointes
-	for i in 5:
-		var cp := Vector2(f * (22 + i * 3), -14 + i * 4)
-		draw_colored_polygon(PackedVector2Array([cp + Vector2(-3, 0), cp + Vector2(3, 0), cp + Vector2(0, -7)]), Color(0.75, 0.7, 0.6))
+		var hf := fur.darkened(0.15 if h != 1 else 0.0)
+		draw_line(Vector2(f * 26, -8), hc, hf.darkened(0.3), 15.0)
+		draw_line(Vector2(f * 26, -8), hc, hf, 11.0)
+		_head(hc, f, hf, head_glow[h], tele)
 	if bite_t > 0.0:
 		var r := bite_rect()
 		draw_rect(Rect2(r.position - global_position, r.size), Color(1.0, 0.85, 0.7, 0.35))
 	draw_stun(-64.0)
+
+func _paw(top: Vector2, sw: float, c: Color, f: float) -> void:
+	var knee := top + Vector2(f * 6 + sw * 0.4, 16)
+	var foot := top + Vector2(sw, 32)
+	draw_line(top, knee, c, 11.0)
+	draw_line(knee, foot, c, 8.0)
+	DU.poly(self, DU.ellipse(foot + Vector2(f * 3, 0), Vector2(8, 4), 12), c.darkened(0.1))
+	for k in 3:
+		draw_line(foot + Vector2(f * (6 + k * 1.5), -1 + k * 1.5), foot + Vector2(f * (10 + k * 1.5), 1 + k * 1.5), Color(0.85, 0.8, 0.7), 1.4)
+
+func _head(hc: Vector2, f: float, c: Color, glow: float, tele: bool) -> void:
+	var open := 0.0
+	if state == "bite" or bite_t > 0.0 or glow > 0.0:
+		open = 5.0
+	# crâne et oreilles
+	DU.poly(self, PackedVector2Array([hc + Vector2(-f * 6, -10), hc + Vector2(-f * 1, -25), hc + Vector2(f * 4, -11)]), c)
+	draw_line(hc + Vector2(-f * 2, -12), hc + Vector2(-f * 1, -21), c.lightened(0.15), 1.2)
+	DU.poly(self, DU.ellipse(hc, Vector2(17, 12.5), 22), c)
+	# museau et mâchoires
+	DU.poly(self, PackedVector2Array([hc + Vector2(f * 8, -7), hc + Vector2(f * 27, -2), hc + Vector2(f * 28, 2), hc + Vector2(f * 10, 3)]), c.darkened(0.08))
+	DU.poly(self, PackedVector2Array([hc + Vector2(f * 8, 4), hc + Vector2(f * 25, 4 + open), hc + Vector2(f * 22, 8 + open), hc + Vector2(f * 6, 9)]), c.darkened(0.25))
+	draw_circle(hc + Vector2(f * 27, -1.5), 2.2, Color(0.05, 0.03, 0.03))
+	if open > 0.0:
+		DU.flat(self, PackedVector2Array([hc + Vector2(f * 10, 3), hc + Vector2(f * 26, 2), hc + Vector2(f * 24, 4 + open)]), Color(0.45, 0.05, 0.05))
+	for k in 4:
+		var tx := hc + Vector2(f * (12 + k * 3.5), 2.5)
+		DU.flat(self, PackedVector2Array([tx, tx + Vector2(f * 2, 0), tx + Vector2(f * 1, 3)]), Color(0.95, 0.92, 0.82))
+	# œil brûlant
+	var ec := Color(1.0, 0.45, 0.15).lerp(Color(1.0, 0.95, 0.6), glow)
+	DU.flat(self, DU.ellipse(hc + Vector2(f * 6, -4), Vector2(3.6, 2.4)), Color(0.05, 0.02, 0.02))
+	draw_circle(hc + Vector2(f * 6.5, -4), 1.8, ec)
+	DU.glow(self, hc + Vector2(f * 6, -4), 10.0, ec, 0.5)
+	draw_line(hc + Vector2(f * 1, -8), hc + Vector2(f * 9, -6.5), c.darkened(0.5), 1.6)
+	if glow > 0.0:
+		DU.glow(self, hc + Vector2(f * 28, 3), 24.0 * glow, Color(1.0, 0.6, 0.2), 0.7)
+		draw_circle(hc + Vector2(f * 26, 3), 5.0 * glow, Color(1.0, 0.85, 0.4, 0.8))

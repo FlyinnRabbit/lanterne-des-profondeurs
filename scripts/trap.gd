@@ -1,4 +1,5 @@
 extends Node2D
+const DU = preload("res://scripts/draw_util.gd")
 # Pièges en hauteur (créés depuis la carte) :
 #  dart       (Z) : totem qui tire des fléchettes à hauteur de tête — s'accroupir pour les esquiver (ou parer)
 #  blade      (U) : lame-pendule suspendue au plafond, son point bas passe juste au-dessus d'un héros accroupi
@@ -123,28 +124,80 @@ func _shatter() -> void:
 func _draw() -> void:
 	match kind:
 		"dart":
-			# totem de pierre à la bouche sculptée, tourné vers dir
-			var stone := Color(0.42, 0.4, 0.38)
-			draw_rect(Rect2(-11, -40, 22, 40), stone)
-			draw_rect(Rect2(-11, -40, 22, 40), stone.darkened(0.3), false, 2.0)
-			draw_rect(Rect2(-13, -44, 26, 6), stone.lightened(0.1))
-			var mouth := Vector2(dir * 9.0, -28.0)
+			# totem de pierre sculpté : visage grimaçant dont la bouche crache les fléchettes
+			var stone := Color(0.44, 0.41, 0.38)
 			var warm := fmod(t, period) > period - 0.5
-			draw_circle(mouth, 4.5, Color(1.0, 0.45, 0.2) if warm else Color(0.1, 0.08, 0.08))
-			draw_circle(Vector2(dir * 3.0, -35.0), 2.0, Color(1.0, 0.6, 0.3, 0.8))
+			DU.box(self, Rect2(-11, -40, 22, 40), stone)
+			for k in 3:
+				draw_line(Vector2(-11, -30 + k * 10), Vector2(11, -30 + k * 10), stone.darkened(0.45), 1.0)
+			DU.box(self, Rect2(-14, -45, 28, 7), stone.lightened(0.1))
+			DU.poly(self, PackedVector2Array([Vector2(-14, -45), Vector2(-9, -52), Vector2(9, -52), Vector2(14, -45)]), stone.darkened(0.1))
+			# mousse et fissure
+			draw_polyline(PackedVector2Array([Vector2(-6, -12), Vector2(-3, -6), Vector2(-7, 0)]), stone.darkened(0.55), 1.2)
+			for k in 4:
+				draw_circle(Vector2(-10 + k * 6, -44.5), 2.2, Color(0.35, 0.5, 0.35, 0.9))
+			# yeux et sourcils sculptés
+			var eye := Color(1.0, 0.55, 0.25) if warm else Color(0.35, 0.18, 0.12)
+			draw_line(Vector2(dir * 1.0, -38), Vector2(dir * 9.0, -36), stone.darkened(0.6), 2.0)
+			draw_circle(Vector2(dir * 5.0, -34.0), 2.4, Color(0.08, 0.06, 0.06))
+			draw_circle(Vector2(dir * 5.0, -34.0), 1.4, eye)
+			if warm:
+				DU.glow(self, Vector2(dir * 5.0, -34.0), 8.0, eye, 0.5)
+			# bouche : anneau de pierre, gueule qui rougeoit avant le tir
+			var mouth := Vector2(dir * 9.0, -26.0)
+			DU.ball(self, mouth, 6.0, stone.darkened(0.15))
+			draw_circle(mouth, 4.0, Color(1.0, 0.45, 0.2) if warm else Color(0.07, 0.05, 0.05))
+			if warm:
+				DU.glow(self, mouth, 16.0, Color(1.0, 0.5, 0.2), 0.7)
+				draw_circle(mouth, 2.0, Color(1.0, 0.85, 0.5))
 		"blade":
+			# lame-pendule : pivot riveté, tige forgée, croissant d'acier à fil brillant
 			var bp := blade_pos() - position
-			draw_line(Vector2.ZERO, bp, Color(0.4, 0.4, 0.45), 2.0)
-			draw_circle(Vector2.ZERO, 5.0, Color(0.35, 0.35, 0.4))
 			var n := bp.normalized()
 			var tan := Vector2(-n.y, n.x)
-			draw_colored_polygon(PackedVector2Array([bp - tan * 20.0, bp + n * 10.0, bp + tan * 20.0, bp - n * 4.0]), Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.78, 0.8, 0.86))
-			draw_line(bp - tan * 18.0 + n * 2.0, bp + tan * 18.0 + n * 2.0, Color(1, 1, 1, 0.6), 1.5)
+			draw_line(Vector2.ZERO, bp, Color(0.18, 0.18, 0.22), 4.5)
+			draw_line(Vector2.ZERO, bp, Color(0.5, 0.5, 0.56), 2.2)
+			for k in range(1, 5):
+				var q := bp * (k / 5.0)
+				draw_line(q - tan * 2.5, q + tan * 2.5, Color(0.3, 0.3, 0.35), 1.6)
+			DU.box(self, Rect2(-10, -6, 20, 6), Color(0.32, 0.3, 0.32))
+			DU.ball(self, Vector2.ZERO, 6.0, Color(0.42, 0.42, 0.48))
+			draw_circle(Vector2.ZERO, 2.0, Color(0.15, 0.15, 0.18))
+			var steel := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.74, 0.77, 0.84)
+			var crescent := PackedVector2Array()
+			for k in 13:
+				var a := lerpf(-1.25, 1.25, k / 12.0)
+				crescent.append(bp + n * 4.0 + (n * cos(a) * 10.0 + tan * sin(a) * 22.0))
+			for k in range(12, -1, -1):
+				var a := lerpf(-1.1, 1.1, k / 12.0)
+				crescent.append(bp - n * 2.0 + (n * cos(a) * 7.0 + tan * sin(a) * 17.0))
+			DU.poly(self, crescent, steel)
+			var edge := PackedVector2Array()
+			for k in 11:
+				var a := lerpf(-1.15, 1.15, k / 10.0)
+				edge.append(bp + n * 4.0 + (n * cos(a) * 9.0 + tan * sin(a) * 21.0))
+			draw_polyline(edge, Color(1, 1, 1, 0.75), 1.4)
+			draw_circle(bp, 3.0, Color(0.3, 0.3, 0.35))
+			# traînée de mouvement
+			var sw := cos(t * 1.9 + phase)
+			if absf(sw) > 0.5:
+				draw_arc(Vector2.ZERO, bp.length() + 8.0, bp.angle() - 0.25 * signf(sw), bp.angle(), 8, Color(1, 1, 1, 0.18), 6.0)
 		"stalactite":
+			var base := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.6, 0.56, 0.52)
 			if state == "gone":
 				var k := 1.0 - st_t / 5.0
-				draw_colored_polygon(PackedVector2Array([Vector2(-6, 0), Vector2(6, 0), Vector2(0, 8 * k)]), Color(0.6, 0.56, 0.52, 0.6))
+				DU.flat(self, PackedVector2Array([Vector2(-6, 0), Vector2(6, 0), Vector2(0, 8 * k)]), Color(base, 0.6))
 				return
 			var off := Vector2(sin(t * 60.0) * 2.0, 0) if state == "shake" else Vector2.ZERO
-			draw_colored_polygon(PackedVector2Array([off + Vector2(-10, 0), off + Vector2(10, 0), off + Vector2(0, 32)]), Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.62, 0.58, 0.54))
-			draw_line(off + Vector2(-3, 2), off + Vector2(0, 26), Color(0.8, 0.76, 0.7, 0.6), 2.0)
+			var pts := PackedVector2Array([off + Vector2(-11, 0), off + Vector2(-6, 6), off + Vector2(-5, 14), off + Vector2(-2, 24), off + Vector2(0, 33), off + Vector2(3, 22), off + Vector2(6, 10), off + Vector2(11, 0)])
+			DU.poly(self, pts, base)
+			draw_line(off + Vector2(-3, 2), off + Vector2(-0.5, 26), Color(1, 1, 1, 0.45), 1.6)
+			for k in 3:
+				draw_line(off + Vector2(-8 + k * 6, 3 + k * 2), off + Vector2(-6 + k * 6, 6 + k * 2), base.darkened(0.4), 1.0)
+			# goutte qui perle à la pointe
+			var dk := fposmod(t * 0.7, 1.0)
+			draw_circle(off + Vector2(0, 33 + dk * 4.0), 1.4, Color(0.7, 0.85, 1.0, 0.8 * (1.0 - dk)))
+			if state == "shake":
+				for k in 4:
+					var px := fposmod(t * 90.0 + k * 23.0, 22.0) - 11.0
+					draw_rect(Rect2(Vector2(px, fposmod(t * 70.0 + k * 9.0, 18.0)), Vector2(2, 2)), base.darkened(0.3))

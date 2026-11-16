@@ -13,6 +13,8 @@ func _run() -> void:
 	gs.prog["notches"] = 6
 	gs.prog["equipped"] = [9]
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	paused = false
 	Engine.time_scale = 1.0
 	await _frames(5)

@@ -139,14 +139,15 @@ func _draw() -> void:
 		var sl: PackedStringArray = main.sign_text.split("\n")
 		var bw := 200.0
 		for line in sl:
-			bw = maxf(bw, G.rich_width(font, line, 21) + 60.0)
+			bw = maxf(bw, G.rich_width(font, line, 19) + 60.0)
 		bw = minf(bw, sz.x - 20.0)
-		var bh := 24.0 + sl.size() * 30.0
-		var bpos := Vector2((sz.x - bw) / 2.0, sz.y - 120.0 - bh)
+		var bh := 18.0 + sl.size() * 26.0
+		# tout en bas de l'écran, juste au-dessus de la ligne des commandes : le centre reste dégagé
+		var bpos := Vector2((sz.x - bw) / 2.0, sz.y - 38.0 - bh)
 		draw_rect(Rect2(bpos, Vector2(bw, bh)), Color(0.03, 0.04, 0.08, 0.88))
 		draw_rect(Rect2(bpos, Vector2(bw, bh)), Color(0.6, 0.75, 0.95, 0.8), false, 2.0)
 		for i in sl.size():
-			G.draw_rich(self, font, bpos.x, bw, bpos.y + 38 + i * 30, sl[i], 21, Color(0.95, 0.96, 1.0))
+			G.draw_rich(self, font, bpos.x, bw, bpos.y + 31 + i * 26, sl[i], 19, Color(0.95, 0.96, 1.0))
 	# Dégâts infligés : coin en haut à droite, disparaissent vite
 	var ly := 64.0 if Settings.show_fps else 40.0
 	# Mini-carte (en descente)

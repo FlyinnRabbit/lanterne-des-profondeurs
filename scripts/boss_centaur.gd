@@ -129,41 +129,100 @@ func _tick(delta: float) -> void:
 func _draw() -> void:
 	var f := float(dir)
 	var tele := telegraphing()
-	var hide := body_color(Color(0.42, 0.3, 0.22))
-	var skin := body_color(Color(0.55, 0.5, 0.6))
+	var hide := body_color(Color(0.42, 0.29, 0.2))
+	var skin := body_color(Color(0.55, 0.5, 0.62))
 	if tele and fmod(anim_t, 0.12) < 0.06:
 		hide = Color(1, 0.95, 0.85)
 		skin = hide
 	if stun_t > 0.0:
 		hide = hide.darkened(0.3)
+	var mane := body_color(Color(0.16, 0.12, 0.1))
+	var steel := body_color(Color(0.42, 0.45, 0.55))
 	var gal := absf(velocity.x) > 50.0
 	var ph := anim_t * (16.0 if gal else 3.0)
-	# corps de cheval
-	draw_colored_polygon(DU.ellipse(Vector2(-f * 10, 8), Vector2(40, 18)), hide)
-	for i in 4:
-		var lx := -f * 10 + (-30 + i * 20)
-		var sw := sin(ph + i * 1.6) * (10.0 if gal else 2.0)
-		draw_line(Vector2(lx, 18), Vector2(lx + sw, 48), hide.darkened(0.15), 6.0)
-		draw_circle(Vector2(lx + sw, 48), 4.0, Color(0.15, 0.12, 0.1))
-	# queue
-	draw_line(Vector2(-f * 48, 0), Vector2(-f * 62, 20 + sin(ph) * 4.0), Color(0.2, 0.15, 0.12), 5.0)
-	# buste humain
-	draw_colored_polygon(PackedVector2Array([Vector2(f * 14, 0), Vector2(f * 34, 0), Vector2(f * 30, -36), Vector2(f * 16, -36)]), skin)
-	draw_circle(Vector2(f * 24, -46), 11.0, skin)
-	draw_colored_polygon(PackedVector2Array([Vector2(f * 12, -50), Vector2(f * 36, -50), Vector2(f * 24, -66)]), Color(0.3, 0.32, 0.4))   # heaume
-	draw_circle(Vector2(f * 28, -46), 2.5, Color(1.0, 0.8, 0.4))
+	# jambes du fond
+	for i in [1, 3]:
+		_hleg(i, ph, gal, hide.darkened(0.35), f)
+	# queue en mèches
+	for k in 3:
+		var tail := PackedVector2Array()
+		for j in 6:
+			var t := j / 5.0
+			tail.append(Vector2(-f * (46 + t * 18), -2 + t * 26 + sin(ph + t * 2.0 + k) * 3.0 * t + k * 2.0))
+		draw_polyline(tail, mane.lightened(k * 0.06), 3.0 - k * 0.5)
+	# corps de cheval : croupe, ventre, caparaçon
+	var bx := -f * 10
+	DU.poly(self, DU.ellipse(Vector2(bx, 8), Vector2(40, 18), 30), hide)
+	DU.poly(self, DU.ellipse(Vector2(bx - f * 20, 2), Vector2(18, 15), 18), hide.lightened(0.04))
+	var cap := PackedVector2Array([Vector2(bx - f * 14, -6), Vector2(bx + f * 22, -8), Vector2(bx + f * 24, 16), Vector2(bx + f * 4, 22), Vector2(bx - f * 16, 18)])
+	DU.poly(self, cap, body_color(Color(0.45, 0.15, 0.18)))
+	draw_polyline(PackedVector2Array([Vector2(bx + f * 24, 16), Vector2(bx + f * 4, 22), Vector2(bx - f * 16, 18)]), Color(0.9, 0.75, 0.35), 2.0)
+	for k in 3:
+		DU.ball(self, Vector2(bx + f * (-8 + k * 10), 19 - absf(k - 1) * 1.5), 2.0, Color(0.9, 0.75, 0.35))
+	# jambes de devant
+	for i in [0, 2]:
+		_hleg(i, ph, gal, hide, f)
+	# buste en cuirasse
+	var torso := PackedVector2Array([Vector2(f * 14, 0), Vector2(f * 34, 0), Vector2(f * 33, -30), Vector2(f * 30, -38), Vector2(f * 17, -38), Vector2(f * 14, -30)])
+	DU.poly(self, torso, steel)
+	draw_line(Vector2(f * 24, -36), Vector2(f * 24, -2), steel.darkened(0.45), 1.2)
+	for yy in [-22.0, -12.0]:
+		draw_line(Vector2(f * 15, yy), Vector2(f * 33, yy), steel.darkened(0.4), 1.0)
+	DU.poly(self, DU.ellipse(Vector2(f * 16, -34), Vector2(7, 5), 12), steel.lightened(0.1))
+	# carquois dans le dos
+	DU.poly(self, PackedVector2Array([Vector2(f * 8, -40), Vector2(f * 14, -42), Vector2(f * 18, -10), Vector2(f * 12, -8)]), body_color(Color(0.35, 0.22, 0.14)))
+	for k in 3:
+		draw_line(Vector2(f * (10 + k * 2), -40), Vector2(f * (7 + k * 2), -52), Color(0.85, 0.8, 0.7), 1.2)
+		DU.flat(self, PackedVector2Array([Vector2(f * (7 + k * 2), -52), Vector2(f * (5 + k * 2), -56), Vector2(f * (9 + k * 2), -55)]), Color(0.85, 0.3, 0.25))
+	# tête : visage dans l'ombre du heaume à cimier
+	DU.ball(self, Vector2(f * 24, -46), 10.0, skin)
+	var helm := PackedVector2Array([Vector2(f * 12, -44), Vector2(f * 13, -54), Vector2(f * 24, -62), Vector2(f * 35, -54), Vector2(f * 36, -46), Vector2(f * 30, -48), Vector2(f * 18, -48)])
+	DU.poly(self, helm, steel.darkened(0.1))
+	var crest := PackedVector2Array()
+	for k in 8:
+		var t := k / 7.0
+		crest.append(Vector2(f * (24 - t * 26), -62 + t * 10 - sin(t * PI) * 6.0 + sin(ph * 0.5 + t * 3.0) * 2.0 * t))
+	draw_polyline(crest, Color(0.75, 0.2, 0.2), 4.0)
+	draw_line(Vector2(f * 26, -46), Vector2(f * 34, -46), Color(0.05, 0.04, 0.05), 2.4)
+	var eye := Color(1.0, 0.8, 0.4) if not tele else Color(1, 1, 0.8)
+	draw_circle(Vector2(f * 30, -46), 1.6, eye)
+	DU.glow(self, Vector2(f * 30, -46), 8.0, eye, 0.5)
 	# arc ou lance
 	if state in ["windup_lance", "lance"] or lance_t > 0.0:
 		var lx2 := f * 30.0 + (f * 40.0 if lance_t > 0.0 else -f * 10.0)
-		draw_line(Vector2(f * 20, -24), Vector2(lx2 + f * 70, -24), Color(0.5, 0.4, 0.3), 3.0)
-		draw_colored_polygon(PackedVector2Array([Vector2(lx2 + f * 70, -30), Vector2(lx2 + f * 86, -24), Vector2(lx2 + f * 70, -18)]), Color(0.85, 0.87, 0.92))
+		draw_line(Vector2(f * 20, -24), Vector2(lx2 + f * 70, -24), Color(0.3, 0.2, 0.12), 4.0)
+		draw_line(Vector2(f * 20, -25), Vector2(lx2 + f * 70, -25), Color(0.65, 0.5, 0.32), 1.4)
+		DU.poly(self, PackedVector2Array([Vector2(lx2 + f * 70, -31), Vector2(lx2 + f * 90, -24), Vector2(lx2 + f * 70, -17)]), Color(0.85, 0.87, 0.92))
+		draw_line(Vector2(lx2 + f * 66, -24), Vector2(lx2 + f * 62, -12 + sin(anim_t * 8.0) * 2.0), Color(0.8, 0.2, 0.2), 2.4)
+		DU.ball(self, Vector2(f * 36, -24), 3.6, skin)
 	else:
-		draw_arc(Vector2(f * 36, -26), 22.0, -PI / 2 if f > 0 else PI / 2, PI / 2 if f > 0 else 3 * PI / 2, 16, Color(0.55, 0.4, 0.25), 3.0)
-		draw_line(Vector2(f * 36, -48), Vector2(f * 36, -4), Color(0.9, 0.9, 0.85, 0.7), 1.0)
+		var a0 := -PI / 2 if f > 0 else PI / 2
+		var a1 := PI / 2 if f > 0 else 3 * PI / 2
+		var draw_k := 6.0 if state == "windup_volley" or state == "windup_rain" else 0.0
+		draw_arc(Vector2(f * 36, -26), 23.0, a0, a1, 20, Color(0.3, 0.2, 0.12), 5.0)
+		draw_arc(Vector2(f * 36, -26), 23.0, a0, a1, 20, Color(0.65, 0.48, 0.28), 2.6)
+		draw_polyline(PackedVector2Array([Vector2(f * 36, -49), Vector2(f * (36 - draw_k), -26), Vector2(f * 36, -3)]), Color(0.92, 0.92, 0.85, 0.8), 1.0)
+		DU.ball(self, Vector2(f * 36, -26), 3.6, skin)
+		if draw_k > 0.0:
+			draw_line(Vector2(f * (36 - draw_k), -26), Vector2(f * 62, -26), Color(0.85, 0.8, 0.7), 1.6)
+			DU.glow(self, Vector2(f * 62, -26), 10.0, Color(1, 0.8, 0.4), 0.5)
 	# flèches annoncées : marques au sol
 	for m in marks:
 		var mp := Vector2(m[0], floor_y) - global_position
 		var a := 0.4 + 0.4 * absf(sin(anim_t * 14.0))
+		DU.glow(self, mp + Vector2(0, -4), 16.0, Color(1.0, 0.4, 0.3), a * 0.6)
 		draw_line(mp + Vector2(-8, -2), mp + Vector2(8, -2), Color(1.0, 0.4, 0.3, a), 3.0)
 		draw_line(mp + Vector2(0, -10), mp + Vector2(0, -2), Color(1.0, 0.4, 0.3, a), 2.0)
 	draw_stun(-74.0)
+
+func _hleg(i: int, ph: float, gal: bool, c: Color, f: float) -> void:
+	var lx := -f * 10 + (-30 + i * 20)
+	var sw := sin(ph + i * 1.6) * (10.0 if gal else 2.0)
+	var top := Vector2(lx, 16)
+	var knee := Vector2(lx + sw * 0.5 + f * 3, 32)
+	var hoof := Vector2(lx + sw, 47)
+	draw_line(top, knee, c, 8.0)
+	draw_line(knee, hoof, c, 5.0)
+	draw_circle(knee, 3.6, c)
+	draw_line(hoof + Vector2(0, -6), hoof + Vector2(0, -3), Color(0.15, 0.12, 0.1, 0.6), 6.0)
+	DU.poly(self, PackedVector2Array([hoof + Vector2(-4, -2), hoof + Vector2(4, -2), hoof + Vector2(5, 3), hoof + Vector2(-5, 3)]), Color(0.18, 0.14, 0.12))

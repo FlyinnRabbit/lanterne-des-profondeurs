@@ -109,33 +109,92 @@ func _tick(delta: float) -> void:
 func _draw() -> void:
 	var f := float(dir)
 	var tele := telegraphing()
-	var armor := Color(0.55, 0.65, 0.85, 0.85 * fade)
+	var armor := Color(0.5, 0.6, 0.78)
 	if tele and fmod(anim_t, 0.12) < 0.06:
-		armor = Color(1.0, 1.0, 1.0, fade)
+		armor = Color(0.95, 0.97, 1.0)
 	if stun_t > 0.0:
 		armor = armor.darkened(0.35)
+	armor = body_color(armor)
+	armor.a = fade
+	var spirit := Color(0.6, 0.95, 1.0, fade)
+	var iron := Color(armor.darkened(0.45), fade)
 	for g in ghosts:
 		var gp: Vector2 = g[0] - global_position
-		draw_colored_polygon(DU.ellipse(gp, Vector2(18, 34)), Color(0.5, 0.75, 1.0, 0.3 * (1.0 - g[1] / 0.35)))
-	# cape fantomatique
+		var ga: float = 0.3 * (1.0 - float(g[1]) / 0.35)
+		DU.flat(self, DU.ellipse(gp + Vector2(0, -6), Vector2(16, 26)), Color(0.5, 0.75, 1.0, ga))
+		DU.flat(self, DU.ellipse(gp + Vector2(0, -34), Vector2(11, 12)), Color(0.5, 0.75, 1.0, ga))
+	DU.glow(self, Vector2(0, -10), 60.0, Color(0.5, 0.8, 1.0), 0.3 * fade)
+	# cape en lambeaux, translucide
 	var sway := sin(anim_t * 3.0) * 4.0
-	draw_colored_polygon(PackedVector2Array([Vector2(-14, -24), Vector2(14, -24), Vector2(18 - f * sway, 36), Vector2(0, 30), Vector2(-18 - f * sway, 36)]), Color(0.2, 0.3, 0.5, 0.6 * fade))
-	# armure
-	draw_colored_polygon(DU.ellipse(Vector2(0, -6), Vector2(16, 22)), body_color(armor))
-	draw_line(Vector2(-10, 14), Vector2(-10, 34), body_color(armor), 6.0)
-	draw_line(Vector2(10, 14), Vector2(10, 34), body_color(armor), 6.0)
-	# heaume à visière en T lumineuse
-	var hm := Vector2(f * 2, -34)
-	draw_colored_polygon(DU.ellipse(hm, Vector2(13, 14)), body_color(armor.lightened(0.1)))
-	draw_line(hm + Vector2(-8, -2), hm + Vector2(8, -2), Color(0.6, 0.95, 1.0, fade), 3.0)
-	draw_line(hm + Vector2(f * 1, -2), hm + Vector2(f * 1, 8), Color(0.6, 0.95, 1.0, fade), 3.0)
-	draw_line(hm + Vector2(0, -14), hm + Vector2(-f * 10, -26 + sway), Color(0.7, 0.85, 1.0, 0.7 * fade), 3.0)   # panache
-	# épée longue (levée pendant l'annonce)
+	var cape := PackedVector2Array([Vector2(-14, -26), Vector2(14, -26)])
+	for k in 7:
+		var t := k / 6.0
+		cape.append(Vector2(lerpf(18.0, -18.0, t) - f * sway * (0.5 + t * 0.5), 34 + (6.0 if k % 2 == 0 else -4.0) + sin(anim_t * 4.0 + k) * 2.0))
+	DU.flat(self, cape, Color(0.15, 0.22, 0.4, 0.75 * fade))
+	draw_polyline(cape, Color(0.5, 0.75, 1.0, 0.4 * fade), 1.2)
+	# jambières et solerets
+	for k in [-1.0, 1.0]:
+		var top := Vector2(k * 9, 12)
+		draw_line(top, Vector2(k * 10, 32), iron, 8.0)
+		draw_line(top, Vector2(k * 10, 32), armor, 5.0)
+		DU.ball(self, Vector2(k * 9.5, 22), 4.0, armor)
+		draw_line(Vector2(k * 10 - 3, 34), Vector2(k * 10 + f * 7, 34), iron, 4.0)
+	# tassettes
+	for k in 3:
+		var tx := -12.0 + k * 8.0
+		var tas := PackedVector2Array([Vector2(tx, 6), Vector2(tx + 8, 6), Vector2(tx + 7, 16), Vector2(tx + 1, 16)])
+		_plate(tas, armor.darkened(0.1))
+	# cuirasse : plastron bombé, arête, sigil lumineux
+	var chest := PackedVector2Array([Vector2(-15, -24), Vector2(15, -24), Vector2(17, -10), Vector2(11, 8), Vector2(-11, 8), Vector2(-17, -10)])
+	_plate(chest, armor)
+	draw_line(Vector2(f * 1, -22), Vector2(f * 1, 6), Color(DU.lit(armor, 1.4, 0.1), fade), 1.4)
+	DU.flat(self, DU.diamond(Vector2(f * 1, -10), Vector2(4, 6)), spirit)
+	DU.glow(self, Vector2(f * 1, -10), 12.0, spirit, 0.5 * fade)
+	draw_line(Vector2(-12, 4), Vector2(12, 4), iron, 3.0)
+	# épaulières
+	for k in [-1.0, 1.0]:
+		var ep := Vector2(k * 17, -22)
+		var pa := DU.ellipse(ep, Vector2(9, 6), 16, PI, TAU)
+		pa.append(ep + Vector2(k * 8, 4))
+		pa.append(ep + Vector2(-k * 8, 4))
+		_plate(pa, armor.lightened(0.05))
+	# heaume : visière en T lumineuse, panache spectral
+	var hm := Vector2(f * 2, -36)
+	var helm := PackedVector2Array([hm + Vector2(-12, 10), hm + Vector2(-13, -4), hm + Vector2(-8, -13), hm + Vector2(0, -15), hm + Vector2(8, -13), hm + Vector2(13, -4), hm + Vector2(12, 10), hm + Vector2(0, 13)])
+	_plate(helm, armor.lightened(0.08))
+	draw_line(hm + Vector2(0, -15), hm + Vector2(0, 12), Color(DU.lit(armor, 1.4, 0.1), fade), 1.2)
+	draw_line(hm + Vector2(-9, -2), hm + Vector2(9, -2), Color(0.02, 0.03, 0.06, fade), 4.0)
+	draw_line(hm + Vector2(f * 1, -2), hm + Vector2(f * 1, 8), Color(0.02, 0.03, 0.06, fade), 4.0)
+	draw_line(hm + Vector2(-8, -2), hm + Vector2(8, -2), spirit, 2.0)
+	draw_line(hm + Vector2(f * 1, -2), hm + Vector2(f * 1, 7), spirit, 2.0)
+	DU.glow(self, hm + Vector2(0, -2), 16.0, spirit, 0.5 * fade)
+	var plume := PackedVector2Array()
+	for k in 8:
+		var t := k / 7.0
+		plume.append(hm + Vector2(-f * t * 22.0, -14.0 - sin(t * PI) * 8.0 + t * 6.0 + sin(anim_t * 4.0 + t * 3.0) * 2.0 * t))
+	draw_polyline(plume, Color(0.55, 0.85, 1.0, 0.75 * fade), 4.0)
+	draw_polyline(plume, Color(0.85, 0.97, 1.0, 0.6 * fade), 1.5)
+	# épée longue (levée pendant l'annonce) : lame lumineuse, garde, pommeau
 	var hand := Vector2(f * 16, -4)
 	var tip := hand + (Vector2(f * 10, -52) if tele else Vector2(f * 54, 6))
 	if slash_t > 0.0:
 		tip = hand + Vector2(f * 70, -4)
 		draw_arc(hand, 60.0, (-0.9 if f > 0 else PI - 0.9), (0.9 if f > 0 else PI + 0.9), 16, Color(0.7, 0.95, 1.0, 0.7), 6.0)
-	draw_line(hand, tip, Color(0.85, 0.95, 1.0, fade), 4.0)
-	draw_line(hand + Vector2(0, -8), hand + Vector2(0, 8), Color(0.5, 0.55, 0.7, fade), 4.0)
-	draw_stun(-58.0)
+	var d := (tip - hand).normalized()
+	var nrm := d.orthogonal()
+	var blade := PackedVector2Array([hand + d * 6.0 + nrm * 3.0, tip - d * 6.0 + nrm * 2.4, tip, tip - d * 6.0 - nrm * 2.4, hand + d * 6.0 - nrm * 3.0])
+	DU.flat(self, blade, Color(0.82, 0.93, 1.0, fade))
+	draw_line(hand + d * 6.0, tip - d * 4.0, Color(1, 1, 1, 0.8 * fade), 1.0)
+	DU.glow(self, hand.lerp(tip, 0.6), 26.0, Color(0.6, 0.9, 1.0), 0.35 * fade)
+	draw_line(hand + d * 5.0 + nrm * 9.0, hand + d * 5.0 - nrm * 9.0, Color(0.55, 0.5, 0.65, fade), 4.0)
+	draw_line(hand - d * 4.0, hand + d * 4.0, Color(0.3, 0.25, 0.35, fade), 4.0)
+	draw_circle(hand - d * 6.0, 3.0, spirit)
+	DU.ball(self, hand, 4.5, armor)
+	draw_stun(-62.0)
+
+func _plate(pts: PackedVector2Array, c: Color) -> void:
+	if c.a > 0.95:
+		DU.poly(self, pts, c)
+	else:
+		DU.flat(self, pts, c)
+		draw_polyline(pts, Color(0.75, 0.9, 1.0, c.a * 0.6), 1.0)

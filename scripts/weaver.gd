@@ -52,17 +52,31 @@ func _physics_process(delta: float) -> void:
 func _draw() -> void:
 	if hanging:
 		draw_line(Vector2(0, -10), anchor - global_position, Color(0.85, 0.85, 0.95, 0.6), 1.0)
-	var body := body_color(Color(0.22, 0.2, 0.28))
+	var body := body_color(Color(0.24, 0.21, 0.3))
 	var walk := sin(anim_t * (18.0 if absf(velocity.x) > 5.0 else 3.0)) * 3.0
+	# huit pattes à trois segments, les plus lointaines plus sombres
 	for k in [-1.0, 1.0]:
 		for i in 4:
-			var bx: float = k * (4 + i * 3)
-			var kx: float = k * (12 + i * 4)
-			var ky := -6.0 + i * 3.0 + (walk if i % 2 == 0 else -walk)
-			draw_line(Vector2(bx, 0), Vector2(kx, ky - 6), body, 2.0)
-			draw_line(Vector2(kx, ky - 6), Vector2(kx + k * 4, ky + 8), body, 2.0)
-	draw_colored_polygon(DU.ellipse(Vector2(0, 0), Vector2(11, 9)), body)
-	draw_colored_polygon(DU.ellipse(Vector2(0, -10), Vector2(7, 6)), body)
+			var bx: float = k * (3 + i * 2.5)
+			var kx: float = k * (13 + i * 4)
+			var ky := -8.0 + i * 3.0 + (walk if i % 2 == 0 else -walk)
+			var col := body.darkened(0.25 if i % 2 == 0 else 0.0)
+			draw_line(Vector2(bx, -2), Vector2(kx, ky - 6), col, 2.2)
+			draw_line(Vector2(kx, ky - 6), Vector2(kx + k * 4, ky + 4), col, 1.8)
+			draw_line(Vector2(kx + k * 4, ky + 4), Vector2(kx + k * 5, ky + 10), col, 1.2)
+			draw_circle(Vector2(kx, ky - 6), 1.3, col.lightened(0.15))
+	# abdomen à motif en sablier
+	DU.poly(self, DU.ellipse(Vector2(0, 2), Vector2(11, 10), 22), body)
+	DU.flat(self, PackedVector2Array([Vector2(-3, -2), Vector2(3, -2), Vector2(0, 2), Vector2(3, 6), Vector2(-3, 6), Vector2(0, 2)]), Color(0.85, 0.2, 0.25))
+	for i in 6:
+		var a := i * TAU / 6.0
+		draw_line(Vector2(cos(a) * 9.0, 2 + sin(a) * 8.0), Vector2(cos(a) * 11.5, 2 + sin(a) * 10.0), body.lightened(0.2), 0.8)
+	# céphalothorax, crochets, grappe d'yeux
+	DU.poly(self, DU.ellipse(Vector2(0, -10), Vector2(7, 6), 18), body.lightened(0.05))
+	for k in [-1.0, 1.0]:
+		draw_line(Vector2(k * 2, -6), Vector2(k * 3, -2), Color(0.75, 0.7, 0.6), 1.6)
 	for i in 4:
-		draw_circle(Vector2(-4.5 + i * 3, -11 + (i % 2)), 1.3, Color(1.0, 0.3, 0.3))
-	draw_line(Vector2(-2, 2), Vector2(2, 6), Color(0.8, 0.2, 0.25), 2.0)
+		draw_circle(Vector2(-4.5 + i * 3, -12 + (i % 2)), 1.4, Color(1.0, 0.3, 0.3))
+	draw_circle(Vector2(-1.5, -14.5), 1.0, Color(1.0, 0.45, 0.4))
+	draw_circle(Vector2(1.5, -14.5), 1.0, Color(1.0, 0.45, 0.4))
+	DU.glow(self, Vector2(0, -12), 9.0, Color(1, 0.3, 0.3), 0.3)

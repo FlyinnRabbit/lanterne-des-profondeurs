@@ -190,41 +190,106 @@ func _draw() -> void:
 	elif state == "charge":
 		lean = f * 6.0
 	var breathe := sin(anim_t * 3.0) * 1.5
-	var shell_col := Color(0.32, 0.36, 0.48) if variant == 1 else Color(0.62, 0.58, 0.45)
+	var abb := variant == 2
+	var shell_col := Color(0.3, 0.35, 0.48) if not abb else Color(0.66, 0.62, 0.5)
 	if tele and fmod(anim_t, 0.12) < 0.06:
 		shell_col = Color(0.7, 0.35, 0.3) if state != "windup_volley" else Color(0.75, 0.45, 0.85)
 	if stun_t > 0.0:
 		shell_col = shell_col.darkened(0.35)
-	var dark := Color(0.08, 0.07, 0.11)
-	var step := sin(anim_t * (14.0 if absf(velocity.x) > 10.0 else 0.0)) * 5.0
+	shell_col = body_color(shell_col)
+	var dark := body_color(Color(0.08, 0.07, 0.11))
+	var moving := absf(velocity.x) > 10.0
+	var step := sin(anim_t * 14.0) * 5.0 if moving else 0.0
+	var by := 4 + breathe
+	# pattes articulées : rangée du fond plus sombre
+	for row in [0, 1]:
+		for i in 4:
+			var lx := -24.0 + i * 16.0 + (6.0 if row == 0 else 0.0)
+			var sw := step if (i + row) % 2 == 0 else -step
+			var col := dark.lightened(0.04) if row == 1 else dark.darkened(0.4)
+			var hip := Vector2(lx + lean * 0.5, 16 + breathe * 0.5)
+			var knee := Vector2(lx - f * 6 + sw * 0.4, 22)
+			var foot := Vector2(lx + sw, 32)
+			draw_line(hip, knee, col, 6.0)
+			draw_line(knee, foot, col, 4.5)
+			draw_circle(knee, 3.5, col.lightened(0.08))
+			draw_line(foot, foot + Vector2(-f * 4, 0), col, 3.0)
+	# ventre segmenté
+	DU.poly(self, DU.ellipse(Vector2(lean, 8 + breathe), Vector2(38, 22), 28), dark.lightened(0.06))
+	for i in 5:
+		var sx := lean - 28 + i * 14
+		draw_arc(Vector2(sx, 14 + breathe), 9.0, 0.3, PI - 0.3, 8, dark.lightened(0.18), 1.6)
+	# carapace : grandes plaques, arêtes, rivets, mousse ou voile
+	var c := Vector2(lean - f * 4, by)
+	var shell := DU.ellipse(c, Vector2(36, 30), 30, PI, TAU)
+	DU.poly(self, shell, shell_col)
 	for i in 4:
-		var lx := -24.0 + i * 16.0
-		draw_line(Vector2(lx, 18), Vector2(lx + (step if i % 2 == 0 else -step), 32), dark, 5.0)
-	draw_colored_polygon(DU.ellipse(Vector2(lean, 8 + breathe), Vector2(38, 22)), body_color(dark))
-	var shell := DU.ellipse(Vector2(lean - f * 4, 4 + breathe), Vector2(36, 30), 24, PI, TAU)
-	draw_colored_polygon(shell, body_color(shell_col))
-	for i in 4:
-		draw_arc(Vector2(lean - f * 4, 4 + breathe), 10.0 + i * 7.0, PI + 0.25, TAU - 0.25, 16, body_color(shell_col.lightened(0.25)), 2.0)
-	if variant == 2:
-		# voile et couronne de l'Abbesse
-		draw_colored_polygon(PackedVector2Array([Vector2(lean - f * 30, -10), Vector2(lean - f * 52, 26), Vector2(lean - f * 20, 18)]), body_color(Color(0.85, 0.85, 0.9, 0.8)))
+		var r := 10.0 + i * 7.0
+		draw_arc(c, r, PI + 0.22, TAU - 0.22, 20, shell_col.darkened(0.45), 2.2)
+		draw_arc(c + Vector2(0, -1.5), r, PI + 0.4, PI + 1.3, 10, DU.lit(shell_col, 1.5, 0.08), 1.4)
+	for i in 6:
+		var a := PI + 0.35 + i * 0.48
+		draw_circle(c + Vector2(cos(a), sin(a)) * 31.0, 1.8, shell_col.darkened(0.5))
+		draw_circle(c + Vector2(cos(a), sin(a)) * 31.0 + Vector2(-0.5, -0.5), 0.8, DU.lit(shell_col, 1.7, 0.1))
+	if not abb:
+		# pierres et lichen accrochés au dos
 		for i in 3:
-			var cx := lean - f * 4 - 14 + i * 14
-			draw_colored_polygon(PackedVector2Array([Vector2(cx - 5, -24), Vector2(cx + 5, -24), Vector2(cx, -38 - (i % 2) * 6)]), body_color(Color(0.95, 0.85, 0.5)))
+			var a := PI + 1.0 + i * 0.55
+			var sp := c + Vector2(cos(a), sin(a)) * 27.0
+			DU.poly(self, DU.ellipse(sp, Vector2(5, 3.5), 10), Color(0.3, 0.32, 0.36))
+		for i in 7:
+			var a := PI + 0.7 + i * 0.25
+			draw_circle(c + Vector2(cos(a), sin(a)) * 29.0, 2.2, Color(0.35, 0.55, 0.5, 0.8))
+		# corne frontale
+		DU.poly(self, PackedVector2Array([c + Vector2(f * 22, -18), c + Vector2(f * 30, -14), c + Vector2(f * 40, -32)]), body_color(Color(0.75, 0.72, 0.62)))
+	else:
+		# voile de l'Abbesse : tissu à plis qui ondule
+		var w := sin(anim_t * 2.5) * 3.0
+		var veil := PackedVector2Array([c + Vector2(-f * 26, -18), c + Vector2(-f * 46, 10 + w), c + Vector2(-f * 50, 26 + w), c + Vector2(-f * 34, 22), c + Vector2(-f * 18, 14)])
+		DU.poly(self, veil, body_color(Color(0.86, 0.86, 0.92)))
+		for k in 3:
+			draw_line(c + Vector2(-f * (24 + k * 6), -12 + k * 4), c + Vector2(-f * (36 + k * 5), 20 + w), Color(0.6, 0.62, 0.72, 0.8), 1.2)
+		# chapelet de perles
+		for k in 7:
+			var a := PI * 0.2 + k * 0.25
+			DU.ball(self, c + Vector2(cos(a) * 22.0 * f, 6 + sin(a) * 10.0), 2.2, Color(0.85, 0.8, 0.7))
+		# gouttes d'eau qui tombent de la carapace
+		for k in 2:
+			var dy := fposmod(anim_t * 30.0 + k * 17.0, 28.0)
+			draw_circle(c + Vector2(-14 + k * 22, 2 + dy), 1.6, Color(0.6, 0.8, 1.0, 1.0 - dy / 28.0))
+		# couronne à gemmes
+		var crown := PackedVector2Array([Vector2(c.x - 20, -22 + breathe)])
+		for k in 7:
+			crown.append(Vector2(c.x - 20 + k * 6.6, (-38.0 if k % 2 == 1 else -26.0) - (6.0 if k == 3 else 0.0) + breathe))
+		crown.append(Vector2(c.x + 20, -22 + breathe))
+		DU.poly(self, crown, body_color(Color(0.95, 0.82, 0.45)))
+		for k in 3:
+			var gx := c.x - 13 + k * 13
+			DU.ball(self, Vector2(gx, -27 + breathe), 2.6, Color(0.6, 0.4, 0.95) if k != 1 else Color(0.45, 0.85, 0.9))
+	# tête : casque, mandibules, yeux
 	var head := Vector2(lean + f * 34, 6 + breathe)
-	draw_colored_polygon(DU.ellipse(head, Vector2(14, 12)), body_color(Color(0.18, 0.18, 0.26)))
-	draw_line(head + Vector2(f * 8, 6), head + Vector2(f * 22, 12), body_color(Color(0.8, 0.78, 0.7)), 4.0)
-	draw_line(head + Vector2(f * 8, 8), head + Vector2(f * 18, 18), body_color(Color(0.8, 0.78, 0.7)), 4.0)
+	var hc := body_color(Color(0.18, 0.18, 0.27) if not abb else Color(0.3, 0.27, 0.35))
+	DU.poly(self, DU.ellipse(head, Vector2(15, 13), 22), hc)
+	draw_arc(head, 10.0, PI + 0.3, TAU - 0.3, 10, DU.lit(hc, 1.8, 0.08), 1.6)
+	var mand := body_color(Color(0.82, 0.78, 0.68))
+	var open := 4.0 if tele else 0.0
+	DU.poly(self, PackedVector2Array([head + Vector2(f * 8, 4), head + Vector2(f * 24, 8 - open), head + Vector2(f * 20, 12 - open), head + Vector2(f * 9, 9)]), mand)
+	DU.poly(self, PackedVector2Array([head + Vector2(f * 8, 9), head + Vector2(f * 20, 18 + open), head + Vector2(f * 15, 19 + open), head + Vector2(f * 7, 12)]), mand.darkened(0.15))
+	# antennes
+	draw_polyline(PackedVector2Array([head + Vector2(f * 4, -10), head + Vector2(f * 12, -24), head + Vector2(f * 22, -28 + sin(anim_t * 4.0) * 2.0)]), dark.lightened(0.15), 2.0)
 	var eye_col := Color(1.0, 0.45, 0.2) if state != "sleep" else Color(0.35, 0.2, 0.15)
-	if variant == 2 and state != "sleep":
+	if abb and state != "sleep":
 		eye_col = Color(0.8, 0.5, 1.0)
 	if tele:
 		eye_col = Color(1.0, 0.9, 0.5)
-		draw_circle(head + Vector2(f * 5, -3), 10.0, Color(1.0, 0.6, 0.2, 0.25))
 	if stun_t > 0.0:
 		eye_col = Color(0.4, 0.4, 0.45)
 		for i in 4:
 			var a := anim_t * 4.0 + i * TAU / 4.0
-			draw_circle(Vector2(cos(a) * 26.0, -40.0 + sin(a) * 5.0), 3.0, Color(1, 1, 0.7))
-	draw_circle(head + Vector2(f * 5, -3), 3.5, eye_col)
-	draw_circle(head + Vector2(f * -2, -5), 2.5, eye_col)
+			var sc := Vector2(cos(a) * 26.0, -48.0 + sin(a) * 5.0)
+			DU.flat(self, DU.diamond(sc, Vector2(3.5, 4.5)), Color(1, 1, 0.7))
+	if state != "sleep":
+		DU.glow(self, head + Vector2(f * 5, -3), 16.0 if tele else 10.0, eye_col, 0.6)
+	DU.ball(self, head + Vector2(f * 5, -3), 3.8, eye_col)
+	DU.ball(self, head + Vector2(f * -2, -5), 2.6, eye_col)
+	draw_circle(head + Vector2(f * 4.2, -4.2), 1.0, Color(1, 1, 0.9))

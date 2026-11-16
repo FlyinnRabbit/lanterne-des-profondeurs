@@ -33,6 +33,8 @@ func _run() -> void:
 		gs.palier = pal
 		gs.step = 2
 		change_scene_to_file("res://main.tscn")
+		await process_frame   # le changement de scène est différé
+		await process_frame
 		paused = false
 		Engine.time_scale = 1.0
 		await _wait(4)

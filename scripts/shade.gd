@@ -52,9 +52,9 @@ func _draw() -> void:
 		pts.append(Vector2(cos(a) * 11.0, -6 + bob + sin(a) * 14.0))
 	for i in 5:
 		pts.append(Vector2(11.0 - i * 5.5, 16 + bob + (4.0 if i % 2 == 0 else 0.0) + sin(anim_t * 6.0 + i) * 2.0))
-	draw_colored_polygon(pts, c)
+	DU.poly(self, pts, c)
 	draw_line(Vector2(-6, -18 + bob), Vector2(-10, -30 + bob), c, 3.0)
 	draw_line(Vector2(6, -18 + bob), Vector2(10, -30 + bob), c, 3.0)
-	draw_circle(Vector2(-4, -8 + bob), 2.5, Color(0.85, 0.75, 1.0))
-	draw_circle(Vector2(4, -8 + bob), 2.5, Color(0.85, 0.75, 1.0))
-	draw_circle(Vector2.ZERO, 26.0, Color(0.5, 0.35, 0.9, 0.08 + 0.05 * sin(anim_t * 2.0)))
+	DU.ball(self, Vector2(-4, -8 + bob), 2.5, Color(0.85, 0.75, 1.0))
+	DU.ball(self, Vector2(4, -8 + bob), 2.5, Color(0.85, 0.75, 1.0))
+	DU.ball(self, Vector2.ZERO, 26.0, Color(0.5, 0.35, 0.9, 0.08 + 0.05 * sin(anim_t * 2.0)))

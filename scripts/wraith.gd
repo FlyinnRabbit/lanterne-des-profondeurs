@@ -65,17 +65,28 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	var c := body_color(Color(0.75, 0.8, 0.95))
-	c.a = 0.75 * alpha
-	var pts := PackedVector2Array()
-	for i in 13:
-		var a := PI + i * PI / 12.0
-		pts.append(Vector2(cos(a) * 13.0, -4 + sin(a) * 14.0))
-	for i in 5:
-		var x := 13.0 - i * 6.5
-		pts.append(Vector2(x, 14 + sin(anim_t * 6.0 + i) * 4.0 + (4.0 if i % 2 == 0 else 0.0)))
-	draw_colored_polygon(pts, c)
-	var eye := Color(0.3, 0.9, 1.0, alpha)
-	draw_circle(Vector2(-4, -6), 2.5, eye)
-	draw_circle(Vector2(4, -6), 2.5, eye)
-	draw_circle(Vector2.ZERO, 22.0, Color(0.5, 0.7, 1.0, 0.08 * alpha))
+	var c := body_color(Color(0.72, 0.8, 0.96))
+	DU.glow(self, Vector2(0, -2), 30.0, Color(0.5, 0.7, 1.0), 0.35 * alpha)
+	# voiles qui traînent en plusieurs couches
+	for layer in 2:
+		var cl := c.darkened(0.25 * (1 - layer))
+		cl.a = (0.35 + 0.4 * layer) * alpha
+		var sc := 1.0 - layer * 0.12
+		var pts := PackedVector2Array()
+		for i in 13:
+			var a := PI + i * PI / 12.0
+			pts.append(Vector2(cos(a) * 14.0 * sc, -5 + sin(a) * 15.0 * sc))
+		for i in 6:
+			var x := 14.0 * sc - i * 5.6 * sc
+			var wave := sin(anim_t * 6.0 + i + layer * 1.7) * 4.0
+			pts.append(Vector2(x + wave * 0.4, 14 + layer * -2 + wave + (6.0 if i % 2 == 0 else 0.0)))
+		DU.flat(self, pts, cl)
+	# capuche et visage creux
+	var hood := Color(c.darkened(0.3), 0.85 * alpha)
+	draw_arc(Vector2(0, -6), 12.0, PI * 1.05, PI * 1.95, 14, hood, 2.0)
+	DU.flat(self, DU.ellipse(Vector2(0, -5), Vector2(8, 6.5)), Color(0.06, 0.08, 0.16, 0.85 * alpha))
+	var eye := Color(0.35, 0.95, 1.0, alpha)
+	for ex in [-3.2, 3.2]:
+		DU.flat(self, DU.ellipse(Vector2(ex, -6), Vector2(1.8, 2.6)), eye)
+		DU.glow(self, Vector2(ex, -6), 7.0, Color(0.4, 0.9, 1.0), 0.5 * alpha)
+	draw_line(Vector2(-3, -0.5), Vector2(3, -0.5), Color(0.35, 0.95, 1.0, 0.4 * alpha), 1.0)

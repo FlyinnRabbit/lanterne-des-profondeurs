@@ -57,7 +57,7 @@ const HUB := {
 		{"text": "Le marchand échange tes éclats contre des emblèmes,\ndes encoches et des fragments de vie. {up} : lui parler.\nL'arsenal (à droite du banc) : achète et change ton arme de base."},
 		{"text": "L'ascenseur descend vers les paliers. Chaque palier : 2 niveaux et un boss.\nTermine-le pour débloquer le suivant. {up} : appeler l'ascenseur."},
 	],
-	"palette": {"bg": Color(0.05, 0.04, 0.03), "far": Color(0.1, 0.08, 0.06), "mid": Color(0.14, 0.11, 0.08), "near": Color(0.11, 0.09, 0.06),
+	"palette": {"id": "hub", "bg": Color(0.05, 0.04, 0.03), "far": Color(0.1, 0.08, 0.06), "mid": Color(0.14, 0.11, 0.08), "near": Color(0.11, 0.09, 0.06),
 		"rock": Color(0.16, 0.13, 0.11), "rock_hi": Color(0.32, 0.27, 0.2), "moss": Color(0.95, 0.8, 0.5), "spike": Color(0.9, 0.85, 0.7),
 		"ambient": Color(0.82, 0.74, 0.62), "dust": Color(1.0, 0.85, 0.55, 0.55), "dust_dir": Vector2(0.0, -1), "light": Color(1.0, 0.85, 0.6)},
 	"map": [

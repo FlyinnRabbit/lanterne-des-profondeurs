@@ -17,6 +17,8 @@ func _run() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://save.cfg"))
 	gs.show_title = false
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	await _wait()
 	gs.new_game(true, 1)
 	var main = await _scene()

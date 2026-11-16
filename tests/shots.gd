@@ -16,12 +16,16 @@ func _run() -> void:
 	var st = root.get_node("Settings")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://save.cfg"))
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	await _wait(10)
 	await _shot("titre")
 	gs.show_title = false
 	gs.mode = "hub"
 	gs.pending_message = "Emblème obtenu : Cape Rapide\nÉquipe-le depuis l'inventaire ({inventory|1}) en te reposant sur un banc."
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	paused = false
 	await _wait(10)
 	var main = current_scene

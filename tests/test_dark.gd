@@ -13,6 +13,8 @@ func _run() -> void:
 		gs.difficulty = d
 		gs.mode = "hub"
 		change_scene_to_file("res://main.tscn")
+		await process_frame   # le changement de scène est différé
+		await process_frame
 		paused = false
 		await _frames(5)
 		gs.start_descent(2, current_scene.player, "dark")

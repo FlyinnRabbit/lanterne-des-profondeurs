@@ -7,6 +7,8 @@ func _frames(n: int) -> void:
 func _ending(gs):
 	gs.mode = "descent"; gs.palier = 7; gs.step = 2
 	change_scene_to_file("res://main.tscn")
+	await process_frame   # le changement de scène est différé
+	await process_frame
 	paused = false
 	await _frames(6)
 	var main = current_scene

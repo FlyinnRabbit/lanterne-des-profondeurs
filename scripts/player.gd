@@ -702,7 +702,7 @@ func _draw_held(wid: String, bob: float) -> void:
 			var c := Vector2(13, -6 + bob)
 			for i in 4:
 				var a := i * PI / 2.0 + anim_t * 2.0
-				draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a - 0.35) * 3.0, c + Vector2.from_angle(a) * 7.0]), Color(0.8, 0.85, 0.95))
+				DU.flat(self, PackedVector2Array([c, c + Vector2.from_angle(a - 0.35) * 3.0, c + Vector2.from_angle(a) * 7.0]), Color(0.8, 0.85, 0.95))
 		_:
 			draw_line(Vector2(8, -14 + bob), Vector2(16, -2), Color(0.8, 0.82, 0.9), 2.0)
 
@@ -858,34 +858,51 @@ func _draw() -> void:
 
 	var sq := squash * (Vector2(1.15, 0.58) if crouching else Vector2.ONE)
 	draw_set_transform(Vector2(0, SIZE.y / 2.0), 0.0, Vector2(sq.x * facing, sq.y))
-	var cloak := Color(0.07, 0.06, 0.11)
-	var trim := Color(0.22, 0.2, 0.32)
-	# Écharpe qui flotte
+	var cloak := Color(0.1, 0.085, 0.16)
+	var trim := Color(0.3, 0.27, 0.42)
+	# Écharpe qui flotte (deux tons, bout effiloché)
 	var scarf := PackedVector2Array([Vector2(-4, -24 + bob), Vector2(-12, -22 + bob + sway * 0.5), Vector2(-20, -24 + bob + sway), Vector2(-26, -20 + bob + sway * 1.4)])
-	draw_polyline(scarf, Color(0.45, 0.8, 0.82), 3.0)
-	# Cape
+	draw_polyline(scarf, Color(0.22, 0.5, 0.55), 4.2)
+	draw_polyline(scarf, Color(0.5, 0.85, 0.86), 2.2)
+	for i in 3:
+		draw_line(scarf[3], scarf[3] + Vector2(-3 - i, 2.5 + i * 1.5), Color(0.4, 0.75, 0.78), 1.0)
+	# Cape : dégradé, doublure et plis
 	var cape := PackedVector2Array([
 		Vector2(-8, -26 + bob), Vector2(8, -26 + bob), Vector2(12, -3), Vector2(8, 0),
 		Vector2(4, -4 + sway * 0.3), Vector2(0, 0), Vector2(-4, -4 - sway * 0.3), Vector2(-8, 0), Vector2(-13, -3)])
-	draw_colored_polygon(cape, cloak)
-	draw_polyline(cape, trim, 1.2)
-	# Petites jambes
+	DU.poly(self, cape, cloak, false)
+	DU.flat(self, PackedVector2Array([Vector2(8, 0), Vector2(4, -4 + sway * 0.3), Vector2(6, -6), Vector2(11, -3.5)]), Color(0.32, 0.18, 0.3))
+	DU.flat(self, PackedVector2Array([Vector2(-8, 0), Vector2(-4, -4 - sway * 0.3), Vector2(-7, -6), Vector2(-12, -3.5)]), Color(0.24, 0.13, 0.22))
+	for fx in [-4.0, 2.0, 7.0]:
+		draw_line(Vector2(fx, -20 + bob), Vector2(fx * 1.25, -5), Color(0, 0, 0, 0.35), 1.0)
+	draw_line(Vector2(-7, -25 + bob), Vector2(-11.5, -4), Color(trim, 0.9), 1.0)
+	draw_polyline(PackedVector2Array([Vector2(12, -3), Vector2(8, 0), Vector2(4, -4 + sway * 0.3), Vector2(0, 0), Vector2(-4, -4 - sway * 0.3), Vector2(-8, 0), Vector2(-13, -3)]), Color(0.02, 0.02, 0.04), 1.2)
+	# Petites jambes et bottes
 	if not sitting:
 		var step := sin(anim_t * 16.0) * 3.0 if moving else 0.0
-		draw_line(Vector2(-3, -3), Vector2(-3 + step, 0), cloak, 3.0)
-		draw_line(Vector2(3, -3), Vector2(3 - step, 0), cloak, 3.0)
+		draw_line(Vector2(-3, -3), Vector2(-3 + step, 0), Color(0.05, 0.04, 0.08), 3.2)
+		draw_line(Vector2(3, -3), Vector2(3 - step, 0), Color(0.05, 0.04, 0.08), 3.2)
+		draw_line(Vector2(-4.5 + step, 0), Vector2(-1 + step, 0), Color(0.3, 0.22, 0.18), 2.0)
+		draw_line(Vector2(1.5 - step, 0), Vector2(5 - step, 0), Color(0.3, 0.22, 0.18), 2.0)
+	# Fermoir de la cape
+	draw_circle(Vector2(5, -24 + bob), 2.2, Color(0.75, 0.6, 0.3))
+	draw_circle(Vector2(4.4, -24.6 + bob), 0.9, Color(1.0, 0.92, 0.6))
 	# Capuche pointue (la pointe retombe vers l'arrière)
 	var hy := -26.0 + bob
 	var hood := PackedVector2Array([
 		Vector2(-10, hy + 4), Vector2(11, hy + 4), Vector2(12, hy - 8), Vector2(6, hy - 16),
 		Vector2(-4, hy - 18), Vector2(-14, hy - 22 + sway * 0.5), Vector2(-11, hy - 8)])
-	draw_colored_polygon(hood, cloak)
-	draw_polyline(hood, trim, 1.2)
+	DU.poly(self, hood, cloak.lightened(0.04))
+	draw_line(Vector2(-3, hy - 15), Vector2(-12, hy - 19 + sway * 0.5), Color(trim, 0.7), 1.0)
+	draw_polyline(PackedVector2Array([Vector2(-1, hy - 13), Vector2(10, hy - 9), Vector2(10.5, hy + 2)]), Color(trim, 0.8), 1.0)
 	# Visage : vide sombre et un œil ambré
-	draw_colored_polygon(DU.ellipse(Vector2(3, hy - 6), Vector2(6.5, 6.0)), Color(0.0, 0.0, 0.02))
+	DU.flat(self, DU.ellipse(Vector2(3, hy - 6), Vector2(6.5, 6.0)), Color(0.0, 0.0, 0.02))
 	var blink := 0.3 if fmod(anim_t, 3.7) < 0.12 else 2.6
-	draw_circle(Vector2(5, hy - 6), 5.0, Color(1.0, 0.7, 0.3, 0.25))
-	draw_colored_polygon(DU.ellipse(Vector2(5, hy - 6), Vector2(2.4, blink)), Color(1.0, 0.8, 0.4))
+	draw_circle(Vector2(5, hy - 6), 7.0, Color(1.0, 0.65, 0.25, 0.14))
+	draw_circle(Vector2(5, hy - 6), 4.5, Color(1.0, 0.7, 0.3, 0.25))
+	DU.flat(self, DU.ellipse(Vector2(5, hy - 6), Vector2(2.4, blink)), Color(1.0, 0.8, 0.4))
+	if blink > 1.0:
+		draw_circle(Vector2(4.3, hy - 7), 0.8, Color(1, 1, 0.9))
 	# Arme tenue au repos
 	var wid: String = GameState.weapon()
 	if attack_t <= 0.0 and not sitting:
@@ -936,7 +953,7 @@ func _draw() -> void:
 				var k := clampf(attack_t / THRUST_TIME, 0.0, 1.0)
 				var tip := Vector2(facing * r.size.x, -4)
 				draw_line(Vector2(0, -4), tip, Color(0.95, 0.97, 1.0, 0.9 * k), 5.0)
-				draw_colored_polygon(PackedVector2Array([tip + Vector2(facing * 14, 0), tip + Vector2(0, -6), tip + Vector2(0, 6)]), Color(1, 1, 1, k))
+				DU.flat(self, PackedVector2Array([tip + Vector2(facing * 14, 0), tip + Vector2(0, -6), tip + Vector2(0, 6)]), Color(1, 1, 1, k))
 				for i in 4:
 					draw_line(Vector2(-facing * (10 + i * 14), -14 + i * 7), Vector2(-facing * (40 + i * 14), -14 + i * 7), Color(0.7, 0.85, 1.0, 0.4 * k), 2.0)
 			"low":
