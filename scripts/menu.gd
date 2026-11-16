@@ -44,6 +44,8 @@ var ach_list: VBoxContainer
 var ach_back: Button
 var route: Label
 var save_label: Label
+var upd_button: Button
+var upd_label: Label
 
 func _ready() -> void:
 	layer = 20
@@ -131,6 +133,41 @@ func _build_title(root: Control) -> void:
 	v.add_child(_button("Succès", _open_achievements))
 	if not OS.has_feature("web"):   # dans un navigateur, on ferme simplement l'onglet
 		v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
+	# version et mise à jour (voir updater.gd)
+	upd_button = _button("", _on_update_pressed)
+	upd_button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	upd_button.add_theme_color_override("font_color", Color(1.0, 0.88, 0.6))
+	upd_button.visible = false
+	v.add_child(upd_button)
+	upd_label = Label.new()
+	upd_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	upd_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	upd_label.add_theme_font_size_override("font_size", 13)
+	upd_label.add_theme_color_override("font_color", Color(0.5, 0.56, 0.68))
+	v.add_child(upd_label)
+	Updater.changed.connect(_refresh_update)
+	_refresh_update()
+
+func _refresh_update() -> void:
+	if upd_label == null:
+		return
+	upd_button.visible = Updater.state in ["ready", "available"]
+	upd_label.text = tr("Version %s") % Updater.version
+	match Updater.state:
+		"downloading":
+			upd_label.text = tr("Mise à jour %s : téléchargement… %d %%") % [Updater.latest, int(Updater.progress * 100.0)]
+		"ready":
+			upd_button.text = tr("Mise à jour %s prête — redémarrer") % Updater.latest
+		"available":
+			upd_button.text = tr("Version %s disponible — télécharger") % Updater.latest
+		"uptodate":
+			upd_label.text = tr("Version %s — à jour") % Updater.version
+
+func _on_update_pressed() -> void:
+	if Updater.state == "ready":
+		Updater.restart()
+	else:
+		Updater.open_page()
 
 func _build_difficulty(root: Control) -> void:
 	diff_panel = _centered_panel(root)
@@ -654,6 +691,8 @@ func _build_options(root: Control) -> void:
 	_check_row(g, "Dégâts infligés (coin de l'écran)", "damage_numbers")
 	_check_row(g, "Mini-carte", "minimap")
 	_check_row(g, "Annonces d'attaque ennemies (!)", "telegraphs")
+	if not OS.has_feature("web"):
+		_check_row(g, "Mises à jour automatiques", "auto_update")
 	_section(g, "Accessibilité")
 	_check_row(g, "Dangers très contrastés (daltonisme)", "colorblind")
 	_check_row(g, "Accroupi : appuyer pour basculer", "crouch_toggle")

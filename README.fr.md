@@ -293,6 +293,21 @@ Les 9 biomes :
 | La Ruche Bourdonnante | couloirs étroits envahis de volants |
 | L'Ossuaire | collines et arènes, rampants et cracheurs |
 
+## Mises à jour automatiques
+Au lancement, le jeu (Windows, macOS, Linux, Steam Deck) demande à GitHub quelle est la dernière
+Release. Si elle est plus récente :
+- un petit **patch** (scripts et shaders, quelques centaines de Ko) est téléchargé, puis appliqué au
+  prochain lancement — l'écran-titre propose **« Mise à jour prête — redémarrer »** ;
+- si le patch ne suffit pas (nouvelles musiques, nouvelle version de Godot), l'écran-titre affiche
+  **« Version disponible — télécharger »** et ouvre la page de la Release.
+
+Le numéro de version est affiché en bas de l'écran-titre. **Options → Mises à jour automatiques**
+coupe le téléchargement (l'avis reste affiché). Sans réseau, rien ne se passe. Si le jeu ne démarre
+pas correctement avec un patch, celui-ci est retiré au lancement suivant. La version navigateur est
+toujours à jour. Détails : `scripts/updater.gd` ; le patch est fabriqué par le workflow de publication
+(préréglage d'export « Patch »). Augmenter `config/data_gen` dans `project.godot` quand on ajoute
+des musiques, des sons ou des images : les anciennes installations verront alors l'avis de téléchargement.
+
 ## Musique et sons
 Bande-son **originale** générée pour le jeu (aucun droit d'auteur, elle est à toi) :
 16 morceaux en boucle dans `music/` — une ou deux pistes par biome qui s'enchaînent

@@ -352,6 +352,21 @@ Everything is drawn in code, in a detailed, painted style:
 
 Everything is saved in `user://settings.cfg`.
 
+## Automatic updates
+On launch, the game (Windows, macOS, Linux, Steam Deck) asks GitHub for the latest Release.
+If it is newer:
+- a small **patch** (scripts and shaders, a few hundred KB) is downloaded and applied on the next
+  launch — the title screen offers **"Update ready — restart"**;
+- if a patch is not enough (new music, a new Godot version), the title screen shows
+  **"Version available — download"** and opens the Release page.
+
+The version number is shown at the bottom of the title screen. **Options → Automatic updates**
+turns the download off (the notice still shows). With no network, nothing happens. If the game
+fails to start with a patch, the patch is removed on the next launch. The browser version is always
+up to date. Details: `scripts/updater.gd`; the patch is built by the release workflow (the "Patch"
+export preset). Bump `config/data_gen` in `project.godot` when adding music, sounds or images:
+older installs will then see the download notice instead.
+
 ## Music and sounds
 An **original** soundtrack generated for the game: 16 looping tracks in `music/` — one or two
 per biome that crossfade, a theme per boss, one for the tutorial and one for the Sanctuary.

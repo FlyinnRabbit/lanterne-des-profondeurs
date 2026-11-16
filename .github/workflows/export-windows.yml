@@ -38,10 +38,35 @@ jobs:
             -d ~/.local/share/godot/export_templates/4.3.stable
           rm Godot_v4.3-stable_export_templates.tpz
 
+      # La version du jeu vient du tag : elle est écrite dans le projet avant l'export
+      # (le jeu la compare à la dernière Release pour se mettre à jour, voir scripts/updater.gd).
+      - name: Numéro de version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          V="$INPUT_VERSION"
+          [ -z "$V" ] && V="$RELEASE_TAG"
+          if [ -z "$V" ] && [ "$GITHUB_REF_TYPE" = "tag" ]; then V="$GITHUB_REF_NAME"; fi
+          V="${V#v}"
+          if echo "$V" | grep -Eq '^[0-9]+(\.[0-9]+){1,3}$'; then
+            sed -i "s/^const VERSION := .*/const VERSION := \"$V\"/" scripts/version.gd
+            sed -i "s/^config\/version=.*/config\/version=\"$V\"/" project.godot
+            sed -i -E "s/(file_version|product_version)=\"[^\"]*\"/\1=\"$V.0\"/; s/(short_version|application\/version)=\"[^\"]*\"/\1=\"$V\"/" export_presets.cfg
+            echo "Version : $V"
+          else
+            echo "Pas de version (ou format inattendu : '$V') : valeurs du dépôt conservées."
+          fi
+          grep VERSION scripts/version.gd
+
       - name: Importer et exporter
         run: |
           "$RUNNER_TEMP/godot" --headless --editor --quit || true
           mkdir -p build
+          # Patch de mise à jour automatique : scripts, shaders et scènes seulement (quelques centaines de Ko).
+          # Son nom contient la version du moteur et la « génération » des données (config/data_gen).
+          GEN=$(sed -n 's/^config\/data_gen=//p' project.godot)
+          "$RUNNER_TEMP/godot" --headless --export-pack "Patch" "build/LanterneDesProfondeurs_patch_g4.3_d${GEN:-1}.pck"
           "$RUNNER_TEMP/godot" --headless --export-release "Windows Desktop" build/LanterneDesProfondeurs.exe
           pip install --quiet pillow
           python3 tools/peicon.py build/LanterneDesProfondeurs.exe art/icon_1024.png
@@ -72,6 +97,7 @@ jobs:
             build/LanterneDesProfondeurs_Windows_Portable.zip
             build/LanterneDesProfondeurs_Linux_Portable.tar.gz
             build/LanterneDesProfondeurs_macOS.zip
+            build/LanterneDesProfondeurs_patch_*.pck
 
       - name: Release (tag ou Release publiée)
         if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
@@ -83,6 +109,7 @@ jobs:
             build/LanterneDesProfondeurs_Windows_Portable.zip
             build/LanterneDesProfondeurs_Linux_Portable.tar.gz
             build/LanterneDesProfondeurs_macOS.zip
+            build/LanterneDesProfondeurs_patch_*.pck
 
       - name: Release (lancement manuel avec version)
         if: github.event_name == 'workflow_dispatch' && inputs.version != ''
@@ -110,3 +137,4 @@ jobs:
             build/LanterneDesProfondeurs_Windows_Portable.zip
             build/LanterneDesProfondeurs_Linux_Portable.tar.gz
             build/LanterneDesProfondeurs_macOS.zip
+            build/LanterneDesProfondeurs_patch_*.pck

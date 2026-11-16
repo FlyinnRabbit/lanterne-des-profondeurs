@@ -1,6 +1,12 @@
 # Fichier généré par tools/translations.py — ne pas modifier à la main.
 const T := {
 	"en": {
+		"Version %s": "Version %s",
+		"Version %s — à jour": "Version %s — up to date",
+		"Mise à jour %s : téléchargement… %d %%": "Update %s: downloading… %d%%",
+		"Mise à jour %s prête — redémarrer": "Update %s ready — restart",
+		"Version %s disponible — télécharger": "Version %s available — download",
+		"Mises à jour automatiques": "Automatic updates",
 		"Les Profondeurs": "The Depths",
 		"Les Jardins Fongiques": "The Fungal Gardens",
 		"La Citadelle Engloutie": "The Sunken Citadel",
@@ -435,6 +441,12 @@ const T := {
 		"Clavier :": "Keyboard:",
 	},
 	"es": {
+		"Version %s": "Versión %s",
+		"Version %s — à jour": "Versión %s — actualizada",
+		"Mise à jour %s : téléchargement… %d %%": "Actualización %s: descargando… %d %%",
+		"Mise à jour %s prête — redémarrer": "Actualización %s lista — reiniciar",
+		"Version %s disponible — télécharger": "Versión %s disponible — descargar",
+		"Mises à jour automatiques": "Actualizaciones automáticas",
 		"Les Profondeurs": "Las Profundidades",
 		"Les Jardins Fongiques": "Los Jardines Fúngicos",
 		"La Citadelle Engloutie": "La Ciudadela Sumergida",
@@ -869,6 +881,12 @@ const T := {
 		"Clavier :": "Teclado:",
 	},
 	"de": {
+		"Version %s": "Version %s",
+		"Version %s — à jour": "Version %s — aktuell",
+		"Mise à jour %s : téléchargement… %d %%": "Update %s: wird geladen… %d %%",
+		"Mise à jour %s prête — redémarrer": "Update %s bereit — neu starten",
+		"Version %s disponible — télécharger": "Version %s verfügbar — herunterladen",
+		"Mises à jour automatiques": "Automatische Updates",
 		"Les Profondeurs": "Die Tiefen",
 		"Les Jardins Fongiques": "Die Pilzgärten",
 		"La Citadelle Engloutie": "Die Versunkene Zitadelle",

@@ -2,6 +2,12 @@
 # Lancer : python3 tools/translations.py  -> génère scripts/translations.gd
 import json, os
 T = {
+"Version %s": ("Version %s", "Versión %s", "Version %s"),
+"Version %s — à jour": ("Version %s — up to date", "Versión %s — actualizada", "Version %s — aktuell"),
+"Mise à jour %s : téléchargement… %d %%": ("Update %s: downloading… %d%%", "Actualización %s: descargando… %d %%", "Update %s: wird geladen… %d %%"),
+"Mise à jour %s prête — redémarrer": ("Update %s ready — restart", "Actualización %s lista — reiniciar", "Update %s bereit — neu starten"),
+"Version %s disponible — télécharger": ("Version %s available — download", "Versión %s disponible — descargar", "Version %s verfügbar — herunterladen"),
+"Mises à jour automatiques": ("Automatic updates", "Actualizaciones automáticas", "Automatische Updates"),
 "Les Profondeurs": ("The Depths", "Las Profundidades", "Die Tiefen"),
 "Les Jardins Fongiques": ("The Fungal Gardens", "Los Jardines Fúngicos", "Die Pilzgärten"),
 "La Citadelle Engloutie": ("The Sunken Citadel", "La Ciudadela Sumergida", "Die Versunkene Zitadelle"),
