@@ -16,6 +16,9 @@ var home_panel: PanelContainer      # panneau de retour : pause ou écran titre
 var first_title_button: Button
 var diff_buttons: Array[Button] = []
 var skip_tuto_check: CheckButton
+var one_life_check: CheckButton
+var diff_descs: Array = []
+var title_row: HBoxContainer
 var title_mode := false
 var title_backdrop: Control
 var diff_header: Label
@@ -204,9 +207,14 @@ func _build_difficulty(root: Control) -> void:
 		l.add_theme_font_size_override("font_size", 15)
 		l.add_theme_color_override("font_color", Color(0.65, 0.7, 0.82))
 		v.add_child(l)
+		diff_descs.append(l)
 	skip_tuto_check = CheckButton.new()
 	skip_tuto_check.text = "Passer le tutoriel"
 	v.add_child(skip_tuto_check)
+	one_life_check = CheckButton.new()
+	one_life_check.text = "Une seule vie : la partie s'efface à la première mort"
+	one_life_check.add_theme_color_override("font_color", Color(1.0, 0.6, 0.5))
+	v.add_child(one_life_check)
 	var br := _button("Retour", _back_to_pause)
 	br.custom_minimum_size = Vector2(200, 40)
 	var row := HBoxContainer.new()
@@ -214,17 +222,34 @@ func _build_difficulty(root: Control) -> void:
 	row.add_child(br)
 	v.add_child(row)
 	diff_back_row = row
+	# après une mort en « une seule vie » : revenir à l'écran-titre au lieu de recommencer
+	title_row = HBoxContainer.new()
+	title_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	var bt := _button("Écran-titre", _to_title)
+	bt.custom_minimum_size = Vector2(200, 40)
+	title_row.add_child(bt)
+	title_row.visible = false
+	v.add_child(title_row)
 
 func _open_difficulty(s := -1) -> void:
 	target_slot = s if s > 0 else GameState.slot
 	if diff_warn:
 		diff_warn.visible = GameState.slot_exists(target_slot)
 		diff_warn.text = tr("Une nouvelle partie remplace la sauvegarde de l'emplacement %d.") % target_slot
+	one_life_check.button_pressed = false
+	title_row.visible = false
+	for l in diff_descs:
+		l.visible = true
 	_go(diff_panel)
 	diff_buttons[GameState.difficulty].grab_focus()
 
+func _to_title() -> void:
+	game_over = false
+	GameState.show_title = true
+	GameState._reload(false)
+
 func _start_game(diff: int) -> void:
-	GameState.new_game(skip_tuto_check.button_pressed, diff, target_slot)
+	GameState.new_game(skip_tuto_check.button_pressed, diff, target_slot, one_life_check.button_pressed)
 
 # ---------------------------------------------------------------- emplacements de sauvegarde
 func _build_slots(root: Control) -> void:
@@ -306,6 +331,13 @@ func open_game_over(summary: String) -> void:
 	diff_header.visible = true
 	diff_back_row.visible = false
 	skip_tuto_check.button_pressed = true
+	one_life_check.button_pressed = false
+	title_row.visible = true
+	# écran compact : le récapitulatif prend la place des descriptions
+	for l in diff_descs:
+		l.visible = false
+	if diff_warn:
+		diff_warn.visible = false
 	_go(diff_panel)
 	get_tree().paused = true
 	diff_buttons[GameState.difficulty].grab_focus()

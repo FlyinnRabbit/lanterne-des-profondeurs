@@ -150,6 +150,10 @@ played. Achievements and options are shared by all slots. Saving is automatic.
 On launch: **Play** → choose the difficulty (and the "Skip the tutorial" option).
 Also available during a game: Pause → "New game…".
 
+**One life** (box to tick when creating a game, at every difficulty): your first death erases the save
+slot (outside the tutorial). A small skull next to your shards reminds you. Achievements and cosmetics are
+kept, since they are shared by all slots.
+
 | Difficulty | Soul / ultimate | Enemies | Damage taken |
 |---|---|---|---|
 | Easy | +35% / +30% | slower, -25% health, fewer, no elites | 1 |

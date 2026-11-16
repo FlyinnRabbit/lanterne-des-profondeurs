@@ -152,6 +152,10 @@ jugada. Logros, cosméticos y opciones son comunes a todas las ranuras. El guard
 Al empezar: **Jugar** → elige la dificultad (y la opción «Saltar el tutorial»).
 También durante una partida: Pausa → «Nueva partida…».
 
+**Una sola vida** (casilla al crear la partida, en todas las dificultades): la primera muerte borra la
+ranura (fuera del tutorial). Una pequeña calavera junto a las esquirlas lo recuerda. Los logros y los
+cosméticos se conservan, porque son comunes a todas las partidas.
+
 | Dificultad | Alma / definitiva | Enemigos | Daño recibido |
 |---|---|---|---|
 | Fácil | +35 % / +30 % | más lentos, -25 % de vida, menos numerosos, sin élites | 1 |

@@ -83,6 +83,7 @@ const DIFFS := [
 ]
 
 var difficulty := 1
+var one_life := false      # mode « une seule vie » : la partie s'efface à la première mort (hors tutoriel)
 var carry_hp := -1          # vie gardée en passant le portail vers la zone suivante (-1 : vie pleine)
 var show_title := true       # écran titre au lancement du jeu
 
@@ -365,6 +366,9 @@ func _start(p: int) -> void:
 
 # Mort pendant une descente : retour au hub, le butin ramassé depuis le départ est perdu
 func die_in_descent(geo_now: int = -1, pos: Vector2 = Vector2.ZERO) -> void:
+	if one_life:
+		_one_life_over()
+		return
 	if mode == "rush" or daily:
 		var what := tr("Défi des boss échoué (boss %d / %d).") % [rush_i + 1, RUSH_ORDER.size()] if mode == "rush" else tr("Descente du jour échouée.")
 		_end_special()
@@ -386,6 +390,24 @@ func die_in_descent(geo_now: int = -1, pos: Vector2 = Vector2.ZERO) -> void:
 	save_game()
 	_reload(true)
 
+# Mode « une seule vie » : la mort efface la sauvegarde de l'emplacement. Les succès et les
+# cosmétiques (communs à toutes les parties) sont gardés.
+func _one_life_over() -> void:
+	var where: String
+	if mode == "rush":
+		where = tr("Défi des boss échoué (boss %d / %d).") % [rush_i + 1, RUSH_ORDER.size()]
+	else:
+		where = tr("Vous avez sombré au palier %d (niveau %d/%d).") % [palier, step, STEPS_PER_PALIER]
+	var summary := tr("Une seule vie : la partie est terminée.") + "\n" + where + "\n" \
+		+ tr("Record : palier %d") % record + "\n" + Achievements.run_summary()
+	if daily:
+		_end_special()
+	delete_slot(slot)
+	one_life = false
+	curse = ""
+	mode = "hub"
+	get_tree().current_scene.menu.open_game_over(summary)
+
 func abandon_descent() -> void:
 	if mode == "rush" or daily:
 		_end_special()
@@ -399,9 +421,10 @@ func abandon_descent() -> void:
 func restart_level() -> void:
 	_reload(false)
 
-func new_game(skip_tutorial := false, diff := -1, s := -1) -> void:
+func new_game(skip_tutorial := false, diff := -1, s := -1, single_life := false) -> void:
 	if s > 0:
 		_use_slot(s)
+	one_life = single_life
 	if diff >= 0:
 		difficulty = diff
 	daily = false
@@ -489,6 +512,7 @@ func save_game() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("game", "version", 1)
 	cfg.set_value("game", "difficulty", difficulty)
+	cfg.set_value("game", "one_life", one_life)
 	cfg.set_value("game", "unlocked", unlocked)
 	cfg.set_value("game", "record", record)
 	cfg.set_value("game", "run_seed", saved_seed if daily else run_seed)
@@ -509,7 +533,7 @@ func save_summary(s := -1) -> String:
 		return tr("Tutoriel en cours")
 	var dd: int = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
 	var p: Dictionary = cfg.get_value("game", "prog", {})
-	return ("★ " if bool(p.get("finished", false)) else "") + tr("%s — palier %d accessible — record : palier %d — %d éclats") % [
+	return ("★ " if bool(p.get("finished", false)) else "") + (tr("Une seule vie") + " — " if bool(cfg.get_value("game", "one_life", false)) else "") + tr("%s — palier %d accessible — record : palier %d — %d éclats") % [
 		tr(DIFFS[dd]["name"]), int(cfg.get_value("game", "unlocked", 1)), int(cfg.get_value("game", "record", 0)), int(p.get("geo", 0))]
 
 func load_game() -> bool:
@@ -517,6 +541,7 @@ func load_game() -> bool:
 	if cfg.load(Paths.file(save_name())) != OK:
 		return false
 	difficulty = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
+	one_life = bool(cfg.get_value("game", "one_life", false))
 	unlocked = int(cfg.get_value("game", "unlocked", 1))
 	record = int(cfg.get_value("game", "record", 0))
 	run_seed = int(cfg.get_value("game", "run_seed", run_seed))

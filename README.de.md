@@ -152,6 +152,10 @@ gespielten Platz. Erfolge, Kosmetik und Optionen gelten für alle Plätze. Gespe
 Zum Start: **Spielen** → Schwierigkeit wählen (und die Option „Tutorial überspringen").
 Auch während eines Spiels: Pause → „Neues Spiel …".
 
+**Nur ein Leben** (Kästchen beim Erstellen des Spiels, in jeder Schwierigkeit): Der erste Tod löscht den
+Speicherplatz (außerhalb des Tutorials). Ein kleiner Schädel neben den Splittern erinnert daran. Erfolge und
+Kosmetik bleiben erhalten, da sie für alle Spielstände gelten.
+
 | Schwierigkeit | Seele / Ultimate | Gegner | Erlittener Schaden |
 |---|---|---|---|
 | Leicht | +35 % / +30 % | langsamer, -25 % Leben, weniger zahlreich, keine Eliten | 1 |

@@ -152,6 +152,17 @@ func _draw() -> void:
 	draw_line(gp + Vector2(-4, -8) - Vector2(2.5, 0) * twk, gp + Vector2(-4, -8) + Vector2(2.5, 0) * twk, Color(1, 1, 1, twk), 1.0)
 	draw_string(font, Vector2(153, 105), str(p.geo), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.05, 0.05, 0.08, 0.8))
 	draw_string(font, Vector2(152, 104), str(p.geo), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.9, 0.92, 1.0))
+	if GameState.one_life:
+		# mode « une seule vie » : petit crâne d'os après les éclats
+		var kx := 152.0 + font.get_string_size(str(p.geo), HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x + 20.0
+		var kc := Vector2(kx, 96)
+		DU.glow(self, kc, 12.0, Color(1.0, 0.4, 0.3), 0.3)
+		draw_circle(kc + Vector2(0, -1), 7.0, Color(0.92, 0.88, 0.8))
+		draw_rect(Rect2(kc + Vector2(-4, 4), Vector2(8, 5)), Color(0.92, 0.88, 0.8))
+		draw_circle(kc + Vector2(-2.7, -1), 2.0, Color(0.15, 0.05, 0.05))
+		draw_circle(kc + Vector2(2.7, -1), 2.0, Color(0.15, 0.05, 0.05))
+		draw_line(kc + Vector2(-1.5, 6), kc + Vector2(-1.5, 9), Color(0.3, 0.2, 0.2), 1.0)
+		draw_line(kc + Vector2(1.5, 6), kc + Vector2(1.5, 9), Color(0.3, 0.2, 0.2), 1.0)
 	# Barre du boss : plaque de fer forgé, liseré, rouge sombre
 	if main.boss_started and not main.boss_dead and is_instance_valid(main.boss):
 		var w := 500.0

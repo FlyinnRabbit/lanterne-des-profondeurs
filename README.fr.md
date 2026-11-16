@@ -153,6 +153,10 @@ La sauvegarde est automatique.
 Au lancement : **Jouer** → choisir la difficulté (et l'option « Passer le tutoriel »).
 Aussi possible en cours de partie : Pause → « Nouvelle partie… ».
 
+**Une seule vie** (case à cocher à la création de la partie, dans toutes les difficultés) : la première mort
+efface l'emplacement (hors tutoriel). Un petit crâne à côté des éclats le rappelle. Les succès et les
+cosmétiques sont gardés, car ils sont communs à toutes les parties.
+
 | Difficulté | Âme / ultime | Ennemis | Dégâts reçus |
 |---|---|---|---|
 | Facile | +35 % / +30 % | plus lents, -25 % de vie, moins nombreux, aucune élite | 1 |
