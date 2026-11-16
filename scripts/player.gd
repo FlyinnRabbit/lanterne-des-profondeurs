@@ -24,6 +24,7 @@ const CHARGE_TIME := 0.7        # maintien de la frappe pour un coup chargé
 const THRUST_TIME := 0.2        # estoc (frapper pendant/juste après une ruée)
 const THRUST_SPEED := 620.0
 const SPIN_TIME := 0.28
+const SPIN_REACH := 62.0        # demi-largeur du tourbillon (un coup normal porte à 70)
 const SPELL_COST := 33
 const CROUCH_SIZE := Vector2(20, 18)
 const PLUNGE_SPEED := 980.0
@@ -537,7 +538,7 @@ func attack_rect() -> Rect2:
 	if wpn["ranged"]:
 		return Rect2(p, Vector2.ZERO)      # les shurikens touchent eux-mêmes
 	if attack_kind == "spin":
-		var rs := 84.0 * reach() * maxf(1.0, float(wpn["w"]) * 0.75)
+		var rs := SPIN_REACH * reach() * maxf(1.0, float(wpn["w"]) * 0.6)
 		return Rect2(p - Vector2(rs, rs * 0.8), Vector2(rs * 2.0, rs * 1.6))
 	if attack_kind == "air_spin":
 		var ra := 62.0 * reach()
@@ -1002,9 +1003,10 @@ func _draw() -> void:
 			"spin":
 				var k := clampf(attack_t / SPIN_TIME, 0.0, 1.0)
 				var rot := (1.0 - k) * TAU * 1.5 * facing
+				var sc: float = attack_rect().size.x / 2.0 / SPIN_REACH   # l'effet suit la portée réelle
 				for i in 3:
-					_smear(Vector2(0, -4), 40.0 + i * 16.0, rot + i * 2.1, rot + i * 2.1 + 2.4 * facing, 10.0, Color(1.0, 0.92, 0.7), k)
-				DU.glow(self, Vector2(0, -4), 80.0 * (1.2 - k), Color(1.0, 0.9, 0.6), 0.3 * k)
+					_smear(Vector2(0, -4), (30.0 + i * 12.0) * sc, rot + i * 2.1, rot + i * 2.1 + 2.4 * facing, 9.0, Color(1.0, 0.92, 0.7), k)
+				DU.glow(self, Vector2(0, -4), 62.0 * sc * (1.2 - k), Color(1.0, 0.9, 0.6), 0.3 * k)
 			"thrust":
 				var k := clampf(attack_t / THRUST_TIME, 0.0, 1.0)
 				var tip := Vector2(facing * r.size.x, -4)
