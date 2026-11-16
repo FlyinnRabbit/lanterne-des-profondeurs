@@ -37,6 +37,7 @@ func _run() -> void:
 				var pl = main.player
 				pl.global_position = bp + Vector2(-10, 0)
 				pl.velocity = Vector2.ZERO
+				pl.bench_lock_t = 0.0   # délai banc remis à zéro (on vient d'être téléporté)
 				await _frames(30)
 				var onf: bool = pl.is_on_floor()
 				Input.action_press("up")

@@ -47,7 +47,7 @@ func _physics_process(delta: float) -> void:
 					if p.global_position.distance_to(global_position) < 520.0 * aggro():
 						var a := randf() * TAU
 						var target: Vector2 = p.global_position + Vector2(cos(a) * 170.0, -absf(sin(a)) * 110.0 - 40.0)
-						if not main.is_solid_at(target):
+						if not main.is_solid_at(target) and not _crosses_gate(target):
 							global_position = target
 					state = "appear"
 					state_t = 0.45
@@ -63,6 +63,17 @@ func _physics_process(delta: float) -> void:
 					state_t = randf_range(1.4, 2.2) / aggro()
 	move_and_slide()
 	queue_redraw()
+
+# Le spectre ne se téléporte jamais de l'autre côté d'une grille d'arène de boss :
+# sinon il suivait le joueur dans la cage du boss.
+func _crosses_gate(target: Vector2) -> bool:
+	for g in [main.entry_gate, main.exit_gate]:
+		if g and is_instance_valid(g):
+			var r: Rect2 = g.rect
+			var mid := r.position.x + r.size.x / 2.0
+			if (global_position.x < mid) != (target.x < mid):
+				return true
+	return false
 
 func _draw() -> void:
 	var c := body_color(Color(0.72, 0.8, 0.96))

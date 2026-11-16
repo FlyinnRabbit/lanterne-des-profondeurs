@@ -770,7 +770,10 @@ func _process(delta: float) -> void:
 		if pp.distance_to(bp) < pp.distance_to(bench_pos):
 			bench_pos = bp
 	# Banc
-	if not player.dead and not player.sitting and pp.distance_to(bench_pos) < 48 and player.is_on_floor() and Input.is_action_just_pressed("up"):
+	if not player.dead and not player.sitting and pp.distance_to(bench_pos) < 48 and player.is_on_floor() and Input.is_action_just_pressed("up") \
+			and player.bench_lock_t > 0.0:
+		show_message("Trop agité pour se reposer…", 1.2)
+	elif not player.dead and not player.sitting and pp.distance_to(bench_pos) < 48 and player.is_on_floor() and Input.is_action_just_pressed("up"):
 		player.sit(bench_pos)
 		respawn_pos = bench_pos
 		respawn_enemies()
@@ -787,6 +790,10 @@ func _process(delta: float) -> void:
 	if boss and not boss_started and not boss_dead and entry_gate and pp.x > entry_gate.rect.end.x + TILE * 3:
 		boss_started = true
 		entry_gate.set_closed(true)
+		# aucun ennemi ordinaire ne reste enfermé avec le boss
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if e != boss and not e.is_boss and e.global_position.x > entry_gate.rect.end.x:
+				e.queue_free()
 		boss.wake()
 		Audio.play_boss(level.get("boss_music", "res://music/boss_gardien_du_puits.ogg"))
 		shake(10)

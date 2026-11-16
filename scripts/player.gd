@@ -16,7 +16,7 @@ const COYOTE := 0.1
 const JUMP_BUFFER := 0.12
 const DASH_SPEED := 760.0
 const DASH_TIME := 0.18
-const DASH_COOLDOWN := 0.45
+const DASH_COOLDOWN := 0.75   # 0,45 avant : la Ruée se spammait
 const ATTACK_COOLDOWN := 0.36
 const ATTACK_TIME := 0.12
 const COMBO_WINDOW := 0.55      # délai pour enchaîner le coup suivant du combo
@@ -102,6 +102,10 @@ var focus_t := 0.0
 var last_safe := Vector2.ZERO
 var sitting := false
 var sit_t := 0.0
+# Délai avant de pouvoir s'asseoir sur un banc après une attaque, un sort, un coup reçu ou
+# après s'être relevé : empêche d'enchaîner frappe → banc (intouchable) → frappe.
+const BENCH_LOCK := 1.5
+var bench_lock_t := 0.0
 var dead := false
 var anim_t := 0.0
 var squash := Vector2.ONE
@@ -195,8 +199,11 @@ func _set_crouch(on: bool) -> void:
 func _physics_process(delta: float) -> void:
 	anim_t += delta
 	for t in ["coyote_t", "buffer_t", "dash_t", "dash_cd", "attack_cd", "attack_t", "invuln_t", "knock_t", "recoil_t",
-			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t", "plunge_cd", "plunge_kill_t"]:
+			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t", "plunge_cd", "plunge_kill_t",
+			"bench_lock_t"]:
 		set(t, maxf(get(t) - delta, 0.0))
+	if attack_t > 0.0 or thrust_t > 0.0 or ult_charge_t > 0.0:
+		bench_lock_t = BENCH_LOCK
 	parry_t = maxf(parry_t - delta, 0.0)
 	parry_cd = maxf(parry_cd - delta, 0.0)
 	parry_flash = maxf(parry_flash - delta, 0.0)
@@ -229,6 +236,8 @@ func _physics_process(delta: float) -> void:
 				want = true
 		if want and sit_t > 0.12:
 			sitting = false
+			bench_lock_t = BENCH_LOCK
+			_leave_bench()
 			attack_cd = maxf(attack_cd, 0.2)
 			buffer_t = 0.0
 		return
@@ -426,6 +435,7 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("spell") and soul >= SPELL_COST and spell_cd <= 0.0 and knock_t <= 0.0:
 		soul -= SPELL_COST
 		spell_cd = 0.45
+		bench_lock_t = BENCH_LOCK
 		var crit := _take_crit()
 		var sdmg := 3 + (1 if eq(C.BRUTE) else 0)
 		main.spawn_projectile(global_position + Vector2(facing * 20, -4), Vector2(facing * 620.0, 0),
@@ -853,6 +863,7 @@ func _enemy_near(r: float) -> bool:
 
 func take_damage(amount: int, from_x: float) -> void:
 	combat_t = 0.0
+	bench_lock_t = BENCH_LOCK
 	if dead:
 		return
 	hp -= amount
@@ -899,6 +910,20 @@ func respawn(pos: Vector2) -> void:
 	invuln_t = 1.0
 	ult_charge_t = 0.0
 	parry_t = 0.0
+
+# En se relevant du banc : une seconde d'invulnérabilité et les ennemis collés au banc
+# sont repoussés (et brièvement étourdis), pour ne pas prendre un coup en se levant.
+func _leave_bench() -> void:
+	invuln_t = maxf(invuln_t, 1.0)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.is_boss or not is_instance_valid(e):
+			continue
+		var d: Vector2 = e.global_position - global_position
+		if d.length() < 130.0:
+			var sx := signf(d.x) if absf(d.x) > 1.0 else (1.0 if randf() < 0.5 else -1.0)
+			e.knock = Vector2(sx * 420.0, -160.0)
+			e.stun_t = maxf(e.stun_t, 0.6)
+	main.spawn_burst(global_position + Vector2(0, SIZE.y / 2.0 - 4.0), Color(1.0, 0.9, 0.6, 0.7), 12, 180.0, -40.0)
 
 func sit(pos: Vector2) -> void:
 	sitting = true

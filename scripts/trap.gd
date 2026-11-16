@@ -3,7 +3,7 @@ const DU = preload("res://scripts/draw_util.gd")
 # Pièges en hauteur (créés depuis la carte) :
 #  dart       (Z) : totem qui tire des fléchettes à hauteur de tête — s'accroupir pour les esquiver (ou parer)
 #  blade      (U) : lame-pendule suspendue au plafond, son point bas passe juste au-dessus d'un héros accroupi
-#  stalactite (V) : se décroche quand on passe dessous, se reforme ensuite
+#  stalactite (V) : se décroche quand on passe dessous ; une fois tombée, elle ne revient pas
 const Ch = preload("res://scripts/charms.gd")
 var main
 var kind := "dart"
@@ -95,10 +95,7 @@ func _physics_process(delta: float) -> void:
 					elif main.is_solid_at(position + Vector2(0, 30)):
 						_shatter()
 				"gone":
-					st_t -= delta
-					if st_t <= 0.0:
-						state = "idle"
-						position = home
+					pass    # une stalactite tombée le reste (elle ne se reforme plus)
 	queue_redraw()
 
 func _check_pass() -> void:

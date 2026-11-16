@@ -320,6 +320,7 @@ T = {
 "ouvrir l'arsenal": ("open the armory", "abrir el arsenal", "Waffenkammer öffnen"),
 "appeler l'ascenseur": ("call the elevator", "llamar al ascensor", "Aufzug rufen"),
 "Vous vous reposez. Santé restaurée.": ("You rest. Health restored.", "Descansas. Vida restaurada.", "Du ruhst dich aus. Leben aufgefüllt."),
+"Trop agité pour se reposer…": ("Too restless to rest…", "Demasiado agitado para descansar…", "Zu unruhig, um zu rasten…"),
 "Cape d'Ombre-Vive obtenue !\n{dash} pour faire une Ruée": ("Quickshadow Cloak obtained!\n{dash} to Dash", "¡Capa de Sombra Viva obtenida!\n{dash} para hacer una Embestida", "Schattenhuschmantel erhalten!\n{dash} zum Sprinten"),
 "Emblème obtenu : %s\nÉquipe-le depuis l'inventaire ({inventory|1}) en te reposant sur un banc.": ("Charm obtained: %s\nEquip it from the inventory ({inventory|1}) while resting on a bench.", "Emblema obtenido: %s\nEquípalo desde el inventario ({inventory|1}) descansando en un banco.", "Emblem erhalten: %s\nLege es im Inventar ({inventory|1}) an, während du auf einer Bank ruhst."),
 "Encoche d'emblème obtenue !\nEncoches : %d": ("Charm notch obtained!\nNotches: %d", "¡Muesca de emblema obtenida!\nMuescas: %d", "Emblemkerbe erhalten!\nKerben: %d"),
