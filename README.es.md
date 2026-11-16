@@ -315,6 +315,14 @@ Tab abre el inventario (el juego se pausa): objetos, esquirlas, estadísticas y 
 | Reposo de la Sombra | 2 | agachado fuera de combate, el alma sube despacio hasta 33; curación agachado 1,5× más rápida |
 | Eco Perfecto | 2 | una parada perfecta lanza una hoja de alma gratis |
 | Paso Ligero | 1 | cruzar una trampa sin ser golpeado da 5 esquirlas |
+| Hoja de Rebote | 1 | rebotar en un enemigo te impulsa un 25 % más alto y devuelve 6 de alma |
+| Yunque Caído | 2 | picado +1 de daño, onda expansiva un 50 % más ancha |
+| Parada Cortante | 2 | una parada lograda inflige 2 de daño al atacante |
+| Embestida Espectral | 2 | la Embestida hiere a los enemigos que atraviesa (1 de daño) |
+| Cosecha de Alma | 1 | cada enemigo vencido devuelve 8 de alma |
+| Olfato del Saqueador | 1 | cofres de las grutas y escondites: +60 % de esquirlas |
+| Nudo de Escalador | 1 | tornos el doble de rápidos; la primera subida de cada torno devuelve 33 de alma |
+| Último Aliento | 3 | un golpe fatal te deja con 1 máscara, una vez por zona |
 
 Los efectos se definen en `scripts/charms.gd` y se aplican en `scripts/player.gd`.
 

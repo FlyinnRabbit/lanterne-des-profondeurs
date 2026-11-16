@@ -819,9 +819,14 @@ func _process(delta: float) -> void:
 					_open_gift(it[0])
 				elif it[1] == "winch":
 					var wn = it[0]
-					wn.pulling = 1.6
+					var fast: bool = player.eq(player.C.CLIMBER)
+					wn.pulling = 0.9 if fast else 1.6
 					var bottom := Vector2(wn.position.x, player.global_position.y)
-					player.hoist([bottom, Vector2(wn.position.x, wn.arrive.y), wn.arrive])
+					player.hoist([bottom, Vector2(wn.position.x, wn.arrive.y), wn.arrive], 2.0 if fast else 1.0)
+					# Nœud de Grimpeur : la première remontée de chaque treuil rend 33 d'âme
+					if fast and not wn.has_meta("soul_given"):
+						wn.set_meta("soul_given", true)
+						player.soul = mini(player.soul + 33, player.SOUL_MAX)
 					Audio.sfx("door", 0.0, -6.0)
 				else:
 					hub_ui.open_elevator()
@@ -882,7 +887,7 @@ func _process(delta: float) -> void:
 		var prop = pk[0]
 		if is_instance_valid(prop) and pp.distance_to(prop.position) < 34:
 			if pk[1] == "geo":
-				var amount := roundi((40 + 15 * GameState.palier) * GameState.geo_mult())
+				var amount := roundi((40 + 15 * GameState.palier) * GameState.geo_mult() * (1.6 if player.eq(player.C.PLUNDERER) else 1.0))
 				player.geo += amount
 				GameState.prog["collected"].append(pk[2])     # cachette vidée
 				Audio.sfx("pickup", 0.0)
@@ -1003,6 +1008,9 @@ func spawn_fx(kind: String, pos: Vector2, color := Color(1, 1, 1), dir := Vector
 func on_enemy_killed(e, geo: int) -> void:
 	# l'ombre rend exactement les éclats perdus ; les autres ennemis suivent le barème
 	player.geo += geo if e.get_script() == ShadeScript else GameState.kill_geo(geo)
+	# Récolte d'Âme : chaque ennemi vaincu rend 8 d'âme
+	if player.eq(player.C.SOUL_HARVEST) and not e.is_boss:
+		player.soul = mini(player.soul + 8, player.SOUL_MAX)
 	Achievements.stat("kills")
 	Achievements.on_kill(e.elite and not e.is_boss)
 	if player.plunge_kill_t > 0.0:

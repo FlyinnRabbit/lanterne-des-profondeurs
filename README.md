@@ -315,6 +315,14 @@ to find in the levels. Each charm costs notches; you start with 3, and more can 
 | Shadow's Rest | 2 | crouching out of combat slowly refills soul up to 33; crouched healing is 1.5× faster |
 | Perfect Echo | 2 | a perfect parry throws a free soul blade |
 | Light Step | 1 | crossing a trap without being hit earns 5 shards |
+| Rebound Blade | 1 | bouncing off an enemy sends you 25% higher and restores 6 soul |
+| Falling Anvil | 2 | the dive deals +1 damage and its shockwave is 50% wider |
+| Cutting Parry | 2 | a successful parry deals 2 damage to the attacker |
+| Phantom Dash | 2 | the dash hurts the enemies it passes through (1 damage) |
+| Soul Harvest | 1 | each enemy defeated restores 8 soul |
+| Plunderer's Nose | 1 | grotto chests and hidden caches give 60% more shards |
+| Climber's Knot | 1 | winches hoist twice as fast; the first ride up each winch restores 33 soul |
+| Last Breath | 3 | a fatal blow leaves you at 1 mask instead, once per level |
 
 Effects are defined in `scripts/charms.gd` and applied in `scripts/player.gd`.
 

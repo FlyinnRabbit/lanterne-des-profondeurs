@@ -316,6 +316,14 @@ en trouve (anneaux dorés) ou on en achète d'autres. On ne change d'équipement
 | Repos de l'Ombre | 2 | accroupi hors combat, l'âme remonte lentement jusqu'à 33 ; soin accroupi 1,5× plus rapide |
 | Écho Parfait | 2 | une parade parfaite lance une lame d'âme gratuite |
 | Pas Léger | 1 | traverser un piège sans être touché rapporte 5 éclats |
+| Lame Rebond | 1 | rebondir sur un ennemi te propulse 25 % plus haut et rend 6 d'âme |
+| Enclume Tombante | 2 | piqué +1 dégât, onde de choc 50 % plus large |
+| Parade Tranchante | 2 | une parade réussie inflige 2 dégâts à l'attaquant |
+| Ruée Spectrale | 2 | la Ruée blesse les ennemis traversés (1 dégât) |
+| Récolte d'Âme | 1 | chaque ennemi vaincu rend 8 d'âme |
+| Flair du Pilleur | 1 | coffres des grottes et cachettes : +60 % d'éclats |
+| Nœud de Grimpeur | 1 | treuils deux fois plus rapides ; la première remontée de chaque treuil rend 33 d'âme |
+| Dernier Souffle | 3 | un coup fatal te laisse à 1 masque, une fois par niveau |
 
 Les effets sont définis dans `scripts/charms.gd` et appliqués dans `scripts/player.gd`.
 

@@ -105,7 +105,7 @@ func _ready() -> void:
 	el.add_theme_color_override("font_color", Color(0.55, 0.62, 0.78))
 	left.add_child(el)
 	var grid := GridContainer.new()
-	grid.columns = 4
+	grid.columns = 5
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	left.add_child(grid)

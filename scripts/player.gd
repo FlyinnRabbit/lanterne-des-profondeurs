@@ -334,6 +334,7 @@ func _physics_process(delta: float) -> void:
 		if dir != 0.0:
 			facing = int(dir)
 		dash_t = DASH_TIME
+		dash_hit.clear()
 		dash_cd = dash_cooldown()
 		Audio.sfx("dash")
 		crouch_latch = false      # la ruée relève le héros (mode bascule compris)
@@ -357,6 +358,8 @@ func _physics_process(delta: float) -> void:
 		return
 	if dash_t > 0.0:
 		velocity = Vector2(facing * DASH_SPEED, 0.0)
+		if eq(C.PHANTOM_DASH):
+			_phantom_dash()
 		if dash_t <= delta * 1.5:
 			post_dash_t = 0.15
 		move_and_slide()
@@ -562,7 +565,9 @@ func _base_damage() -> int:
 func hit_damage() -> int:
 	var d := nail_damage() + int(weapon()["dmg"])
 	match attack_kind:
-		"finisher", "thrust", "air_spin", "plunge":
+		"plunge":
+			d += 1 + (1 if eq(C.ANVIL_FALL) else 0)
+		"finisher", "thrust", "air_spin":
 			d += 1
 		"spin":
 			d = d * 2 + 1
@@ -685,6 +690,10 @@ func _pogo() -> void:
 	air_dash_used = false
 	dash_cd = 0.0
 	squash = Vector2(0.8, 1.2)
+	if eq(C.REBOUND):
+		# Lame Rebond : rebond 25 % plus haut et un peu d'âme
+		velocity.y = POGO_VELOCITY * 1.25
+		soul = mini(soul + 6, SOUL_MAX)
 
 func _check_hazards() -> void:
 	if dead:
@@ -747,6 +756,10 @@ func _on_parry(from_pos: Vector2, source) -> void:
 		d = Vector2(facing, 0)
 	if source and source.has_method("parried"):
 		source.parried(d)
+	# Parade Tranchante : l'attaquant (pas un projectile ni un piège) prend 2 dégâts
+	if eq(C.RIPOSTE) and source and is_instance_valid(source) and source.is_in_group("enemies") and source.has_method("take_hit") and not source.dead:
+		source.take_hit(2, d)
+		main.spawn_burst(global_position + d * 22.0, Color(1.0, 0.85, 0.5), 10, 160.0)
 	velocity.x = -signf(d.x) * 200.0
 	recoil_t = 0.1
 	recoil_vx = velocity.x
@@ -856,13 +869,39 @@ func _plunge_land() -> void:
 	var feet := global_position + Vector2(0, SIZE.y / 2.0)
 	main.spawn_burst(feet, Color(0.85, 0.9, 1.0), 26, 260.0, 300.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if is_instance_valid(e) and e.global_position.distance_to(feet) < 95.0:
+		if is_instance_valid(e) and e.global_position.distance_to(feet) < (142.0 if eq(C.ANVIL_FALL) else 95.0):
 			if attack_crit:
 				last_crit_t = 0.2
 			e.take_hit(hit_damage(), (e.global_position - feet).normalized())
 	for d in [-1.0, 1.0]:
-		main.spawn_projectile(feet + Vector2(d * 20.0, -4.0), Vector2(d * 360.0, 0), {"kind": "wave", "hostile": false, "damage": 1, "life": 0.6})
+		main.spawn_projectile(feet + Vector2(d * 20.0, -4.0), Vector2(d * 360.0, 0), {"kind": "wave", "hostile": false, "damage": 1, "life": 0.9 if eq(C.ANVIL_FALL) else 0.6})
 	attack_crit = false
+
+# Dernier Souffle : un coup fatal laisse à 1 masque, une fois par niveau (renvoie true si sauvé)
+var last_breath_used := false
+func _last_breath() -> bool:
+	if not eq(C.LAST_BREATH) or last_breath_used:
+		return false
+	last_breath_used = true
+	hp = 1
+	invuln_t = maxf(invuln_t, 1.6)
+	main.spawn_burst(global_position, Color(1.0, 0.45, 0.45), 40, 300.0)
+	main.shake(14)
+	main.show_message("Dernier Souffle !", 2.0)
+	Audio.sfx("crit_ready", 0.0, 2.0)
+	return true
+
+# Ruée Spectrale : chaque ennemi traversé pendant une Ruée prend 1 dégât (une fois par Ruée)
+var dash_hit := {}
+func _phantom_dash() -> void:
+	var r := get_rect().grow(6.0)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(e) and not e.dead and not dash_hit.has(e) and e.get_rect().intersects(r):
+			if not e.is_boss and main.wall_between(global_position, e.global_position):
+				continue
+			dash_hit[e] = true
+			e.take_hit(1, Vector2(facing, 0))
+			main.spawn_burst(e.global_position, Color(0.75, 0.65, 1.0), 8, 140.0)
 
 func _from_trap(source) -> bool:
 	return source != null and is_instance_valid(source) and (("from_trap" in source and source.from_trap) or source.get_script() == TrapScript)
@@ -891,13 +930,15 @@ func take_damage(amount: int, from_x: float) -> void:
 	main.on_player_hurt()
 	if eq(C.THORNS):
 		main.thorns_burst(global_position)
+	if hp <= 0 and _last_breath():
+		return
 	if hp <= 0:
 		_die()
 
 func _hazard_respawn() -> void:
 	hp -= int(GameState.d("dmg"))
 	main.on_player_hurt()
-	if hp <= 0:
+	if hp <= 0 and not _last_breath():
 		_die()
 		return
 	global_position = last_safe
@@ -926,8 +967,10 @@ func respawn(pos: Vector2) -> void:
 # En se relevant du banc : une seconde d'invulnérabilité et les ennemis collés au banc
 # sont repoussés (et brièvement étourdis), pour ne pas prendre un coup en se levant.
 # Treuil : montée verticale puis petit pas de côté sur le sol du haut, en ~1,5 s au total.
-func hoist(path: Array) -> void:
+var hoist_speed := 1.0
+func hoist(path: Array, speed := 1.0) -> void:
 	hoist_path = path
+	hoist_speed = speed
 	hoist_t = 0.0
 	velocity = Vector2.ZERO
 	attack_t = 0.0
@@ -943,13 +986,13 @@ func _hoist_step(delta: float) -> void:
 	var a: Vector2 = hoist_path[0]
 	var b: Vector2 = hoist_path[1]
 	var c: Vector2 = hoist_path[2]
-	var up_time := clampf(a.distance_to(b) / 520.0, 0.6, 1.4)
+	var up_time := clampf(a.distance_to(b) / 520.0, 0.6, 1.4) / hoist_speed
 	if hoist_t < up_time:
 		var k := hoist_t / up_time
 		k = k * k * (3.0 - 2.0 * k)
 		global_position = a.lerp(b, k)
-	elif hoist_t < up_time + 0.25:
-		global_position = b.lerp(c, (hoist_t - up_time) / 0.25)
+	elif hoist_t < up_time + 0.25 / hoist_speed:
+		global_position = b.lerp(c, (hoist_t - up_time) / (0.25 / hoist_speed))
 	else:
 		global_position = c
 		hoist_path = []

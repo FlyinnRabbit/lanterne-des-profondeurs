@@ -315,6 +315,14 @@ weitere finden (goldene Ringe) oder kaufen. Die Ausrüstung lässt sich nur **au
 | Ruhe des Schattens | 2 | geduckt außerhalb des Kampfes steigt die Seele langsam bis 33; geduckt heilen 1,5× schneller |
 | Perfektes Echo | 2 | eine perfekte Parade schleudert gratis eine Seelenklinge |
 | Leichter Schritt | 1 | eine Falle ungetroffen passieren gibt 5 Splitter |
+| Prallklinge | 1 | Abprallen von einem Gegner katapultiert dich 25 % höher und gibt 6 Seele |
+| Fallender Amboss | 2 | Sturzangriff +1 Schaden, Schockwelle 50 % breiter |
+| Schneidende Parade | 2 | eine gelungene Parade fügt dem Angreifer 2 Schaden zu |
+| Geistersprint | 2 | der Sprint verletzt durchquerte Gegner (1 Schaden) |
+| Seelenernte | 1 | jeder besiegte Gegner gibt 8 Seele |
+| Spürnase des Plünderers | 1 | Grottentruhen und Verstecke: +60 % Splitter |
+| Kletterknoten | 1 | Seilwinden doppelt so schnell; die erste Fahrt mit jeder Winde gibt 33 Seele |
+| Letzter Atemzug | 3 | ein tödlicher Treffer lässt dich mit 1 Maske überleben, einmal pro Zone |
 
 Die Wirkungen sind in `scripts/charms.gd` definiert und werden in `scripts/player.gd` angewendet.
 

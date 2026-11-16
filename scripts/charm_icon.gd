@@ -151,6 +151,86 @@ static func glyph(ci: CanvasItem, c: Vector2, s: float, id: int, col: Color, t :
 				var b2: Vector2 = q[k]
 				ci.draw_line(b2, b2 + Vector2(-2.5, -4.0 + k * 0.2) * s, hi, 1.4 * s)
 				ci.draw_line(b2, b2 + Vector2(2.5, 3.0 - k * 0.2) * s, Color(hi, 0.7), 1.2 * s)
+		12:  # Lame Rebond : lame pointée vers le bas, flèche de rebond
+			DU.poly(ci, PackedVector2Array([P.call(-2.5, -6), P.call(2.5, -6), P.call(1.5, 8), P.call(0, 13), P.call(-1.5, 8)]), Color(0.85, 0.9, 0.98))
+			ci.draw_line(P.call(-6, -6), P.call(6, -6), Color(0.75, 0.6, 0.32), 2.4 * s)
+			ci.draw_line(P.call(0, -6), P.call(0, -12), Color(0.55, 0.4, 0.25), 2.4 * s)
+			var arc := PackedVector2Array()
+			var bump := absf(sin(t * 3.0)) * 2.0
+			for k in 12:
+				var u := k / 11.0
+				arc.append(P.call(lerpf(5, 13, u), 10.0 - sin(u * PI) * (14.0 + bump)))
+			ci.draw_polyline(arc, hi, 1.8 * s)
+			DU.flat(ci, PackedVector2Array([P.call(13, 10), P.call(10.5, 6), P.call(15, 6.5)]), hi)
+		13:  # Enclume Tombante : enclume et lignes de chute
+			for k in 3:
+				ci.draw_line(P.call(-8 + k * 8, -14), P.call(-8 + k * 8, -8), Color(hi, 0.6), 1.4 * s)
+			DU.poly(ci, PackedVector2Array([P.call(-13, -5), P.call(9, -5), P.call(13, -2), P.call(6, 0), P.call(4, 5), P.call(-6, 5), P.call(-8, 0), P.call(-13, -1)]), hi)
+			DU.poly(ci, PackedVector2Array([P.call(-8, 5), P.call(6, 5), P.call(9, 10), P.call(-11, 10)]), col.darkened(0.25))
+			ci.draw_line(P.call(-12, -4.5), P.call(8, -4.5), w, 1.2 * s)
+			for k in 2:
+				ci.draw_line(P.call(-14 + k * 26, 12), P.call(-17 + k * 32, 14), Color(1.0, 0.8, 0.4, 0.8), 1.4 * s)
+		14:  # Parade Tranchante : petit bouclier et lame qui riposte
+			DU.poly(ci, PackedVector2Array([P.call(-11, -9), P.call(-1, -9), P.call(-1, 1), P.call(-6, 8), P.call(-11, 1)]), Color(0.7, 0.55, 0.32))
+			ci.draw_colored_polygon(PackedVector2Array([P.call(-9.5, -7.5), P.call(-2.5, -7.5), P.call(-2.5, 0.5), P.call(-6, 5.5), P.call(-9.5, 0.5)]), hi)
+			DU.poly(ci, PackedVector2Array([P.call(0, 11), P.call(10, -10), P.call(12, -12), P.call(11, -8), P.call(2, 12)]), Color(0.88, 0.9, 0.98))
+			ci.draw_line(P.call(-1, 8), P.call(5, 13), Color(0.75, 0.6, 0.32), 2.2 * s)
+			var fl := absf(sin(t * 4.0))
+			ci.draw_line(P.call(12, -13) - Vector2(3, 0) * s * fl, P.call(12, -13) + Vector2(3, 0) * s * fl, w, 1.0)
+		15:  # Ruée Spectrale : silhouette fantôme et traînées
+			for k in 3:
+				ci.draw_line(P.call(-15, -6 + k * 6), P.call(-6, -6 + k * 6), Color(hi, 0.75 - k * 0.2), 1.6 * s)
+			var gh := PackedVector2Array([P.call(-4, 10), P.call(-4, -3)])
+			for k in 9:
+				var a := PI + k * PI / 8.0
+				gh.append(P.call(3 + cos(a) * 7.0, -3 + sin(a) * 7.0))
+			gh.append_array(PackedVector2Array([P.call(10, 10), P.call(7, 7), P.call(4, 10), P.call(1, 7)]))
+			DU.poly(ci, gh, Color(hi, 0.9))
+			ci.draw_circle(P.call(0.5, -3), 1.4 * s, col.darkened(0.7))
+			ci.draw_circle(P.call(5.5, -3), 1.4 * s, col.darkened(0.7))
+		16:  # Récolte d'Âme : faucille et volute d'âme
+			var blade := PackedVector2Array()
+			for k in 14:
+				var a := -PI * 0.95 + k * PI * 0.8 / 13.0
+				blade.append(P.call(2 + cos(a) * 11.0, -2 + sin(a) * 11.0))
+			for k in range(13, -1, -1):
+				var a := -PI * 0.95 + k * PI * 0.8 / 13.0
+				blade.append(P.call(2 + cos(a) * 7.5, 0 + sin(a) * 7.5))
+			DU.poly(ci, blade, Color(0.85, 0.88, 0.95))
+			ci.draw_line(P.call(-7, 1), P.call(5, 14), Color(0.55, 0.4, 0.25), 2.6 * s)
+			var ws := PackedVector2Array()
+			for k in 12:
+				var u := k / 11.0
+				ws.append(P.call(9 + sin(u * 5.0 + t * 3.0) * 2.0, 10 - u * 16.0))
+			ci.draw_polyline(ws, Color(hi, 0.85), 2.0 * s)
+			DU.glow(ci, P.call(9, -6), 5.0 * s, hi, 0.5)
+		17:  # Flair du Pilleur : coffre ouvert et éclats
+			DU.poly(ci, PackedVector2Array([P.call(-11, -1), P.call(11, -1), P.call(11, 10), P.call(-11, 10)]), Color(0.55, 0.36, 0.2))
+			DU.poly(ci, PackedVector2Array([P.call(-11, -1), P.call(-9, -9), P.call(9, -9), P.call(11, -1)]), Color(0.45, 0.3, 0.17))
+			ci.draw_line(P.call(-11, 3), P.call(11, 3), hi, 1.6 * s)
+			ci.draw_rect(Rect2(P.call(-1.5, 1.5), Vector2(3, 4) * s), hi)
+			for k in 3:
+				var g: Vector2 = P.call(-5 + k * 5, -11 - (k % 2) * 3)
+				DU.flat(ci, DU.diamond(g, Vector2(2.2, 3.2) * s), Color(0.7, 0.88, 1.0))
+			var sp2 := absf(sin(t * 3.5))
+			ci.draw_line(P.call(10, -13) - Vector2(2.5, 0) * s * sp2, P.call(10, -13) + Vector2(2.5, 0) * s * sp2, w, 1.0)
+		18:  # Nœud de Grimpeur : corde nouée en boucle
+			var rope := Color(0.75, 0.6, 0.38)
+			ci.draw_arc(P.call(0, -4), 7.0 * s, 0.0, TAU, 20, rope, 3.0 * s)
+			ci.draw_arc(P.call(0, -4), 7.0 * s, 0.4, 1.2, 6, hi, 1.2 * s)
+			ci.draw_line(P.call(-3, 2), P.call(-6, 14), rope, 3.0 * s)
+			ci.draw_line(P.call(3, 2), P.call(7, 14), rope, 3.0 * s)
+			DU.ball(ci, P.call(0, 3), 3.4 * s, rope.lightened(0.1))
+			for k in 4:
+				ci.draw_line(P.call(-5.6 + k * 0.3, 6 + k * 2), P.call(-4.0 + k * 0.3, 7 + k * 2), rope.darkened(0.4), 1.0 * s)
+		19:  # Dernier Souffle : masque fêlé et petite flamme
+			DU.poly(ci, DU.ellipse(P.call(0, 1), Vector2(9, 11) * s, 20), Color(0.92, 0.9, 0.86))
+			ci.draw_circle(P.call(-3.5, 0), 2.2 * s, Color(0.1, 0.06, 0.06))
+			ci.draw_circle(P.call(3.5, 0), 2.2 * s, Color(0.1, 0.06, 0.06))
+			ci.draw_polyline(PackedVector2Array([P.call(1, -10), P.call(-1, -5), P.call(2, -2), P.call(0, 4)]), Color(0.3, 0.2, 0.2), 1.2 * s)
+			var fh := 1.0 + 0.15 * sin(t * 9.0)
+			DU.glow(ci, P.call(0, -13), 6.0 * s, hi, 0.5)
+			DU.flat(ci, PackedVector2Array([P.call(0, -13 - 6 * fh), P.call(3, -11), P.call(0, -9), P.call(-3, -11)]), hi)
 		_:
 			ci.draw_colored_polygon(DU.diamond(c, Vector2(8, 11) * s), hi)
 
