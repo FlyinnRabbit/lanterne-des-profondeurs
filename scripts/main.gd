@@ -945,7 +945,8 @@ func spawn_fx(kind: String, pos: Vector2, color := Color(1, 1, 1), dir := Vector
 
 # ---------------------------------------------------------------- événements
 func on_enemy_killed(e, geo: int) -> void:
-	player.geo += roundi(geo * GameState.geo_mult())
+	# l'ombre rend exactement les éclats perdus ; les autres ennemis suivent le barème
+	player.geo += geo if e.get_script() == ShadeScript else GameState.kill_geo(geo)
 	Achievements.stat("kills")
 	Achievements.on_kill(e.elite and not e.is_boss)
 	if player.plunge_kill_t > 0.0:
@@ -1017,7 +1018,7 @@ func on_boss_killed() -> void:
 	for pr in get_tree().get_nodes_in_group("projectiles"):
 		if is_instance_valid(pr) and pr.hostile:
 			pr.pop()
-	player.geo += roundi((60 + 20 * GameState.palier) * GameState.geo_mult())
+	player.geo += GameState.boss_geo()
 	spawn_burst(boss.global_position, Color(1.0, 0.7, 0.4), 70, 380.0)
 	shake(18)
 	hit_stop(0.25)

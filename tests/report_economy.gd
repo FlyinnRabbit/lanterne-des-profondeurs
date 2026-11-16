@@ -33,10 +33,10 @@ func _run() -> void:
 						tot_e += 1
 						if e.elite:
 							tot_el += 1
-						tot_geo += int(e.geo_value)
+						tot_geo += gs.kill_geo(int(e.geo_value))
 						tot_hits += int(ceil(float(e.hp) / 1.0))
 			var soul_hit: int = roundi(11 * float(gs.DIFFS[diff]["soul"]))
-			var boss: int = 60 + 20 * pal
+			var boss: int = gs.boss_geo()
 			var n := float(seeds)
 			var hits: float = tot_hits / n
 			print("%-9s %d   %6.0f  %6.0f  %15.0f  %4d  %25.0f  %10.0f  %15.1f" % [gs.DIFFS[diff]["name"], pal, tot_e / n, tot_el / n, tot_geo / n, boss, hits, hits * soul_hit, hits * soul_hit / 33.0])

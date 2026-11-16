@@ -166,6 +166,11 @@ cosmétiques sont gardés, car ils sont communs à toutes les parties.
 
 Les boss sont eux aussi plus rapides et plus résistants selon la difficulté.
 
+**Éclats** : chaque ennemi en donne 10 % de plus par palier (palier 6 : +50 %), le double pour une élite,
+et le boss en donne 60 + 20 × palier. En Facile, où les ennemis sont moins nombreux et sans élites, ils en
+donnent 40 % de plus et le boss 10 % de plus : on progresse à peu près au même rythme qu'en Normal.
+Difficile et Cauchemar rapportent davantage, grâce à leurs ennemis et élites en plus.
+
 ## Le Sanctuaire et les paliers sans fin
 
 Après le tutoriel, on arrive au **Sanctuaire de la Lanterne**, le cœur du jeu :

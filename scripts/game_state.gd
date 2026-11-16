@@ -179,6 +179,17 @@ var daily := false
 var saved_seed := 0
 var rush_i := 0
 
+# Éclats d'un ennemi tué : +10 % par palier de profondeur ; en Facile (moins d'ennemis, pas
+# d'élites) chaque ennemi rapporte 40 % de plus pour progresser au même rythme qu'en Normal.
+func kill_geo(base: int) -> int:
+	var depth: float = (1.0 + 0.1 * float(palier - 1)) if mode in ["descent", "rush"] else 1.0
+	var easy: float = 1.4 if difficulty == 0 else 1.0
+	return roundi(float(base) * depth * easy * geo_mult())
+
+# Prime du boss (60 + 20 par palier), +10 % en Facile.
+func boss_geo() -> int:
+	return roundi((60 + 20 * palier) * (1.1 if difficulty == 0 else 1.0) * geo_mult())
+
 func geo_mult() -> float:
 	return float(CURSES.get(curse, CURSES[""])["geo"]) if mode == "descent" else 1.0
 

@@ -165,6 +165,11 @@ Kosmetik bleiben erhalten, da sie für alle Spielstände gelten.
 
 Auch die Bosse werden je nach Schwierigkeit schneller und zäher.
 
+**Splitter**: Jeder Gegner gibt pro Ebene 10 % mehr (Ebene 6: +50 %), eine Elite das Doppelte, und der Boss
+60 + 20 × Ebene. In Leicht, mit weniger Gegnern und ohne Eliten, geben Gegner 40 % mehr und der Boss 10 %
+mehr: Man kommt etwa so schnell voran wie in Normal. Schwer und Albtraum bringen mehr, durch ihre
+zusätzlichen Gegner und Eliten.
+
 ## Das Heiligtum und die endlosen Ebenen
 
 Nach dem Tutorial erreichst du das **Heiligtum der Laterne**, das Herz des Spiels:

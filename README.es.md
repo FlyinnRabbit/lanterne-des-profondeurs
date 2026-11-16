@@ -165,6 +165,11 @@ cosméticos se conservan, porque son comunes a todas las partidas.
 
 Los jefes también son más rápidos y resistentes según la dificultad.
 
+**Esquirlas**: cada enemigo da un 10 % más por nivel (nivel 6: +50 %), el doble una élite, y el jefe da
+60 + 20 × nivel. En Fácil, donde hay menos enemigos y ninguna élite, dan un 40 % más y el jefe un 10 % más:
+se progresa más o menos al mismo ritmo que en Normal. Difícil y Pesadilla dan más, gracias a sus enemigos
+y élites adicionales.
+
 ## El Santuario y los niveles sin fin
 
 Tras el tutorial llegas al **Santuario de la Linterna**, el corazón del juego:

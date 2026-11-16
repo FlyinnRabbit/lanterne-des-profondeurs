@@ -163,6 +163,11 @@ kept, since they are shared by all slots.
 
 Bosses are also faster and tougher depending on the difficulty.
 
+**Shards**: each enemy gives 10% more per tier (tier 6: +50%), elites give double, and the boss pays
+60 + 20 × tier. On Easy, where enemies are fewer and there are no elites, enemies give 40% more and the
+boss 10% more, so you progress about as fast as on Normal. Hard and Nightmare give more, through their
+extra enemies and elites.
+
 ## The Sanctuary and the endless tiers
 
 After the tutorial you arrive at **The Lantern Sanctuary**, the hub of the game:
