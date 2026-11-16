@@ -85,7 +85,12 @@ jobs:
           URL="$(grep -oE 'https://[a-zA-Z0-9.-]+\.workers\.dev' deploy.log | head -1)"
           if [ -z "$URL" ]; then echo "::error::Adresse du Worker introuvable"; exit 1; fi
           echo "url=$URL" >> "$GITHUB_OUTPUT"
-          curl -fsS "$URL/health"
+          # une adresse workers.dev neuve peut mettre une à deux minutes à répondre
+          for i in $(seq 1 24); do
+            if curl -fsS "$URL/health"; then echo; exit 0; fi
+            sleep 5
+          done
+          echo "::warning::$URL ne répond pas encore (propagation workers.dev) ; l'adresse est publiée quand même."
 
       - name: Publier l'adresse pour le jeu (leaderboard.url)
         if: steps.check.outputs.ready == 'true'
