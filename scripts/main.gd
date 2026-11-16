@@ -25,6 +25,8 @@ const CrawlerScript = preload("res://scripts/crawler.gd")
 const FlyerScript = preload("res://scripts/flyer.gd")
 const BossScript = preload("res://scripts/boss.gd")
 const GateScript = preload("res://scripts/gate.gd")
+var bg: Node2D          # arrière-plan en parallaxe
+var vignette: ColorRect
 const LevelArtScript = preload("res://scripts/level_art.gd")
 const BackgroundScript = preload("res://scripts/background.gd")
 const PropScript = preload("res://scripts/prop.gd")
@@ -118,6 +120,8 @@ func _ready() -> void:
 	_make_winches()
 	_spawn_shade()
 	_setup_camera_and_fx()
+	apply_quality.call_deferred()
+	Settings.changed.connect(apply_quality)
 	var layer := CanvasLayer.new()
 	layer.layer = 10
 	add_child(layer)
@@ -217,7 +221,7 @@ func _build_level() -> void:
 			cs.position = Vector2(x * TILE, y * TILE) + shape.size / 2.0
 			body.add_child(cs)
 	# Décor
-	var bg := Node2D.new()
+	bg = Node2D.new()
 	bg.set_script(BackgroundScript)
 	bg.main = self
 	add_child(bg)
@@ -692,6 +696,26 @@ func _make_vignette() -> void:
 	mat.shader = sh
 	r.material = mat
 	cl.add_child(r)
+	vignette = r
+
+# Qualité graphique (Options) : appliquée tout de suite, sans recharger le niveau.
+#  équilibrée : sans rayons ni brume d'arrière-plan, moitié moins de particules
+#  basse : plan lointain seul, plus de lumières 2D (sauf celles du héros), plus de particules ni de vignette
+func apply_quality() -> void:
+	var q := int(Settings.gfx_quality)
+	if bg and bg.has_method("apply_quality"):
+		bg.apply_quality()
+	if vignette:
+		vignette.visible = q < 2
+	_lights_on(self, q < 2)
+
+func _lights_on(n: Node, on: bool) -> void:
+	for c in n.get_children():
+		if c == player:
+			continue
+		if c is Light2D:
+			c.enabled = on
+		_lights_on(c, on)
 
 func _make_darkness() -> void:
 	var cl := CanvasLayer.new()

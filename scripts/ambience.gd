@@ -134,8 +134,10 @@ func _draw() -> void:
 			var hh := 14.0 - absf(i - 1) * 5.0
 			DU.poly(self, PackedVector2Array([b - side, b - side + dir * hh * 0.8, b + dir * hh, b + side + dir * hh * 0.8, b + side]), Color(0.45, 0.85, 0.95))
 			draw_line(b + dir * 2.0, b + dir * hh * 0.85, Color(1, 1, 1, 0.5 + 0.4 * pulse), 1.0)
-	# --- particules autour de la caméra
-	for f in flakes:
+	# --- particules autour de la caméra (moitié en qualité équilibrée, aucune en basse)
+	var nmax: int = [flakes.size(), flakes.size() / 2, 0][clampi(int(Settings.gfx_quality), 0, 2)]
+	for fi in nmax:
+		var f = flakes[fi]
 		var p: Vector2 = o + f[0]
 		var ph: float = f[2]
 		var sc: float = f[3]

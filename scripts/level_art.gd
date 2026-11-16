@@ -14,7 +14,7 @@ var main
 var depth := {}
 var biome := "profondeurs"
 var fill: Node2D
-# Le décor est découpé en tranches verticales : Godot ne dessine que celles qui sont à l'écran.
+# Le décor est découpé en blocs de cases : Godot ne dessine que ceux qui sont à l'écran.
 const CHUNK := 10          # largeur d'une tranche, en cases
 var is_chunk := false
 var cells: Array = []      # cases de roche de cette tranche
@@ -43,13 +43,15 @@ func _ready() -> void:
 	m.set_shader_parameter("style", STYLE.get(biome, 0))
 	m.set_shader_parameter("accent", main.pal["moss"])
 	var groups := {}
+	# blocs de CHUNK x CHUNK cases : sur les niveaux en strates (120 rangées), seuls les blocs
+	# visibles sont dessinés, et plus toute la hauteur de la tranche
 	for c in main.solid.keys():
-		var k: int = int(floor(float(c.x) / CHUNK))
+		var k := Vector2i(int(floor(float(c.x) / CHUNK)), int(floor(float(c.y) / CHUNK)))
 		if not groups.has(k):
 			groups[k] = [[], []]
 		groups[k][0].append(c)
 	for sp in main.spikes:
-		var k2: int = int(floor(sp.position.x / (CHUNK * main.TILE)))
+		var k2 := Vector2i(int(floor(sp.position.x / (CHUNK * main.TILE))), int(floor(sp.position.y / (CHUNK * main.TILE))))
 		if not groups.has(k2):
 			groups[k2] = [[], []]
 		groups[k2][1].append(sp)

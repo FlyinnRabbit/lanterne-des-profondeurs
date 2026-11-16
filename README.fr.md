@@ -394,6 +394,9 @@ Tout est dessiné en code, dans un style détaillé et peint :
   `scripts/translations.gd`.
 - **Taille de l'ATH** (60–160 %) et **des menus** (60–130 %), **zoom de la caméra**, **plein écran**
   (aussi F11), **synchronisation verticale**.
+- **Qualité graphique** : Haute, Équilibrée (sans rayons de lumière ni bancs de brume à l'arrière-plan,
+  moitié moins de particules) ou Basse (arrière-plan lointain seul, plus de lumières 2D sauf celles du héros,
+  ni particules ni vignette). Équilibrée par défaut sur Mac et dans le navigateur. Le changement est immédiat.
 - **Barres de vie des ennemis** et **dégâts infligés** affichés brièvement en haut à droite.
 - **Aides à l'écran**, **tremblement de l'écran** (0–150 %), **arrêt sur image** à l'impact, **vibrations** de la manette.
 - **Accessibilité** : dangers en contraste élevé (daltonisme), s'accroupir en bascule, vitesse du jeu

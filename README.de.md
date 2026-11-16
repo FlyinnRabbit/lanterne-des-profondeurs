@@ -390,6 +390,9 @@ Alles wird per Code gezeichnet, in einem detaillierten, gemalten Stil:
   `scripts/translations.gd` neu.
 - **Größe der Oberfläche** (60–160 %) und **der Menüs** (60–130 %), **Kamerazoom**,
   **Vollbild** (auch F11), **vertikale Synchronisation**.
+- **Grafikqualität**: Hoch, Ausgewogen (keine Lichtstrahlen und Nebelbänke im Hintergrund, halb so viele
+  Partikel) oder Niedrig (nur der ferne Hintergrund, keine 2D-Lichter außer denen des Helden, keine Partikel
+  und keine Vignette). Ausgewogen ist auf dem Mac und im Browser voreingestellt. Die Änderung wirkt sofort.
 - **Lebensleisten der Gegner** und **verursachter Schaden**, kurz oben rechts angezeigt.
 - **Bildschirmhinweise**, **Bildschirmwackeln** (0–150 %), **Trefferstopp**, **Controller-Vibration**.
 - **Barrierefreiheit**: kontrastreiche Gefahren (Farbenblindheit), Ducken als Umschalter,

@@ -391,6 +391,9 @@ Everything is drawn in code, in a detailed, painted style:
   regenerates `scripts/translations.gd`.
 - **HUD size** (60–160%) and **menu size** (60–130%), **camera zoom**, **full screen**
   (also F11), **vertical sync**.
+- **Graphics quality**: High, Balanced (no background light shafts or fog banks, half the particles) or
+  Low (far background only, no 2D lights except the hero's, no particles or vignette). Balanced is the
+  default on Mac and in the browser. Changes apply instantly.
 - **Enemy health bars** and **damage dealt** shown briefly in the top-right corner.
 - **On-screen hints**, **screen shake** (0–150%), **hit stop**, gamepad **rumble**.
 - **Accessibility**: high-contrast hazards (colour blindness), crouch as a toggle,

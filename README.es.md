@@ -393,6 +393,9 @@ Todo está dibujado con código, con un estilo detallado y pintado:
   `scripts/translations.gd`.
 - **Tamaño de la interfaz** (60–160 %) y **de los menús** (60–130 %), **zoom de la cámara**,
   **pantalla completa** (también F11), **sincronización vertical**.
+- **Calidad gráfica**: Alta, Equilibrada (sin rayos de luz ni bancos de niebla en el fondo, la mitad de
+  partículas) o Baja (solo el fondo lejano, sin luces 2D salvo las del héroe, sin partículas ni viñeta).
+  Equilibrada por defecto en Mac y en el navegador. El cambio es inmediato.
 - **Barras de vida de los enemigos** y **daño infligido** mostrados un momento arriba a la derecha.
 - **Ayudas en pantalla**, **temblor de pantalla** (0–150 %), **pausa al impacto**, **vibración** del mando.
 - **Accesibilidad**: peligros de alto contraste (daltonismo), agacharse en modo alternar, velocidad

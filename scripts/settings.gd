@@ -33,10 +33,13 @@ var auto_update := true  # télécharger les mises à jour au lancement (voir up
 var player_name := ""      # pseudo affiché au classement de la Descente du jour
 var player_id := ""        # identifiant aléatoire de l'installation (classement)
 var board_online := true   # envoyer ses temps au classement en ligne
+# 0 haute, 1 équilibrée, 2 basse (voir main.apply_quality) ; équilibrée par défaut sur Mac et navigateur
+var gfx_quality := 1 if (OS.has_feature("macos") or OS.has_feature("web")) else 0
 var kb_layout := 0         # disposition du clavier pour les noms de touches (voir controls.gd)
 
 const SPEED_CHOICES := [1.0, 0.9, 0.8, 0.7]
 const SPEED_LABELS := ["100 %", "90 %", "80 %", "70 %"]
+const GFX_LABELS := ["Haute", "Équilibrée", "Basse"]
 
 func speed() -> float:
 	return SPEED_CHOICES[clampi(game_speed, 0, SPEED_CHOICES.size() - 1)]
@@ -109,7 +112,7 @@ func reset_defaults() -> void:
 
 const KEYS := ["hud_scale", "menu_scale", "shake", "zoom", "fullscreen", "vsync", "hitstop", "show_hints",
 	"master_volume", "music_volume", "sfx_volume", "fps_cap", "show_fps", "pad_style", "enemy_bars", "damage_numbers", "language",
-	"minimap", "telegraphs", "colorblind", "crouch_toggle", "game_speed", "last_slot", "kb_layout", "auto_update", "player_name", "player_id", "board_online"]
+	"minimap", "telegraphs", "colorblind", "crouch_toggle", "game_speed", "last_slot", "kb_layout", "auto_update", "player_name", "player_id", "board_online", "gfx_quality"]
 
 func save_settings() -> void:
 	var cfg := ConfigFile.new()

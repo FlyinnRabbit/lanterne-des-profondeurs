@@ -720,6 +720,7 @@ func _build_options(root: Control) -> void:
 	_check_row(g, "Synchronisation verticale", "vsync")
 	_check_row(g, "Aides à l'écran", "show_hints")
 	_choice_row(g, "Limite d'images par seconde", "fps_cap", Settings.FPS_LABELS)
+	_choice_row(g, "Qualité graphique", "gfx_quality", Settings.GFX_LABELS)
 	_check_row(g, "Afficher les FPS", "show_fps")
 	_check_row(g, "Barres de vie des ennemis", "enemy_bars")
 	_check_row(g, "Dégâts infligés (coin de l'écran)", "damage_numbers")

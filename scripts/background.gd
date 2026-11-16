@@ -30,6 +30,42 @@ class Layer extends Node2D:
 	var width := 0.0
 	var height := 0.0
 	var rng := RandomNumberGenerator.new()
+	# Découpage en tranches horizontales : le plan lui-même ne dessine rien, ses tranches
+	# (même classe) dessinent chacune les motifs de leur portion — Godot n'affiche que celles
+	# qui sont à l'écran. Avant, tout le plan (largeur du niveau entière) partait à chaque image.
+	const SEG := 1024.0
+	var is_seg := false
+	var lo := -INF
+	var hi := INF
+
+	func _ready() -> void:
+		light_mask = 0          # les lumières 2D ne redessinent pas l'arrière-plan
+		if is_seg:
+			return
+		var x0 := -2400.0
+		while x0 < width + 2400.0:
+			var sg := Layer.new()
+			for k in ["factor", "kind", "biome", "col", "fog", "light", "accent", "seed_v", "width", "height"]:
+				sg.set(k, get(k))
+			sg.is_seg = true
+			sg.lo = x0
+			sg.hi = x0 + SEG
+			add_child(sg)
+			x0 += SEG
+
+	func _in(x: float) -> bool:
+		return x >= lo and x < hi
+
+	# Écart entre deux motifs (suite à part : chaque tranche la rejoue sans rien dessiner)
+	func _gap(prng: RandomNumberGenerator, s: float) -> float:
+		match biome:
+			"citadelle", "hub":
+				return prng.randf_range(260.0, 420.0) * (0.7 + s)
+			"bibliotheque":
+				return prng.randf_range(160.0, 300.0) * (0.7 + s)
+			"ruche":
+				return prng.randf_range(200.0, 380.0) * (0.7 + s)
+		return prng.randf_range(80.0, 280.0) * (0.8 + s)
 
 	func _shade(y: float) -> Color:
 		var k := clampf(y / maxf(height, 1.0), 0.0, 1.0)
@@ -55,27 +91,41 @@ class Layer extends Node2D:
 					draw_line(a, b, rc, 1.5 + kind * 0.5)
 
 	func _draw() -> void:
+		if not is_seg:
+			return
 		rng.seed = seed_v
 		if kind == 3:
 			_foreground()
 			return
+		var prng := RandomNumberGenerator.new()
+		prng.seed = seed_v * 31 + 7
+		var s := 1.25 - factor
 		var x := -2200.0
+		var i := 0
 		while x < width + 2200.0:
-			var step := _motif(x)
-			x += step
+			if _in(x):
+				rng.seed = seed_v * 1000003 + i * 7919      # chaque motif a sa propre graine
+				_motif(x)
+			x += _gap(prng, s)
+			i += 1
+		if int(Settings.gfx_quality) >= 1:
+			return               # qualité équilibrée / basse : ni rayons de lumière ni bancs de brume
 		if kind == 1:
 			_shafts()
 		if kind <= 1:
-			# banc de brume au pied du plan
-			DU.vgrad(self, Rect2(-2400, height * 0.55, width + 4800, height * 0.6), Color(fog, 0.0), Color(fog, 0.35 - kind * 0.1))
+			# banc de brume au pied du plan (portion de la tranche)
+			DU.vgrad(self, Rect2(lo, height * 0.55, hi - lo, height * 0.6), Color(fog, 0.0), Color(fog, 0.35 - kind * 0.1))
 
 	func _shafts() -> void:
+		rng.seed = seed_v * 17 + 3
 		var x := -1500.0
 		while x < width + 1500.0:
 			x += rng.randf_range(380.0, 900.0)
 			var w := rng.randf_range(60.0, 160.0)
 			var sk := rng.randf_range(120.0, 320.0)
 			var l := height * rng.randf_range(0.6, 1.0)
+			if not _in(x):
+				continue
 			draw_polygon(PackedVector2Array([Vector2(x, -300), Vector2(x + w, -300), Vector2(x + w + sk, l), Vector2(x + sk, l)]),
 				PackedColorArray([Color(light, 0.075), Color(light, 0.075), Color(light, 0.0), Color(light, 0.0)]))
 
@@ -292,13 +342,16 @@ class Layer extends Node2D:
 		while x < width + 1500.0:
 			x += rng.randf_range(500.0, 1100.0)
 			var w := rng.randf_range(80.0, 200.0)
-			if rng.randf() < 0.5:
+			var low := rng.randf() < 0.5
+			var l := rng.randf_range(80.0, 200.0)
+			if not _in(x):
+				continue
+			if low:
 				# roche au ras du sol, en bas de l'écran
 				var b := height + 200.0
 				DU.flat(self, PackedVector2Array([Vector2(x, b), Vector2(x + w * 0.2, height - 10), Vector2(x + w * 0.5, height - 60), Vector2(x + w * 0.8, height - 20), Vector2(x + w, b)]), c)
 			else:
 				# racines ou stalactite qui pendent du haut
-				var l := rng.randf_range(80.0, 200.0)
 				DU.flat(self, PackedVector2Array([Vector2(x, -300), Vector2(x + w * 0.5, -300), Vector2(x + w * 0.3, l * 0.5), Vector2(x + w * 0.2, l)]), c)
 
 func _ready() -> void:
@@ -335,6 +388,15 @@ func _ready() -> void:
 		l.set_meta("factor", l.factor)
 		add_child(l)
 		layers.append(l)
+
+# Qualité graphique : en basse, seul le plan lointain reste ; brume et rayons sont redessinés.
+func apply_quality() -> void:
+	var q := int(Settings.gfx_quality)
+	for l in layers:
+		if l is Layer:
+			l.visible = q < 2 or l.kind == 0
+			for sg in l.get_children():
+				sg.queue_redraw()
 
 func _process(_delta: float) -> void:
 	var cam: Camera2D = main.camera
