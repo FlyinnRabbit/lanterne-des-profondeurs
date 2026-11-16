@@ -218,6 +218,10 @@ func _build_level() -> void:
 	art.set_script(LevelArtScript)
 	art.main = self
 	add_child(art)
+	var amb := Node2D.new()
+	amb.set_script(preload("res://scripts/ambience.gd"))
+	amb.main = self
+	add_child(amb)
 	# Grilles de l'arène
 	entry_gate = _make_gate(gate_cells["Y"], false)
 	exit_gate = _make_gate(gate_cells["X"], true)
@@ -811,6 +815,12 @@ func show_message(text: String, duration: float = 2.5) -> void:
 		hud.message = tr(text)
 		hud.message_t = duration
 
+var _spark: Texture2D
+func _spark_tex() -> Texture2D:
+	if _spark == null:
+		_spark = DU.radial_texture(32)
+	return _spark
+
 func spawn_burst(pos: Vector2, color: Color, amount: int = 12, speed: float = 160.0, grav: float = 300.0) -> void:
 	var p := CPUParticles2D.new()
 	p.position = pos
@@ -822,12 +832,29 @@ func spawn_burst(pos: Vector2, color: Color, amount: int = 12, speed: float = 16
 	p.gravity = Vector2(0, grav)
 	p.initial_velocity_min = speed * 0.4
 	p.initial_velocity_max = speed
-	p.scale_amount_min = 2.0
-	p.scale_amount_max = 4.0
-	p.color = color
+	p.scale_amount_min = 0.12
+	p.scale_amount_max = 0.26
+	p.texture = _spark_tex()
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(color.lightened(0.3), 1.0))
+	ramp.set_color(1, Color(color, 0.0))
+	p.color_ramp = ramp
 	add_child(p)
 	p.emitting = true
 	get_tree().create_timer(1.2).timeout.connect(p.queue_free)
+
+const FxScript = preload("res://scripts/fx.gd")
+func spawn_fx(kind: String, pos: Vector2, color := Color(1, 1, 1), dir := Vector2.RIGHT, facing := 1) -> void:
+	var f := Node2D.new()
+	f.set_script(FxScript)
+	f.main = self
+	f.kind = kind
+	f.color = color
+	f.dir = dir
+	f.facing = facing
+	f.seed_v = randi()
+	f.position = pos
+	add_child(f)
 
 # ---------------------------------------------------------------- événements
 func on_enemy_killed(e, geo: int) -> void:
@@ -837,6 +864,9 @@ func on_enemy_killed(e, geo: int) -> void:
 		Achievements.unlock("plunge")
 	Audio.sfx("kill")
 	spawn_burst(e.global_position, Color(0.95, 0.9, 0.75), 18, 220.0)
+	spawn_fx("death", e.global_position, e.fx_color() if e.has_method("fx_color") else Color(0.7, 0.65, 0.75))
+	if geo > 0:
+		spawn_fx("shards", e.global_position, Color(0.75, 0.85, 1.0), Vector2(clampi(geo / 2 + 1, 1, 8), 0))
 	shake(4)
 
 func on_player_hurt() -> void:

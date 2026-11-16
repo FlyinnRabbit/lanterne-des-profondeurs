@@ -41,6 +41,10 @@ func _run() -> void:
 		await _frames(4)
 		var main = current_scene
 		main.player.global_position.x += 520
+		main.player.soul = int(main.player.SOUL_MAX * 0.6)
+		main.player.hp = main.player.max_hp - 2
+		main.player.ult = int(main.player.ULT_MAX * 0.5)
+		main.player.geo = 248
 		await _frames(70)
 		await RenderingServer.frame_post_draw
 		root.get_viewport().get_texture().get_image().save_png("/tmp/gfx/%s_%s.png" % [pre, b["id"]])

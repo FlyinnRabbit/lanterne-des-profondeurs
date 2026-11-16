@@ -17,6 +17,7 @@ var first_title_button: Button
 var diff_buttons: Array[Button] = []
 var skip_tuto_check: CheckButton
 var title_mode := false
+var title_backdrop: Control
 var diff_header: Label
 var pad_header: Label
 var diff_back_row: Control
@@ -55,6 +56,11 @@ func _ready() -> void:
 	dim.color = Color(0.0, 0.0, 0.03, 0.72)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(dim)
+	title_backdrop = TitleBackdrop.new()
+	title_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	title_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title_backdrop.visible = false
+	root.add_child(title_backdrop)
 	_build_pause(root)
 	_build_controls(root)
 	_build_options(root)
@@ -76,6 +82,8 @@ func _panels() -> Array:
 
 # Affiche un seul panneau
 func _go(panel: PanelContainer) -> void:
+	if title_backdrop:
+		title_backdrop.visible = title_mode
 	for p in _panels():
 		if p:
 			p.get_parent().visible = (p == panel)
@@ -279,41 +287,132 @@ func open_title() -> void:
 
 # ---------------------------------------------------------------- construction
 func _make_theme() -> Theme:
+	# panneaux de bois sombre cerclés de laiton, boutons en plaques de bois
 	var th := Theme.new()
+	var brass := Color(0.72, 0.58, 0.32)
 	var panel := StyleBoxFlat.new()
-	panel.bg_color = Color(0.05, 0.06, 0.1, 0.96)
-	panel.border_color = Color(0.45, 0.55, 0.7)
-	panel.set_border_width_all(2)
-	panel.set_corner_radius_all(6)
-	panel.set_content_margin_all(20)
+	panel.bg_color = Color(0.075, 0.058, 0.052, 0.97)
+	panel.border_color = brass
+	panel.set_border_width_all(3)
+	panel.set_corner_radius_all(5)
+	panel.set_content_margin_all(22)
+	panel.shadow_color = Color(0, 0, 0, 0.55)
+	panel.shadow_size = 14
+	panel.shadow_offset = Vector2(0, 5)
 	th.set_stylebox("panel", "PanelContainer", panel)
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.1, 0.12, 0.18)
-	normal.border_color = Color(0.25, 0.3, 0.42)
+	normal.bg_color = Color(0.15, 0.11, 0.085)
+	normal.border_color = Color(0.36, 0.27, 0.18)
 	normal.set_border_width_all(1)
+	normal.border_width_bottom = 3
 	normal.set_corner_radius_all(4)
 	normal.content_margin_left = 14
 	normal.content_margin_right = 14
 	normal.content_margin_top = 6
 	normal.content_margin_bottom = 6
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.16, 0.2, 0.3)
+	hover.bg_color = Color(0.22, 0.16, 0.11)
+	hover.border_color = Color(0.55, 0.42, 0.26)
 	var focus := normal.duplicate() as StyleBoxFlat
-	focus.bg_color = Color(0.2, 0.26, 0.4)
-	focus.border_color = Color(0.85, 0.9, 1.0)
+	focus.bg_color = Color(0.28, 0.2, 0.12)
+	focus.border_color = Color(1.0, 0.86, 0.55)
 	focus.set_border_width_all(2)
+	focus.border_width_bottom = 3
+	focus.shadow_color = Color(1.0, 0.75, 0.35, 0.25)
+	focus.shadow_size = 6
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.3, 0.38, 0.55)
-	for t in ["Button", "CheckButton"]:
+	pressed.bg_color = Color(0.36, 0.26, 0.15)
+	pressed.border_width_bottom = 1
+	pressed.border_width_top = 3
+	var disabled := normal.duplicate() as StyleBoxFlat
+	disabled.bg_color = Color(0.09, 0.075, 0.065)
+	disabled.border_color = Color(0.2, 0.16, 0.12)
+	for t in ["Button", "CheckButton", "OptionButton"]:
 		th.set_stylebox("normal", t, normal)
 		th.set_stylebox("hover", t, hover)
 		th.set_stylebox("focus", t, focus)
 		th.set_stylebox("pressed", t, pressed)
+		th.set_stylebox("disabled", t, disabled)
 		th.set_font_size("font_size", t, 18)
-		th.set_color("font_color", t, Color(0.88, 0.91, 1.0))
+		th.set_color("font_color", t, Color(0.95, 0.9, 0.8))
+		th.set_color("font_hover_color", t, Color(1.0, 0.95, 0.85))
+		th.set_color("font_focus_color", t, Color(1.0, 0.93, 0.75))
+		th.set_color("font_disabled_color", t, Color(0.5, 0.45, 0.4))
 	th.set_font_size("font_size", "Label", 20)
-	th.set_color("font_color", "Label", Color(0.8, 0.85, 0.95))
+	th.set_color("font_color", "Label", Color(0.88, 0.84, 0.76))
+	th.set_color("font_shadow_color", "Label", Color(0, 0, 0, 0.6))
+	th.set_constant("shadow_offset_x", "Label", 1)
+	th.set_constant("shadow_offset_y", "Label", 1)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.1, 0.08, 0.06)
+	sb.set_corner_radius_all(3)
+	var grab := StyleBoxFlat.new()
+	grab.bg_color = brass.darkened(0.2)
+	grab.set_corner_radius_all(3)
+	th.set_stylebox("scroll", "VScrollBar", sb)
+	th.set_stylebox("grabber", "VScrollBar", grab)
+	th.set_stylebox("grabber_highlight", "VScrollBar", grab)
+	th.set_stylebox("grabber_pressed", "VScrollBar", grab)
 	return th
+
+# ---------------------------------------------------------------- fond peint de l'écran titre
+class TitleBackdrop extends Control:
+	const DU = preload("res://scripts/draw_util.gd")
+	var t := 0.0
+	func _process(d: float) -> void:
+		t += d
+		if visible:
+			queue_redraw()
+	func _draw() -> void:
+		var sz := size
+		var cx := sz.x * 0.5
+		# puits de la caverne : dégradé, lumière tout au fond
+		DU.vgrad(self, Rect2(Vector2.ZERO, sz), Color(0.02, 0.02, 0.05), Color(0.12, 0.07, 0.04))
+		var lamp := Vector2(cx, sz.y * 0.86)
+		DU.glow(self, lamp, sz.y * 0.75, Color(1.0, 0.7, 0.35), 0.5 + 0.05 * sin(t * 2.0))
+		# rayons qui montent du fond
+		for i in 9:
+			var a := -PI / 2.0 + (i - 4) * 0.16 + sin(t * 0.3 + i) * 0.02
+			var d := Vector2.from_angle(a)
+			var nn := d.orthogonal() * 14.0
+			draw_polygon(PackedVector2Array([lamp - nn, lamp + nn, lamp + d * sz.y * 1.2 + nn * 4.0, lamp + d * sz.y * 1.2 - nn * 4.0]),
+				PackedColorArray([Color(1.0, 0.8, 0.45, 0.07), Color(1.0, 0.8, 0.45, 0.07), Color(1.0, 0.8, 0.45, 0.0), Color(1.0, 0.8, 0.45, 0.0)]))
+		# parois du puits : trois plans de roche de chaque côté
+		for layer in 3:
+			var col := Color(0.05, 0.035, 0.03).lerp(Color(0.16, 0.1, 0.06), (2 - layer) / 2.0 * 0.6)
+			for side in [-1.0, 1.0]:
+				var pts := PackedVector2Array([Vector2(cx + side * sz.x, -10), Vector2(cx + side * sz.x, sz.y + 10)])
+				for k in 13:
+					var u := 1.0 - k / 12.0
+					var wob := sin(u * 9.0 + layer * 2.0 + side) * 22.0 + sin(u * 23.0 + layer) * 8.0
+					var x: float = cx + side * (sz.x * (0.18 + layer * 0.08) + u * sz.x * 0.08 + wob)
+					pts.append(Vector2(x, sz.y + 10 - (1.0 - u) * (sz.y + 20)))
+				draw_colored_polygon(pts, col)
+		# stalactites en haut
+		for k in 16:
+			var x := k * sz.x / 15.0
+			var l := 40.0 + fposmod(sin(k * 7.3) * 431.0, 1.0) * 120.0
+			draw_colored_polygon(PackedVector2Array([Vector2(x - 22, -2), Vector2(x + 22, -2), Vector2(x + 4, l * 0.6), Vector2(x, l)]), Color(0.03, 0.02, 0.02))
+		# la Lanterne, minuscule, tout au fond du puits
+		DU.glow(self, lamp, 50.0, Color(1.0, 0.85, 0.5), 0.8)
+		draw_colored_polygon(PackedVector2Array([lamp + Vector2(-9, -10), lamp + Vector2(9, -10), lamp + Vector2(0, -19)]), Color(0.15, 0.1, 0.08))
+		draw_rect(Rect2(lamp + Vector2(-7, -10), Vector2(14, 18)), Color(1.0, 0.82, 0.45))
+		for k in 3:
+			draw_line(lamp + Vector2(-7 + k * 7, -10), lamp + Vector2(-7 + k * 7, 8), Color(0.15, 0.1, 0.08), 1.6)
+		draw_rect(Rect2(lamp + Vector2(-9, 7), Vector2(18, 3)), Color(0.15, 0.1, 0.08))
+		# braises qui montent et brume
+		for k in 40:
+			var u := fposmod(t * (0.04 + (k % 5) * 0.01) + k * 0.137, 1.0)
+			var x := cx + sin(k * 3.1 + t * 0.5) * sz.x * 0.25 * (0.3 + u)
+			var y := lamp.y - u * sz.y * 1.0
+			draw_circle(Vector2(x, y), 1.0 + (k % 3) * 0.7, Color(1.0, 0.7, 0.35, 0.8 * sin(u * PI)))
+		for k in 4:
+			var y := sz.y * (0.55 + k * 0.1)
+			DU.vgrad(self, Rect2(0, y, sz.x, 60), Color(0.5, 0.35, 0.25, 0.0), Color(0.5, 0.35, 0.25, 0.05))
+		# vignette
+		for k in 10:
+			var kk := k / 10.0
+			draw_rect(Rect2(Vector2.ZERO, sz).grow(-kk * 60.0), Color(0, 0, 0, 0.04), false, 60.0)
 
 func _centered_panel(root: Control) -> PanelContainer:
 	var center := CenterContainer.new()

@@ -99,6 +99,8 @@ var dead := false
 var anim_t := 0.0
 var squash := Vector2.ONE
 var was_on_floor := true
+var last_vy := 0.0
+var after_t := 0.0
 var parry_t := 0.0
 var parry_cd := 0.0
 var parry_flash := 0.0
@@ -410,13 +412,20 @@ func _physics_process(delta: float) -> void:
 		squash = Vector2(1.2, 0.85)
 		Audio.sfx("parry", 0.05, -3.0)
 
+	last_vy = velocity.y
 	move_and_slide()
 	_post_move(on_floor)
 
 func _post_move(prev_on_floor: bool) -> void:
 	was_on_floor = is_on_floor()
-	if not prev_on_floor and was_on_floor:
-		pass
+	if not prev_on_floor and was_on_floor and last_vy > 420.0:
+		main.spawn_fx("dust", global_position + Vector2(0, SIZE.y / 2.0), Color(0.75, 0.72, 0.68))
+	# images rémanentes pendant la ruée
+	if dash_t > 0.0:
+		after_t -= get_physics_process_delta_time()
+		if after_t <= 0.0:
+			after_t = 0.035
+			main.spawn_fx("after", global_position + Vector2(0, SIZE.y / 2.0), Color(1, 1, 1), Vector2.RIGHT, facing)
 	_check_hazards()
 
 func _update_safe_spot() -> void:

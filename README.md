@@ -153,6 +153,15 @@ Tout reste dessiné en code (aucune image), dans un style plus détaillé et « 
 - **coups d'armes** : traînées « peintes » pour l'aiguille, le coup final, le marteau et les tourbillons, armes tenues détaillées ;
 - **arsenal** du Sanctuaire redessiné (présentoir à auvent, armes exposées) et icônes d'armes dans son menu.
 
+## Interface et effets (v2.3)
+
+- **ATH** : fiole d'âme en verre cerclé de laiton (liquide, bulles), masques peints, jauge d'ultime en laiton, cristal de géo facetté, mini-carte sur parchemin ;
+- **menus et écran-titre** : fond peint (puits, lanterne, braises), panneaux en bois sombre et laiton ;
+- **effets de combat** : étoile d'impact, mort avec anneau, fumée et éclats, cristaux de géo qui rejoignent le héros, poussière à l'atterrissage, image rémanente de la Ruée ;
+- **projectiles** redessinés avec traînée ;
+- **ambiance par biome** : spores et lucioles, neige, pages volantes, braises, feux follets, gouttes, lave bouillonnante, amas de cristaux lumineux ;
+- **carte** façon « carte perdue » : parchemin déchiré, plié, taché et brûlé, légèrement transparent, centré à l'écran.
+
 ## Combat : coups spéciaux
 - **Combo au sol** : 3 coups, le 3e est un coup final ; maintenir puis relâcher = **tourbillon** ;
   frapper pendant la Ruée = **estoc**.

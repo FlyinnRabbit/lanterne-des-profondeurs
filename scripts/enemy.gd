@@ -102,6 +102,7 @@ func take_hit(dmg: int, dir: Vector2) -> void:
 	flash_t = 0.12
 	knock = dir * 340.0 * knock_resist
 	main.spawn_burst(global_position, Color(1.0, 0.95, 0.85), 8, 180.0)
+	main.spawn_fx("hit", global_position, Color(1.0, 0.85, 0.6), dir if dir != Vector2.ZERO else Vector2.RIGHT)
 	if hp <= 0:
 		die()
 
@@ -131,3 +132,7 @@ func leg(a: Vector2, knee: Vector2, foot: Vector2, col: Color, w := 2.2) -> void
 	draw_line(a, knee, col, w)
 	draw_line(knee, foot, col, w * 0.8)
 	draw_circle(knee, w * 0.55, col)
+
+# couleur des morceaux à la mort (les sous-classes peuvent la changer)
+func fx_color() -> Color:
+	return Color(0.7, 0.65, 0.75).lerp(Color(1.0, 0.4, 0.35), 0.4 if elite else 0.0)

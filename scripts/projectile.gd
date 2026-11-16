@@ -1,4 +1,5 @@
 extends Node2D
+const DU = preload("res://scripts/draw_util.gd")
 # Projectiles ennemis. Une parade les renvoie (ils blessent alors les ennemis).
 #  kind "spore" : boule de spores en ligne droite (cracheurs, Abbesse, Reine)
 #  kind "rock"  : rocher qui tombe (Colosse) — soumis à la gravité
@@ -134,6 +135,15 @@ func _color() -> Color:
 		"slashwave": return Color(0.85, 0.92, 1.0)
 	return Color(0.85, 0.45, 0.95)
 
+# traînée effilée derrière le projectile (dans le sens opposé à sa vitesse)
+func _tail(c: Color, w: float, l: float) -> void:
+	if vel.length() < 20.0:
+		return
+	var d := -vel.normalized()
+	var nn := d.orthogonal() * w
+	var end := d * minf(l, vel.length() * 0.06 + 6.0)
+	draw_polygon(PackedVector2Array([nn, end, -nn]), PackedColorArray([Color(c, 0.6), Color(c, 0.0), Color(c, 0.6)]))
+
 func _draw() -> void:
 	var c := _color() if hostile else Color(0.6, 0.9, 1.0)
 	if hostile and Settings.colorblind:
@@ -143,46 +153,90 @@ func _draw() -> void:
 		c = Color(1.0, 0.75, 0.35)
 	match kind:
 		"rock":
+			# rocher qui tourne, arêtes, poussière derrière
+			_tail(Color(0.6, 0.55, 0.5), radius * 0.6, 22.0)
 			var pts := PackedVector2Array()
-			for i in 7:
-				var a := i * TAU / 7.0 + t * 3.0
+			for i in 8:
+				var a := i * TAU / 8.0 + t * 3.0
 				pts.append(Vector2(cos(a), sin(a)) * radius * (0.8 + 0.25 * sin(i * 2.3)))
-			draw_colored_polygon(pts, c.darkened(0.3))
-			draw_polyline(pts + PackedVector2Array([pts[0]]), c, 1.5)
+			DU.poly(self, pts, c.darkened(0.25))
+			draw_line(pts[1] * 0.4, pts[4] * 0.5, c.darkened(0.6), 1.2)
 		"wave":
+			# onde de choc : vague de poussière et de lumière
 			var h := 30.0 + sin(t * 30.0) * 4.0
 			var d := signf(vel.x)
-			draw_colored_polygon(PackedVector2Array([Vector2(-10 * d, 0), Vector2(8 * d, 0), Vector2(2 * d, -h), Vector2(-4 * d, -h * 0.6)]), Color(c, 0.85))
-			draw_circle(Vector2(0, -4), 14.0, Color(c, 0.2))
+			DU.glow(self, Vector2(0, -10), 20.0, c, 0.4)
+			draw_polygon(PackedVector2Array([Vector2(-12 * d, 0), Vector2(9 * d, 0), Vector2(3 * d, -h), Vector2(-5 * d, -h * 0.6)]),
+				PackedColorArray([Color(c, 0.2), Color(c.lightened(0.5), 0.95), Color(1, 1, 1, 0.9), Color(c, 0.4)]))
+			for i in 3:
+				draw_circle(Vector2(-d * (6 + i * 7), -2 - i), 4.0 - i, Color(0.8, 0.75, 0.7, 0.4))
 		"acid":
-			draw_circle(Vector2.ZERO, radius * 1.8, Color(c, 0.2))
-			draw_circle(Vector2.ZERO, radius, c)
-			draw_circle(Vector2(-2, -2), radius * 0.35, Color(1, 1, 1, 0.7))
+			# goutte d'acide qui s'étire, bulles
+			_tail(c, radius * 0.8, 18.0)
+			DU.glow(self, Vector2.ZERO, radius * 2.4, c, 0.4)
+			var dd := vel.normalized() if vel.length() > 1.0 else Vector2.RIGHT
+			var drop := PackedVector2Array()
+			for i in 14:
+				var a := i * TAU / 14.0
+				var v := Vector2.from_angle(a)
+				var stretch := 1.0 + 0.5 * maxf(0.0, -v.dot(dd))
+				drop.append(v * radius * stretch)
+			DU.flat(self, drop, c)
+			draw_circle(-dd * radius * 0.2, radius * 0.6, c.lightened(0.25))
+			draw_circle(Vector2(-2, -2), radius * 0.3, Color(1, 1, 1, 0.75))
+			draw_circle(Vector2(sin(t * 9.0) * 2.0, cos(t * 7.0) * 2.0), 1.2, Color(1, 1, 1, 0.5))
 		"slashwave":
+			# lame d'air de l'aiguille : croissant translucide
 			var sd := signf(vel.x)
 			var a := clampf(life / 0.32, 0.0, 1.0)
-			draw_arc(Vector2(-sd * 8, 0), 16.0, -1.2 if sd > 0 else PI - 1.2, 1.2 if sd > 0 else PI + 1.2, 12, Color(0.9, 0.95, 1.0, a), 4.0)
+			var a0 := -1.2 if sd > 0 else PI - 1.2
+			var a1 := 1.2 if sd > 0 else PI + 1.2
+			draw_arc(Vector2(-sd * 8, 0), 16.0, a0, a1, 14, Color(0.6, 0.85, 1.0, 0.4 * a), 9.0)
+			draw_arc(Vector2(-sd * 8, 0), 17.0, a0, a1, 14, Color(1, 1, 1, a), 2.5)
+			for i in 3:
+				draw_line(Vector2(-sd * (14 + i * 6), -6 + i * 6), Vector2(-sd * (24 + i * 6), -6 + i * 6), Color(0.8, 0.9, 1.0, 0.4 * a), 1.2)
 		"dart":
+			# fléchette : hampe de bois, pointe de fer, empennage de plumes
 			var dd := signf(vel.x)
-			draw_line(Vector2(-dd * 12, 0), Vector2(dd * 6, 0), Color(0.55, 0.4, 0.3), 2.0)
-			draw_colored_polygon(PackedVector2Array([Vector2(dd * 10, 0), Vector2(dd * 4, -3), Vector2(dd * 4, 3)]), Color(1.0, 0.6, 0.35))
-			draw_line(Vector2(-dd * 12, -3), Vector2(-dd * 9, 0), Color(0.9, 0.85, 0.7), 1.5)
-			draw_line(Vector2(-dd * 12, 3), Vector2(-dd * 9, 0), Color(0.9, 0.85, 0.7), 1.5)
+			_tail(Color(1, 1, 1), 1.5, 26.0)
+			draw_line(Vector2(-dd * 12, 0), Vector2(dd * 6, 0), Color(0.35, 0.25, 0.18), 2.6)
+			draw_line(Vector2(-dd * 12, -0.6), Vector2(dd * 6, -0.6), Color(0.62, 0.48, 0.32), 1.0)
+			DU.flat(self, PackedVector2Array([Vector2(dd * 12, 0), Vector2(dd * 4, -3.5), Vector2(dd * 5.5, 0), Vector2(dd * 4, 3.5)]), Color(0.7, 0.72, 0.8))
+			DU.flat(self, PackedVector2Array([Vector2(-dd * 8, 0), Vector2(-dd * 14, -4.5), Vector2(-dd * 12, 0), Vector2(-dd * 14, 4.5)]), Color(0.85, 0.3, 0.25))
 		"shuriken":
 			var cc := Color(1.0, 0.75, 0.35) if crit else Color(0.85, 0.9, 1.0)
+			DU.glow(self, Vector2.ZERO, radius * 1.8, cc, 0.35)
+			draw_arc(Vector2.ZERO, radius * 0.95, t * 25.0, t * 25.0 + 2.0, 10, Color(cc, 0.35), 2.0)
 			for i in 4:
 				var a := i * PI / 2.0 + t * 25.0
-				draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2.from_angle(a - 0.4) * radius * 0.45, Vector2.from_angle(a) * radius]), cc)
+				DU.flat(self, PackedVector2Array([Vector2.ZERO, Vector2.from_angle(a - 0.4) * radius * 0.45, Vector2.from_angle(a) * radius]), cc)
+				draw_line(Vector2.ZERO, Vector2.from_angle(a) * radius * 0.9, Color(1, 1, 1, 0.7), 0.8)
 			draw_circle(Vector2.ZERO, radius * 0.22, Color(0.2, 0.22, 0.3))
 		"soulblade":
+			# lame d'âme : croissant lumineux, cœur blanc, filaments
 			var d := signf(vel.x)
-			draw_circle(Vector2.ZERO, radius * 2.0, Color(0.7, 0.85, 1.0, 0.15))
-			draw_arc(Vector2(-d * 6, 0), radius * 1.4, -PI / 2.0 + (0.0 if d > 0 else PI), PI / 2.0 + (0.0 if d > 0 else PI), 16, Color(1, 1, 1, 0.95), 5.0)
-			draw_arc(Vector2(-d * 12, 0), radius * 1.1, -PI / 2.0 + (0.0 if d > 0 else PI), PI / 2.0 + (0.0 if d > 0 else PI), 12, Color(0.6, 0.85, 1.0, 0.6), 3.0)
+			DU.glow(self, Vector2.ZERO, radius * 3.0, c, 0.5)
+			var a0 := -PI / 2.0 + (0.0 if d > 0 else PI)
+			var a1 := PI / 2.0 + (0.0 if d > 0 else PI)
+			draw_arc(Vector2(-d * 6, 0), radius * 1.4, a0, a1, 18, Color(c, 0.5), 10.0)
+			draw_arc(Vector2(-d * 6, 0), radius * 1.45, a0, a1, 18, Color(1, 1, 1, 0.95), 3.5)
+			draw_arc(Vector2(-d * 12, 0), radius * 1.1, a0, a1, 14, Color(c, 0.6), 3.0)
+			for i in 4:
+				var y := (i - 1.5) * radius * 0.6
+				draw_line(Vector2(-d * radius * 1.2, y), Vector2(-d * radius * (2.4 + 0.4 * sin(t * 20.0 + i)), y * 1.2), Color(c.lightened(0.4), 0.45), 1.2)
 		"ember":
-			draw_circle(Vector2.ZERO, radius * 2.2, Color(c, 0.18))
-			draw_colored_polygon(PackedVector2Array([Vector2(radius * 1.6, 0), Vector2(0, radius), Vector2(-radius, 0), Vector2(0, -radius)]).duplicate(), c)
+			# braise : flamme effilée qui ondule
+			_tail(Color(1.0, 0.5, 0.2), radius * 0.9, 20.0)
+			DU.glow(self, Vector2.ZERO, radius * 2.6, c, 0.5)
+			var dd := vel.normalized() if vel.length() > 1.0 else Vector2.RIGHT
+			var nn := dd.orthogonal()
+			var flick := 1.0 + 0.2 * sin(t * 30.0)
+			DU.flat(self, PackedVector2Array([dd * radius * 1.2, nn * radius * 0.9, -dd * radius * 2.4 * flick, -nn * radius * 0.9]), c)
+			DU.flat(self, PackedVector2Array([dd * radius * 0.7, nn * radius * 0.45, -dd * radius * 1.3 * flick, -nn * radius * 0.45]), Color(1.0, 0.95, 0.7))
 		_:
-			draw_circle(Vector2.ZERO, radius * 2.0, Color(c, 0.18))
-			draw_circle(Vector2.ZERO, radius + sin(t * 20.0), c)
-			draw_circle(Vector2(-2, -2), radius * 0.4, Color(1, 1, 1, 0.8))
+			# spore / boule d'énergie : halo, cœur, anneau qui tourne
+			_tail(c, radius * 0.7, 20.0)
+			DU.glow(self, Vector2.ZERO, radius * 2.6, c, 0.45)
+			DU.ball(self, Vector2.ZERO, radius + sin(t * 20.0) * 0.8, c)
+			draw_arc(Vector2.ZERO, radius * 1.5, t * 6.0, t * 6.0 + 2.2, 10, Color(c.lightened(0.4), 0.6), 1.4)
+			draw_circle(Vector2(-2, -2), radius * 0.35, Color(1, 1, 1, 0.8))

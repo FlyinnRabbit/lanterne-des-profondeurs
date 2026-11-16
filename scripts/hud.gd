@@ -54,58 +54,117 @@ func _draw() -> void:
 	var hs: float = Settings.hud_scale
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(hs, hs))
 	var sz := size / hs
-	# Réceptacle d'âme
+	# Réceptacle d'âme : flacon de verre cerclé de laiton, liquide qui ondule
 	var c := Vector2(72, 72)
 	var r := 36.0
-	draw_circle(c, r + 4, Color(0.02, 0.02, 0.05, 0.8))
+	var brass := Color(0.72, 0.58, 0.32)
+	var soul_c := Color(0.85, 0.92, 1.0)
+	DU.glow(self, c, r * 1.6, Color(0.5, 0.65, 1.0), 0.25 + 0.3 * (shown_soul / float(p.SOUL_MAX)))
+	draw_circle(c, r + 6, Color(0.03, 0.025, 0.04, 0.9))
+	draw_circle(c, r, Color(0.04, 0.05, 0.1))
 	var frac := shown_soul / float(p.SOUL_MAX)
 	if frac > 0.01:
-		if frac >= 0.99:
-			draw_circle(c, r, Color(0.92, 0.95, 1.0))
-		else:
-			var hl := clampf(1.0 - 2.0 * frac, -1.0, 1.0)  # hauteur du niveau, en unités de rayon
-			hl += sin(t * 4.0) * 0.03
-			var a0 := asin(clampf(hl, -1.0, 1.0))
-			draw_colored_polygon(DU.ellipse(c, Vector2(r, r), 24, a0, PI - a0), Color(0.92, 0.95, 1.0))
-	draw_arc(c, r + 2, 0, TAU, 40, Color(0.85, 0.88, 0.95), 3.0)
+		var top := c.y + r - 2.0 * r * frac
+		var pts := PackedVector2Array()
+		var n := 28
+		for i in n + 1:
+			var x := c.x - r + 2.0 * r * i / n
+			var dx := x - c.x
+			var half := sqrt(maxf(r * r - dx * dx, 0.0))
+			var wy := top + sin(t * 3.0 + i * 0.6) * 1.8 + sin(t * 1.7 - i * 0.3) * 1.2 if frac < 0.99 else c.y - half
+			pts.append(Vector2(x, clampf(wy, c.y - half, c.y + half)))
+		for i in range(n, -1, -1):
+			var x := c.x - r + 2.0 * r * i / n
+			var dx := x - c.x
+			pts.append(Vector2(x, c.y + sqrt(maxf(r * r - dx * dx, 0.0))))
+		var cols := PackedColorArray()
+		for q in pts:
+			var k := clampf((q.y - (c.y - r)) / (2.0 * r), 0.0, 1.0)
+			cols.append(Color(0.95, 0.97, 1.0).lerp(Color(0.45, 0.6, 0.95), k))
+		if not Geometry2D.triangulate_polygon(pts).is_empty():
+			draw_polygon(pts, cols)
+		# bulles qui montent dans le liquide
+		for i in 4:
+			var u := fposmod(t * 0.4 + i * 0.27, 1.0)
+			var by2 := lerpf(c.y + r - 4.0, top + 3.0, u)
+			if by2 > top + 2.0:
+				draw_circle(Vector2(c.x - 14 + i * 9 + sin(t * 2.0 + i) * 2.0, by2), 1.6, Color(1, 1, 1, 0.6))
+	# reflet du verre et cerclage
+	draw_arc(c, r - 5, PI * 1.1, PI * 1.45, 12, Color(1, 1, 1, 0.45), 3.0)
+	draw_arc(c, r + 3, 0, TAU, 48, brass.darkened(0.45), 6.0)
+	draw_arc(c, r + 3, 0, TAU, 48, brass, 3.0)
+	draw_arc(c, r + 3, PI * 1.05, PI * 1.6, 16, DU.lit(brass, 1.5, 0.1), 1.6)
+	for k in 8:
+		var aa := k * TAU / 8.0 + PI / 8.0
+		DU.ball(self, c + Vector2.from_angle(aa) * (r + 3), 2.4, brass.lightened(0.1))
+	# petite lanterne au sommet du flacon
+	DU.box(self, Rect2(c + Vector2(-6, -r - 12), Vector2(12, 6)), brass)
+	draw_arc(c + Vector2(0, -r - 13), 4.0, PI, TAU, 8, brass, 1.6)
 	if p.soul >= p.FOCUS_COST and p.hp < p.max_hp:
-		draw_arc(c, r + 8, 0, TAU, 40, Color(1, 1, 1, 0.25 + 0.2 * sin(t * 5.0)), 2.0)
-	# Fragments de vie (losanges)
+		draw_arc(c, r + 10, 0, TAU, 48, Color(soul_c, 0.25 + 0.2 * sin(t * 5.0)), 2.0)
+	# Masques de vie : petits masques peints, qui se fissurent quand ils se vident
 	for i in p.max_hp:
-		var pos := Vector2(130 + i * 30, 56)
-		var shape := DU.diamond(pos, Vector2(10, 14))
+		var pos := Vector2(132 + i * 32, 56)
+		var mask := PackedVector2Array([pos + Vector2(-10, -12), pos + Vector2(-6, -15), pos + Vector2(6, -15), pos + Vector2(10, -12),
+			pos + Vector2(10, 2), pos + Vector2(5, 12), pos + Vector2(0, 15), pos + Vector2(-5, 12), pos + Vector2(-10, 2)])
+		draw_colored_polygon(mask, Color(0.02, 0.02, 0.04, 0.85))
+		var inner := PackedVector2Array()
+		for q in mask:
+			inner.append(pos + (q - pos) * 0.86)
 		if i < p.hp:
-			draw_colored_polygon(shape, Color(0.95, 0.96, 1.0))
+			DU.poly(self, inner, Color(0.93, 0.94, 1.0), false)
+			draw_colored_polygon(DU.ellipse(pos + Vector2(-4, -3), Vector2(2.6, 3.4)), Color(0.08, 0.08, 0.14))
+			draw_colored_polygon(DU.ellipse(pos + Vector2(4, -3), Vector2(2.6, 3.4)), Color(0.08, 0.08, 0.14))
+			draw_line(pos + Vector2(-7, -10), pos + Vector2(-2, -12), Color(1, 1, 1, 0.8), 1.4)
 		else:
-			draw_colored_polygon(shape, Color(0.1, 0.1, 0.15, 0.8))
-		var outline := shape.duplicate()
-		outline.append(shape[0])
-		draw_polyline(outline, Color(0.7, 0.72, 0.8), 1.5)
-	# Jauge d'ultime
-	var ux := 120.0
+			draw_colored_polygon(inner, Color(0.12, 0.12, 0.18, 0.9))
+			draw_polyline(PackedVector2Array([pos + Vector2(-2, -13), pos + Vector2(1, -5), pos + Vector2(-3, 2), pos + Vector2(1, 11)]), Color(0.35, 0.36, 0.45), 1.2)
+		var outline := mask.duplicate()
+		outline.append(mask[0])
+		draw_polyline(outline, Color(0.7, 0.72, 0.8) if i < p.hp else Color(0.35, 0.36, 0.45), 1.4)
+	# Jauge d'ultime : tube de laiton qui se remplit de lumière dorée
+	var ux := 122.0
 	var uy := 118.0
 	var uw := 150.0
 	var uf: float = float(p.ult) / float(p.ULT_MAX)
-	draw_rect(Rect2(ux, uy, uw, 8), Color(0.05, 0.05, 0.08, 0.85))
-	var ucol := Color(1.0, 0.82, 0.4) if uf >= 1.0 else Color(0.75, 0.62, 0.35)
-	draw_rect(Rect2(ux, uy, uw * uf, 8), ucol)
-	draw_rect(Rect2(ux, uy, uw, 8), Color(0.7, 0.72, 0.8), false, 1.0)
+	DU.box(self, Rect2(ux - 3, uy - 3, uw + 6, 14), brass.darkened(0.35))
+	draw_rect(Rect2(ux, uy, uw, 8), Color(0.05, 0.04, 0.03, 0.95))
+	var ucol := Color(1.0, 0.82, 0.4) if uf >= 1.0 else Color(0.85, 0.62, 0.3)
+	if uf > 0.0:
+		DU.vgrad(self, Rect2(ux, uy, uw * uf, 8), ucol.lightened(0.3), ucol.darkened(0.2))
+		draw_line(Vector2(ux, uy + 1.5), Vector2(ux + uw * uf, uy + 1.5), Color(1, 1, 1, 0.5), 1.0)
+	for k in range(1, 5):
+		draw_line(Vector2(ux + uw * k / 5.0, uy), Vector2(ux + uw * k / 5.0, uy + 8), Color(0.1, 0.08, 0.05, 0.6), 1.0)
 	if uf >= 1.0:
 		var pulse := 0.5 + 0.5 * sin(t * 6.0)
-		draw_rect(Rect2(ux - 3, uy - 3, uw + 6, 14), Color(1.0, 0.85, 0.45, 0.4 * pulse), false, 2.0)
+		DU.glow(self, Vector2(ux + uw / 2.0, uy + 4), uw * 0.6, Color(1.0, 0.85, 0.45), 0.35 * pulse)
 		var ut := "ULTIME : {ultimate|1}"
 		G.draw_rich(self, font, ux + uw + 10, G.rich_width(font, ut, 15), uy + 9, ut, 15, Color(1.0, 0.88, 0.55))
-	# Éclats (monnaie)
-	draw_colored_polygon(DU.diamond(Vector2(136, 96), Vector2(7, 9)), Color(0.75, 0.85, 0.95))
+	# Éclats (monnaie) : petit cristal à facettes qui scintille
+	var gp := Vector2(136, 96)
+	DU.glow(self, gp, 12.0, Color(0.7, 0.85, 1.0), 0.4)
+	draw_colored_polygon(PackedVector2Array([gp + Vector2(0, -10), gp + Vector2(7, -3), gp + Vector2(4, 9), gp + Vector2(-4, 9), gp + Vector2(-7, -3)]), Color(0.6, 0.78, 0.95))
+	draw_colored_polygon(PackedVector2Array([gp + Vector2(0, -10), gp + Vector2(7, -3), gp + Vector2(0, 0), gp + Vector2(-7, -3)]), Color(0.85, 0.94, 1.0))
+	draw_line(gp + Vector2(0, 0), gp + Vector2(0, 9), Color(0.4, 0.55, 0.75), 1.0)
+	var twk := absf(sin(t * 2.3))
+	draw_line(gp + Vector2(-4, -8) - Vector2(2.5, 0) * twk, gp + Vector2(-4, -8) + Vector2(2.5, 0) * twk, Color(1, 1, 1, twk), 1.0)
+	draw_string(font, Vector2(153, 105), str(p.geo), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.05, 0.05, 0.08, 0.8))
 	draw_string(font, Vector2(152, 104), str(p.geo), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.9, 0.92, 1.0))
-	# Barre du boss
+	# Barre du boss : plaque de fer forgé, liseré, rouge sombre
 	if main.boss_started and not main.boss_dead and is_instance_valid(main.boss):
 		var w := 500.0
 		var bx := (sz.x - w) / 2.0
 		var by := sz.y - 60.0
-		draw_string(font, Vector2(bx, by - 10), tr(main.boss.boss_name), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.9, 0.85, 0.8))
-		draw_rect(Rect2(bx, by, w, 10), Color(0.05, 0.05, 0.08, 0.85))
-		draw_rect(Rect2(bx, by, w * float(main.boss.hp) / main.boss.max_hp, 10), Color(0.85, 0.4, 0.3))
+		var bf: float = float(main.boss.hp) / main.boss.max_hp
+		draw_string(font, Vector2(bx + 1, by - 9), tr(main.boss.boss_name), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0, 0, 0, 0.7))
+		draw_string(font, Vector2(bx, by - 10), tr(main.boss.boss_name), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.95, 0.88, 0.78))
+		DU.box(self, Rect2(bx - 4, by - 3, w + 8, 16), Color(0.25, 0.22, 0.22))
+		draw_rect(Rect2(bx, by, w, 10), Color(0.05, 0.03, 0.03, 0.95))
+		DU.vgrad(self, Rect2(bx, by, w * bf, 10), Color(0.95, 0.42, 0.32), Color(0.55, 0.12, 0.1))
+		draw_line(Vector2(bx, by + 1.5), Vector2(bx + w * bf, by + 1.5), Color(1, 0.8, 0.7, 0.5), 1.0)
+		for side in [-1.0, 1.0]:
+			var ex: float = bx + w / 2.0 + side * (w / 2.0 + 8.0)
+			draw_colored_polygon(DU.diamond(Vector2(ex, by + 5), Vector2(6, 8)), Color(0.6, 0.5, 0.35))
 	# Flash blanc de l'ultime
 	if main.flash > 0.0:
 		draw_rect(Rect2(Vector2.ZERO, sz), Color(1.0, 0.97, 0.88, main.flash * 0.55))
@@ -158,10 +217,12 @@ func _draw() -> void:
 		var mo := Vector2(sz.x - mw * mc - 16.0, ly - 16.0)
 		var pc := Vector2i(floori(main.player.global_position.x / main.TILE), floori(main.player.global_position.y / main.TILE))
 		var mr := Rect2i(pc - Vector2i(mw / 2, mh / 2), Vector2i(mw, mh))
-		draw_rect(Rect2(mo - Vector2(4, 4), Vector2(mw * mc + 8, mh * mc + 8)), Color(0.02, 0.03, 0.06, 0.7))
+		var mrect := Rect2(mo - Vector2(4, 4), Vector2(mw * mc + 8, mh * mc + 8))
+		DU.box(self, mrect.grow(4), Color(0.55, 0.42, 0.24))
+		DU.vgrad(self, mrect, Color(MapView.PAPER, 0.92), Color(0.7, 0.58, 0.4, 0.92))
 		MapView.draw_cells(self, main, mo, mc, mr)
 		MapView.draw_markers(self, main, mo, mc, mr, false)
-		draw_rect(Rect2(mo - Vector2(4, 4), Vector2(mw * mc + 8, mh * mc + 8)), Color(0.6, 0.7, 0.9, 0.6), false, 1.5)
+		draw_rect(mrect, Color(0.3, 0.2, 0.1, 0.8), false, 1.5)
 		ly += mh * mc + 24.0
 	for d in damage_log:
 		var a: float = clampf((LOG_TIME - d[4]) / 0.5, 0.0, 1.0)
