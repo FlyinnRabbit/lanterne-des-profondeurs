@@ -496,7 +496,7 @@ func _setup_camera_and_fx() -> void:
 		camera.zoom = Vector2(Settings.zoom, Settings.zoom)
 		for n in get_children():
 			if n is Node2D and n.get_script() == LevelArtScript:
-				n.queue_redraw())
+				n.redraw_all())
 	camera.limit_left = 0
 	camera.limit_top = 0
 	camera.limit_right = map_size.x * TILE
@@ -667,6 +667,23 @@ func _update_darkness() -> void:
 
 var clock := 0.0   # temps de jeu (suit la vitesse du jeu et la pause)
 
+# Ce qui est loin de l'écran est mis en sommeil (ni logique, ni redessin) : sans ça, tous les
+# ennemis, pièges et objets du niveau tournaient en permanence, même à l'autre bout de la carte.
+var _sleep_t := 0.0
+
+func _update_sleep() -> void:
+	var view: Vector2 = get_viewport_rect().size / maxf(camera.zoom.x, 0.1)
+	var half := view / 2.0 + Vector2(420.0, 320.0)
+	var c: Vector2 = camera.global_position
+	for n in get_tree().get_nodes_in_group("sleepy"):
+		if not is_instance_valid(n) or (n.get("is_boss") == true):
+			continue
+		var d: Vector2 = (n.global_position - c).abs()
+		var far := d.x > half.x or d.y > half.y
+		var want := Node.PROCESS_MODE_DISABLED if far else Node.PROCESS_MODE_INHERIT
+		if n.process_mode != want:
+			n.process_mode = want
+
 func _process(delta: float) -> void:
 	if not get_tree().paused:
 		clock += delta
@@ -682,6 +699,10 @@ func _process(delta: float) -> void:
 		_reveal()
 	if player == null:
 		return
+	_sleep_t -= delta
+	if _sleep_t <= 0.0:
+		_sleep_t = 0.2
+		_update_sleep()
 	# Caméra : suit le joueur, regarde un peu devant lui
 	camera.global_position = player.global_position + Vector2(player.facing * 50.0, -40.0)
 	camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * shake_amt

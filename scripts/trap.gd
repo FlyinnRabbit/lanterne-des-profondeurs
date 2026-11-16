@@ -27,6 +27,7 @@ var pass_hp := 0
 var pass_rewarded := false
 
 func _ready() -> void:
+	add_to_group("sleepy")
 	home = position
 	phase = randf() * TAU
 	t = randf() * period

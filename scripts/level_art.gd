@@ -14,6 +14,13 @@ var main
 var depth := {}
 var biome := "profondeurs"
 var fill: Node2D
+# Le décor est découpé en tranches verticales : Godot ne dessine que celles qui sont à l'écran.
+const CHUNK := 10          # largeur d'une tranche, en cases
+var is_chunk := false
+var cells: Array = []      # cases de roche de cette tranche
+var spike_list: Array = [] # pics de cette tranche
+var chunks: Array = []
+var _mesh: ArrayMesh
 
 class RockFill extends Node2D:
 	var art
@@ -21,17 +28,47 @@ class RockFill extends Node2D:
 		art.draw_fill(self)
 
 func _ready() -> void:
+	if is_chunk:
+		fill = RockFill.new()
+		fill.art = self
+		fill.show_behind_parent = true
+		fill.material = material
+		material = null
+		add_child(fill)
+		return
 	biome = String(main.pal.get("id", "profondeurs"))
 	_compute_depth()
-	fill = RockFill.new()
-	fill.art = self
-	fill.show_behind_parent = true
 	var m := ShaderMaterial.new()
 	m.shader = RockShader
 	m.set_shader_parameter("style", STYLE.get(biome, 0))
 	m.set_shader_parameter("accent", main.pal["moss"])
-	fill.material = m
-	add_child(fill)
+	var groups := {}
+	for c in main.solid.keys():
+		var k: int = int(floor(float(c.x) / CHUNK))
+		if not groups.has(k):
+			groups[k] = [[], []]
+		groups[k][0].append(c)
+	for sp in main.spikes:
+		var k2: int = int(floor(sp.position.x / (CHUNK * main.TILE)))
+		if not groups.has(k2):
+			groups[k2] = [[], []]
+		groups[k2][1].append(sp)
+	for k in groups:
+		var ch := Node2D.new()
+		ch.set_script(get_script())
+		ch.is_chunk = true
+		ch.main = main
+		ch.depth = depth
+		ch.biome = biome
+		ch.cells = groups[k][0]
+		ch.spike_list = groups[k][1]
+		ch.material = m
+		add_child(ch)
+		chunks.append(ch)
+
+func redraw_all() -> void:
+	for ch in chunks:
+		ch.queue_redraw()
 
 func _cell(x: int, y: int) -> bool:
 	return main.solid.has(Vector2i(x, y))
@@ -81,23 +118,41 @@ func _corner(x: int, y: int, rock: Color, deep: Color) -> Color:
 	return rock.lightened(0.1).lerp(deep, k)
 
 func draw_fill(ci: CanvasItem) -> void:
+	# toute la roche de la tranche en un seul maillage (un seul appel de dessin)
+	if cells.is_empty():
+		return
 	var T: int = main.TILE
 	var rock: Color = main.pal["rock"]
 	var deep := rock.darkened(0.62)
-	for c in main.solid.keys():
+	var verts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+	for c in cells:
 		var x: int = c.x
 		var y: int = c.y
 		var p := Vector2(x * T, y * T)
-		ci.draw_polygon(PackedVector2Array([p, p + Vector2(T, 0), p + Vector2(T, T), p + Vector2(0, T)]),
-			PackedColorArray([_corner(x, y, rock, deep), _corner(x + 1, y, rock, deep), _corner(x + 1, y + 1, rock, deep), _corner(x, y + 1, rock, deep)]))
+		var n := verts.size()
+		verts.append_array(PackedVector2Array([p, p + Vector2(T, 0), p + Vector2(T, T), p + Vector2(0, T)]))
+		cols.append_array(PackedColorArray([_corner(x, y, rock, deep), _corner(x + 1, y, rock, deep), _corner(x + 1, y + 1, rock, deep), _corner(x, y + 1, rock, deep)]))
+		idx.append_array(PackedInt32Array([n, n + 1, n + 2, n, n + 2, n + 3]))
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_COLOR] = cols
+	arr[Mesh.ARRAY_INDEX] = idx
+	_mesh = ArrayMesh.new()   # gardé en mémoire : le rendu en a besoin après _draw
+	_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	ci.draw_mesh(_mesh, null)
 
 func _draw() -> void:
+	if not is_chunk:
+		return
 	var T: int = main.TILE
 	var rock: Color = main.pal["rock"]
 	var rock_hi: Color = main.pal["rock_hi"]
 	var moss: Color = main.pal["moss"]
 	var grass: float = GRASS.get(biome, 0.5)
-	for c in main.solid.keys():
+	for c in cells:
 		var x: int = c.x
 		var y: int = c.y
 		var r := Rect2(x * T, y * T, T, T)
@@ -313,7 +368,7 @@ func _spikes() -> void:
 	var spike_col: Color = main.pal["spike"]
 	if Settings.colorblind:
 		spike_col = Color(1.0, 0.1, 0.85)
-	for s in main.spikes:
+	for s in spike_list:
 		if Settings.colorblind:
 			draw_rect(Rect2(s.position.x - 2, s.end.y - 3, s.size.x + 4, 3), Color(1, 1, 1))
 		var n := 3

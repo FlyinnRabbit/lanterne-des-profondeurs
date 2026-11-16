@@ -36,6 +36,7 @@ func setup_body() -> void:
 	collision_layer = 4
 	collision_mask = 1
 	add_to_group("enemies")
+	add_to_group("sleepy")
 	if not is_boss:
 		hp = maxi(1, roundi(hp * float(GameState.scaled("hp")) * (1.7 if elite else 1.0)))
 	if elite:

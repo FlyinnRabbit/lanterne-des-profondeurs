@@ -17,6 +17,8 @@ var cs: CollisionShape2D
 var hp := 3              # breakable : coups nécessaires
 
 func _ready() -> void:
+	add_to_group("sleepy")
+	disable_mode = CollisionObject2D.DISABLE_MODE_KEEP_ACTIVE
 	collision_layer = 1
 	collision_mask = 0
 	sync_to_physics = kind == "mover"

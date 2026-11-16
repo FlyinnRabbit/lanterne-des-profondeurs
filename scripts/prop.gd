@@ -13,6 +13,9 @@ func DU_ellipse_half() -> PackedVector2Array:
 	return DU.ellipse(Vector2(0, -80), Vector2(20, 20), 16, PI, TAU)
 var t := 0.0
 
+func _ready() -> void:
+	add_to_group("sleepy")
+
 func _process(delta: float) -> void:
 	t += delta
 	queue_redraw()
