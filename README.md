@@ -336,8 +336,8 @@ Everything is drawn in code, in a detailed, painted style:
 - **map** drawn as a lost map: torn, folded, stained and burnt parchment.
 
 ## Map, options and accessibility
-- **Map** (M / R3): everything you have discovered in the level, with bench, exit, shade and
-  items. **Minimap** in the top-right corner (Options).
+- **Map** (M / R3): everything you have discovered in the level, with an icon and a legend for
+  each point of interest found (bench, exit, merchant, residents, chests, charms, altar, challenge, shade…). **Minimap** in the top-right corner (Options).
 - **Language**: Automatic (system language), Français, English, Español, Deutsch.
   Translations live in `tools/translations.py`; running `python3 tools/translations.py`
   regenerates `scripts/translations.gd`.

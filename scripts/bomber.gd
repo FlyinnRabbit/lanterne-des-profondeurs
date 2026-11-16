@@ -49,7 +49,7 @@ func _explode() -> void:
 	main.shake(10)
 	Audio.sfx("kill", 0.0, 3.0)
 	var p = main.player
-	if not p.dead and p.global_position.distance_to(global_position) < radius:
+	if not p.dead and p.global_position.distance_to(global_position) < radius and not main.wall_between(global_position, p.global_position):
 		p.receive_hit(global_position, self)
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if e != self and is_instance_valid(e) and e.global_position.distance_to(global_position) < radius:

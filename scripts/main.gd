@@ -437,7 +437,7 @@ func _roll_elite(x: int, y: int) -> bool:
 		return false
 	var r := RandomNumberGenerator.new()
 	r.seed = int(level.get("seed", 0)) + x * 977 + y * 31
-	return r.randf() < GameState.scaled("elite") * (0.6 + 0.15 * mini(GameState.depth(), 6))
+	return r.randf() < GameState.elite_chance()
 
 # Emblème tiré au hasard parmi ceux pas encore possédés (reproductible pour un même niveau)
 func _random_charm(x: int) -> int:
@@ -818,6 +818,18 @@ func fmt(text: String) -> String:
 
 func is_solid_at(p: Vector2) -> bool:
 	return solid.has(Vector2i(floori(p.x / TILE), floori(p.y / TILE)))
+
+# Y a-t-il de la roche entre deux points ? (on ignore les extrémités : les corps touchent le sol)
+func wall_between(a: Vector2, b: Vector2) -> bool:
+	var d := b - a
+	var n := int(ceil(d.length() / 8.0))
+	for i in range(1, n):
+		var q := a + d * (float(i) / n)
+		if q.distance_to(a) < 14.0 or q.distance_to(b) < 14.0:
+			continue
+		if is_solid_at(q):
+			return true
+	return false
 
 func shake(amount: float) -> void:
 	shake_amt = maxf(shake_amt, amount * Settings.shake)

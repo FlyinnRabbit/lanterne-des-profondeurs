@@ -86,8 +86,8 @@ func _physics_process(delta: float) -> void:
 					main.player.last_crit_t = 0.2
 				var dm := damage
 				if kind == "shuriken" and e.is_boss:
-					# les boss encaissent mieux les coups à distance : 60 % des dégâts (cumulés)
-					var acc: float = float(e.get_meta("ranged_acc", 0.0)) + damage * 0.6
+					# les boss encaissent mieux les coups à distance : 75 % des dégâts (cumulés)
+					var acc: float = float(e.get_meta("ranged_acc", 0.0)) + damage * 0.75
 					dm = floori(acc)
 					e.set_meta("ranged_acc", acc - dm)
 				if dm > 0:

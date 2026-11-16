@@ -381,6 +381,8 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 	var x := 1
 	f = F
 	var no_rise := false
+	var boss_x0 := -1
+	var boss_x1 := -1
 	for i in kinds.size():
 		var k: String = kinds[i]
 		var prev := f
@@ -402,7 +404,16 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 			f = prev - 3
 		no_rise = k in LOW_CEIL
 		_chunk(k, x, widths[i], boss)
+		if k == "boss":
+			boss_x0 = x
+			boss_x1 = x + widths[i]
 		x += widths[i]
+	# pas de totem à fléchettes près de l'arène du boss : ses tirs traversaient la salle du combat
+	if boss_x0 >= 0:
+		for gy in range(0, H):
+			for gx in range(maxi(0, boss_x0 - 30), mini(W, boss_x1 + 30)):
+				if g[gy][gx] == "Z":
+					g[gy][gx] = "."
 	# défi chronométré : drapeau d'arrivée ~45 cases plus loin, sur un sol (avant le boss)
 	if challenge_x >= 0:
 		var limit := W - 12 - (40 if boss != "" else 0)

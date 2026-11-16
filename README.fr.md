@@ -188,7 +188,8 @@ Tout reste dessiné en code (aucune image), dans un style plus détaillé et « 
   Retourne au même palier et vaincs-la pour les récupérer (une nouvelle mort la remplace).
 
 ## Carte, annonces et accessibilité
-- **Carte** (touche M / R3) : tout ce que tu as découvert du niveau, avec banc, sortie, ombre, objets.
+- **Carte** (touche M / R3) : tout ce que tu as découvert du niveau, avec un pictogramme et une légende
+  pour chaque lieu trouvé (banc, sortie, marchand, habitants, coffres, emblèmes, autel, défi, ombre…).
   **Mini-carte** en haut à droite (Options). Le **cartographe** vend une plume qui révèle tout.
 - **Annonces d'attaque** : un « ! » jaune au-dessus d'un ennemi qui prépare un coup, orange avec
   une flèche quand c'est une attaque haute (s'accroupir).

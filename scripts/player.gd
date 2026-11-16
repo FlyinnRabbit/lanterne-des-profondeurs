@@ -20,6 +20,8 @@ const DASH_COOLDOWN := 0.45
 const ATTACK_COOLDOWN := 0.36
 const ATTACK_TIME := 0.12
 const COMBO_WINDOW := 0.55      # délai pour enchaîner le coup suivant du combo
+const COMBO_SLACK := 0.3        # marge pour enchaîner, comptée APRÈS le temps de recharge de l'arme
+#   (avant : fenêtre fixe de 0,55 s depuis le coup -> presque impossible avec les étoiles, impossible au marteau)
 const CHARGE_TIME := 0.7        # maintien de la frappe pour un coup chargé
 const THRUST_TIME := 0.2        # estoc (frapper pendant/juste après une ruée)
 const THRUST_SPEED := 620.0
@@ -96,6 +98,7 @@ var recoil_vx := 0.0
 var focus_t := 0.0
 var last_safe := Vector2.ZERO
 var sitting := false
+var sit_t := 0.0
 var dead := false
 var anim_t := 0.0
 var squash := Vector2.ONE
@@ -213,8 +216,18 @@ func _physics_process(delta: float) -> void:
 		return
 	if sitting:
 		velocity = Vector2.ZERO
-		if Input.is_action_just_pressed("jump") or absf(Input.get_axis("move_left", "move_right")) > 0.5 or Input.is_action_just_pressed("down"):
+		sit_t += delta
+		# Se relever : bouger, ou n'importe quelle action. On accepte une touche simplement
+		# enfoncée (après un court délai) : un appui très bref pouvait passer inaperçu quand
+		# le jeu tournait lentement, et on restait « collé » au banc.
+		var want := absf(Input.get_axis("move_left", "move_right")) > 0.5
+		for a in ["jump", "down", "attack", "dash", "parry"]:
+			if Input.is_action_just_pressed(a) or (sit_t > 0.25 and Input.is_action_pressed(a)):
+				want = true
+		if want and sit_t > 0.12:
 			sitting = false
+			attack_cd = maxf(attack_cd, 0.2)
+			buffer_t = 0.0
 		return
 
 	# Ultime : immobile et invulnérable pendant la charge, puis onde de choc
@@ -368,8 +381,8 @@ func _physics_process(delta: float) -> void:
 		if not on_floor and adir.y == 0.0:
 			# combo aérien : entaille, entaille montante, puis vrille
 			air_i = (air_i + 1) % 3 if combo_t > 0.0 else 0
-			combo_t = COMBO_WINDOW
 			_start_attack(["air", "air_rise", "air_spin"][air_i], adir)
+			combo_t = attack_cd + COMBO_SLACK
 			if air_i == 1 and not rise_used:
 				rise_used = true
 				velocity.y = minf(velocity.y, -300.0)
@@ -377,12 +390,12 @@ func _physics_process(delta: float) -> void:
 				velocity.y = minf(velocity.y, -150.0)
 		else:
 			combo_i = (combo_i + 1) % 3 if combo_t > 0.0 else 0
-			combo_t = COMBO_WINDOW
 			if crouching and adir.y == 0.0:
 				combo_i = -1
 				_start_attack("low", adir)
 			else:
 				_start_attack("finisher" if combo_i == 2 and adir.y == 0.0 else "slash", adir)
+			combo_t = attack_cd + COMBO_SLACK
 		charge_t = 0.0
 	if Input.is_action_pressed("attack") and attack_t <= 0.0 and knock_t <= 0.0:
 		var before := charge_t
@@ -650,6 +663,8 @@ func _check_hazards() -> void:
 		return
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if is_instance_valid(e) and e.is_harmful() and r.intersects(e.get_rect()):
+			if not e.is_boss and main.wall_between(global_position, e.global_position):
+				continue      # pas de coup à travers un mur (estoc du lancier, charge…)
 			receive_hit(e.global_position, e)
 			return
 
@@ -870,6 +885,8 @@ func respawn(pos: Vector2) -> void:
 
 func sit(pos: Vector2) -> void:
 	sitting = true
+	sit_t = 0.0
+	knock_t = 0.0
 	global_position = pos
 	last_safe = pos
 	velocity = Vector2.ZERO

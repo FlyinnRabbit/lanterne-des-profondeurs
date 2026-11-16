@@ -122,6 +122,19 @@ func scaled(key: String) -> float:
 			return minf(base + 0.06 * p, 0.85)
 	return base
 
+# Chance qu'un ennemi soit une élite.
+# Facile : jamais. Sinon la chance de base (10 / 30 / 50 %) est adoucie sur les deux premiers
+# niveaux, puis monte de 4 points par palier jusqu'à un plafond (35 / 65 / 85 %).
+# (Avant : la formule dépassait son plafond — des élites en Facile dès le palier 2,
+#  100 % d'élites en Cauchemar dès le palier 4.)
+func elite_chance() -> float:
+	var base := float(d("elite"))
+	if base <= 0.0:
+		return 0.0
+	var p := float(palier - 1) if mode in ["descent", "rush"] else 0.0
+	var ramp := minf(1.0, 0.7 + 0.1 * depth())
+	return minf(base * ramp + 0.04 * p, minf(0.85, base * 1.5 + 0.2))
+
 func _ready() -> void:
 	_migrate_old_save()
 	slot = clampi(int(Settings.last_slot), 1, SLOTS)

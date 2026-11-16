@@ -150,7 +150,8 @@ func _draw_map() -> void:
 		y1 = ms.y - 1
 	var origin := Vector2(mid - (x0 + x1 + 1) * c / 2.0, top + area.y / 2.0 - (y0 + y1 + 1) * c / 2.0)
 	draw_cells(view, main, origin, c, Rect2i(Vector2i.ZERO, ms))
-	draw_markers(view, main, origin, c, Rect2i(Vector2i.ZERO, ms), true)
+	var kinds := draw_markers(view, main, origin, c, Rect2i(Vector2i.ZERO, ms), true)
+	draw_legend(view, font, kinds, pr.position + Vector2(118.0, psz.y - 22.0 - minf(kinds.size(), 4) * 20.0), 80.0)
 	view.draw_set_transform(Vector2.ZERO, 0.0)
 	Glyphs.draw_rich(view, font, 0, sz.x, pr.end.y + 34, "{map|1} / {pause|1} : fermer", 16, Color(0.85, 0.8, 0.7))
 
@@ -182,37 +183,132 @@ static func draw_cells(ci: CanvasItem, m, origin: Vector2, c: float, r: Rect2i) 
 			else:
 				ci.draw_rect(Rect2(p, Vector2(c, c)), Color(1.0, 0.95, 0.8, 0.18))
 
-static func draw_markers(ci: CanvasItem, m, origin: Vector2, c: float, r: Rect2i, big: bool) -> void:
+# Nom affiché dans la légende pour chaque type de repère.
+const LEGEND := {
+	"player": "Vous", "bench": "Banc", "exit": "Sortie", "shrine": "Lanterne", "boss": "Boss", "shade": "Ombre",
+	"charm": "Emblème", "notch": "Encoche", "geo": "Coffre", "merchant": "Marchand", "smith": "Forgeronne",
+	"cartographer": "Cartographe", "elder": "Ancien", "arsenal": "Arsenal", "elevator": "Ascenseur",
+	"altar": "Autel d'élites", "challenge": "Défi chronométré", "flag": "Arrivée du défi",
+}
+const LEGEND_ORDER := ["player", "exit", "bench", "shrine", "boss", "shade", "merchant", "smith", "cartographer", "elder",
+	"arsenal", "elevator", "geo", "charm", "notch", "altar", "challenge", "flag"]
+
+# Petit pictogramme à l'encre pour un repère de la carte (s = demi-taille).
+static func draw_icon(ci: CanvasItem, kind: String, p: Vector2, s: float) -> void:
+	var ink := INK
+	var gold := Color(0.8, 0.55, 0.1)
+	match kind:
+		"player":
+			var blink := 0.6 + 0.4 * sin(Time.get_ticks_msec() / 150.0)
+			ci.draw_circle(p, s + 2.0, Color(0.85, 0.2, 0.15, blink))
+			ci.draw_circle(p, maxf(1.0, s - 0.5), Color(0.2, 0.1, 0.06))
+		"bench":
+			ci.draw_rect(Rect2(p + Vector2(-s, -s * 0.5), Vector2(s * 2.0, s * 0.6)), Color(0.6, 0.38, 0.12))
+			ci.draw_line(p + Vector2(-s * 0.7, 0), p + Vector2(-s * 0.7, s * 0.8), ink, maxf(1.0, s * 0.3))
+			ci.draw_line(p + Vector2(s * 0.7, 0), p + Vector2(s * 0.7, s * 0.8), ink, maxf(1.0, s * 0.3))
+		"exit":
+			ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-s, s), p + Vector2(-s, -s * 0.4), p + Vector2(0, -s * 1.3), p + Vector2(s, -s * 0.4), p + Vector2(s, s)]), Color(0.15, 0.35, 0.6))
+			ci.draw_polyline(PackedVector2Array([p + Vector2(-s, s), p + Vector2(-s, -s * 0.4), p + Vector2(0, -s * 1.3), p + Vector2(s, -s * 0.4), p + Vector2(s, s)]), ink, 1.0)
+		"shrine":
+			ci.draw_circle(p, s + 1.0, Color(1.0, 0.8, 0.35))
+			ci.draw_arc(p, s + 1.0, 0.0, TAU, 12, ink, 1.0)
+		"boss":
+			ci.draw_circle(p, s + 2.5, Color(0.8, 0.15, 0.12))
+			ci.draw_arc(p, s + 2.5, 0.0, TAU, 14, ink, 1.2)
+			ci.draw_circle(p + Vector2(-s * 0.45, -s * 0.2), maxf(1.0, s * 0.3), ink)
+			ci.draw_circle(p + Vector2(s * 0.45, -s * 0.2), maxf(1.0, s * 0.3), ink)
+		"shade":
+			ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-s, s), p + Vector2(-s, -s * 0.3), p + Vector2(0, -s * 1.2), p + Vector2(s, -s * 0.3), p + Vector2(s, s), p + Vector2(0, s * 0.4)]), Color(0.5, 0.3, 0.8))
+		"charm":
+			ci.draw_colored_polygon(DUtil.diamond(p, Vector2(s, s * 1.3)), gold)
+			ci.draw_polyline(DUtil.diamond(p, Vector2(s, s * 1.3)) + PackedVector2Array([p + Vector2(0, -s * 1.3)]), ink, 1.0)
+		"notch":
+			ci.draw_arc(p, s, 0.0, TAU, 12, gold, maxf(1.5, s * 0.5))
+		"geo":
+			ci.draw_rect(Rect2(p + Vector2(-s, -s * 0.6), Vector2(s * 2.0, s * 1.4)), Color(0.5, 0.3, 0.12))
+			ci.draw_rect(Rect2(p + Vector2(-s, -s * 0.6), Vector2(s * 2.0, s * 1.4)), ink, false, 1.0)
+			ci.draw_line(p + Vector2(-s, 0), p + Vector2(s, 0), gold, maxf(1.0, s * 0.35))
+		"merchant", "smith", "cartographer", "elder":
+			var col: Color = {"merchant": Color(0.75, 0.5, 0.1), "smith": Color(0.7, 0.25, 0.15), "cartographer": Color(0.2, 0.45, 0.55), "elder": Color(0.45, 0.3, 0.6)}[kind]
+			ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-s, s), p + Vector2(0, -s * 0.5), p + Vector2(s, s)]), col)
+			ci.draw_circle(p + Vector2(0, -s * 0.8), maxf(1.5, s * 0.55), col)
+			ci.draw_arc(p + Vector2(0, -s * 0.8), maxf(1.5, s * 0.55), 0.0, TAU, 10, ink, 1.0)
+		"arsenal":
+			ci.draw_line(p + Vector2(-s, -s), p + Vector2(s, s), ink, maxf(1.5, s * 0.4))
+			ci.draw_line(p + Vector2(s, -s), p + Vector2(-s, s), ink, maxf(1.5, s * 0.4))
+		"elevator":
+			ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-s, -s * 0.2), p + Vector2(0, -s * 1.3), p + Vector2(s, -s * 0.2)]), Color(0.2, 0.4, 0.6))
+			ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-s, s * 0.2), p + Vector2(0, s * 1.3), p + Vector2(s, s * 0.2)]), Color(0.2, 0.4, 0.6))
+		"altar":
+			ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-s, s), p + Vector2(-s * 0.6, -s * 0.4), p + Vector2(0, s * 0.1), p + Vector2(s * 0.6, -s * 0.4), p + Vector2(s, s)]), Color(0.75, 0.15, 0.12))
+			ci.draw_circle(p + Vector2(0, -s * 0.9), maxf(1.0, s * 0.4), Color(0.75, 0.15, 0.12))
+		"challenge":
+			ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-s, -s), p + Vector2(s, -s), p]), Color(0.75, 0.5, 0.15))
+			ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-s, s), p + Vector2(s, s), p]), Color(0.75, 0.5, 0.15))
+		"flag":
+			ci.draw_line(p + Vector2(-s * 0.6, s), p + Vector2(-s * 0.6, -s * 1.2), ink, maxf(1.0, s * 0.3))
+			ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-s * 0.6, -s * 1.2), p + Vector2(s, -s * 0.6), p + Vector2(-s * 0.6, 0)]), Color(0.75, 0.5, 0.15))
+
+# Dessine les repères découverts et renvoie la liste des types affichés (pour la légende).
+static func draw_markers(ci: CanvasItem, m, origin: Vector2, c: float, r: Rect2i, big: bool) -> Array:
 	var T: float = m.TILE
-	var rs := 5.0 if big else 3.0
+	var rs := 6.0 if big else 3.0
 	var off := Vector2(r.position) * c
+	var shown := {}
 	var _pt := func(world: Vector2) -> Vector2:
 		return origin + world / T * c - off
 	var inside := func(world: Vector2) -> bool:
 		var cell := Vector2i(floori(world.x / T), floori(world.y / T))
 		return r.has_point(cell) and m.is_explored(cell.x, cell.y)
+	var mark := func(kind: String, world: Vector2, need_explored: bool) -> void:
+		if need_explored and not inside.call(world):
+			return
+		if not r.has_point(Vector2i(floori(world.x / T), floori(world.y / T))):
+			return
+		draw_icon(ci, kind, _pt.call(world), rs)
+		shown[kind] = true
 	for b in m.benches:
-		if inside.call(b):
-			ci.draw_rect(Rect2(_pt.call(b) - Vector2(rs, rs * 0.6), Vector2(rs * 2, rs * 1.2)), Color(0.75, 0.5, 0.15))
-	if m.exit_door and is_instance_valid(m.exit_door) and inside.call(m.exit_door.position):
-		ci.draw_circle(_pt.call(m.exit_door.position + Vector2(0, -16)), rs + 1.0, Color(0.15, 0.35, 0.6))
-		ci.draw_arc(_pt.call(m.exit_door.position + Vector2(0, -16)), rs + 2.5, 0.0, TAU, 12, INK, 1.0)
-	if m.shrine and is_instance_valid(m.shrine) and inside.call(m.shrine.position):
-		ci.draw_circle(_pt.call(m.shrine.position + Vector2(0, -16)), rs + 1.0, Color(1.0, 0.85, 0.55))
-	if m.shade_node and is_instance_valid(m.shade_node) and not m.shade_node.dead:
-		ci.draw_circle(_pt.call(m.shade_node.global_position), rs + 1.0, Color(0.65, 0.45, 1.0))
+		mark.call("bench", b, true)
+	if m.exit_door and is_instance_valid(m.exit_door):
+		mark.call("exit", m.exit_door.position + Vector2(0, -16), true)
+	if m.shrine and is_instance_valid(m.shrine):
+		mark.call("shrine", m.shrine.position + Vector2(0, -16), true)
 	for pk in m.pickups:
-		if is_instance_valid(pk[0]) and inside.call(pk[0].position):
-			ci.draw_colored_polygon(DUtil.diamond(_pt.call(pk[0].position), Vector2(rs, rs * 1.3)), Color(0.8, 0.55, 0.1))
+		if is_instance_valid(pk[0]):
+			mark.call(String(pk[1]), pk[0].position + (Vector2(0, -12) if pk[1] == "geo" else Vector2.ZERO), true)
 	for it in m.interactables:
-		if is_instance_valid(it[0]) and inside.call(it[0].position):
-			ci.draw_circle(_pt.call(it[0].position + Vector2(0, -16)), rs, Color(0.5, 0.25, 0.5))
-	if m.boss and is_instance_valid(m.boss) and not m.boss_dead and inside.call(m.boss.global_position):
-		ci.draw_circle(_pt.call(m.boss.global_position), rs + 3.0, Color(1.0, 0.35, 0.3))
-	var pp: Vector2 = m.player.global_position
-	var blink := 0.6 + 0.4 * sin(Time.get_ticks_msec() / 150.0)
-	ci.draw_circle(_pt.call(pp), rs + 2.0, Color(0.85, 0.2, 0.15, blink))
-	ci.draw_circle(_pt.call(pp), rs - 0.5, Color(0.2, 0.1, 0.06))
+		if is_instance_valid(it[0]):
+			mark.call(String(it[1]), it[0].position + Vector2(0, -16), true)
+	if m.challenge_start != null and is_instance_valid(m.challenge_start) and not m.challenge_done:
+		mark.call("challenge", m.challenge_start.position + Vector2(0, -16), true)
+	if m.challenge_goal != null and is_instance_valid(m.challenge_goal) and not m.challenge_done:
+		mark.call("flag", m.challenge_goal.position + Vector2(0, -16), true)
+	if m.shade_node and is_instance_valid(m.shade_node) and not m.shade_node.dead:
+		mark.call("shade", m.shade_node.global_position, false)
+	if m.boss and is_instance_valid(m.boss) and not m.boss_dead:
+		mark.call("boss", m.boss.global_position, true)
+	mark.call("player", m.player.global_position, false)
+	var out := []
+	for k in LEGEND_ORDER:
+		if shown.has(k):
+			out.append(k)
+	return out
+
+# Légende : uniquement ce qui est visible sur la carte.
+static func draw_legend(ci: CanvasItem, font: Font, kinds: Array, at: Vector2, max_h: float) -> void:
+	if kinds.is_empty():
+		return
+	var cols := int(ceil(kinds.size() * 20.0 / max_h))
+	ci.draw_rect(Rect2(at - Vector2(6, 4), Vector2(cols * 150.0 + 6.0, minf(kinds.size() * 20.0, max_h) + 8.0)), Color(PAPER, 0.75))
+	var y := 0.0
+	var x := 0.0
+	for k in kinds:
+		if y + 20.0 > max_h:
+			y = 0.0
+			x += 150.0
+		draw_icon(ci, k, at + Vector2(x + 8.0, y + 8.0), 5.0)
+		ci.draw_string(font, at + Vector2(x + 24.0, y + 13.0), TranslationServer.translate(LEGEND[k]), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, INK)
+		y += 20.0
 
 const Glyphs = preload("res://scripts/glyphs.gd")
 const DUtil = preload("res://scripts/draw_util.gd")

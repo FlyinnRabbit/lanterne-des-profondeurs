@@ -64,7 +64,8 @@ func _physics_process(delta: float) -> void:
 		"dart":
 			if fmod(t, period) < fmod(t - delta, period):
 				var on_screen: bool = absf(main.player.global_position.x - global_position.x) < 700.0
-				if on_screen:
+				# aucun tir pendant un combat de boss
+				if on_screen and not (main.boss_started and not main.boss_dead):
 					main.spawn_projectile(global_position + Vector2(dir * 14.0, -28.0), Vector2(dir * 300.0, 0),
 						{"kind": "dart", "hostile": true, "radius": 5.0, "life": 2.6, "from_trap": true})
 					Audio.sfx("spit", 0.15, -6.0)

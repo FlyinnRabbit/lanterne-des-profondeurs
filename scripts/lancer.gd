@@ -47,7 +47,7 @@ func _physics_process(delta: float) -> void:
 					var d: Vector2 = p.global_position - global_position
 					if absf(d.x) < 420.0 * aggro() and absf(d.y) < 120.0:
 						dir = signf(d.x) if d.x != 0.0 else dir
-						if absf(d.x) < 120.0 and cd <= 0.0:
+						if absf(d.x) < 120.0 and cd <= 0.0 and not main.wall_between(global_position, p.global_position):
 							state = "windup"
 							state_t = (0.4 if elite else 0.55) / sqrt(aggro())
 						elif absf(d.x) > 70.0:
