@@ -73,6 +73,7 @@ var leaving := false
 var flash := 0.0
 var bench
 var entry_gate
+var used_benches := {}     # bancs qui ont déjà soigné dans cette zone
 var exit_gate
 var enemy_spawns := []   # [script, position, node]
 var boss_started := false
@@ -301,6 +302,9 @@ func _spawn_everything() -> void:
 					player.can_dash = GameState.prog["can_dash"]
 					player.apply_equipment()
 					player.hp = player.max_hp
+					if GameState.carry_hp > 0 and GameState.mode == "descent" and GameState.step > 1:
+						player.hp = mini(GameState.carry_hp, player.max_hp)
+					GameState.carry_hp = -1
 				"B":
 					bench_pos = _cell_feet(x, y, 34)
 					benches.append(bench_pos)
@@ -774,10 +778,18 @@ func _process(delta: float) -> void:
 			and player.bench_lock_t > 0.0:
 		show_message("Trop agité pour se reposer…", 1.2)
 	elif not player.dead and not player.sitting and pp.distance_to(bench_pos) < 48 and player.is_on_floor() and Input.is_action_just_pressed("up"):
-		player.sit(bench_pos)
+		# Un banc ne soigne qu'une fois par zone (sauf au Sanctuaire) : sinon on pouvait
+		# s'asseoir en boucle en plein combat pour regagner toute sa vie.
+		var key := "%d,%d" % [int(bench_pos.x), int(bench_pos.y)]
+		var fresh: bool = GameState.mode == "hub" or not used_benches.has(key)
+		used_benches[key] = true
+		player.sit(bench_pos, fresh)
 		respawn_pos = bench_pos
-		respawn_enemies()
-		show_message("Vous vous reposez. Santé restaurée.", 2.5)
+		if fresh:
+			respawn_enemies()
+			show_message("Vous vous reposez. Santé restaurée.", 2.5)
+		else:
+			show_message("Ce banc ne soigne plus. Point de réapparition enregistré.", 2.5)
 	# Orbe de Ruée
 	if dash_orb and is_instance_valid(dash_orb) and pp.distance_to(dash_orb.position) < 36:
 		player.can_dash = true

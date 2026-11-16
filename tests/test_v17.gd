@@ -197,7 +197,7 @@ func _run() -> void:
 	main.hub_ui.close_all()
 	gs.prog["weapons_owned"] = ["fouet", "marteau", "shuriken"]
 	main.hub_ui.open_arsenal()
-	main.hub_ui._upgrade_weapon("shuriken")
+	main.hub_ui._smith_upgrade("shuriken")
 	await _frames(3)
 	await _shot("v17_arsenal")
 	print("amélioration : étoiles niv.", gs.weapon_level("shuriken"))

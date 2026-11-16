@@ -925,14 +925,15 @@ func _leave_bench() -> void:
 			e.stun_t = maxf(e.stun_t, 0.6)
 	main.spawn_burst(global_position + Vector2(0, SIZE.y / 2.0 - 4.0), Color(1.0, 0.9, 0.6, 0.7), 12, 180.0, -40.0)
 
-func sit(pos: Vector2) -> void:
+func sit(pos: Vector2, heal: bool = true) -> void:
 	sitting = true
 	sit_t = 0.0
 	knock_t = 0.0
 	global_position = pos
 	last_safe = pos
 	velocity = Vector2.ZERO
-	hp = max_hp
+	if heal:
+		hp = max_hp
 
 # ---------------------------------------------------------------- dessin
 func _draw() -> void:

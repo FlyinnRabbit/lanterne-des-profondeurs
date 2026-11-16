@@ -83,6 +83,7 @@ const DIFFS := [
 ]
 
 var difficulty := 1
+var carry_hp := -1          # vie gardée en passant le portail vers la zone suivante (-1 : vie pleine)
 var show_title := true       # écran titre au lancement du jeu
 
 var mode := "tutorial"
@@ -324,6 +325,9 @@ func go_next_level(player) -> void:
 		prog["geo"] = player.geo
 		if step < STEPS_PER_PALIER:
 			step += 1
+			# La vie est conservée d'une zone à l'autre du palier ; en Facile et Normal,
+			# le portail rend un masque (en Difficile et Cauchemar, rien).
+			carry_hp = int(player.hp) + (1 if difficulty <= 1 else 0)
 		else:
 			record = maxi(record, palier)
 			unlocked = maxi(unlocked, palier + 1)

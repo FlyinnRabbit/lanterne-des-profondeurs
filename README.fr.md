@@ -165,16 +165,21 @@ Les boss sont eux aussi plus rapides et plus résistants selon la difficulté.
 ## Le Sanctuaire et les paliers sans fin
 
 Après le tutoriel, on arrive au **Sanctuaire de la Lanterne**, le cœur du jeu :
-- **Banc** : se reposer, récupérer sa vie, changer d'emblèmes.
+- **Banc** : se reposer, récupérer sa vie, changer d'emblèmes. En descente, chaque banc ne soigne qu'une
+  fois par niveau (on peut s'y rasseoir pour le point de réapparition et les emblèmes), et pas juste après
+  un combat (1,5 s).
 - **Marchand** : échange des éclats contre des **masques de vie** (+1 vie maximale, jusqu'à 4), des
   **encoches** d'emblèmes et les **emblèmes** pas encore trouvés.
 - **Arsenal** : acheter et équiper son arme de base. **Essayer** prête une arme tant qu'on reste au Sanctuaire.
 - **Mannequin d'entraînement** (à droite de l'arsenal) : affiche les dégâts par seconde.
 - **Tailleuse** (à gauche du banc) : la garde-robe et les cosmétiques.
 - **Ascenseur** : choisir le **palier** où descendre.
-- Des **habitants** arrivent au fil des paliers : la **forgeronne** (palier 1, armes de niveau 2), le
+- Des **habitants** arrivent au fil des paliers : la **forgeronne** (palier 1, forge tes armes au niveau 2), le
   **cartographe** (palier 2, vend une plume qui révèle toute la carte) et l'**ancien** (palier 3,
   l'histoire de la Lanterne).
+
+Ta vie est conservée au portail entre les deux niveaux d'un palier (Facile et Normal rendent 1 masque,
+Difficile et Cauchemar rien).
 
 Un **palier = 2 niveaux générés** (biomes tirés au sort parmi 9) **puis un boss**. Le terminer ramène
 au Sanctuaire et **débloque le palier suivant**, sans fin. Plus on descend, plus les ennemis ont de vie,

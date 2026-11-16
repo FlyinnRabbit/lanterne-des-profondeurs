@@ -164,16 +164,21 @@ Auch die Bosse werden je nach Schwierigkeit schneller und zäher.
 ## Das Heiligtum und die endlosen Ebenen
 
 Nach dem Tutorial erreichst du das **Heiligtum der Laterne**, das Herz des Spiels:
-- **Bank**: rasten, Leben wiederherstellen, Embleme wechseln.
+- **Bank**: rasten, Leben wiederherstellen, Embleme wechseln. In der Tiefe heilt jede Bank nur einmal pro
+  Zone (du kannst dich erneut setzen, um den Wiedereinstiegspunkt zu setzen und Embleme zu wechseln),
+  und nicht direkt nach einem Kampf (1,5 s).
 - **Händler**: tauscht Splitter gegen **Lebensmasken** (+1 maximales Leben, bis zu 4), Emblem-**Kerben**
   und die **Embleme**, die du noch nicht gefunden hast.
 - **Arsenal**: deine Grundwaffe kaufen und ausrüsten. **Ausprobieren** leiht eine Waffe, solange du im Heiligtum bleibst.
 - **Trainingspuppe** (rechts vom Arsenal): zeigt deinen Schaden pro Sekunde.
 - **Schneiderin** (links von der Bank): Garderobe und Kosmetik.
 - **Aufzug**: wähle die **Ebene**, in die du hinabsteigst.
-- Mit jeder geschafften Ebene kommen **Bewohner** dazu: die **Schmiedin** (Ebene 1, Waffen Stufe 2), der
+- Mit jeder geschafften Ebene kommen **Bewohner** dazu: die **Schmiedin** (Ebene 1, schmiedet deine Waffen auf Stufe 2), der
   **Kartograf** (Ebene 2, verkauft eine Feder, die die ganze Karte aufdeckt) und der **Älteste**
   (Ebene 3, die Geschichte der Laterne).
+
+Dein Leben bleibt beim Portal zwischen den beiden Zonen einer Ebene erhalten (Leicht und Normal geben
+1 Maske zurück, Schwer und Albtraum nichts).
 
 Eine **Ebene = 2 generierte Zonen** (Biome zufällig aus 9) **und dann ein Boss**. Schaffst du sie, kehrst du
 ins Heiligtum zurück und **schaltest die nächste Ebene frei**, ohne Ende. Je tiefer du steigst, desto mehr

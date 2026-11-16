@@ -162,15 +162,19 @@ Bosses are also faster and tougher depending on the difficulty.
 ## The Sanctuary and the endless tiers
 
 After the tutorial you arrive at **The Lantern Sanctuary**, the hub of the game:
-- **Bench**: rest, restore health, change charms.
+- **Bench**: rest, restore health, change charms. In the depths, each bench heals only once per level
+  (you can sit again to set your respawn point and change charms), and not right after a fight (1.5 s).
 - **Merchant**: trades shards for **health masks** (+1 max health, up to 4), charm **notches**
   and the **charms** you have not found yet.
 - **Arsenal**: buy and equip your base weapon. **Try** lends a weapon while you stay in the Sanctuary.
 - **Training dummy** (right of the arsenal): shows your damage per second.
 - **Elevator**: choose the **tier** to descend to.
-- **Residents** arrive as you clear tiers: the **smith** (tier 1, level 2 weapons), the
+- **Residents** arrive as you clear tiers: the **smith** (tier 1, forges your weapons to level 2), the
   **cartographer** (tier 2, sells a quill that reveals the whole map) and the **elder**
   (tier 3, the story of the Lantern).
+
+Your health carries over through the portal between the two levels of a tier (Easy and Normal give
+back 1 mask, Hard and Nightmare nothing).
 
 A **tier = 2 generated levels** (biomes drawn at random from 9) **then a boss**. Clearing it
 brings you back to the Sanctuary and **unlocks the next tier** — endlessly. The deeper you go,

@@ -164,16 +164,21 @@ Los jefes también son más rápidos y resistentes según la dificultad.
 ## El Santuario y los niveles sin fin
 
 Tras el tutorial llegas al **Santuario de la Linterna**, el corazón del juego:
-- **Banco**: descansar, recuperar la vida, cambiar de emblemas.
+- **Banco**: descansar, recuperar la vida, cambiar de emblemas. En el descenso, cada banco solo cura una
+  vez por zona (puedes volver a sentarte para el punto de reaparición y los emblemas), y no justo después
+  de un combate (1,5 s).
 - **Mercader**: cambia esquirlas por **máscaras de vida** (+1 vida máxima, hasta 4), **muescas** de
   emblemas y los **emblemas** que aún no hayas encontrado.
 - **Arsenal**: comprar y equipar tu arma base. **Probar** presta un arma mientras sigas en el Santuario.
 - **Muñeco de entrenamiento** (a la derecha del arsenal): muestra tu daño por segundo.
 - **Costurera** (a la izquierda del banco): el guardarropa y los cosméticos.
 - **Ascensor**: elige el **nivel** al que bajar.
-- Llegan **habitantes** a medida que superas niveles: la **herrera** (nivel 1, armas de nivel 2), el
+- Llegan **habitantes** a medida que superas niveles: la **herrera** (nivel 1, forja tus armas al nivel 2), el
   **cartógrafo** (nivel 2, vende una pluma que revela todo el mapa) y el **anciano** (nivel 3, la
   historia de la Linterna).
+
+Tu vida se conserva al cruzar el portal entre las dos zonas de un nivel (Fácil y Normal devuelven
+1 máscara, Difícil y Pesadilla nada).
 
 Un **nivel = 2 zonas generadas** (biomas elegidos al azar entre 9) **y después un jefe**. Superarlo te
 devuelve al Santuario y **desbloquea el nivel siguiente**, sin fin. Cuanto más bajas, más vida,

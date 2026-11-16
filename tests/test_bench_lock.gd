@@ -51,6 +51,12 @@ func _run() -> void:
 	pl.velocity = Vector2.ZERO
 	await _frames(5)
 	var c: bool = await _try_sit(pl)
+	# 4) même banc, plus tard : on s'assoit mais il ne soigne plus
+	await create_timer(1.7, true, true).timeout
+	pl.hp = 1
+	var d: bool = await _try_sit(pl)
+	var hp_after: int = pl.hp
+	print("4e essai : assis %s, vie %d (attendu assis, vie 1)" % [d, hp_after])
 	print("assis juste après attaque : %s (attendu false) ; après 1,7 s : %s (attendu true) ; juste après s'être relevé : %s (attendu false)" % [a, b, c])
-	print("RÉSULTAT : ", "OK" if (not a and b and not c) else "ÉCHEC")
+	print("RÉSULTAT : ", "OK" if (not a and b and not c and d and hp_after == 1) else "ÉCHEC")
 	quit()
