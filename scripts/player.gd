@@ -621,6 +621,12 @@ func _do_attack_hits() -> void:
 		if not is_instance_valid(e) or attack_hit.has(e):
 			continue
 		if e.get_rect().intersects(r):
+			# pas de coup à travers la roche (murs fins, sols, plafonds) : on vise le point de
+			# l'ennemi le plus proche du héros, pour ne pas bloquer un gros ennemi à moitié caché
+			var er: Rect2 = e.get_rect()
+			var tgt := Vector2(clampf(global_position.x, er.position.x, er.end.x), clampf(global_position.y - 4.0, er.position.y, er.end.y))
+			if main.wall_between(global_position + Vector2(0, -4), tgt):
+				continue
 			attack_hit[e] = true
 			var kdir := attack_dir
 			if attack_kind in ["spin", "air_spin"]:
