@@ -37,6 +37,8 @@ const Weapons = preload("res://scripts/weapons.gd")
 const TrapScript = preload("res://scripts/trap.gd")
 const DummyScript = preload("res://scripts/dummy.gd")
 const POGO_VELOCITY := -580.0
+const RECOIL_SLASH := 110.0     # recul du héros (px/s pendant 0,08 s) : coups 1 et 2 du combo ≈ 9 px
+const RECOIL_FINISHER := 300.0  # coup final ≈ 24 px
 const INVULN_TIME := 1.3
 const FOCUS_TIME := 0.9
 const SOUL_PER_HIT := 11
@@ -74,6 +76,7 @@ var post_dash_t := 0.0
 var spell_cd := 0.0
 var air_i := -1                 # combo aérien (0, 1, 2)
 var crouching := false
+var crouch_block := false   # après un piqué : pas d'accroupi tant que « bas » n'a pas été relâché
 var crouch_latch := false
 var rest_acc := 0.0
 var combat_t := 99.0      # temps depuis le dernier coup donné ou reçu
@@ -295,6 +298,8 @@ func _physics_process(delta: float) -> void:
 		plunging = true
 		plunge_used = true
 		plunge_cd = 0.6
+		crouch_block = true
+		crouch_latch = false
 		dash_t = 0.0
 		attack_hit.clear()
 		attack_crit = _take_crit()
@@ -316,6 +321,7 @@ func _physics_process(delta: float) -> void:
 		dash_t = DASH_TIME
 		dash_cd = dash_cooldown()
 		Audio.sfx("dash")
+		crouch_latch = false      # la ruée relève le héros (mode bascule compris)
 		if not on_floor:
 			air_dash_used = true
 		squash = Vector2(1.3, 0.8)
@@ -351,6 +357,10 @@ func _physics_process(delta: float) -> void:
 		velocity.x = dir * run_speed() * (0.35 if parry_t > 0.0 else 1.0) * (0.3 if crouching else 1.0)
 		if dir != 0.0 and attack_t <= 0.0:
 			facing = int(dir)
+	# Le piqué se lance en maintenant « bas » : à l'atterrissage on ne s'accroupit pas tant que la
+	# touche n'a pas été relâchée (avant : on se retrouvait accroupi, à ramper, avec un coup bas)
+	if crouch_block and not Input.is_action_pressed("down"):
+		crouch_block = false
 	if Settings.crouch_toggle:
 		if on_floor and Input.is_action_just_pressed("down"):
 			crouch_latch = not crouch_latch
@@ -358,7 +368,7 @@ func _physics_process(delta: float) -> void:
 			crouch_latch = false
 		_set_crouch(on_floor and crouch_latch and knock_t <= 0.0)
 	else:
-		_set_crouch(on_floor and Input.is_action_pressed("down") and knock_t <= 0.0)
+		_set_crouch(on_floor and Input.is_action_pressed("down") and knock_t <= 0.0 and not crouch_block)
 
 	# Saut
 	velocity.y = minf(velocity.y + GRAVITY * delta, FALL_MAX)
@@ -629,9 +639,12 @@ func _do_attack_hits() -> void:
 				pass   # pas de recul : ces coups traversent
 			elif attack_dir == Vector2.DOWN:
 				_pogo()
-			elif attack_dir.x != 0.0:
+			elif attack_dir.x != 0.0 and not crouching and attack_kind != "low":
+				# Recul : léger sur les deux premiers coups (le combo reste à portée d'une cible fixe),
+				# franc sur le coup final, aucun accroupi (on est ancré au sol).
+				# (avant : 26 px à chaque coup -> le coup final du marteau et le 2e coup bas ratait le mannequin)
 				recoil_t = 0.08
-				recoil_vx = -facing * 320.0
+				recoil_vx = -facing * (RECOIL_FINISHER if attack_kind == "finisher" else RECOIL_SLASH)
 	# Les spores ennemies peuvent être détruites d'un coup d'aiguille
 	for pr in get_tree().get_nodes_in_group("projectiles"):
 		if is_instance_valid(pr) and pr.hostile and pr.get_rect().intersects(r):

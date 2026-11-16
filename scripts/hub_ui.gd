@@ -1,4 +1,5 @@
 extends CanvasLayer
+const LoadingScript = preload("res://scripts/loading.gd")
 # Interfaces du hub : boutique du marchand et ascenseur (choix du palier).
 
 var main
@@ -259,17 +260,23 @@ func _choose_curse(p: int) -> void:
 	_lift_button(tr("Retour"), open_elevator)
 	first.grab_focus()
 
+# L'ascenseur descend (écran animé, cliquetis de chaînes) ; le niveau se charge pendant la descente.
+func _ride(to_palier: int, go: Callable) -> void:
+	visible = false              # le jeu reste en pause sous l'écran de l'ascenseur
+	get_tree().paused = true
+	LoadingScript.lift(get_tree(), to_palier, false, go)
+
 func _descend(p: int, curse_id := "") -> void:
-	Audio.sfx("door", 0.0)
-	GameState.start_descent(p, main.player, curse_id)
+	var pl = main.player
+	_ride(p, func(): GameState.start_descent(p, pl, curse_id))
 
 func _daily() -> void:
-	Audio.sfx("door", 0.0)
-	GameState.start_daily(main.player)
+	var pl = main.player
+	_ride(3, func(): GameState.start_daily(pl))
 
 func _rush() -> void:
-	Audio.sfx("door", 0.0)
-	GameState.start_rush(main.player)
+	var pl = main.player
+	_ride(6, func(): GameState.start_rush(pl))
 
 # ---------------------------------------------------------------- arsenal
 func _build_arsenal(root: Control) -> void:

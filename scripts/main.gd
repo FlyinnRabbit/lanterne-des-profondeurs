@@ -35,6 +35,7 @@ const RingScript = preload("res://scripts/fx_ring.gd")
 const MenuScript = preload("res://scripts/menu.gd")
 const InventoryScript = preload("res://scripts/inventory.gd")
 const DummyScript = preload("res://scripts/dummy.gd")
+const LoadingScript = preload("res://scripts/loading.gd")
 const HopperScript = preload("res://scripts/hopper.gd")
 const GuardScript = preload("res://scripts/guard.gd")
 const Biomes = preload("res://scripts/biomes.gd")
@@ -155,6 +156,7 @@ func _ready() -> void:
 	GameState.pending_message = ""
 	Audio.play_playlist(level.get("music", []))
 	if GameState.show_title:
+		LoadingScript.launch(get_tree())     # écran de lancement animé (une seule fois)
 		menu.open_title()
 
 # ---------------------------------------------------------------- niveau
@@ -744,6 +746,11 @@ func _process(delta: float) -> void:
 				continue
 			interact_hint = tr("{up|1} : %s") % tr(verbs[it[1]])
 			if Input.is_action_just_pressed("up") and player.is_on_floor() and not get_tree().paused:
+				# écran d'entrée animé : battants de bois qui s'ouvrent sur la boutique
+				var shop_names := {"merchant": ["shop", "Marchand"], "arsenal": ["arsenal", "Arsenal"], "smith": ["smith", "Forgeronne"],
+					"cartographer": ["cartographer", "Cartographe"], "elder": ["elder", "Ancien"], "tailor": ["tailor", "Tailleuse"]}
+				if shop_names.has(it[1]):
+					LoadingScript.shop(get_tree(), shop_names[it[1]][0], tr(shop_names[it[1]][1]))
 				if it[1] == "merchant":
 					hub_ui.open_shop()
 				elif it[1] == "arsenal":

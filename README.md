@@ -2,7 +2,7 @@
 
 <p align="center"><img src="art/icon_1024.png" width="160" alt="Logo: a medieval lantern"></p>
 
-*[Version française](README.fr.md)*
+**English** · [Français](README.fr.md) · [Español](README.es.md) · [Deutsch](README.de.md)
 
 A 2D roguelite metroidvania for **Godot 4.3+**, inspired by Hollow Knight: dark caves, needle
 combat, pogo jumps on enemies, healing with soul, resting benches and ten bosses.
@@ -21,7 +21,19 @@ Everything is drawn in code — there is not a single image asset in the game.
 | ![The Silent Library](docs/screenshots/silent_library.jpg) | ![The Humming Hive](docs/screenshots/humming_hive.jpg) |
 | ![The Cerberus of the Depths](docs/screenshots/boss_cerberus.jpg) | ![The Bone Colossus](docs/screenshots/boss_bone_colossus.jpg) |
 | ![The Swarm Queen](docs/screenshots/boss_swarm_queen.jpg) | ![Combat effects and projectiles](docs/screenshots/combat_effects.jpg) |
-| ![The map, drawn like a lost parchment](docs/screenshots/map.jpg) | ![The arsenal in the Sanctuary](docs/screenshots/arsenal.jpg) |
+| ![The map, a lost parchment with a legend](docs/screenshots/map.jpg) | ![The arsenal in the Sanctuary](docs/screenshots/arsenal.jpg) |
+| ![The seamstress in the Sanctuary](docs/screenshots/seamstress.jpg) | ![The wardrobe](docs/screenshots/wardrobe.jpg) |
+| ![A few outfits](docs/screenshots/outfits.jpg) | ![Ultimate styles](docs/screenshots/ultimates.jpg) |
+
+**Festivals in the Sanctuary** (Valentine's Day, Easter, Vigil of Shadows, Christmas)
+
+![The four festivals](docs/screenshots/festivals.jpg)
+
+**Loading screens** (launch, entering a shop, the elevator)
+
+| | | |
+|---|---|---|
+| ![Launch](docs/screenshots/loading_launch.jpg) | ![Entering a shop](docs/screenshots/loading_shop.jpg) | ![The elevator](docs/screenshots/loading_lift.jpg) |
 
 ## Download and play
 
@@ -141,9 +153,9 @@ Also available during a game: Pause → "New game…".
 | Difficulty | Soul / ultimate | Enemies | Damage taken |
 |---|---|---|---|
 | Easy | +35% / +30% | slower, -25% health, fewer, no elites | 1 |
-| Normal | normal | normal, a few elites | 1 |
-| Hard | -25% / -20% | +25% speed, more aggressive, +35% health, +35% enemies, 30% elites | 1 |
-| Nightmare | -40% / -35% | +40% speed, very aggressive, +60% health, +60% enemies, 50% elites | **2** |
+| Normal | normal | normal; elites: 8% at first, up to 35% deep down | 1 |
+| Hard | -25% / -20% | +25% speed, more aggressive, +35% health, +35% enemies; elites: 25% up to 65% | 1 |
+| Nightmare | -40% / -35% | +40% speed, very aggressive, +60% health, +60% enemies; elites: 42% up to 85% | **2** |
 
 Bosses are also faster and tougher depending on the difficulty.
 
@@ -217,7 +229,8 @@ platform, blade corridors.
 - **Air combo** (different from the ground combo): slash, **rising slash** that lifts you
   again, then a **spin** that hits all around.
 - **Dive attack**: in the air, down + Dash. Dive to the ground, bounce off the enemy you hit,
-  or cause a **shockwave** on landing. One per jump.
+  or cause a **shockwave** on landing. One per jump. After a dive you stand on landing: you only
+  crouch again once you have released down.
 - **Crouch**: hold down on the ground. Slower, but high attacks pass over you (the lancer's
   thrust, the Colossus's sweep, darts, pendulum blades). Attacking while crouched = low strike.
 - **Soul spell**: a soul blade thrown ahead that **passes through** enemies (costs 33 soul,
@@ -233,6 +246,9 @@ platform, blade corridors.
   freezes, charges for half a second (invulnerable), then releases a shockwave: 8 damage to
   everything nearby, and spores are destroyed.
 - A needle strike also destroys enemy spores.
+- **Recoil**: each strike pushes the hero back a little (about 9 px on the first two hits of the
+  combo, 24 px on the finisher, none when crouching), so the whole combo reaches a target that
+  does not move.
 - **Attack warnings**: a yellow "!" above an enemy preparing a strike; orange with an arrow
   when it is a high attack (crouch).
 
@@ -245,7 +261,7 @@ platform, blade corridors.
 | Anvil Hammer | 220 | slow, +1 damage, big knockback, stuns | the finisher sends a shockwave both ways |
 | Moon Stars (shurikens) | 260 | ranged; finisher = 3 stars, whirlwind = 8 in a circle, thrust = a large piercing star | they return like a boomerang and hit again |
 
-Moon Stars: at most 3 plain stars on screen, less soul per hit, and bosses take only 60% of
+Moon Stars: at most 3 plain stars on screen, less soul per hit, and bosses take 75% of
 ranged damage.
 
 ### Charms
@@ -352,9 +368,11 @@ Everything is drawn in code, in a detailed, painted style:
 
 Everything is saved in `user://settings.cfg`.
 
-## Cosmetics and wardrobe (v2.5)
+## Cosmetics and wardrobe
 The **seamstress** in the Sanctuary (left of the bench) opens the wardrobe, where you change the hero's
-look with an animated preview. Everything is purely visual and shared by all save slots.
+look with an animated preview: **53 cosmetics** in 6 categories, 21 of them seasonal. Everything is
+purely visual and shared by all save slots. Bright cloaks are toned down so they do not glare on the
+dark backgrounds.
 
 | Category | Examples |
 |---|---|
@@ -362,7 +380,7 @@ look with an animated preview. Everything is purely visual and shared by all sav
 | Scarf | teal, scarlet, golden, white, violet, living ember |
 | Headwear | raven feather, candle, flower crown, golden crown, halo, bone horns |
 | Trail and glow | colour of the dash, the eye and the strikes: ember, frost, wraith, pure gold… |
-| Companion | firefly, moth, will-o'-the-wisp, little lantern, Queen's wasp |
+| Companion | firefly, moth, will-o'-the-wisp, little lantern, Queen's wasp (follows the hero, purely decorative) |
 | Ultimate | look of the shockwave: golden wave, frost nova, blaze, eclipse, spectral swarm |
 
 Three ways to get them:
@@ -371,7 +389,8 @@ Three ways to get them:
 - **beat a boss**: the Colossus, the Queen, the Knight, the Cerberus and the Eye each have a rare
   cosmetic (25% chance per victory).
 
-**11 new achievements** (29 in total).
+There are **29 achievements**, several of which unlock a cosmetic (shown in the achievements list),
+including "Watcher's calendar": open the gift of all four festivals.
 
 ### Festivals
 Four festivals come back every year, automatically, based on the date. During each one the Sanctuary is
@@ -391,6 +410,17 @@ by `tools/synth_fetes.py` (same instruments as the rest of the soundtrack, no ex
 To try a festival out of season, start the game with the environment variable
 `LANTERNE_EVENT=noel` (or `halloween`, `valentin`, `paques`).
 
+## Loading screens
+All drawn in code, in the game's style; any key speeds them up.
+- **Launch**: in the dark, a lantern catches fire, embers rise, then the title and a tip appear,
+  with a row of embers lighting up as the progress bar, to the sound of crackling embers (synthesized by the game).
+- **Entering a shop**: two wooden doors studded with brass close on the resident's sign (purse,
+  anvil, map and quill, scroll, spool, crossed blades), then swing open on the counter.
+- **The elevator**: the cage, with the hero in their outfit, goes down a stone shaft while the
+  chains rattle; the tier number is engraved on a brass plate under the cage. The level is built
+  during the ride and the cage stops with a thud. It rides back up to the Sanctuary after a cleared
+  tier. The chains are a royalty-free recording (`sfx/lift_chains.ogg`).
+
 ## Automatic updates
 On launch, the game (Windows, macOS, Linux, Steam Deck) asks GitHub for the latest Release.
 If it is newer:
@@ -407,8 +437,9 @@ export preset). Bump `config/data_gen` in `project.godot` when adding music, sou
 older installs will then see the download notice instead.
 
 ## Music and sounds
-An **original** soundtrack generated for the game: 16 looping tracks in `music/` — one or two
-per biome that crossfade, a theme per boss, one for the tutorial and one for the Sanctuary.
+An **original** soundtrack generated for the game (free of any rights): 29 looping tracks in
+`music/` — one or two per biome that crossfade, a theme per boss, one for the tutorial, one for the
+Sanctuary and one per festival.
 Sound effects are in `sfx/`, with distinct sounds per weapon, for critical hits and for the
 perfect parry. **Master / music / effects** volumes are in Options; the music lowers a little
 when the game is paused.
@@ -426,4 +457,5 @@ when the game is paused.
 
 ## License
 Code, music (generated for the game) and sound effects: **MIT** license — see `LICENSE`.
+Exception: `sfx/lift_chains.ogg` comes from the recording *Chains Chiming* by freesound_community on Pixabay (Pixabay Content License, free to use, no attribution required).
 The game is inspired by Hollow Knight (Team Cherry) but reuses none of its characters or assets.

@@ -123,6 +123,7 @@ func scaled(key: String) -> float:
 	return base
 
 # Cosmétiques du héros (communs à toutes les parties) — voir cosmetics.gd
+const LoadingScript = preload("res://scripts/loading.gd")
 const CosmeticsScript = preload("res://scripts/cosmetics.gd")
 var cos
 
@@ -333,6 +334,11 @@ func go_next_level(player) -> void:
 			if curse != "":
 				Achievements.unlock("curse")
 			curse = ""
+			# retour au Sanctuaire par l'ascenseur (écran animé, la cage remonte)
+			save_game()
+			get_tree().paused = true
+			LoadingScript.lift(get_tree(), palier, true, func(): _reload(true))
+			return
 	save_game()
 	_reload(true)
 

@@ -1,47 +1,73 @@
 # Lanterne des Profondeurs
 
-*[English version](README.md)*
+<p align="center"><img src="art/icon_1024.png" width="160" alt="Logo : une lanterne médiévale"></p>
 
-<p align="center"><img src="art/icon_1024.png" width="160" alt="Logo : lanterne médiévale"></p>
+[English](README.md) · **Français** · [Español](README.es.md) · [Deutsch](README.de.md)
 
-Petit metroidvania 2D pour **Godot 4.3+**, inspiré de Hollow Knight : grottes sombres,
-combat à l'aiguille, rebond sur les ennemis, soin avec l'âme, banc de repos et un boss.
-Tout est dessiné en code : aucune image à importer.
+Roguelite metroidvania 2D pour **Godot 4.3+**, inspiré de Hollow Knight : grottes sombres, combat
+à l'aiguille, rebonds sur les ennemis, soin avec l'âme, bancs de repos et dix boss.
+Tout est dessiné en code : le jeu ne contient aucune image.
 
-## Télécharger (Windows)
-Dernière version : onglet **Releases** → `LanterneDesProfondeurs_Windows.zip`, décompresser,
-lancer `LanterneDesProfondeurs.exe`. L'exe n'étant pas signé, Windows SmartScreen peut afficher
-« Windows a protégé votre ordinateur » → *Informations complémentaires* → *Exécuter quand même*.
+**Jouer dans le navigateur : https://flyinnrabbit.github.io/lanterne-des-profondeurs/**
 
-## Jouer dans le navigateur (PC, Xbox, tablette)
-**https://flyinnrabbit.github.io/lanterne-des-profondeurs/** — mise à jour automatiquement à chaque
-envoi sur GitHub. Clavier, souris et manette fonctionnent ; les sauvegardes restent dans le navigateur.
+<p align="center"><img src="docs/screenshots/title.jpg" width="820" alt="Écran-titre"></p>
+
+## Captures d'écran
+
+| | |
+|---|---|
+| ![Les Jardins Fongiques](docs/screenshots/fungal_gardens.jpg) | ![La Forge Ardente](docs/screenshots/blazing_forge.jpg) |
+| ![Les Mines de Cristal](docs/screenshots/crystal_mines.jpg) | ![L'Abîme Gelé](docs/screenshots/frozen_abyss.jpg) |
+| ![La Bibliothèque Silencieuse](docs/screenshots/silent_library.jpg) | ![La Ruche Bourdonnante](docs/screenshots/humming_hive.jpg) |
+| ![Le Cerbère des Profondeurs](docs/screenshots/boss_cerberus.jpg) | ![Le Colosse d'Os](docs/screenshots/boss_bone_colossus.jpg) |
+| ![La Reine Essaim](docs/screenshots/boss_swarm_queen.jpg) | ![Effets de combat et projectiles](docs/screenshots/combat_effects.jpg) |
+| ![La carte, un parchemin perdu avec sa légende](docs/screenshots/map.jpg) | ![L'arsenal du Sanctuaire](docs/screenshots/arsenal.jpg) |
+| ![La tailleuse du Sanctuaire](docs/screenshots/seamstress.jpg) | ![La garde-robe](docs/screenshots/wardrobe.jpg) |
+| ![Quelques tenues](docs/screenshots/outfits.jpg) | ![Les styles d'ultime](docs/screenshots/ultimates.jpg) |
+
+**Les fêtes au Sanctuaire** (Saint-Valentin, Pâques, Veillée des Ombres, Noël)
+
+![Les quatre fêtes](docs/screenshots/festivals.jpg)
+
+**Écrans de chargement** (lancement, entrée dans une boutique, ascenseur)
+
+| | | |
+|---|---|---|
+| ![Lancement](docs/screenshots/loading_launch.jpg) | ![Entrée dans une boutique](docs/screenshots/loading_shop.jpg) | ![L'ascenseur](docs/screenshots/loading_lift.jpg) |
+
+*Les captures montrent l'interface en anglais ; le jeu est en français, anglais, espagnol et allemand.*
+
+## Télécharger et jouer
+
+Le jeu existe en français, anglais, espagnol et allemand.
+
+### Navigateur (PC, Xbox, tablette)
+**https://flyinnrabbit.github.io/lanterne-des-profondeurs/** — mis à jour automatiquement à chaque envoi.
+Clavier, souris et manette fonctionnent ; les sauvegardes restent dans le navigateur.
 - **Xbox Series** : ouvrir **Microsoft Edge**, aller à l'adresse ci-dessus, puis passer en plein écran.
 - Le premier chargement télécharge environ 55 Mo.
-- Dans le navigateur, le nom des touches suit la disposition QWERTY par défaut :
-  choisir AZERTY dans **Commandes → Clavier** si besoin.
+- Dans le navigateur, les noms de touches suivent le clavier QWERTY par défaut : choisir AZERTY dans
+  **Commandes → Clavier** si besoin.
 
-## macOS (Intel et Apple Silicon)
+### Windows
+Dernière version : onglet **Releases** → `LanterneDesProfondeurs_Windows.zip`, décompresser, lancer
+`LanterneDesProfondeurs.exe`. L'exécutable n'est pas signé : Windows SmartScreen peut afficher
+« Windows a protégé votre ordinateur » → *Informations complémentaires* → *Exécuter quand même*.
+
+### macOS (Intel et Apple Silicon)
 1. Télécharger `LanterneDesProfondeurs_macOS.zip` dans la Release, le décompresser et glisser
    **Lanterne des Profondeurs** dans le dossier Applications.
-2. L'app n'est pas validée par Apple (il faudrait un compte développeur payant), macOS la bloque donc
-   au premier lancement :
-   - **clic droit (ou Ctrl + clic) sur l'app → Ouvrir**, puis **Ouvrir** dans la fenêtre ;
-   - sur **macOS 15 (Sequoia)** et plus récent : lancer l'app une fois, puis **Réglages Système →
+2. L'application n'est pas notariée par Apple (il faudrait un compte développeur payant) : macOS la
+   bloque au premier lancement.
+   - **clic droit (ou Ctrl + clic) sur l'application → Ouvrir**, puis **Ouvrir** dans la fenêtre ;
+   - sur **macOS 15 (Sequoia)** et suivants : lancer l'application une fois, puis **Réglages Système →
      Confidentialité et sécurité** → en bas, **« Ouvrir quand même »** ;
-   - si macOS affiche « l'app est endommagée », ouvrir le **Terminal** et taper :
+   - si macOS dit que « l'application est endommagée », ouvrir le **Terminal** et taper :
      `xattr -cr "/Applications/Lanterne des Profondeurs.app"`, puis relancer.
 3. Ensuite le jeu se lance normalement. Les manettes Xbox et PlayStation fonctionnent.
    Sauvegardes : `~/Library/Application Support/Godot/app_userdata/Lanterne des Profondeurs/`.
 
-## Version portable
-`LanterneDesProfondeurs_Windows_Portable.zip` / `LanterneDesProfondeurs_Linux_Portable.tar.gz` :
-le jeu avec un fichier `portable.txt`. Tant que ce fichier est à côté de l'exécutable,
-la progression, les réglages et les touches sont enregistrés dans le dossier `sauvegardes`
-du jeu (rien n'est écrit ailleurs) : copier le dossier sur une clé USB suffit pour emporter
-le jeu et sa partie. Supprimer `portable.txt` pour revenir aux sauvegardes habituelles.
-
-## Linux et Steam Deck
+### Linux et Steam Deck
 Dans les Releases : `LanterneDesProfondeurs_Linux_SteamDeck.tar.gz` (Linux x86_64).
 
 **Linux** : extraire l'archive, puis lancer `./LanterneDesProfondeurs.x86_64`
@@ -49,254 +75,306 @@ Dans les Releases : `LanterneDesProfondeurs_Linux_SteamDeck.tar.gz` (Linux x86_6
 
 **Steam Deck** :
 1. Passer en **mode Bureau** (bouton Steam → Alimentation → Passer au bureau).
-2. Télécharger l'archive depuis la page Releases avec le navigateur, l'extraire
-   (clic droit → *Extract archive here*), par exemple dans `~/Jeux/Lanterne`.
+2. Télécharger l'archive depuis la page Releases avec le navigateur et l'extraire
+   (clic droit → *Extraire ici*), par exemple dans `~/Games/Lanterne`.
 3. Ouvrir Steam en mode Bureau → *Jeux* → **Ajouter un jeu non-Steam à ma bibliothèque**
-   → *Parcourir* → choisir `LanterneDesProfondeurs.x86_64` → *Ajouter les programmes
-   sélectionnés*.
+   → *Parcourir* → choisir `LanterneDesProfondeurs.x86_64` → *Ajouter les programmes sélectionnés*.
 4. Revenir en **mode Jeu** : le jeu est dans la bibliothèque (onglet *Non-Steam*).
-   Il se lance en plein écran, les commandes du Deck fonctionnent directement
+   Il démarre en plein écran, les commandes du Deck marchent directement
    (A sauter, X frapper, RT ruée, LB parade, Y ultime, B soin) et l'écran 16:10 est rempli.
    L'icône `LanterneDesProfondeurs.png` fournie peut être choisie dans les propriétés du raccourci.
 
-## Lancer le projet dans Godot
-1. Installe Godot 4 (version standard, pas .NET) : https://godotengine.org/download
-2. Dans le gestionnaire de projets : **Importer** → choisis le dossier `lanterne` (fichier `project.godot`).
-3. Appuie sur **F5**.
+### Version portable
+`LanterneDesProfondeurs_Windows_Portable.zip` / `LanterneDesProfondeurs_Linux_Portable.tar.gz` :
+le jeu accompagné d'un fichier `portable.txt`. Tant que ce fichier reste à côté de l'exécutable,
+progression, réglages et touches sont enregistrés dans le dossier `sauvegardes` du jeu (rien n'est
+écrit ailleurs) : copiez le dossier sur une clé USB pour emporter le jeu et votre partie.
+Supprimez `portable.txt` pour revenir à l'emplacement habituel des sauvegardes.
 
-## Commandes par défaut (clavier AZERTY ou QWERTY, manette Xbox / XInput)
+### Lancer le projet dans Godot
+1. Installer Godot 4 (version standard, pas .NET) : https://godotengine.org/download
+2. Dans le gestionnaire de projets : **Importer** → choisir le dossier du projet (le fichier `project.godot`).
+3. Appuyer sur **F5**.
 
-Les touches sont enregistrées **par position** sur le clavier : sur AZERTY on se déplace avec
-**Z Q S D**, sur QWERTY avec **W A S D**, sur QWERTZ pareil — sans rien régler. Les noms affichés
-(menu Commandes, aides à l'écran) suivent la disposition du système ; si elle est mal détectée
-(machine virtuelle, Steam Deck…), choisir **Commandes → Clavier : AZERTY / QWERTY / QWERTZ**.
+Pour l'exporter soi-même : *Éditeur → Gérer les modèles d'exportation → Télécharger et installer*,
+puis *Projet → Exporter* et choisir un des préréglages déjà présents (Windows Desktop, Linux, macOS, Web).
+
+## Commandes (clavier et manette Xbox / XInput)
+
+Les touches sont enregistrées **par position** sur le clavier : on se déplace avec **Z Q S D** en AZERTY
+et **W A S D** en QWERTY et QWERTZ, sans rien régler. Les noms affichés suivent la disposition du système ;
+si elle est mal détectée (machine virtuelle, Steam Deck…), choisir **Commandes → Clavier : AZERTY /
+QWERTY / QWERTZ**. Le tableau utilise les noms AZERTY.
+
 | Action | Clavier | Manette |
 |---|---|---|
-| Bouger | Q / D ou flèches | Stick gauche / croix |
+| Se déplacer | Q / D ou flèches | Stick gauche / croix |
 | Sauter (maintenir = plus haut) | Espace | A |
 | Frapper | J ou **clic gauche** | X |
 | Frapper vers le haut / le bas | Z ou S + J | haut/bas + X |
-| S'accroupir (esquive les attaques hautes) | S ou flèche bas (maintenir au sol) | bas |
-| Attaque plongée (en l'air) | S + K | bas + RT |
+| S'accroupir (esquive les attaques hautes) | S ou flèche bas (maintenir, au sol) | bas |
+| Piqué (en l'air) | S + K | bas + RT |
 | Ruée / esquive | K ou Maj | RT |
 | Parade | I ou **clic droit** | LB |
-| Sort d'âme (33 d'âme) | O ou clic milieu | RB |
+| Sort d'âme (33 d'âme) | O ou clic molette | RB |
 | Ultime (jauge pleine) | U ou R | Y |
-| Se soigner (maintenir, coûte 33 d'âme) | L ou F | B |
-| Se reposer au banc | Z / flèche haut | haut |
+| Se soigner (maintenir, 33 d'âme) | L ou F | B |
+| Se reposer sur un banc | Z / flèche haut | haut |
+| Carte | M | R3 |
 | **Pause et menu** | **Échap ou P** | **Menu (Start)** |
-| **Inventaire / équipement** | **Tab ou B** | **View (Back)** |
+| **Inventaire / équipement** | **Tab ou B** | **Affichage (Back)** |
 
 ### Menu « Commandes »
-Échap → **Commandes** : clique (ou valide à la manette) une case, puis appuie sur la nouvelle
-touche. Chaque action a 2 touches clavier et 1 bouton manette ; si l'entrée est déjà prise,
-les deux actions sont échangées. Suppr efface une touche clavier, Échap annule.
-Les cases « Touche » acceptent aussi les boutons de la souris (gauche, droit, milieu,
-boutons latéraux). Les menus et l'inventaire se pilotent à la souris ; en jeu, le curseur se
-cache après 2 s d'immobilité.
-Les réglages sont sauvegardés automatiquement (`user://controls.cfg`).
-Le stick gauche reste toujours actif pour se déplacer.
+Échap → **Commandes** : cliquer (ou valider à la manette) une case, puis appuyer sur la nouvelle touche.
+Chaque action a 2 touches clavier et 1 bouton de manette ; si la touche est déjà prise, les deux actions
+sont échangées. Suppr efface une touche clavier, Échap annule. Les cases acceptent aussi les boutons
+de la souris (gauche, droit, molette, boutons latéraux). Menus et inventaire se pilotent à la souris ;
+en jeu, le curseur se cache après 2 secondes d'immobilité.
+Les réglages sont enregistrés automatiquement (`user://controls.cfg`). Le stick gauche déplace toujours le héros.
 
 ### Icônes de commandes
-Les aides à l'écran, les panneaux, les messages et le menu Commandes affichent des **icônes** :
-touches et souris dessinées au clavier, boutons A/B/X/Y colorés, LB/RT… pour une manette Xbox,
-croix/rond/carré/triangle, L1/R2… pour une manette PlayStation (symboles génériques).
+Les aides à l'écran, panneaux, messages et le menu Commandes montrent des **icônes** : touches et
+boutons de souris dessinés pour le clavier, A/B/X/Y colorés, LB/RT… pour une manette Xbox, et croix /
+rond / carré / triangle, L1/R2… pour une manette PlayStation (symboles génériques).
 
 ### Manette (XInput)
-Sous Windows, Godot lit les manettes Xbox via XInput : il suffit de la brancher.
-Le jeu affiche la manette détectée, utilise les noms de boutons Xbox (A, B, X, Y, LB, RB, LT, RT),
-accepte les gâchettes dans le menu et fait vibrer la manette (coups, dégâts, boss).
-Les vibrations se coupent dans le menu Commandes. Les aides à l'écran s'adaptent
-au dernier périphérique utilisé (clavier ou manette).
+Sous Windows, Godot lit les manettes Xbox par XInput : il suffit d'en brancher une. Le jeu affiche
+la manette détectée, utilise les noms de boutons Xbox, accepte les gâchettes dans les menus et vibre
+aux coups, aux dégâts et pendant les boss. La vibration se coupe dans le menu Commandes. Les aides
+à l'écran suivent le dernier appareil utilisé (clavier ou manette).
 
-## Écran titre et difficulté
-**3 emplacements de sauvegarde** : écran titre → « Parties ». Chaque emplacement a sa propre partie
-et sa propre difficulté (par exemple une partie Normal et une partie Cauchemar en parallèle).
-« Continuer » reprend le dernier emplacement joué. L'ancienne sauvegarde devient l'emplacement 1.
-Les succès et les options sont communs à tous les emplacements.
+## Sauvegardes et difficulté
 
-Au lancement : **Jouer** → choix de la difficulté (et option « Passer le tutoriel »).
-Aussi accessible en cours de partie : Pause → « Nouvelle partie… ».
+**3 emplacements de sauvegarde** : écran-titre → « Parties ». Chaque emplacement a sa propre partie et
+sa propre difficulté (par exemple une partie Normale et une partie Cauchemar côte à côte). « Continuer »
+reprend le dernier emplacement joué. Succès, cosmétiques et options sont communs à tous les emplacements.
+La sauvegarde est automatique.
+
+Au lancement : **Jouer** → choisir la difficulté (et l'option « Passer le tutoriel »).
+Aussi possible en cours de partie : Pause → « Nouvelle partie… ».
 
 | Difficulté | Âme / ultime | Ennemis | Dégâts reçus |
 |---|---|---|---|
-| Facile | +35 % / +30 % | plus lents, -25 % de vie, moins nombreux, pas d'élites | 1 |
-| Normal | normal | normal, quelques élites | 1 |
-| Difficile | -25 % / -20 % | +25 % de vitesse, plus agressifs, +35 % de vie, +35 % d'ennemis, 30 % d'élites, plus de nouveaux ennemis | 1 |
-| Cauchemar | -40 % / -35 % | +40 % de vitesse, très agressifs, +60 % de vie, +60 % d'ennemis, 50 % d'élites | **2** |
+| Facile | +35 % / +30 % | plus lents, -25 % de vie, moins nombreux, aucune élite | 1 |
+| Normal | normal | normaux ; élites : 8 % au début, jusqu'à 35 % en profondeur | 1 |
+| Difficile | -25 % / -20 % | +25 % de vitesse, plus agressifs, +35 % de vie, +35 % d'ennemis ; élites : de 25 % à 65 % | 1 |
+| Cauchemar | -40 % / -35 % | +40 % de vitesse, très agressifs, +60 % de vie, +60 % d'ennemis ; élites : de 42 % à 85 % | **2** |
 
-Les boss sont aussi plus rapides et plus résistants selon la difficulté.
-
-### Ennemis
-- **Bulbe explosif** : roule vers toi, s'allume et explose (les ennemis proches aussi). Tue-le avant !
-- **Tisseuse** : araignée suspendue au plafond qui se laisse tomber quand tu passes dessous.
-- **Lancier** : se met en garde puis porte un long estoc ; une parade l'étourdit.
-- **Spectre** : s'estompe (intouchable), réapparaît près de toi et lance une orbe lente.
-- **Rampant**, **Volant**, **Cracheur** (comme avant).
-- **Sauteur** (nouveau) : sauterelle qui bondit vers toi.
-- **Garde à bouclier** (nouveau) : bloque les coups de face. Frappe-le par-dessus (coup vers
-  le bas), dans le dos, ou avec l'ultime.
-- **Élites** (lueur rouge) : plus de vie, plus rapides, double butin, et une attaque en plus —
-  le rampant fonce sur toi, le volant fait des piqués, le cracheur tire 3 spores,
-  le sauteur enchaîne deux bonds, le garde charge au bouclier.
-Les nouveaux ennemis et les élites deviennent plus fréquents en profondeur.
-
-## Graphismes (v2.2)
-
-Tout reste dessiné en code (aucune image), dans un style plus détaillé et « peint » :
-
-- **Roche** texturée par shader selon le biome (strates, pierres taillées, cristal, veines de lave, glace, alvéoles, ossements), plus sombre en profondeur, arêtes éclairées ;
-- **sols décorés** par biome (herbe, champignons lumineux, cristaux, crânes, livres, bougies, neige, miel) ;
-- **fonds en parallaxe** sur trois plans avec brume et rayons de lumière (champignons géants, arcades gothiques, flèches de cristal, cheminées, bibliothèques, ruches…) ;
-- **héros, ennemis, 10 boss et habitants du Sanctuaire** redessinés (ombrage, reflets, détails) ;
-- **pièges, herses, piliers d'attaque, portail de fin** (un par biome) et **animation de fin** refaits ;
-- les panneaux du tutoriel s'affichent en bas de l'écran pour garder le centre dégagé ;
-- **emblèmes** : chacun a son médaillon gravé et son icône (inventaire, marchand, emblème au sol) ;
-- **coups d'armes** : traînées « peintes » pour l'aiguille, le coup final, le marteau et les tourbillons, armes tenues détaillées ;
-- **arsenal** du Sanctuaire redessiné (présentoir à auvent, armes exposées) et icônes d'armes dans son menu.
-
-## Interface et effets (v2.3)
-
-- **ATH** : fiole d'âme en verre cerclé de laiton (liquide, bulles), masques peints, jauge d'ultime en laiton, cristal de géo facetté, mini-carte sur parchemin ;
-- **menus et écran-titre** : fond peint (puits, lanterne, braises), panneaux en bois sombre et laiton ;
-- **effets de combat** : étoile d'impact, mort avec anneau, fumée et éclats, cristaux de géo qui rejoignent le héros, poussière à l'atterrissage, image rémanente de la Ruée ;
-- **projectiles** redessinés avec traînée ;
-- **ambiance par biome** : spores et lucioles, neige, pages volantes, braises, feux follets, gouttes, lave bouillonnante, amas de cristaux lumineux ;
-- **carte** façon « carte perdue » : parchemin déchiré, plié, taché et brûlé, légèrement transparent, centré à l'écran.
-
-## Combat : coups spéciaux
-- **Combo au sol** : 3 coups, le 3e est un coup final ; maintenir puis relâcher = **tourbillon** ;
-  frapper pendant la Ruée = **estoc**.
-- **Combo aérien** (différent du combo au sol) : entaille, **entaille montante** qui relance vers
-  le haut, puis **vrille** qui touche tout autour.
-- **Attaque plongée** : en l'air, bas + Ruée. Piqué vers le sol, rebond sur l'ennemi touché, ou
-  **onde de choc** à l'atterrissage.
-- **Accroupi** : maintenir bas au sol. Plus lent, mais les attaques hautes passent au-dessus
-  (estoc du lancier, balayage du Colosse, fléchettes, lames-pendules). Frapper accroupi = coup bas.
-- **Parade parfaite** : parer au tout dernier moment affiche « PARFAITE ! » ; une **lumière dorée**
-  brille au bout de l'arme et le prochain coup (normal, final, tourbillon, estoc, aérien, plongée
-  ou lame d'âme) est **critique : ×1,5 dégâts**. Le journal des dégâts affiche « CRITIQUE ».
-
-## Équilibrage (v1.8)
-- **Étoiles de Lune** : 3 étoiles « simples » maximum à l'écran, moins d'âme par touche, et les boss
-  n'encaissent que 60 % des dégâts à distance.
-- **Marteau** un peu plus lent ; **Force Brute** : +1 dégât mais coups 20 % plus lents.
-- **Critique** : ×1,5 arrondi au-dessus, et toujours au moins +1 dégât.
-- **Attaque plongée** : une seule par saut (petite recharge).
-- **Pièges** : 50 % de chance maximum par salle, et moins d'ennemis dans les salles piégées.
-- **Ombre** : en mourant en descente, ton ombre garde les éclats perdus là où tu es tombé.
-  Retourne au même palier et vaincs-la pour les récupérer (une nouvelle mort la remplace).
-
-## Carte, annonces et accessibilité
-- **Carte** (touche M / R3) : tout ce que tu as découvert du niveau, avec un pictogramme et une légende
-  pour chaque lieu trouvé (banc, sortie, marchand, habitants, coffres, emblèmes, autel, défi, ombre…).
-  **Mini-carte** en haut à droite (Options). Le **cartographe** vend une plume qui révèle tout.
-- **Annonces d'attaque** : un « ! » jaune au-dessus d'un ennemi qui prépare un coup, orange avec
-  une flèche quand c'est une attaque haute (s'accroupir).
-- **Options → Accessibilité** : dangers très contrastés (daltonisme), accroupi en appuyant (bascule),
-  vitesse du jeu 100 / 90 / 80 / 70 %.
-- **Statistiques** de descente (ennemis, dégâts, critiques, parades parfaites, coups reçus, temps)
-  affichées au retour au Sanctuaire.
-- **Sons** propres à chaque arme, au coup critique et à la parade parfaite.
-
-## Nouveautés du Sanctuaire
-- **Mannequin d'entraînement** (à droite de l'arsenal) qui affiche les dégâts par seconde.
-  À l'arsenal, **Essayer** prête une arme le temps de rester au Sanctuaire.
-- **Habitants** qui arrivent au fil des paliers terminés : la **forgeronne** (palier 1, armes niv. 2),
-  le **cartographe** (palier 2, carte complète), l'**ancien** (palier 3, l'histoire de la Lanterne).
-- **Ascenseur** : chaque palier peut se jouer avec une **malédiction** (Hâte, Obscurité, Fragilité)
-  pour +50 à 60 % d'éclats ; **Descente du jour** (même niveau pour tout le monde, meilleur temps) ;
-  **Défi des boss** (les 7 boss à la suite, chronométré) une fois le palier 6 terminé.
-- **Succès** (29), consultables depuis l'écran titre ou le menu pause.
-
-## Armes niveau 2 (forgeronne)
-| Arme | Effet niv. 2 |
-|---|---|
-| Aiguille | le coup final projette une courte lame d'air |
-| Fouet | attire vers toi les petits ennemis touchés |
-| Marteau | le coup final fait jaillir une onde de choc des deux côtés |
-| Étoiles | reviennent comme un boomerang et touchent à nouveau |
-
-## Nouveaux emblèmes
-- **Météore Ardent** : une plongée qui touche prépare un coup critique.
-- **Repos de l'Ombre** (2 encoches) : accroupi hors combat, l'âme remonte lentement jusqu'à 33 ; soin accroupi 1,5 fois plus rapide
-  (avec Concentration Vive : les bonus ne se multiplient pas, soin jamais sous 0,4 s).
-- **Écho Parfait** : une parade parfaite lance une lame d'âme gratuite.
-- **Pas Léger** : franchir un piège sans être touché rapporte 5 éclats.
-
-## Salles spéciales
-- **Trésor** : un sol fissuré cache un coffre ; casse-le (coups vers le bas ou plongée).
-- **Défi chronométré** : touche la stèle au sablier, puis atteins le drapeau en 13 secondes.
-- **Arène d'élites** : réveille l'autel, bats trois élites, gagne des éclats et un emblème.
-- **Marchand ambulant** : parfois près du banc de mi-parcours (les achats font partie du butin).
-
-## Boss finaux
-Au palier 7 (puis tous les 7 paliers), un boss final **tiré au hasard pour chaque partie**,
-chacun avec son propre thème musical :
-- **L'Ombre de la Lanterne** : couronnes de braises, balayage à hauteur de tête, pluie de cendres,
-  colonnes de lumière, spectres en phase 2.
-- **Le Cerbère des Profondeurs** : souffle de braises des trois têtes, bond avec onde de choc,
-  triple morsure à hauteur de tête (s'accroupir), hurlement qui fait jaillir des flammes.
-- **Le Centaure Archer** : galop à travers l'arène, salves de flèches, pluie de flèches annoncée
-  au sol, coup de lance à hauteur de tête (s'accroupir), sauts par-dessus le joueur.
-- **L'Œil d'en Dessous** : tentacules qui jaillissent du sol, rayon qui balaie l'arène à hauteur
-  de tête (s'accroupir) ou au ras du sol (sauter), spirales de spores, yeux volants.
-
-Le vaincre lance **l'animation de fin** : la Lanterne se rallume, la lumière remonte palier par
-palier jusqu'au Sanctuaire puis à la surface, et le générique défile sur le thème de fin.
-Ensuite, les paliers continuent. Succès « Les quatre gardiens » : vaincre les quatre.
-
-## L'arsenal (au Sanctuaire)
-| Arme | Prix | Style |
-|---|---|---|
-| Aiguille du Veilleur | — | équilibrée |
-| Fouet de Ronces | 150 | très longue portée devant et vers le haut, un peu plus lent |
-| Marteau d'Enclume | 220 | lent, +1 dégât, gros recul, étourdit |
-| Étoiles de Lune (shurikens) | 260 | à distance ; coup final = 3 étoiles, tourbillon = 8 en cercle, estoc = grande étoile perçante |
-
-## Pièges et plateformes
-Les niveaux ont maintenant du relief (le sol monte et descend d'une salle à l'autre) et de
-nouvelles salles : îlots flottants, puits en zigzag, chemins doubles, grottes basses, ponts fragiles,
-gouffres à plateforme mobile, couloirs de lames.
-- **Totem à fléchettes** : tire à hauteur de tête — s'accroupir, sauter ou parer.
-- **Lame-pendule** : son point bas passe juste au-dessus d'un héros accroupi.
-- **Stalactite** : se décroche quand on passe dessous.
-- **Blocs fragiles** : s'effondrent peu après qu'on s'y pose, puis se reforment.
-- **Plateforme mobile** : fait l'aller-retour au-dessus d'un gouffre.
+Les boss sont eux aussi plus rapides et plus résistants selon la difficulté.
 
 ## Le Sanctuaire et les paliers sans fin
-Après le tutoriel, on arrive au **Sanctuaire de la Lanterne**, la base du jeu :
-- **Banc** : repos, vie restaurée, changement d'emblèmes.
-- **Marchand** : échange les éclats contre des **fragments de vie** (+1 vie max, jusqu'à 4),
-  des **encoches** d'emblème et les **emblèmes** pas encore trouvés.
-- **Arsenal** : achète et équipe ton arme de base (voir plus haut).
-- **Ascenseur** : choisit le **palier** où descendre.
 
-Un **palier = 2 niveaux générés** (biomes tirés au hasard parmi 9) **puis un boss**. Le terminer ramène
-au Sanctuaire et **débloque le palier suivant** — sans fin. Plus on descend, plus les ennemis
-ont de vie, de vitesse, d'agressivité et d'élites (≈ ×1,9 de vie au palier 6, ×2,6 au palier 10).
+Après le tutoriel, on arrive au **Sanctuaire de la Lanterne**, le cœur du jeu :
+- **Banc** : se reposer, récupérer sa vie, changer d'emblèmes.
+- **Marchand** : échange des éclats contre des **masques de vie** (+1 vie maximale, jusqu'à 4), des
+  **encoches** d'emblèmes et les **emblèmes** pas encore trouvés.
+- **Arsenal** : acheter et équiper son arme de base. **Essayer** prête une arme tant qu'on reste au Sanctuaire.
+- **Mannequin d'entraînement** (à droite de l'arsenal) : affiche les dégâts par seconde.
+- **Tailleuse** (à gauche du banc) : la garde-robe et les cosmétiques.
+- **Ascenseur** : choisir le **palier** où descendre.
+- Des **habitants** arrivent au fil des paliers : la **forgeronne** (palier 1, armes de niveau 2), le
+  **cartographe** (palier 2, vend une plume qui révèle toute la carte) et l'**ancien** (palier 3,
+  l'histoire de la Lanterne).
 
-**Mort** pendant une descente : retour au Sanctuaire, le butin ramassé depuis le départ
-(éclats, emblèmes, encoches) est perdu, mais les paliers débloqués et les achats restent.
-**Sauvegarde automatique** (`user://save.cfg`) : l'écran titre propose **Continuer**.
+Un **palier = 2 niveaux générés** (biomes tirés au sort parmi 9) **puis un boss**. Le terminer ramène
+au Sanctuaire et **débloque le palier suivant**, sans fin. Plus on descend, plus les ennemis ont de vie,
+de vitesse, d'agressivité et d'élites (environ ×1,9 de vie au palier 6, ×2,6 au palier 10).
 
-Les 9 biomes :
+**Mourir** pendant une descente : retour au Sanctuaire, et le butin ramassé depuis le départ (éclats,
+emblèmes, encoches) est perdu, mais les paliers débloqués et les achats restent. Ton **ombre** garde les
+éclats perdus là où tu es tombé : retourne au même palier et bats-la pour les récupérer (une nouvelle
+mort la remplace).
 
-| Biome | Particularité |
+Depuis l'ascenseur, on peut aussi :
+- jouer n'importe quel palier avec une **malédiction** (Hâte, Obscurité, Fragilité) pour +50 à 60 % d'éclats ;
+- jouer la **Descente du jour** (même niveau pour tout le monde, meilleur temps) ;
+- relever le **Défi des boss** (boss à la chaîne, chronométré) une fois le palier 6 terminé.
+
+Il y a 29 **succès**, consultables depuis l'écran-titre ou le menu pause.
+
+### Les 9 biomes
+
+| Biome | Particularités |
 |---|---|
 | Les Profondeurs | grottes bleutées, collines et puits, rampants et volants |
 | Les Jardins Fongiques | murs à escalader, puits, beaucoup de cracheurs |
 | La Citadelle Engloutie | piliers au-dessus des pics, arènes, ponts |
-| Les Mines de Cristal | grands gouffres (Ruée), couloirs bas, volants |
-| La Forge Ardente | pics partout, braises, rampants en masse |
+| Les Mines de Cristal | larges gouffres (Ruée), couloirs bas, volants |
+| La Forge Ardente | des pics partout, des braises, des rampants en nombre |
 | La Bibliothèque Silencieuse | escalade et plateformes, nuées de volants |
-| Les Abysses Gelés | neige, ponts fragiles et gouffres, cracheurs |
+| L'Abîme Gelé | neige, ponts fragiles et gouffres, cracheurs |
 | La Ruche Bourdonnante | couloirs étroits envahis de volants |
 | L'Ossuaire | collines et arènes, rampants et cracheurs |
 
-## Cosmétiques et garde-robe (v2.5)
-La **tailleuse** du Sanctuaire (à gauche du banc) ouvre la garde-robe : on y change l'apparence du héros,
-avec un aperçu animé. Tout est purement visuel et commun à toutes les parties.
+### Salles spéciales
+- **Trésor** : un sol fissuré cache un coffre ; le briser (coups vers le bas ou piqué).
+- **Défi chronométré** : toucher la stèle au sablier, puis atteindre le drapeau en 13 secondes.
+- **Arène d'élites** : réveiller l'autel, vaincre trois élites, gagner des éclats et un emblème.
+- **Marchand itinérant** : parfois près du banc de mi-niveau (les achats comptent comme butin).
+
+### Pièges et plateformes
+Les niveaux ont du relief (le sol monte et descend d'une salle à l'autre) et des salles variées : îles
+flottantes, puits en zigzag, doubles chemins, grottes basses, ponts fragiles, gouffres avec plateforme
+mobile, couloirs de lames.
+- **Totem à fléchettes** : tire à hauteur de tête — s'accroupir, sauter ou parer. Jamais près de l'arène d'un boss.
+- **Lame pendulaire** : son point le plus bas passe juste au-dessus d'un héros accroupi.
+- **Stalactite** : tombe quand on passe dessous.
+- **Blocs fragiles** : s'effondrent peu après qu'on s'y pose, puis se reforment.
+- **Plateforme mobile** : fait des allers-retours au-dessus d'un gouffre.
+- Les pièges occupent au plus 50 % des salles, et les salles piégées ont moins d'ennemis.
+
+## Combat
+
+- **Combo au sol** : trois coups, le 3ᵉ est un **coup final** plus large et plus fort.
+- **Coup chargé** : maintenir Frapper environ 0,7 s (l'aiguille scintille) puis relâcher = un
+  **tourbillon** qui touche tout autour.
+- **Estoc** : frapper **pendant (ou juste après) une Ruée** = un coup perçant en ligne droite.
+- **Combo aérien** (différent du combo au sol) : taillade, **taillade montante** qui fait remonter,
+  puis une **vrille** qui touche tout autour.
+- **Piqué** : en l'air, bas + Ruée. On fonce vers le sol, on rebondit sur l'ennemi touché, ou on crée une
+  **onde de choc** à l'atterrissage. Un par saut. Après un piqué on atterrit debout : on ne s'accroupit
+  qu'une fois « bas » relâché.
+- **S'accroupir** : maintenir bas au sol. Plus lent, mais les attaques hautes passent au-dessus (estoc
+  du lancier, balayage du Colosse, fléchettes, lames pendulaires). Frapper accroupi = coup bas.
+- **Sort d'âme** : une lame d'âme lancée devant soi qui **traverse** les ennemis (coûte 33 d'âme,
+  autant qu'un soin — à toi de choisir).
+- **Parade** : une courte fenêtre (0,2 s). Un contact paré étourdit l'ennemi ; un boss paré est étourdi
+  une seconde. Une spore parée repart vers les ennemis. Rapporte de l'âme et beaucoup d'ultime.
+- **Parade parfaite** : parer au tout dernier moment affiche « PARFAITE ! » ; une **lueur dorée** brille
+  au bout de l'arme et le coup suivant est **critique : dégâts ×1,5** (arrondis au-dessus, toujours au moins +1).
+- **Esquive** : pendant la Ruée, on traverse ennemis et projectiles (pas les pics).
+- **Ultime** : la jauge dorée se remplit en frappant (+6) et en parant (+25). Pleine, le héros se fige,
+  se charge une demi-seconde (invulnérable), puis libère une onde de choc : 8 dégâts à tout ce qui est
+  proche, et les spores sont détruites.
+- Un coup d'aiguille détruit aussi les spores ennemies.
+- **Recul** : chaque coup repousse un peu le héros (environ 9 px sur les deux premiers coups du combo,
+  24 px sur le coup final, aucun accroupi) : tout le combo atteint une cible qui ne bouge pas.
+- **Annonces d'attaque** : un « ! » jaune au-dessus d'un ennemi qui prépare un coup ; orange avec une
+  flèche quand c'est une attaque haute (s'accroupir).
+
+### L'arsenal
+
+| Arme | Prix | Style | Niveau 2 (forgeronne) |
+|---|---|---|---|
+| Aiguille du Veilleur | — | équilibrée | le coup final lance une courte lame d'air |
+| Fouet de Ronces | 150 | très longue portée devant et vers le haut, un peu plus lent | attire les petits ennemis vers soi |
+| Marteau d'Enclume | 220 | lent, +1 dégât, gros recul, étourdit | le coup final envoie une onde de choc des deux côtés (elle franchit les marches) |
+| Étoiles de Lune (shurikens) | 260 | à distance ; coup final = 3 étoiles, tourbillon = 8 en cercle, estoc = une grande étoile perçante | elles reviennent comme un boomerang et touchent à nouveau |
+
+Étoiles de Lune : au plus 3 étoiles simples à l'écran, moins d'âme par coup, et les boss n'encaissent
+que 75 % des dégâts à distance.
+
+### Emblèmes
+Tab ouvre l'inventaire (le jeu se met en pause) : objets, éclats, statistiques et la grille des
+**emblèmes** à trouver dans les niveaux. Chaque emblème coûte des encoches ; on en a 3 au départ, et on
+en trouve (anneaux dorés) ou on en achète d'autres. On ne change d'équipement **qu'assis sur un banc**.
+
+| Emblème | Coût | Effet |
+|---|---|---|
+| Aiguille Longue | 2 | portée des coups +40 % |
+| Cœur de Verre | 2 | +2 masques de vie |
+| Cape Rapide | 1 | course +12 %, Ruée deux fois plus vite rechargée |
+| Coquille Épineuse | 2 | des épines blessent les ennemis proches quand on est touché |
+| Miroir Parfait | 1 | fenêtre de parade de 0,35 s |
+| Âme Vorace | 2 | plus d'âme et d'ultime à chaque coup |
+| Concentration Vive | 1 | soin presque deux fois plus rapide |
+| Force Brute | 3 | +1 dégât, mais coups 20 % plus lents |
+| Météore Ardent | 2 | un piqué qui touche prépare un coup critique |
+| Repos de l'Ombre | 2 | accroupi hors combat, l'âme remonte lentement jusqu'à 33 ; soin accroupi 1,5× plus rapide |
+| Écho Parfait | 2 | une parade parfaite lance une lame d'âme gratuite |
+| Pas Léger | 1 | traverser un piège sans être touché rapporte 5 éclats |
+
+Les effets sont définis dans `scripts/charms.gd` et appliqués dans `scripts/player.gd`.
+
+## Ennemis
+- **Rampant**, **Volant**, **Cracheur** : les bases — marche, piqués, tirs de spores.
+- **Sauteur** : une sauterelle qui bondit sur toi.
+- **Garde au bouclier** : bloque les coups de face. Frapper par-dessus, par derrière, ou avec l'ultime.
+- **Bulbe explosif** : roule vers toi, s'allume et explose (blessant aussi les ennemis proches).
+- **Tisseuse** : une araignée pendue au plafond qui se laisse tomber quand on passe dessous.
+- **Lancier** : prend la pose puis porte un long estoc ; une parade l'étourdit.
+- **Spectre** : disparaît (intouchable), réapparaît près de toi et lance un orbe lent.
+- **Élites** (lueur rouge) : plus de vie, plus rapides, butin double et une attaque en plus — le rampant
+  charge, le volant pique, le cracheur tire 3 spores, le sauteur enchaîne deux bonds, le garde charge
+  avec son bouclier.
+
+Aucun ennemi ne peut toucher à travers un mur. Les ennemis coriaces et les élites deviennent plus
+fréquents en profondeur.
+
+## Boss
+
+Le Gardien vient toujours en premier ; les cinq autres arrivent dans un **ordre propre à chaque partie**,
+puis le cycle recommence, plus dur. Chacun a sa forme, ses attaques, une **phase 2** à mi-vie et son
+propre thème musical. Parer un contact étourdit le boss une seconde.
+
+| Boss | Style | Attaques |
+|---|---|---|
+| Gardien du Puits | scarabée cuirassé | charge annoncée, bond écrasant ; phase 2 : ondes de choc au sol |
+| L'Abbesse Engloutie | reine des spores | charge, bond, salve en éventail, anneau de spores (plus dense en phase 2) |
+| La Reine Essaim | guêpe géante **volante** | piqués (enchaînés en phase 2), salve de dards visée, anneaux en spirale, appelle des volants |
+| Le Colosse d'Os | géant d'ossements | coup de poing au sol (ondes + chute de rochers), balayage du bras ; phase 2 : bond + rangée de piliers d'os |
+| Le Ver des Profondeurs | ver **fouisseur** | s'enfouit, une traînée de poussière le trahit, surgit sous toi en crachant de l'acide ; charge ; phase 2 : trois surgissements + ondes |
+| Le Chevalier Spectral | duelliste fantôme | estocs éclair (combos ×3 en phase 2), **se téléporte dans ton dos**, piliers spectraux en ligne, salve de braises |
+
+### Boss finaux
+Au palier 7 (puis tous les 7 paliers), un boss final **tiré au sort pour chaque partie**, chacun avec
+son thème :
+- **L'Ombre de la Lanterne** : couronnes de braises, balayage à hauteur de tête, pluie de cendres,
+  colonnes de lumière, spectres en phase 2.
+- **Le Cerbère des Profondeurs** : souffle de braises des trois têtes, bond avec onde de choc, triple
+  morsure à hauteur de tête (s'accroupir), un hurlement qui fait jaillir des flammes.
+- **Le Centaure Archer** : galope d'un bout à l'autre de l'arène, salves de flèches, pluie de flèches
+  annoncée au sol, coup de lance à hauteur de tête (s'accroupir), saute par-dessus le joueur.
+- **L'Œil d'en Dessous** : tentacules qui jaillissent du sol, rayon qui balaie l'arène à hauteur de
+  tête (s'accroupir) ou au ras du sol (sauter), spirales de spores, yeux volants.
+
+Le vaincre lance **la fin** : la Lanterne se rallume, la lumière remonte palier par palier jusqu'au
+Sanctuaire puis à la surface, et le générique défile. Ensuite, les paliers continuent.
+Succès « Les quatre gardiens » : vaincre les quatre.
+
+## Graphismes
+
+Tout est dessiné en code, dans un style détaillé et peint :
+
+- **roche** texturée par un shader propre à chaque biome (strates, pierre de taille, cristal, veines de
+  lave, glace, alvéoles, ossements), plus sombre en profondeur, aux arêtes éclairées ;
+- **sols décorés** selon le biome (herbe, champignons lumineux, cristaux, crânes, livres, bougies, neige,
+  miel) et **fonds en parallaxe** sur trois plans avec brume et rayons de lumière ;
+- **héros, ennemis, 10 boss et habitants du Sanctuaire** avec ombrages, reflets et détails ;
+- **pièges, grilles, piliers d'attaque, portail de sortie** (un modèle par biome) et **la fin** ;
+- **emblèmes** : chacun a son médaillon gravé et son icône ; les **coups d'arme** laissent des traînées peintes ;
+- **ATH** : fiole d'âme en verre cerclée de laiton, masques peints, jauge d'ultime en laiton, cristal
+  d'éclats facetté et mini-carte sur parchemin ;
+- **menus et écran-titre** : fond peint (puits, lanterne, braises), panneaux de bois sombre et de laiton ;
+- **effets de combat** : étoile d'impact, anneau de mort avec fumée et débris, éclats qui volent vers le
+  héros, poussière à l'atterrissage, image rémanente de la Ruée, projectiles avec traînée ;
+- **ambiance par biome** : spores et lucioles, neige, pages volantes, braises, feux follets, gouttes au
+  plafond, lave qui bouillonne, amas de cristaux lumineux ;
+- **carte** dessinée comme une carte perdue : parchemin déchiré, plié, taché et brûlé.
+
+## Carte, options et accessibilité
+- **Carte** (M / R3) : tout ce qu'on a découvert du niveau, avec un pictogramme et une légende pour
+  chaque lieu trouvé (banc, sortie, marchand, habitants, coffres, emblèmes, autel, défi, ombre…).
+  **Mini-carte** dans le coin en haut à droite (Options).
+- **Langue** : Automatique (langue du système), Français, English, Español, Deutsch.
+  Les traductions sont dans `tools/translations.py` ; `python3 tools/translations.py` régénère
+  `scripts/translations.gd`.
+- **Taille de l'ATH** (60–160 %) et **des menus** (60–130 %), **zoom de la caméra**, **plein écran**
+  (aussi F11), **synchronisation verticale**.
+- **Barres de vie des ennemis** et **dégâts infligés** affichés brièvement en haut à droite.
+- **Aides à l'écran**, **tremblement de l'écran** (0–150 %), **arrêt sur image** à l'impact, **vibrations** de la manette.
+- **Accessibilité** : dangers en contraste élevé (daltonisme), s'accroupir en bascule, vitesse du jeu
+  100 / 90 / 80 / 70 %.
+- **Statistiques de la descente** (ennemis, dégâts, critiques, parades parfaites, coups reçus, temps)
+  affichées au retour au Sanctuaire.
+
+Tout est enregistré dans `user://settings.cfg`.
+
+## Cosmétiques et garde-robe
+La **tailleuse** du Sanctuaire (à gauche du banc) ouvre la garde-robe, où l'on change l'apparence du
+héros avec un aperçu animé : **53 cosmétiques** dans 6 catégories, dont 21 de saison. Tout est purement
+visuel et commun à tous les emplacements de sauvegarde. Les capes claires sont adoucies pour ne pas
+éblouir sur les décors sombres.
 
 | Catégorie | Exemples |
 |---|---|
@@ -304,39 +382,47 @@ avec un aperçu animé. Tout est purement visuel et commun à toutes les parties
 | Écharpe | sarcelle, écarlate, dorée, blanche, violette, braise vive |
 | Couvre-chef | plume de corbeau, bougie, couronne de fleurs, couronne d'or, auréole, cornes d'os |
 | Traînée et lueurs | couleur de la Ruée, de l'œil et des coups : braise, givre, spectre, or pur… |
-| Familier | luciole, papillon de nuit, feu follet, petite lanterne, guêpe de la Reine |
+| Familier | luciole, papillon de nuit, feu follet, petite lanterne, guêpe de la Reine (suit le héros, purement décoratif) |
 | Ultime | apparence de l'onde de choc : onde dorée, nova de givre, brasier, éclipse, essaim spectral |
 
 Trois façons de les obtenir :
-- **acheter** les plus courants à la tailleuse contre des éclats ;
-- **réussir un succès** : la récompense est indiquée dans la liste des succès ;
+- les **acheter** à la tailleuse contre des éclats (les plus courants) ;
+- réussir un **succès** : la récompense est indiquée dans la liste des succès ;
 - **battre un boss** : le Colosse, la Reine, le Chevalier, le Cerbère et l'Œil ont chacun un cosmétique
   rare (25 % de chance par victoire).
 
-**11 nouveaux succès** (29 au total) : Sans fond, Cauchemar éveillé, Veilleur aguerri, Chasseur d'élites,
-Mur d'acier, Trophée, Garde-robe, Sur son trente-et-un, Esprit de Noël, Sous le sapin, Calendrier du Veilleur.
+Il y a **29 succès**, dont plusieurs offrent un cosmétique, et « Calendrier du Veilleur » : ouvrir le
+cadeau des quatre fêtes.
 
 ### Fêtes
-Quatre fêtes reviennent chaque année, automatiquement, selon la date. Pendant chacune : le Sanctuaire est
-décoré (guirlandes aux couleurs de la fête, ambiance, décor près du banc), un **cadeau** s'ouvre une fois
-par an (le couvre-chef de la fête et 50 éclats), et la tailleuse vend la collection de la fête
-(cape, traînée ou écharpe, familier, ultime). Ce qui est gagné ou acheté reste toute l'année.
+Quatre fêtes reviennent chaque année, automatiquement, selon la date. Pendant chacune, le Sanctuaire
+est décoré, un **cadeau** s'ouvre une fois par an (le couvre-chef de la fête et 50 éclats), et la
+tailleuse vend la collection de la fête. Ce qui est gagné ou acheté reste toute l'année.
 
-| Fête | Dates | Décor | Cadeau | En vente |
-|---|---|---|---|---|
-| Saint-Valentin | 8 – 16 février | arche de roses, cœur lumineux | serre-tête à cœurs | cape de roses, cœur battant, petit cœur, Coup de foudre |
-| Pâques | semaine avant → semaine après | nid d'œufs peints et lapin | oreilles de lapin | cape de printemps, poussin, Éclosion |
-| Veillée des Ombres | 20 octobre – 2 novembre | citrouilles et toile d'araignée | citrouille creusée | cape de la veillée, feu de citrouille, chauve-souris, Nuée de chauves-souris |
-| Noël | 1er décembre – 6 janvier | sapin, neige | bonnet de Noël | cape de Noël, guirlande, bois de renne, flocons, flocon vivant, Étoile de Noël |
+| Fête | Dates | Cadeau | En vente |
+|---|---|---|---|
+| Saint-Valentin | 8 – 16 février | serre-tête à cœurs | cape de roses, traînée cœur battant, petit cœur, ultime Coup de foudre |
+| Pâques | de la semaine avant à la semaine après | oreilles de lapin | cape de printemps, poussin, ultime Éclosion |
+| Veillée des Ombres | 20 octobre – 2 novembre | citrouille creusée | cape de la veillée, feu de citrouille, chauve-souris, ultime Nuée de chauves-souris |
+| Noël | 1er décembre – 6 janvier | bonnet de Noël | cape de Noël, guirlande lumineuse, bois de renne, flocons, flocon vivant, ultime Étoile de Noël |
 
 Chaque fête a sa **musique** au Sanctuaire et sur l'écran-titre, composée pour le jeu par
-`tools/synth_fetes.py` (mêmes instruments que le reste de la bande-son, aucune mélodie existante) :
-*Valse des lanternes* (Saint-Valentin), *Matin de printemps* (Pâques), *Veillée des Ombres*,
-*Veillée de neige* (Noël).
+`tools/synth_fetes.py` (mêmes instruments que le reste de la bande-son, aucune mélodie existante).
 
-Succès « Calendrier du Veilleur » : ouvrir le cadeau des quatre fêtes.
 Pour essayer une fête hors saison : lancer le jeu avec la variable d'environnement
 `LANTERNE_EVENT=noel` (ou `halloween`, `valentin`, `paques`).
+
+## Écrans de chargement
+Tous dessinés en code, dans le style du jeu ; n'importe quelle touche les accélère.
+- **Lancement** : dans le noir, une lanterne s'allume, des braises montent, puis le titre et une astuce
+  apparaissent, avec une rangée de braises qui s'allument en guise de barre de progression, sur un
+  crépitement de braises (synthétisé par le jeu).
+- **Entrée dans une boutique** : deux battants de bois cloutés de laiton se ferment sur l'enseigne de
+  l'habitant (bourse, enclume, carte et plume, parchemin, bobine, lames croisées), puis s'ouvrent sur le comptoir.
+- **Ascenseur** : la cage, avec le héros dans sa tenue, descend un puits de pierre pendant que les chaînes
+  cliquettent ; le numéro du palier est gravé sur une plaque de laiton sous la cage. Le niveau se construit
+  pendant la descente et la cage s'arrête avec un choc sourd. Elle remonte au Sanctuaire après un palier
+  terminé. Les chaînes sont un enregistrement libre de droits (`sfx/lift_chains.ogg`).
 
 ## Mises à jour automatiques
 Au lancement, le jeu (Windows, macOS, Linux, Steam Deck) demande à GitHub quelle est la dernière
@@ -346,94 +432,32 @@ Release. Si elle est plus récente :
 - si le patch ne suffit pas (nouvelles musiques, nouvelle version de Godot), l'écran-titre affiche
   **« Version disponible — télécharger »** et ouvre la page de la Release.
 
-Le numéro de version est affiché en bas de l'écran-titre. **Options → Mises à jour automatiques**
-coupe le téléchargement (l'avis reste affiché). Sans réseau, rien ne se passe. Si le jeu ne démarre
-pas correctement avec un patch, celui-ci est retiré au lancement suivant. La version navigateur est
-toujours à jour. Détails : `scripts/updater.gd` ; le patch est fabriqué par le workflow de publication
-(préréglage d'export « Patch »). Augmenter `config/data_gen` dans `project.godot` quand on ajoute
-des musiques, des sons ou des images : les anciennes installations verront alors l'avis de téléchargement.
+Le numéro de version est affiché en bas de l'écran-titre. **Options → Mises à jour automatiques** coupe
+le téléchargement (l'avis reste affiché). Sans réseau, rien ne se passe. Si le jeu ne démarre pas
+correctement avec un patch, celui-ci est retiré au lancement suivant. La version navigateur est toujours
+à jour. Détails : `scripts/updater.gd` ; le patch est fabriqué par le workflow de publication
+(préréglage d'export « Patch »). Augmenter `config/data_gen` dans `project.godot` quand on ajoute des
+musiques, des sons ou des images : les anciennes installations verront alors l'avis de téléchargement.
 
 ## Musique et sons
-Bande-son **originale** générée pour le jeu (aucun droit d'auteur, elle est à toi) :
-16 morceaux en boucle dans `music/` — une ou deux pistes par biome qui s'enchaînent
-avec un fondu, un thème par boss, un pour le tutoriel et un pour le sanctuaire.
-12 bruitages dans `sfx/`. Volumes **général / musique / effets** dans Options ;
+Une bande-son **originale** générée pour le jeu (libre de tout droit) : 29 morceaux en boucle dans
+`music/` — un ou deux par biome qui s'enchaînent en fondu, un thème par boss, un pour le tutoriel, un
+pour le Sanctuaire et un par fête. Les bruitages sont dans `sfx/`, avec des sons propres à chaque arme,
+aux coups critiques et à la parade parfaite. Volumes **général / musique / effets** dans les Options ;
 la musique baisse un peu quand le jeu est en pause.
 
-## Options (menu pause → Options)
-- **Langue / Language** : Automatique (langue du système), Français, English, Español, Deutsch.
-  Les traductions sont dans `tools/translations.py` (texte français → anglais, espagnol, allemand) ;
-  lancer `python3 tools/translations.py` régénère `scripts/translations.gd`.
-- **Taille du HUD** (60 – 160 %) et **taille des menus** (60 – 130 %, s'applique aussi à l'inventaire).
-- **Zoom de la caméra**, **plein écran** (aussi avec F11), **synchronisation verticale**.
-- **Barres de vie des ennemis** (trait au-dessus de chaque ennemi blessé, encadré rouge pour les élites)
-  et **dégâts infligés** affichés brièvement en haut à droite (couleur selon le coup).
-- **Aides à l'écran** (rappels de touches en bas de l'écran).
-- **Secousses de l'écran** (0 – 150 %), **arrêt sur image** aux impacts, **vibrations** de la manette.
-Tout est sauvegardé dans `user://settings.cfg`. Le menu Commandes est désormais une liste
-défilante (molette, ou navigation clavier/manette).
-
-## Les boss
-Le Gardien ouvre toujours la marche ; les cinq autres arrivent dans un **ordre propre à chaque
-partie**, puis le cycle recommence en plus coriace. Chacun a sa forme, ses attaques, une
-**phase 2** à mi-vie (nouvelles variantes plus agressives) et son propre thème musical.
-Une parade sur un contact étourdit le boss une seconde.
-
-| Boss | Style | Attaques |
-|---|---|---|
-| Gardien du Puits | scarabée cuirassé | charge annoncée, bond écrasant ; phase 2 : ondes de choc au sol |
-| L'Abbesse Engloutie | reine des spores | charge, bond, salve en éventail, anneau de spores (plus dense en phase 2) |
-| La Reine Essaim | guêpe géante **volante** | piqués (enchaînés en phase 2), salve de dards visés, anneaux en spirale, invoque des volants |
-| Le Colosse d'Os | géant d'ossements | poing au sol (ondes + rochers qui tombent), balayage du bras ; phase 2 : bond + rangée de piliers d'os |
-| Le Ver des Profondeurs | ver **fouisseur** | s'enfouit, un sillon de poussière le trahit, jaillit sous toi en crachant de l'acide ; charge ; phase 2 : trois jaillissements + ondes |
-| Le Chevalier Spectral | duelliste fantôme | estocs fulgurants (combos ×3 en phase 2), **téléportation dans ton dos**, piliers spectraux en ligne, salve de braises |
-
-## Inventaire et emblèmes
-Tab ouvre l'inventaire (le jeu se met en pause) : objets, éclats, statistiques et la grille des
-8 **emblèmes** à trouver dans les niveaux (losanges colorés flottants). Chaque emblème coûte des
-encoches ; on en a 3 au départ et deux **encoches** supplémentaires sont cachées (anneaux dorés).
-Comme dans l'inspiration, on ne change d'équipement qu'**assis sur un banc**.
-
-| Emblème | Coût | Effet |
-|---|---|---|
-| Aiguille Longue | 2 | portée des coups +40 % |
-| Cœur de Verre | 2 | +2 fragments de vie |
-| Cape Rapide | 1 | course +12 %, Ruée rechargée 2× plus vite |
-| Coquille Épineuse | 2 | des épines blessent les ennemis proches quand on est touché |
-| Miroir Parfait | 1 | fenêtre de parade 0,35 s |
-| Âme Vorace | 2 | plus d'âme et d'ultime à chaque coup |
-| Concentration Vive | 1 | soin presque 2× plus rapide |
-| Force Brute | 3 | dégâts de l'aiguille ×2 |
-
-Les effets sont définis dans `scripts/charms.gd` et appliqués dans `scripts/player.gd`.
-
-## Combat
-- **Combo** : trois coups d'affilée, le 3e est un **coup final** plus large et plus fort.
-- **Coup chargé** : maintenir Frapper ~0,7 s (l'aiguille scintille) puis relâcher = **tourbillon**
-  qui touche tout autour (gros dégâts).
-- **Estoc** : frapper **pendant (ou juste après) une ruée** = estoc perçant en ligne droite.
-- **Sort d'âme** : lame d'âme lancée devant soi, qui **traverse** les ennemis (coûte 33 d'âme,
-  comme un soin — à toi de choisir).
-- **Parade** : courte fenêtre (0,2 s). Un contact paré étourdit l'ennemi (il devient inoffensif
-  et vulnérable) ; un boss paré est sonné une seconde. Une spore parée repart vers les ennemis.
-  Rapporte de l'âme et beaucoup de charge d'ultime.
-- **Esquive** : pendant la Ruée, on traverse les ennemis et les projectiles (pas les pics).
-- **Ultime** : la jauge dorée se remplit en frappant (+6) et en parant (+25). Quand elle est
-  pleine, le héros se fige, se charge une demi-seconde (invulnérable), puis libère une onde de
-  choc : 8 dégâts à tout ce qui est proche et destruction des spores.
-- Un coup d'aiguille détruit aussi les spores ennemies.
-
-## Modifier
-- Les cartes sont dans `scripts/levels.gd` : ajoute une entrée à `LEVELS` pour créer un niveau (`#` roche, `^` pics, `c`/`f`/`s`
-  ennemis, `B` banc, `D` orbe, `K` boss…). Change un caractère et relance.
-- Les réglages du personnage (vitesse, saut, ruée, dégâts) sont les constantes en haut de
+## Modding
+- Les cartes faites à la main sont dans `scripts/levels.gd` : ajouter une entrée à `LEVELS` pour créer
+  un niveau (`#` roche, `^` pics, `c`/`f`/`s` ennemis, `B` banc, `D` orbe, `K` boss…).
+- Les réglages du héros (vitesse, saut, Ruée, dégâts, recul) sont les constantes en tête de
   `scripts/player.gd`.
 
 ## Tests
-`tests/test_run.gd` joue automatiquement tous les niveaux (entrées simulées, boss, menus) :
+`tests/test_run.gd` parcourt les niveaux automatiquement (entrées simulées, boss, menus) :
 `godot --headless --fixed-fps 120 -s res://tests/test_run.gd`.
-`tests/dump_maps.gd` génère des centaines de niveaux pour vérifier qu'ils sont franchissables.
+`tests/dump_maps.gd` génère des centaines de niveaux pour vérifier qu'ils sont tous faisables.
 
 ## Licence
-Code, musiques (générées pour le jeu) et bruitages : licence **MIT** — voir `LICENSE`.
+Code, musique (générée pour le jeu) et bruitages : licence **MIT** — voir `LICENSE`.
+Exception : `sfx/lift_chains.ogg` provient de l'enregistrement *Chains Chiming* de freesound_community sur Pixabay (Pixabay Content License, utilisation libre, sans attribution requise).
 Le jeu s'inspire de Hollow Knight (Team Cherry) mais n'en réutilise ni personnages ni ressources.
