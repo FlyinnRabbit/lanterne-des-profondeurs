@@ -289,6 +289,7 @@ beweglicher Plattform, Klingengänge.
 | Waffe | Preis | Stil | Stufe 2 (Schmiedin) |
 |---|---|---|---|
 | Nadel des Wächters | — | ausgewogen | der Abschlussschlag schleudert eine kurze Luftklinge |
+| Zwillingsklauen | 180 | sehr schnell (+30 % Schaden über Zeit), kurze Reichweite, etwas weniger Seele pro Treffer | Blutung: ein getroffener Gegner verliert eine Sekunde später noch 1 Leben |
 | Dornenpeitsche | 150 | sehr große Reichweite nach vorn und oben, etwas langsamer | zieht kleine Gegner heran |
 | Ambosshammer | 220 | langsam, +1 Schaden, starker Rückstoß, betäubt | der Abschlussschlag sendet zu beiden Seiten eine Schockwelle (steigt Stufen hinauf) |
 | Mondsterne (Shuriken) | 260 | Fernkampf; Abschluss = 3 Sterne, Wirbel = 8 im Kreis, Ausfall = ein großer durchbohrender Stern | kehren wie ein Bumerang zurück und treffen erneut |

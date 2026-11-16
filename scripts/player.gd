@@ -161,7 +161,8 @@ func focus_time() -> float:
 	return maxf(FOCUS_TIME * m, 0.4)
 
 func soul_per_hit() -> int:
-	return roundi((SOUL_PER_HIT + (6 if eq(C.GREED) else 0)) * float(GameState.d("soul")))
+	# armes très rapides (griffes) : moins d'âme par coup, pour garder le même rythme de soins
+	return roundi((SOUL_PER_HIT + (6 if eq(C.GREED) else 0)) * float(GameState.d("soul")) * float(weapon().get("soul", 1.0)))
 
 func ult_per_hit() -> int:
 	return roundi((ULT_PER_HIT + (4 if eq(C.GREED) else 0)) * float(GameState.d("ult")))
@@ -495,6 +496,7 @@ func _start_attack(kind: String, adir: Vector2) -> void:
 	attack_hit.clear()
 	attack_crit = _take_crit()
 	match GameState.weapon():
+		"griffes": Audio.sfx("slash", 0.18, -3.0)
 		"fouet": Audio.sfx("whip", 0.1, -3.0)
 		"marteau": Audio.sfx("hammer", 0.08, -2.0)
 		"shuriken": Audio.sfx("star", 0.15, -4.0)
@@ -646,6 +648,9 @@ func _do_attack_hits() -> void:
 				last_crit_t = 0.2
 			var wpn := weapon()
 			e.take_hit(hit_damage(), kdir * (1.6 if attack_kind == "finisher" else 1.0) * float(wpn["knock"]))
+			# griffes niv. 2 : saignée, 1 dégât une seconde plus tard (pas de cumul sur le même ennemi)
+			if GameState.weapon() == "griffes" and GameState.weapon_level() >= 2 and is_instance_valid(e) and not e.dead and not e.has_meta("bleeding"):
+				_bleed(e)
 			if float(wpn["stagger"]) > 0.0 and is_instance_valid(e) and not e.is_boss:
 				e.stun_t = maxf(e.stun_t, float(wpn["stagger"]))
 			# fouet niv. 2 : attire les petits ennemis
@@ -794,6 +799,15 @@ func _smear(piv: Vector2, rad: float, a0: float, a1: float, thick: float, col: C
 
 func _draw_held(wid: String, bob: float) -> void:
 	match wid:
+		"griffes":
+			# trois lames courbes fixées sur un gantelet, violet pâle
+			var g := Vector2(11, -8 + bob)
+			DU.box(self, Rect2(g + Vector2(-4, -3), Vector2(7, 6)), Color(0.35, 0.28, 0.4))
+			for i in 3:
+				var o := Vector2(3, -3 + i * 3)
+				var pts := PackedVector2Array([g + o, g + o + Vector2(5, -2), g + o + Vector2(9, 1), g + o + Vector2(4, 1)])
+				DU.flat(self, pts, Color(0.85, 0.78, 0.98))
+				draw_line(g + o + Vector2(1, 0), g + o + Vector2(8, 0.5), Color(1, 1, 1, 0.6), 0.8)
 		"fouet":
 			# liane enroulée à la ceinture, épines
 			var c := Vector2(13, -8 + bob)
@@ -902,6 +916,15 @@ func _phantom_dash() -> void:
 			dash_hit[e] = true
 			e.take_hit(1, Vector2(facing, 0))
 			main.spawn_burst(e.global_position, Color(0.75, 0.65, 1.0), 8, 140.0)
+
+func _bleed(e) -> void:
+	e.set_meta("bleeding", true)
+	await get_tree().create_timer(1.0, false).timeout
+	if is_instance_valid(e):
+		e.remove_meta("bleeding")
+		if not e.dead:
+			e.take_hit(1, Vector2.ZERO)
+			main.spawn_burst(e.global_position, Color(0.85, 0.35, 0.55), 8, 90.0, 60.0)
 
 func _from_trap(source) -> bool:
 	return source != null and is_instance_valid(source) and (("from_trap" in source and source.from_trap) or source.get_script() == TrapScript)

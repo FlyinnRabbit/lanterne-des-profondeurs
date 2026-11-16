@@ -5,12 +5,15 @@
 #  knock  : recul infligé (×)                stagger : étourdit brièvement l'ennemi
 #  ranged : l'arme se lance (projectiles) au lieu de frapper au corps à corps
 
-const ORDER := ["aiguille", "fouet", "marteau", "shuriken"]
+const ORDER := ["aiguille", "griffes", "fouet", "marteau", "shuriken"]
 
 const W := {
 	"aiguille": {"name": "Aiguille du Veilleur", "price": 0, "color": Color(0.85, 0.9, 1.0),
 		"desc": "Équilibrée : rapide, portée moyenne, rebond sur les ennemis et les pics.",
 		"w": 1.0, "h": 1.0, "v": 1.0, "cd": 1.0, "dmg": 0, "knock": 1.0, "stagger": 0.0, "ranged": false},
+	"griffes": {"name": "Griffes Jumelles", "price": 180, "color": Color(0.85, 0.6, 1.0),
+		"desc": "Très rapides mais courtes : on enchaîne les coups au corps à corps. Chaque coup rapporte un peu moins d'âme.",
+		"w": 0.72, "h": 0.95, "v": 0.85, "cd": 0.65, "dmg": 0, "knock": 0.45, "stagger": 0.0, "ranged": false, "soul": 0.6},
 	"fouet": {"name": "Fouet de Ronces", "price": 150, "color": Color(0.6, 0.85, 0.45),
 		"desc": "Très longue portée devant soi et vers le haut, mais un peu plus lent. Garde les ennemis à distance.",
 		"w": 1.9, "h": 0.7, "v": 1.45, "cd": 1.25, "dmg": 0, "knock": 0.7, "stagger": 0.0, "ranged": false},
@@ -25,6 +28,7 @@ const W := {
 # Améliorations (niveau 2), vendues par la forgeronne une fois le palier 1 terminé
 const UP := {
 	"aiguille": {"price": 200, "desc": "Niv. 2 : le coup final projette une courte lame d'air."},
+	"griffes": {"price": 220, "desc": "Niv. 2 : les griffes font saigner : un ennemi touché perd encore 1 vie une seconde plus tard."},
 	"fouet": {"price": 240, "desc": "Niv. 2 : le fouet attire vers toi les petits ennemis touchés."},
 	"marteau": {"price": 260, "desc": "Niv. 2 : le coup final fait jaillir une onde de choc des deux côtés."},
 	"shuriken": {"price": 280, "desc": "Niv. 2 : les étoiles reviennent comme un boomerang et touchent à nouveau."},

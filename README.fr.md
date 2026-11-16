@@ -290,6 +290,7 @@ mobile, couloirs de lames.
 | Arme | Prix | Style | Niveau 2 (forgeronne) |
 |---|---|---|---|
 | Aiguille du Veilleur | — | équilibrée | le coup final lance une courte lame d'air |
+| Griffes Jumelles | 180 | très rapides (+30 % de dégâts sur la durée), portée courte, un peu moins d'âme par coup | saignée : un ennemi touché perd encore 1 vie une seconde plus tard |
 | Fouet de Ronces | 150 | très longue portée devant et vers le haut, un peu plus lent | attire les petits ennemis vers soi |
 | Marteau d'Enclume | 220 | lent, +1 dégât, gros recul, étourdit | le coup final envoie une onde de choc des deux côtés (elle franchit les marches) |
 | Étoiles de Lune (shurikens) | 260 | à distance ; coup final = 3 étoiles, tourbillon = 8 en cercle, estoc = une grande étoile perçante | elles reviennent comme un boomerang et touchent à nouveau |

@@ -259,6 +259,11 @@ static func draw_weapon(ci: CanvasItem, c: Vector2, r: float, id: String, t := 0
 	var s := r / 22.0
 	var P := func(x: float, y: float) -> Vector2: return c + Vector2(x, y) * s
 	match id:
+		"griffes":
+			DU.poly(ci, PackedVector2Array([P.call(-11, 4), P.call(-3, 4), P.call(-3, 12), P.call(-11, 12)]), Color(0.38, 0.3, 0.45))
+			for k in 3:
+				var o := Vector2(-3, 5 + k * 3)
+				DU.poly(ci, PackedVector2Array([P.call(o.x, o.y), P.call(o.x + 6, o.y - 9 - k), P.call(o.x + 13, o.y - 13 - k * 0.5), P.call(o.x + 7, o.y - 6)]), Color(0.86, 0.8, 1.0))
 		"fouet":
 			ci.draw_arc(c, 8.0 * s, 0.0, TAU, 18, Color(0.3, 0.45, 0.22), 4.0 * s)
 			ci.draw_arc(c, 8.0 * s, 0.0, TAU, 18, Color(0.55, 0.8, 0.42), 2.0 * s)
