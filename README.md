@@ -175,7 +175,7 @@ From the elevator you can also:
 - play the **Daily descent** (same level for everyone, best time);
 - take on the **Boss rush** (bosses in a row, timed) once tier 6 is cleared.
 
-There are 17 **achievements**, viewable from the title screen or the pause menu.
+There are 29 **achievements**, viewable from the title screen or the pause menu.
 
 ### The 9 biomes
 
@@ -351,6 +351,45 @@ Everything is drawn in code, in a detailed, painted style:
   when you return to the Sanctuary.
 
 Everything is saved in `user://settings.cfg`.
+
+## Cosmetics and wardrobe (v2.5)
+The **seamstress** in the Sanctuary (left of the bench) opens the wardrobe, where you change the hero's
+look with an animated preview. Everything is purely visual and shared by all save slots.
+
+| Category | Examples |
+|---|---|
+| Cloak | shadow, ember, moss, frost, amethyst, ivory, Golden Watcher, starry night |
+| Scarf | teal, scarlet, golden, white, violet, living ember |
+| Headwear | raven feather, candle, flower crown, golden crown, halo, bone horns |
+| Trail and glow | colour of the dash, the eye and the strikes: ember, frost, wraith, pure gold… |
+| Companion | firefly, moth, will-o'-the-wisp, little lantern, Queen's wasp |
+| Ultimate | look of the shockwave: golden wave, frost nova, blaze, eclipse, spectral swarm |
+
+Three ways to get them:
+- **buy** the common ones from the seamstress with shards;
+- **earn an achievement**: the reward is shown in the achievements list;
+- **beat a boss**: the Colossus, the Queen, the Knight, the Cerberus and the Eye each have a rare
+  cosmetic (25% chance per victory).
+
+**11 new achievements** (29 in total).
+
+### Festivals
+Four festivals come back every year, automatically, based on the date. During each one the Sanctuary is
+decorated, a **gift** can be opened once a year (the festival's headwear and 50 shards), and the
+seamstress sells the festival's collection. Whatever you earn or buy stays all year.
+
+| Festival | Dates | Gift | On sale |
+|---|---|---|---|
+| Valentine's Day | February 8 – 16 | heart headband | rose cloak, beating heart trail, little heart, Love at first sight ultimate |
+| Easter | the week before → the week after | bunny ears | spring cloak, chick, Hatching ultimate |
+| Vigil of Shadows | October 20 – November 2 | carved pumpkin | vigil cloak, pumpkin fire trail, bat, Swarm of bats ultimate |
+| Christmas | December 1 – January 6 | Santa hat | Christmas cloak, string of lights, reindeer antlers, snowflakes, living snowflake, Christmas star ultimate |
+
+Each festival has its own **music** in the Sanctuary and on the title screen, composed for the game
+by `tools/synth_fetes.py` (same instruments as the rest of the soundtrack, no existing melody).
+
+To try a festival out of season, start the game with the environment variable
+`LANTERNE_EVENT=noel` (or `halloween`, `valentin`, `paques`).
 
 ## Automatic updates
 On launch, the game (Windows, macOS, Linux, Steam Deck) asks GitHub for the latest Release.

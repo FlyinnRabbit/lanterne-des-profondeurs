@@ -24,7 +24,21 @@ const LIST := [
 	["daily", "Graine du jour", "Termine le palier 1 d'une descente du jour."],
 	["rush", "Marathon", "Termine le défi des boss."],
 	["room", "Explorateur", "Réussis une salle spéciale (trésor, défi chronométré ou arène)."],
+	["palier10", "Sans fond", "Termine le palier 10."],
+	["nightmare", "Cauchemar éveillé", "Termine un palier en difficulté Cauchemar."],
+	["kills500", "Veilleur aguerri", "Vaincs 500 ennemis."],
+	["elite25", "Chasseur d'élites", "Vaincs 25 élites."],
+	["parry100", "Mur d'acier", "Réussis 100 parades."],
+	["trophy", "Trophée", "Obtiens un cosmétique rare en battant un boss."],
+	["wardrobe", "Garde-robe", "Possède 10 cosmétiques."],
+	["fashion", "Sur son trente-et-un", "Porte un cosmétique non standard dans chaque catégorie."],
+	["noel", "Esprit de Noël", "Termine un palier pendant l'évènement de Noël."],
+	["gift", "Sous le sapin", "Ouvre ton cadeau au Sanctuaire pendant l'évènement de Noël."],
+	["calendar", "Calendrier du Veilleur", "Ouvre le cadeau de chacune des quatre fêtes."],
 ]
+
+# Cosmétiques offerts en plus par ces succès (les autres liens sont dans cosmetics.gd, clé "ach").
+signal cosmetic_unlocked(item_id: String)
 
 var done := {}           # id -> true
 var counters := {}       # crits, perfect_streak…
@@ -38,6 +52,7 @@ func _ready() -> void:
 		done = cfg.get_value("ach", "done", {})
 		counters = cfg.get_value("ach", "counters", {})
 	reset_run()
+	GameState.cos.sync_achievements(done)
 
 func save() -> void:
 	var cfg := ConfigFile.new()
@@ -57,6 +72,39 @@ func unlock(id: String) -> void:
 	done[id] = true
 	save()
 	unlocked.emit(id)
+	for item_id in GameState.cos.for_achievement(id):
+		give_cosmetic(item_id)
+
+# Donne un cosmétique et prévient le joueur.
+func give_cosmetic(item_id: String) -> bool:
+	if not GameState.cos.grant(item_id):
+		return false
+	cosmetic_unlocked.emit(item_id)
+	check_wardrobe()
+	return true
+
+func check_wardrobe() -> void:
+	var c = GameState.cos
+	if c.owned_count() >= 10:
+		unlock("wardrobe")
+	var all := true
+	for cat in c.CATS:
+		if c.eq(cat) == c.DEFAULTS[cat]:
+			all = false
+	if all:
+		unlock("fashion")
+
+func on_kill(elite: bool) -> void:
+	if count("kills") >= 500:
+		unlock("kills500")
+	if elite and count("elites") >= 25:
+		unlock("elite25")
+	if int(counters["kills"]) % 25 == 0:
+		save()
+
+func on_parry() -> void:
+	if count("parries") >= 100:
+		unlock("parry100")
 
 func count(key: String, add := 1) -> int:
 	counters[key] = int(counters.get(key, 0)) + add

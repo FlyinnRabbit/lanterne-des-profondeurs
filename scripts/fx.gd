@@ -112,7 +112,7 @@ func _draw() -> void:
 					draw_circle(Vector2(x, y), (3.0 + i) * (0.6 + u), Color(color, 0.5 * k))
 		"after":
 			# silhouette de cape qui s'efface
-			var c := Color(0.35, 0.3, 0.6, 0.45 * k)
+			var c := Color(color.r, color.g, color.b, 0.45 * k)
 			var f := float(facing)
 			draw_colored_polygon(PackedVector2Array([Vector2(-8 * f, -26), Vector2(8 * f, -26), Vector2(12 * f, -3), Vector2(0, 0), Vector2(-13 * f, -3)]), c)
 			draw_colored_polygon(DU.ellipse(Vector2(0, -33), Vector2(10, 9)), c)

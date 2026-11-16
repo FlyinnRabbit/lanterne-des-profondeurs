@@ -122,6 +122,10 @@ func scaled(key: String) -> float:
 			return minf(base + 0.06 * p, 0.85)
 	return base
 
+# Cosmétiques du héros (communs à toutes les parties) — voir cosmetics.gd
+const CosmeticsScript = preload("res://scripts/cosmetics.gd")
+var cos
+
 # Chance qu'un ennemi soit une élite.
 # Facile : jamais. Sinon la chance de base (10 / 30 / 50 %) est adoucie sur les deux premiers
 # niveaux, puis monte de 4 points par palier jusqu'à un plafond (35 / 65 / 85 %).
@@ -137,6 +141,7 @@ func elite_chance() -> float:
 
 func _ready() -> void:
 	_migrate_old_save()
+	cos = CosmeticsScript.new()
 	slot = clampi(int(Settings.last_slot), 1, SLOTS)
 	prog = _fresh()
 	snapshot = prog.duplicate(true)
@@ -222,7 +227,7 @@ func current_level() -> Dictionary:
 		return t
 	if mode == "hub":
 		var h: Dictionary = Levels.HUB.duplicate()
-		h["music"] = ["res://music/sanctuaire.ogg"]
+		h["music"] = [CosmeticsScript.hub_music()]
 		return h
 	if mode == "rush":
 		return _rush_level()
@@ -653,6 +658,12 @@ func _palier_done() -> void:
 		Achievements.unlock("palier6")
 	if int(Achievements.run.get("hurt", 0)) == 0:
 		Achievements.unlock("flawless")
+	if palier >= 10:
+		Achievements.unlock("palier10")
+	if difficulty == 3:
+		Achievements.unlock("nightmare")
+	if CosmeticsScript.is_noel():
+		Achievements.unlock("noel")
 
 func add_notch(key: String) -> void:
 	if not is_collected(key):

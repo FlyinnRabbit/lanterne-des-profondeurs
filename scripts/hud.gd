@@ -18,6 +18,8 @@ func _ready() -> void:
 	Achievements.unlocked.connect(func(id):
 		toasts.append([tr("Succès débloqué : %s") % tr(Achievements.info(id)[1]), 0.0])
 		Audio.sfx("achievement", 0.0, 0.0))
+	Achievements.cosmetic_unlocked.connect(func(item_id):
+		toasts.append([tr("Cosmétique obtenu : %s") % tr(GameState.cos.item(item_id)["name"]), 0.0]))
 
 func add_damage(dmg: int, who: String, kind: String, killed: bool) -> void:
 	if not Settings.damage_numbers:

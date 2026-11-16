@@ -20,6 +20,12 @@ var ars_list: VBoxContainer
 var ars_geo: Label
 var ars_desc: Label
 var ars_status: Label
+var ward_panel: PanelContainer
+var ward_list: VBoxContainer
+var ward_geo: Label
+var ward_status: Label
+var ward_cat := "cape"
+var ward_tabs := {}
 const Weapons = preload("res://scripts/weapons.gd")
 const CharmIcon = preload("res://scripts/charm_icon.gd")
 
@@ -38,7 +44,8 @@ func _ready() -> void:
 	_build_lift(root)
 	_build_arsenal(root)
 	_build_npc(root)
-	for p in [shop_panel, lift_panel, ars_panel, npc_panel]:
+	_build_wardrobe(root)
+	for p in [shop_panel, lift_panel, ars_panel, npc_panel, ward_panel]:
 		p.resized.connect(_apply_scale)
 	Settings.changed.connect(_apply_scale)
 	visible = false
@@ -61,7 +68,7 @@ func _label(text: String, size: int, color: Color) -> Label:
 
 func _apply_scale() -> void:
 	var s: float = Settings.menu_scale
-	for p in [shop_panel, lift_panel, ars_panel, npc_panel]:
+	for p in [shop_panel, lift_panel, ars_panel, npc_panel, ward_panel]:
 		p.pivot_offset = p.size / 2.0
 		p.scale = Vector2(s, s)
 
@@ -472,6 +479,7 @@ func _open(panel: PanelContainer) -> void:
 	lift_panel.get_parent().visible = panel == lift_panel
 	ars_panel.get_parent().visible = panel == ars_panel
 	npc_panel.get_parent().visible = panel == npc_panel
+	ward_panel.get_parent().visible = panel == ward_panel
 	_apply_scale()
 	get_tree().paused = true
 
@@ -485,3 +493,162 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause_menu") or event.is_action_pressed("inventory") or (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_B):
 		close_all()
 		get_viewport().set_input_as_handled()
+
+# ---------------------------------------------------------------- garde-robe (la tailleuse)
+# Aperçu animé du héros avec les cosmétiques portés.
+class HeroPreview extends Control:
+	var t := 0.0
+	func _process(delta: float) -> void:
+		t += delta
+		queue_redraw()
+	func _draw() -> void:
+		var c := size / 2.0
+		draw_circle(c + Vector2(0, 6), 78.0, Color(0.07, 0.055, 0.045))
+		draw_arc(c + Vector2(0, 6), 78.0, 0.0, TAU, 48, Color(0.85, 0.7, 0.35), 2.0)
+		draw_set_transform(c + Vector2(4, 62), 0.0, Vector2(3.0, 3.0))
+		draw_colored_polygon(PackedVector2Array([Vector2(-14, 0), Vector2(0, -3), Vector2(14, 0), Vector2(0, 3)]), Color(0, 0, 0, 0.45))
+		GameState.cos.draw_hero(self, sin(t * 2.5) * 0.6, sin(t * 2.0) * 1.0, t, false, false)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+class Swatch extends Control:
+	var item_id := ""
+	func _draw() -> void:
+		GameState.cos.draw_swatch(self, item_id, size / 2.0, 15.0)
+
+func _build_wardrobe(root: Control) -> void:
+	ward_panel = _panel(root)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	ward_panel.add_child(v)
+	v.add_child(_label("La tailleuse", 30, Color(1.0, 0.85, 0.6)))
+	var quote := _label("« Une cape, c'est une promesse. Choisis la tienne, petit veilleur. »", 14, Color(0.65, 0.7, 0.82))
+	v.add_child(quote)
+	ward_geo = _label("", 17, Color(0.7, 0.88, 1.0))
+	v.add_child(ward_geo)
+	var tabs := HBoxContainer.new()
+	tabs.alignment = BoxContainer.ALIGNMENT_CENTER
+	tabs.add_theme_constant_override("separation", 6)
+	v.add_child(tabs)
+	for cat in GameState.cos.CATS:
+		var tb: Button = main.menu._button(GameState.cos.CAT_NAMES[cat], _ward_tab.bind(cat))
+		tb.custom_minimum_size = Vector2(118, 36)
+		tb.add_theme_font_size_override("font_size", 14)
+		tabs.add_child(tb)
+		ward_tabs[cat] = tb
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 14)
+	v.add_child(h)
+	var prev := HeroPreview.new()
+	prev.custom_minimum_size = Vector2(190, 300)
+	h.add_child(prev)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(560, 300)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
+	h.add_child(scroll)
+	ward_list = VBoxContainer.new()
+	ward_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ward_list.add_theme_constant_override("separation", 5)
+	scroll.add_child(ward_list)
+	ward_status = _label("", 15, Color(1.0, 0.8, 0.55))
+	v.add_child(ward_status)
+	var close: Button = main.menu._button("Fermer", close_all)
+	close.custom_minimum_size = Vector2(280, 40)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(close)
+	v.add_child(row)
+
+func open_wardrobe() -> void:
+	var ev: String = GameState.CosmeticsScript.current_event()
+	ward_status.text = tr("Les cosmétiques de fête ne se vendent que pendant leur fête.") if ev == "" else tr("C'est %s : la collection de la fête est en vente !") % tr(GameState.CosmeticsScript.EVENTS[ev]["name"])
+	_open(ward_panel)
+	_refresh_wardrobe(true)
+
+func _ward_tab(cat: String) -> void:
+	ward_cat = cat
+	_refresh_wardrobe(true)
+
+# Comment obtenir (ou état) d'un cosmétique.
+func _ward_state(id: String) -> String:
+	var cos = GameState.cos
+	var it: Dictionary = cos.item(id)
+	if cos.eq(it["cat"]) == id:
+		return tr("✔ porté")
+	if cos.has(id):
+		return tr("possédé")
+	if it.get("gift", false):
+		return tr("cadeau de %s") % tr(GameState.CosmeticsScript.EVENTS[String(it["season"])]["name"])
+	if it.has("ach"):
+		return tr("succès : %s") % tr(Achievements.info(it["ach"])[1])
+	if it.has("boss"):
+		return tr("butin rare : %s") % tr(GameState.BOSSES[it["boss"]]["name"])
+	if it.has("price"):
+		if not GameState.CosmeticsScript.season_on(String(it.get("season", ""))):
+			return tr("de retour pour %s") % tr(GameState.CosmeticsScript.EVENTS[String(it["season"])]["name"])
+		return tr("%d éclats") % int(it["price"])
+	return ""
+
+func _refresh_wardrobe(focus_first := false) -> void:
+	var cos = GameState.cos
+	ward_geo.text = tr("Éclats : %d") % main.player.geo + "   —   " + tr("Cosmétiques : %d / %d") % [cos.owned_count(), cos.ITEMS.size() - cos.CATS.size()]
+	for cat in ward_tabs:
+		ward_tabs[cat].add_theme_color_override("font_color", Color(1.0, 0.88, 0.55) if cat == ward_cat else Color(0.75, 0.75, 0.8))
+	_clear(ward_list)
+	var first: Button = null
+	for id in cos.items_of(ward_cat):
+		var it: Dictionary = cos.item(id)
+		var b: Button = main.menu._button("", _ward_pick.bind(id))
+		b.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		b.text = "        " + tr(it["name"]) + "  —  " + _ward_state(id)
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.custom_minimum_size = Vector2(540, 40)
+		var col := Color(0.9, 0.88, 0.82)
+		if cos.eq(ward_cat) == id:
+			col = Color(1.0, 0.88, 0.55)
+		elif not cos.has(id):
+			col = Color(0.62, 0.64, 0.72)
+			if it.has("season"):
+				col = Color(0.75, 0.9, 1.0) if GameState.CosmeticsScript.season_on(String(it["season"])) else Color(0.5, 0.55, 0.62)
+		b.add_theme_color_override("font_color", col)
+		var sw := Swatch.new()
+		sw.item_id = id
+		sw.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		sw.position = Vector2(6, 3)
+		sw.size = Vector2(34, 34)
+		b.add_child(sw)
+		ward_list.add_child(b)
+		if first == null or cos.eq(ward_cat) == id:
+			first = b
+	if focus_first and first:
+		first.grab_focus()
+
+func _ward_pick(id: String) -> void:
+	var cos = GameState.cos
+	var it: Dictionary = cos.item(id)
+	if cos.has(id):
+		cos.equip(id)
+		ward_status.text = tr("%s : porté.") % tr(it["name"])
+		Audio.sfx("pickup", 0.1, -6.0)
+	elif it.has("price") and GameState.CosmeticsScript.season_on(String(it.get("season", ""))) and not it.get("gift", false):
+		var price := int(it["price"])
+		if main.player.geo < price:
+			ward_status.text = tr("Pas assez d'éclats (%d nécessaires).") % price
+			return
+		main.player.geo -= price
+		GameState.prog["geo"] = main.player.geo
+		GameState.snapshot = GameState.prog.duplicate(true)
+		GameState.save_game()
+		Achievements.give_cosmetic(id)
+		cos.equip(id)
+		ward_status.text = tr("%s : acheté et porté.") % tr(it["name"])
+		Audio.sfx("pickup", 0.0)
+	else:
+		ward_status.text = tr(it["name"]) + " — " + _ward_state(id)
+		return
+	Achievements.check_wardrobe()
+	var keep := id
+	_refresh_wardrobe()
+	for b in ward_list.get_children():
+		if b is Button and b.get_child_count() > 0 and b.get_child(0).item_id == keep:
+			b.grab_focus()

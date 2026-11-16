@@ -56,11 +56,22 @@ func _physics_process(delta: float) -> void:
 	vel.y += gravity * delta
 	global_position += vel * delta
 	if kind == "wave":
-		# l'onde suit le sol : elle s'arrête contre un mur ou au bord du vide
+		# l'onde suit le sol : elle franchit les marches d'une case (montée ou descente)
+		# et ne s'arrête que contre un vrai mur ou au bord du vide
+		var T: float = main.TILE
 		var ahead := global_position + Vector2(signf(vel.x) * 14.0, -10.0)
-		if main.is_solid_at(ahead) or not main.is_solid_at(global_position + Vector2(0, 6)):
-			pop()
-			return
+		if main.is_solid_at(ahead):
+			if not main.is_solid_at(ahead + Vector2(0, -T)) and not main.is_solid_at(global_position + Vector2(0, -T - 10.0)):
+				global_position.y -= T          # marche montante
+			else:
+				pop()
+				return
+		if not main.is_solid_at(global_position + Vector2(0, 6)):
+			if main.is_solid_at(global_position + Vector2(0, 6 + T)):
+				global_position.y += T          # marche descendante
+			else:
+				pop()
+				return
 	elif main.is_solid_at(global_position) and not returning:
 		if boomerang:
 			returning = true

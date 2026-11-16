@@ -207,7 +207,7 @@ Tout reste dessiné en code (aucune image), dans un style plus détaillé et « 
 - **Ascenseur** : chaque palier peut se jouer avec une **malédiction** (Hâte, Obscurité, Fragilité)
   pour +50 à 60 % d'éclats ; **Descente du jour** (même niveau pour tout le monde, meilleur temps) ;
   **Défi des boss** (les 7 boss à la suite, chronométré) une fois le palier 6 terminé.
-- **Succès** (17), consultables depuis l'écran titre ou le menu pause.
+- **Succès** (29), consultables depuis l'écran titre ou le menu pause.
 
 ## Armes niveau 2 (forgeronne)
 | Arme | Effet niv. 2 |
@@ -293,6 +293,50 @@ Les 9 biomes :
 | Les Abysses Gelés | neige, ponts fragiles et gouffres, cracheurs |
 | La Ruche Bourdonnante | couloirs étroits envahis de volants |
 | L'Ossuaire | collines et arènes, rampants et cracheurs |
+
+## Cosmétiques et garde-robe (v2.5)
+La **tailleuse** du Sanctuaire (à gauche du banc) ouvre la garde-robe : on y change l'apparence du héros,
+avec un aperçu animé. Tout est purement visuel et commun à toutes les parties.
+
+| Catégorie | Exemples |
+|---|---|
+| Cape | ombre, braise, mousse, givre, améthyste, ivoire, Veilleur doré, nuit étoilée |
+| Écharpe | sarcelle, écarlate, dorée, blanche, violette, braise vive |
+| Couvre-chef | plume de corbeau, bougie, couronne de fleurs, couronne d'or, auréole, cornes d'os |
+| Traînée et lueurs | couleur de la Ruée, de l'œil et des coups : braise, givre, spectre, or pur… |
+| Familier | luciole, papillon de nuit, feu follet, petite lanterne, guêpe de la Reine |
+| Ultime | apparence de l'onde de choc : onde dorée, nova de givre, brasier, éclipse, essaim spectral |
+
+Trois façons de les obtenir :
+- **acheter** les plus courants à la tailleuse contre des éclats ;
+- **réussir un succès** : la récompense est indiquée dans la liste des succès ;
+- **battre un boss** : le Colosse, la Reine, le Chevalier, le Cerbère et l'Œil ont chacun un cosmétique
+  rare (25 % de chance par victoire).
+
+**11 nouveaux succès** (29 au total) : Sans fond, Cauchemar éveillé, Veilleur aguerri, Chasseur d'élites,
+Mur d'acier, Trophée, Garde-robe, Sur son trente-et-un, Esprit de Noël, Sous le sapin, Calendrier du Veilleur.
+
+### Fêtes
+Quatre fêtes reviennent chaque année, automatiquement, selon la date. Pendant chacune : le Sanctuaire est
+décoré (guirlandes aux couleurs de la fête, ambiance, décor près du banc), un **cadeau** s'ouvre une fois
+par an (le couvre-chef de la fête et 50 éclats), et la tailleuse vend la collection de la fête
+(cape, traînée ou écharpe, familier, ultime). Ce qui est gagné ou acheté reste toute l'année.
+
+| Fête | Dates | Décor | Cadeau | En vente |
+|---|---|---|---|---|
+| Saint-Valentin | 8 – 16 février | arche de roses, cœur lumineux | serre-tête à cœurs | cape de roses, cœur battant, petit cœur, Coup de foudre |
+| Pâques | semaine avant → semaine après | nid d'œufs peints et lapin | oreilles de lapin | cape de printemps, poussin, Éclosion |
+| Veillée des Ombres | 20 octobre – 2 novembre | citrouilles et toile d'araignée | citrouille creusée | cape de la veillée, feu de citrouille, chauve-souris, Nuée de chauves-souris |
+| Noël | 1er décembre – 6 janvier | sapin, neige | bonnet de Noël | cape de Noël, guirlande, bois de renne, flocons, flocon vivant, Étoile de Noël |
+
+Chaque fête a sa **musique** au Sanctuaire et sur l'écran-titre, composée pour le jeu par
+`tools/synth_fetes.py` (mêmes instruments que le reste de la bande-son, aucune mélodie existante) :
+*Valse des lanternes* (Saint-Valentin), *Matin de printemps* (Pâques), *Veillée des Ombres*,
+*Veillée de neige* (Noël).
+
+Succès « Calendrier du Veilleur » : ouvrir le cadeau des quatre fêtes.
+Pour essayer une fête hors saison : lancer le jeu avec la variable d'environnement
+`LANTERNE_EVENT=noel` (ou `halloween`, `valentin`, `paques`).
 
 ## Mises à jour automatiques
 Au lancement, le jeu (Windows, macOS, Linux, Steam Deck) demande à GitHub quelle est la dernière

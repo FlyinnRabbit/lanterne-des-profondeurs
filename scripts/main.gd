@@ -352,6 +352,23 @@ func _spawn_everything() -> void:
 					if GameState.record >= need:
 						var np2 = _make_prop(npc, Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.55), 2.0)
 						interactables.append([np2, npc])
+				"t":
+					# la tailleuse (garde-robe) ; pendant l'évènement de Noël : sapin, cadeau et guirlandes
+					var tp = _make_prop("tailor", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.6), 2.0)
+					interactables.append([tp, "tailor"])
+					var ev: String = GameState.CosmeticsScript.current_event()
+					if ev != "":
+						var sp2 = _make_prop("fete", Vector2((x + 7.2) * TILE, (y + 1) * TILE), Color(1.0, 0.85, 0.5), 2.4)
+						sp2.event = ev
+						for ch in sp2.get_children():
+							if ch is PointLight2D:
+								ch.energy = 0.3      # décor de fête : lumière douce
+						sp2.lit = not GameState.cos.gift_open(ev)
+						interactables.append([sp2, "gift"])
+						var gl = _make_prop("garland", Vector2(TILE, 6 * TILE + 6.0), Color(1.0, 0.8, 0.5), 0.1)
+						gl.event = ev
+						gl.charm_id = (map_size.x - 2) * TILE
+						gl.z_index = -1
 				"R":
 					var rp2 = _make_prop("altar", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.4, 0.35), 2.2)
 					interactables.append([rp2, "altar"])
@@ -525,6 +542,10 @@ func _setup_camera_and_fx() -> void:
 	dust.color = pal["dust"]
 	camera.add_child(dust)
 	player.add_child(make_light(pal.get("light", Color(1.0, 0.85, 0.6)), 1.3 if GameState.curse == "dark" and GameState.mode == "descent" else 2.2, 1.0 if GameState.curse == "dark" else 0.85, Vector2(0, -10)))
+	var pet := Node2D.new()
+	pet.set_script(preload("res://scripts/pet.gd"))
+	pet.main = self
+	add_child(pet)
 
 # ---------------------------------------------------------------- boucle
 # ---------------------------------------------------------------- salles spéciales
@@ -715,8 +736,11 @@ func _process(delta: float) -> void:
 	for it in interactables:
 		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
 			var verbs := {"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur",
-				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "cartographer": "parler au cartographe", "elder": "écouter l'ancien"}
+				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "cartographer": "parler au cartographe", "elder": "écouter l'ancien",
+				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau"}
 			if it[1] == "altar" and altar_state != "":
+				continue
+			if it[1] == "gift" and not it[0].lit:
 				continue
 			interact_hint = tr("{up|1} : %s") % tr(verbs[it[1]])
 			if Input.is_action_just_pressed("up") and player.is_on_floor() and not get_tree().paused:
@@ -728,6 +752,10 @@ func _process(delta: float) -> void:
 					_start_altar(it[0])
 				elif it[1] in ["smith", "cartographer", "elder"]:
 					hub_ui.open_npc(it[1])
+				elif it[1] == "tailor":
+					hub_ui.open_wardrobe()
+				elif it[1] == "gift":
+					_open_gift(it[0])
 				else:
 					hub_ui.open_elevator()
 	# Banc le plus proche
@@ -893,6 +921,7 @@ func spawn_fx(kind: String, pos: Vector2, color := Color(1, 1, 1), dir := Vector
 func on_enemy_killed(e, geo: int) -> void:
 	player.geo += roundi(geo * GameState.geo_mult())
 	Achievements.stat("kills")
+	Achievements.on_kill(e.elite and not e.is_boss)
 	if player.plunge_kill_t > 0.0:
 		Achievements.unlock("plunge")
 	Audio.sfx("kill")
@@ -927,8 +956,35 @@ func on_player_died() -> void:
 	player.respawn(respawn_pos)
 	respawn_enemies()
 
+# Cadeau de la fête en cours, au Sanctuaire : une fois par an, le couvre-chef de la fête et quelques éclats.
+func _open_gift(tree) -> void:
+	var ev: String = tree.event
+	tree.lit = false
+	GameState.cos.mark_gift(ev)
+	var item_id := String(GameState.CosmeticsScript.EVENTS[ev]["gift"])
+	var got: bool = Achievements.give_cosmetic(item_id)
+	player.geo += 50
+	GameState.prog["geo"] = player.geo
+	GameState.snapshot = GameState.prog.duplicate(true)
+	GameState.save_game()
+	if ev == "noel":
+		Achievements.unlock("gift")
+	if GameState.cos.gifts.size() >= GameState.CosmeticsScript.EVENTS.size():
+		Achievements.unlock("calendar")
+	spawn_burst(tree.position + Vector2(33, -20), Color(1.0, 0.9, 0.5), 40, 260.0)
+	Audio.sfx("pickup", 0.0)
+	show_message((tr("Cadeau : %s et 50 éclats !") % tr(GameState.cos.item(item_id)["name"])) if got else tr("Cadeau : 50 éclats !"), 3.5)
+
+# Butin rare : chaque boss a une chance de laisser son cosmétique (une fois obtenu, plus de tirage).
+func _boss_cosmetic() -> void:
+	for item_id in GameState.cos.for_boss(String(level.get("boss_id", ""))):
+		if not GameState.cos.has(item_id) and randf() < GameState.cos.BOSS_DROP_CHANCE:
+			if Achievements.give_cosmetic(item_id):
+				Achievements.unlock("trophy")
+
 func on_boss_killed() -> void:
 	boss_dead = true
+	_boss_cosmetic()
 	for m in minions:
 		if is_instance_valid(m) and not m.dead:
 			m.die()
@@ -973,7 +1029,8 @@ func on_parry(pos: Vector2) -> void:
 	Controls.rumble(0.8, 0.3, 0.12)
 
 func on_ultimate_charge(p) -> void:
-	spawn_burst(p.global_position, Color(1.0, 0.85, 0.5), 20, 140.0, -200.0)
+	var ul: Dictionary = GameState.cos.look("ult")
+	spawn_burst(p.global_position, ul["c2"] if GameState.cos.eq("ult") == "ult_eclipse" else ul["c"], 20, 140.0, -200.0)
 	Controls.rumble(0.3, 0.0, ULT_RUMBLE)
 
 const ULT_RADIUS := 260.0
@@ -985,13 +1042,17 @@ func ultimate_blast(pos: Vector2) -> void:
 	Audio.sfx("ult", 0.0)
 	var ring := Node2D.new()
 	ring.set_script(RingScript)
+	var ul: Dictionary = GameState.cos.look("ult")
 	ring.radius = ULT_RADIUS
 	ring.position = pos
+	ring.style = GameState.cos.eq("ult")
+	ring.c1 = ul["c"]
+	ring.c2 = ul["c2"]
 	add_child(ring)
 	flash = 1.0
 	shake(18)
 	hit_stop(0.12)
-	spawn_burst(pos, Color(1.0, 0.9, 0.6), 60, 420.0, 0.0)
+	spawn_burst(pos, ul["c2"] if ring.style == "ult_eclipse" else ul["c"], 60, 420.0, 0.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):
 			continue

@@ -8,6 +8,7 @@ const DU = preload("res://scripts/draw_util.gd")
 
 var main
 var biome := ""
+var snow_only := false   # neige décorative : sans les gouttes du biome de glace
 var t := 0.0
 var flakes := []      # [position relative à la vue, vitesse, phase, taille]
 var drips := []       # [x, y du plafond, y du sol, phase]
@@ -17,6 +18,11 @@ var view := Rect2()
 func _ready() -> void:
 	z_index = 15
 	biome = String(main.pal.get("id", ""))
+	var ev: String = GameState.CosmeticsScript.current_event()
+	if biome == "hub" and ev != "":
+		# ambiance de fête au Sanctuaire : neige à Noël, feux follets à la Veillée, pétales au printemps
+		biome = String(GameState.CosmeticsScript.EVENTS[ev]["ambience"])
+		snow_only = true
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(main.level.get("seed", 0)) + 99
 	var n: int = {"jardins": 34, "glace": 70, "ruche": 30, "profondeurs": 22, "bibliotheque": 16, "ossuaire": 10, "cristal": 18, "citadelle": 14, "forge": 26, "hub": 14}.get(biome, 14)
@@ -31,7 +37,7 @@ func _ready() -> void:
 			ceilings.append(c)
 		if not main.solid.has(Vector2i(c.x, c.y - 1)):
 			floors.append(c)
-	if biome == "citadelle" or biome == "glace" or biome == "profondeurs":
+	if (biome == "citadelle" or biome == "glace" or biome == "profondeurs") and not snow_only:
 		ceilings.shuffle()
 		for c in ceilings.slice(0, 40):
 			var y := int(c.y) + 1

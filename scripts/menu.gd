@@ -320,7 +320,7 @@ func open_title() -> void:
 	_go(title_panel)
 	get_tree().paused = true
 	first_title_button.grab_focus()
-	Audio.play_boss("res://music/sanctuaire.ogg")
+	Audio.play_boss(GameState.CosmeticsScript.hub_music())
 
 # ---------------------------------------------------------------- construction
 func _make_theme() -> Theme:
@@ -555,6 +555,8 @@ func _open_achievements() -> void:
 			n += 1
 		var l := Label.new()
 		l.text = ("✔  " if ok else "·  ") + tr(a[1]) + " — " + tr(a[2])
+		for item_id in GameState.cos.for_achievement(a[0]):
+			l.text += "  " + tr("(récompense : %s)") % tr(GameState.cos.item(item_id)["name"])
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size = Vector2(600, 0)
 		l.add_theme_font_size_override("font_size", 16)

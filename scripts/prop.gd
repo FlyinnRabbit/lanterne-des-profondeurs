@@ -8,6 +8,7 @@ var charm_id := -1
 const CharmIcon = preload("res://scripts/charm_icon.gd")
 var color := Color(1, 1, 1)
 var lit := false
+var event := ""         # fête (décor et guirlande du Sanctuaire)
 
 func DU_ellipse_half() -> PackedVector2Array:
 	return DU.ellipse(Vector2(0, -80), Vector2(20, 20), 16, PI, TAU)
@@ -22,6 +23,16 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	match kind:
+		"tailor":
+			_draw_tailor()
+		"fete":
+			match event:
+				"noel": _draw_sapin()
+				"halloween": _draw_citrouilles()
+				"valentin": _draw_roses()
+				"paques": _draw_nid()
+		"garland":
+			_draw_garland()
 		"bench":
 			# banc de bois sombre à pieds de fer forgé, petite lanterne
 			var wood := Color(0.3, 0.21, 0.16)
@@ -926,3 +937,198 @@ func _bone_pile(p: Vector2) -> void:
 	DU.ball(self, p + Vector2(0, -7), 4.5, bone)
 	draw_circle(p + Vector2(-1.5, -7), 1.1, Color(0.08, 0.07, 0.06))
 	draw_circle(p + Vector2(1.5, -7), 1.1, Color(0.08, 0.07, 0.06))
+
+# La tailleuse : phalène couturière, devant son paravent, un mannequin drapé et ses bobines.
+func _draw_tailor() -> void:
+	var bob := sin(t * 1.6) * 1.2
+	var wood := Color(0.32, 0.22, 0.15)
+	# paravent à trois panneaux
+	for i in 3:
+		var px := -92.0 + i * 24.0
+		DU.box(self, Rect2(px, -96 - (i % 2) * 4, 22, 96 + (i % 2) * 4), Color(0.36, 0.2, 0.26).lightened(i * 0.04))
+		draw_rect(Rect2(px, -96 - (i % 2) * 4, 22, 96 + (i % 2) * 4), wood.darkened(0.3), false, 2.0)
+		DU.flat(self, DU.diamond(Vector2(px + 11, -60), Vector2(5, 8)), Color(0.85, 0.7, 0.35, 0.7))
+	# mannequin de couture portant une cape (celle du héros)
+	var cape_c: Color = GameState.cos.look("cape")["c"]
+	draw_line(Vector2(52, 0), Vector2(52, -34), wood, 3.0)
+	draw_line(Vector2(42, 0), Vector2(62, 0), wood, 3.0)
+	DU.poly(self, PackedVector2Array([Vector2(42, -34), Vector2(62, -34), Vector2(66, -62), Vector2(58, -70), Vector2(46, -70), Vector2(38, -62)]), Color(0.75, 0.7, 0.6))
+	DU.poly(self, PackedVector2Array([Vector2(40, -66), Vector2(64, -66), Vector2(70, -28), Vector2(60, -24), Vector2(52, -30), Vector2(44, -24), Vector2(34, -28)]), cape_c.lightened(0.08))
+	draw_circle(Vector2(52, -75), 4.0, wood.lightened(0.1))
+	# bobines de fil
+	var cols := [Color(0.9, 0.35, 0.35), Color(0.4, 0.75, 0.85), Color(0.95, 0.8, 0.4)]
+	for i in 3:
+		var bx := 14.0 + i * 9.0
+		DU.box(self, Rect2(bx - 3.5, -9, 7, 9), cols[i])
+		draw_line(Vector2(bx - 4.5, -9), Vector2(bx + 4.5, -9), wood, 2.0)
+		draw_line(Vector2(bx - 4.5, 0), Vector2(bx + 4.5, 0), wood, 2.0)
+	# la phalène : ailes repliées en cape, antennes plumeuses, lunettes et aiguille
+	var o := Vector2(-18, bob)
+	var wing := Color(0.78, 0.72, 0.6)
+	DU.poly(self, PackedVector2Array([o + Vector2(-16, 0), o + Vector2(-12, -34), o + Vector2(0, -44), o + Vector2(12, -34), o + Vector2(16, 0), o + Vector2(6, -4), o + Vector2(0, 0), o + Vector2(-6, -4)]), wing)
+	for k in 3:
+		draw_arc(o + Vector2(0, -8 - k * 9.0), 11.0 - k * 2.0, 0.2, PI - 0.2, 10, wing.darkened(0.3), 1.2)
+	draw_circle(o + Vector2(-7, -16), 3.0, Color(0.45, 0.3, 0.25))
+	draw_circle(o + Vector2(7, -16), 3.0, Color(0.45, 0.3, 0.25))
+	DU.ball(self, o + Vector2(0, -50), 9.5, Color(0.85, 0.8, 0.7))
+	for sgn in [-1.0, 1.0]:
+		var a0 := o + Vector2(sgn * 4.0, -58)
+		var a1 := a0 + Vector2(sgn * 8.0, -12 + sin(t * 2.0 + sgn) * 1.5)
+		draw_line(a0, a1, Color(0.5, 0.42, 0.32), 1.6)
+		for k in 4:
+			var q := a0.lerp(a1, (k + 1) / 5.0)
+			draw_line(q, q + Vector2(sgn * 3.5, 1.5), Color(0.5, 0.42, 0.32), 1.0)
+	draw_circle(o + Vector2(4, -51), 3.4, Color(0.1, 0.1, 0.14))
+	draw_arc(o + Vector2(4, -51), 4.2, 0.0, TAU, 12, Color(0.85, 0.7, 0.35), 1.2)
+	draw_circle(o + Vector2(5, -52), 1.0, Color(1, 1, 0.9))
+	# bras tenant l'aiguille, fil qui pend
+	var hand := o + Vector2(15, -30 + sin(t * 3.0) * 2.0)
+	draw_line(o + Vector2(9, -32), hand, Color(0.6, 0.52, 0.42), 2.4)
+	draw_line(hand, hand + Vector2(9, -9), Color(0.92, 0.94, 1.0), 1.6)
+	draw_polyline(PackedVector2Array([hand + Vector2(9, -9), hand + Vector2(12, 2), hand + Vector2(8, 12), hand + Vector2(12, 22)]), cols[0], 1.0)
+
+# Sapin de Noël du Sanctuaire (évènement), avec le cadeau à ouvrir une fois par an.
+func _draw_sapin() -> void:
+	var green := Color(0.06, 0.2, 0.11)
+	DU.box(self, Rect2(-5, -12, 10, 12), Color(0.3, 0.2, 0.13))
+	DU.glow(self, Vector2(0, -60), 80.0, Color(1.0, 0.85, 0.5), 0.07)
+	for k in 4:
+		var y := -12.0 - k * 22.0
+		var w := 40.0 - k * 8.0
+		DU.poly(self, PackedVector2Array([Vector2(-w, y), Vector2(0, y - 38), Vector2(w, y)]), green.lightened(k * 0.04))
+		DU.flat(self, PackedVector2Array([Vector2(-w, y), Vector2(-w * 0.5, y - 5), Vector2(0, y), Vector2(w * 0.5, y - 5), Vector2(w, y), Vector2(w * 0.6, y + 4), Vector2(-w * 0.6, y + 4)]), Color(0.95, 0.97, 1.0, 0.85))
+	var bc := [Color(1.0, 0.3, 0.3), Color(1.0, 0.85, 0.3), Color(0.4, 0.7, 1.0), Color(1.0, 0.5, 0.9)]
+	for i in 10:
+		var by := -20.0 - fposmod(i * 23.0, 76.0)
+		var half := 34.0 * (1.0 - (-by - 12.0) / 100.0)
+		var bx := sin(i * 2.4) * half
+		var on := fmod(t * 1.5 + i * 0.37, 1.6) < 1.1
+		if on:
+			draw_circle(Vector2(bx, by), 6.0, Color(bc[i % 4], 0.25))
+		draw_circle(Vector2(bx, by), 2.6, Color(bc[i % 4], 1.0 if on else 0.45))
+	# étoile au sommet
+	var top := Vector2(0, -118)
+	var star := PackedVector2Array()
+	for i in 10:
+		star.append(top + Vector2.from_angle(i * TAU / 10.0 - PI / 2.0) * (9.0 if i % 2 == 0 else 4.0))
+	DU.glow(self, top, 20.0, Color(1.0, 0.9, 0.5), 0.4 + 0.15 * sin(t * 3.0))
+	DU.flat(self, star, Color(1.0, 0.9, 0.5))
+	# cadeaux au pied (le rouge est celui du joueur : il disparaît une fois ouvert)
+	DU.box(self, Rect2(-40, -14, 18, 14), Color(0.25, 0.45, 0.75))
+	draw_line(Vector2(-31, -14), Vector2(-31, 0), Color(1.0, 0.9, 0.5), 2.0)
+	if lit:
+		var hop := absf(sin(t * 3.0)) * 3.0
+		DU.box(self, Rect2(22, -18 - hop, 22, 18), Color(0.8, 0.15, 0.15))
+		draw_line(Vector2(33, -18 - hop), Vector2(33, -hop), Color(1.0, 0.9, 0.5), 2.5)
+		draw_line(Vector2(22, -9 - hop), Vector2(44, -9 - hop), Color(1.0, 0.9, 0.5), 2.5)
+		draw_arc(Vector2(29, -21 - hop), 4.0, 0.0, TAU, 10, Color(1.0, 0.9, 0.5), 2.0)
+		draw_arc(Vector2(37, -21 - hop), 4.0, 0.0, TAU, 10, Color(1.0, 0.9, 0.5), 2.0)
+
+# Guirlande lumineuse tendue sous le plafond du Sanctuaire (évènement). charm_id = longueur en pixels.
+func _draw_garland() -> void:
+	var w := float(charm_id)
+	var seg := 96.0
+	var bc: Array = GameState.CosmeticsScript.EVENTS.get(event, GameState.CosmeticsScript.EVENTS["noel"])["lights"]
+	var n := int(w / seg)
+	var idx := 0
+	for i in n:
+		var a := Vector2(i * seg, 0)
+		var pts := PackedVector2Array()
+		for k in 9:
+			var u := k / 8.0
+			pts.append(a + Vector2(u * seg, sin(u * PI) * 16.0))
+		draw_polyline(pts, Color(0.12, 0.3, 0.16) if event == "noel" else Color(0.2, 0.16, 0.14), 2.0)
+		for k in range(1, 8):
+			var on := fmod(t * 1.2 + idx * 0.29, 1.5) < 1.0
+			var c: Color = bc[idx % bc.size()]
+			if on:
+				draw_circle(pts[k] + Vector2(0, 4), 6.5, Color(c, 0.22))
+			draw_circle(pts[k] + Vector2(0, 4), 2.6, Color(c, 1.0 if on else 0.4))
+			idx += 1
+
+# Paquet cadeau commun aux fêtes (présent tant qu'il n'a pas été ouvert cette année).
+func _gift_box(col: Color, ribbon: Color) -> void:
+	if not lit:
+		return
+	var hop := absf(sin(t * 3.0)) * 3.0
+	DU.box(self, Rect2(22, -18 - hop, 22, 18), col)
+	draw_line(Vector2(33, -18 - hop), Vector2(33, -hop), ribbon, 2.5)
+	draw_line(Vector2(22, -9 - hop), Vector2(44, -9 - hop), ribbon, 2.5)
+	draw_arc(Vector2(29, -21 - hop), 4.0, 0.0, TAU, 10, ribbon, 2.0)
+	draw_arc(Vector2(37, -21 - hop), 4.0, 0.0, TAU, 10, ribbon, 2.0)
+
+# La Veillée des Ombres : citrouilles creusées, bougies et toile d'araignée.
+func _draw_citrouilles() -> void:
+	var fl := 0.7 + 0.3 * sin(t * 6.0)
+	DU.glow(self, Vector2(-6, -18), 60.0, Color(1.0, 0.55, 0.15), 0.07 * fl)
+	for d in [[-26.0, 15.0, 0.0], [2.0, 22.0, 1.0], [-10.0, 11.0, 2.0]]:
+		var c := Vector2(d[0], -d[1] * 0.8 - (26.0 if d[2] == 2.0 else 0.0))
+		var r: float = d[1]
+		var o := Color(0.42, 0.19, 0.04)
+		DU.poly(self, DU.ellipse(c, Vector2(r, r * 0.8), 16), o)
+		for k in [-0.45, 0.0, 0.45]:
+			draw_arc(c + Vector2(k * r, 0), r * 0.8, PI * 0.3, PI * 0.7, 6, o.darkened(0.3), 1.0)
+		draw_line(c + Vector2(0, -r * 0.8), c + Vector2(-3, -r * 0.8 - 6), Color(0.25, 0.4, 0.15), 3.0)
+		var g := Color(1.0, 0.85, 0.3, fl)
+		DU.flat(self, PackedVector2Array([c + Vector2(-r * 0.5, -r * 0.2), c + Vector2(-r * 0.15, -r * 0.2), c + Vector2(-r * 0.32, -r * 0.5)]), g)
+		DU.flat(self, PackedVector2Array([c + Vector2(r * 0.5, -r * 0.2), c + Vector2(r * 0.15, -r * 0.2), c + Vector2(r * 0.32, -r * 0.5)]), g)
+		draw_polyline(PackedVector2Array([c + Vector2(-r * 0.5, r * 0.15), c + Vector2(-r * 0.2, r * 0.35), c + Vector2(0, r * 0.2), c + Vector2(r * 0.2, r * 0.35), c + Vector2(r * 0.5, r * 0.15)]), g, 2.0)
+	# toile d'araignée et sa locataire
+	var w0 := Vector2(-58, -92)
+	for k in 5:
+		draw_line(w0, w0 + Vector2.from_angle(0.1 + k * 0.33) * 46.0, Color(0.85, 0.85, 0.9, 0.45), 1.0)
+	for rr in [16.0, 30.0, 44.0]:
+		draw_arc(w0, rr, 0.1, 1.42, 8, Color(0.85, 0.85, 0.9, 0.4), 1.0)
+	var sp := w0 + Vector2(22, 26 + sin(t * 1.3) * 6.0)
+	draw_line(w0 + Vector2(22, 10), sp, Color(0.85, 0.85, 0.9, 0.5), 1.0)
+	draw_circle(sp, 3.5, Color(0.1, 0.08, 0.12))
+	_gift_box(Color(0.35, 0.18, 0.5), Color(1.0, 0.6, 0.15))
+
+# La Saint-Valentin : arche de roses et lanternes en forme de cœur.
+func _draw_roses() -> void:
+	var stem := Color(0.2, 0.4, 0.22)
+	draw_arc(Vector2(0, -6), 44.0, PI, TAU, 24, stem, 4.0)
+	draw_line(Vector2(-44, -6), Vector2(-44, 0), stem, 4.0)
+	draw_line(Vector2(44, -6), Vector2(44, 0), stem, 4.0)
+	for i in 11:
+		var a := PI + i * PI / 10.0
+		var p := Vector2(0, -6) + Vector2.from_angle(a) * 44.0
+		var col := Color(0.85, 0.2, 0.35) if i % 2 == 0 else Color(0.95, 0.6, 0.72)
+		draw_circle(p, 6.0, col)
+		draw_arc(p, 3.0, 0.5, 4.5, 8, col.darkened(0.3), 1.2)
+		draw_circle(p + Vector2(5, 4), 2.6, stem.lightened(0.15))
+	# cœur lumineux suspendu
+	var hc := Vector2(0, -34 + sin(t * 1.8) * 2.0)
+	var pulse := 1.0 + 0.08 * sin(t * 5.0)
+	draw_line(Vector2(0, -50), hc + Vector2(0, -8), Color(0.3, 0.25, 0.25), 1.2)
+	DU.glow(self, hc, 30.0, Color(1.0, 0.4, 0.55), 0.3)
+	draw_circle(hc + Vector2(-5, -2) * pulse, 6.0 * pulse, Color(0.95, 0.3, 0.45))
+	draw_circle(hc + Vector2(5, -2) * pulse, 6.0 * pulse, Color(0.95, 0.3, 0.45))
+	DU.flat(self, PackedVector2Array([hc + Vector2(-10.5, 1) * pulse, hc + Vector2(10.5, 1) * pulse, hc + Vector2(0, 13) * pulse]), Color(0.95, 0.3, 0.45))
+	_gift_box(Color(0.9, 0.5, 0.65), Color(1.0, 0.95, 0.95))
+
+# Pâques : grand nid d'œufs peints et lapin de garde.
+func _draw_nid() -> void:
+	var straw := Color(0.6, 0.45, 0.2)
+	DU.poly(self, PackedVector2Array([Vector2(-34, 0), Vector2(-40, -12), Vector2(-20, -8), Vector2(0, -10), Vector2(18, -8), Vector2(14, 0)]), straw)
+	for k in 9:
+		draw_line(Vector2(-38 + k * 6.0, -11 + (k % 2) * 3.0), Vector2(-34 + k * 6.0, -1), straw.lightened(0.25), 1.2)
+	var eggs := [[Vector2(-26, -16), Color(0.7, 0.9, 1.0)], [Vector2(-12, -19), Color(1.0, 0.75, 0.85)], [Vector2(2, -16), Color(1.0, 0.9, 0.5)], [Vector2(-19, -27), Color(0.75, 1.0, 0.75)]]
+	for e in eggs:
+		DU.poly(self, DU.ellipse(e[0], Vector2(7, 9), 14), e[1])
+		draw_arc(e[0], 6.0, 0.3, PI - 0.3, 8, Color(1, 1, 1, 0.8), 1.4)
+		draw_circle(e[0] + Vector2(0, -4), 1.2, Color(e[1]).darkened(0.35))
+	# lapin
+	var o := Vector2(-52, sin(t * 2.0) * 0.8)
+	var fur := Color(0.88, 0.86, 0.82)
+	DU.ball(self, o + Vector2(0, -12), 12.0, fur)
+	DU.ball(self, o + Vector2(3, -28), 8.5, fur)
+	for sgn in [-1.0, 1.0]:
+		var b := o + Vector2(3 + sgn * 3.5, -34)
+		var tip := b + Vector2(sgn * 2.0, -17 + (2.0 * sin(t * 3.0) if sgn > 0 else 0.0))
+		draw_line(b, tip, fur, 4.5)
+		draw_line(b + Vector2(0, -3), tip + Vector2(0, 3), Color(0.95, 0.65, 0.72), 1.8)
+	draw_circle(o + Vector2(7, -29), 1.4, Color(0.1, 0.08, 0.1))
+	draw_circle(o + Vector2(11, -26), 1.2, Color(0.95, 0.6, 0.7))
+	draw_circle(o + Vector2(-11, -8), 4.5, Color(1, 1, 1))
+	_gift_box(Color(0.6, 0.85, 0.65), Color(1.0, 0.9, 0.5))
