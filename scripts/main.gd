@@ -94,6 +94,8 @@ var scriptorium
 const ScriptoriumScript = preload("res://scripts/scriptorium.gd")
 var map_view
 var challenge_start = null
+var challenge_key := ""   # clés « déjà fait » des salles spéciales (refaire un palier ne les rejoue pas)
+var altar_key := ""
 var challenge_goal = null
 var challenge_t := 0.0
 var challenge_done := false
@@ -351,12 +353,15 @@ func _spawn_everything() -> void:
 						cp.charm_id = id
 						pickups.append([cp, "charm", id])
 				"*":
-					var cid := _random_charm(x)
+					# emblème au hasard : une seule fois par emplacement (refaire le palier ne le fait pas
+					# réapparaître sous la forme d'un autre emblème)
+					var skey := "%d-%d-%d*%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, x, y]
+					var cid := -1 if GameState.mode == "descent" and GameState.is_collected(skey) else _random_charm(x)
 					if cid >= 0:
 						var rp = _make_prop("charm", Vector2(x * TILE + TILE / 2.0, y * TILE + TILE / 2.0), GameState.charm(cid)["color"], 1.6)
 						rp.color = GameState.charm(cid)["color"]
 						rp.charm_id = cid
-						pickups.append([rp, "charm", cid])
+						pickups.append([rp, "charm", cid, skey])
 				"N":
 					var key := "%d-%d-%d:%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, x, y]
 					if not GameState.is_collected(key):
@@ -385,6 +390,10 @@ func _spawn_everything() -> void:
 						pickups.append([cp2, "geo", gkey])
 				"S":
 					challenge_start = _make_prop("challenge", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.75, 0.35), 2.0)
+					challenge_key = "%d-%d-%d~%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, x, y]
+					if GameState.mode == "descent" and GameState.is_collected(challenge_key):
+						challenge_done = true     # défi déjà réussi lors d'un passage précédent
+						challenge_start.lit = true
 				"G":
 					challenge_goal = _make_prop("flag", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.75, 0.35), 2.0)
 				"F", "J", "I":
@@ -413,7 +422,11 @@ func _spawn_everything() -> void:
 						gl.z_index = -1
 				"R":
 					var rp2 = _make_prop("altar", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.4, 0.35), 2.2)
-					interactables.append([rp2, "altar"])
+					altar_key = "%d-%d-%d!%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, x, y]
+					if GameState.mode == "descent" and GameState.is_collected(altar_key):
+						altar_state = "done"      # autel déjà vaincu lors d'un passage précédent
+					else:
+						interactables.append([rp2, "altar"])
 				"Z":
 					# totem à fléchettes : tire vers le côté le plus dégagé
 					var dl := 0
@@ -627,6 +640,7 @@ func _update_rooms(delta: float) -> void:
 				challenge_t = 0.0
 				challenge_done = true
 				challenge_goal.lit = true
+				_mark_collected(challenge_key)
 				var reward := roundi((40 + 15 * GameState.palier) * GameState.geo_mult())
 				player.geo += reward
 				GameState.j_add("geo_in", reward)
@@ -643,6 +657,7 @@ func _update_rooms(delta: float) -> void:
 		altar_foes = altar_foes.filter(func(e): return is_instance_valid(e) and not e.dead)
 		if altar_foes.is_empty():
 			altar_state = "done"
+			_mark_collected(altar_key)
 			var reward2 := roundi((50 + 15 * GameState.palier) * GameState.geo_mult())
 			player.geo += reward2
 			GameState.j_add("geo_in", reward2)
@@ -651,10 +666,14 @@ func _update_rooms(delta: float) -> void:
 				var rp = _make_prop("charm", pp + Vector2(0, -60), GameState.charm(cid)["color"], 1.6)
 				rp.color = GameState.charm(cid)["color"]
 				rp.charm_id = cid
-				pickups.append([rp, "charm", cid])
+				pickups.append([rp, "charm", cid, altar_key])
 			Audio.sfx("pickup", 0.0, 3.0)
 			show_message(tr("Arène vaincue ! +%d éclats") % reward2, 3.0)
 			Achievements.unlock("room")
+
+func _mark_collected(key: String) -> void:
+	if key != "" and GameState.mode == "descent" and not GameState.is_collected(key):
+		GameState.prog["collected"].append(key)
 
 func _start_altar(prop) -> void:
 	if altar_state != "":
@@ -943,6 +962,8 @@ func _process(delta: float) -> void:
 				Achievements.unlock("room")
 			elif pk[1] == "charm":
 				GameState.add_charm(pk[2])
+				if pk.size() > 3:
+					_mark_collected(String(pk[3]))
 				GameState.j_charm_found(int(pk[2]), String(level.get("name", "")))
 				Audio.sfx("pickup", 0.0)
 				show_message(tr("Emblème obtenu : %s\nÉquipe-le depuis l'inventaire ({inventory|1}) en te reposant sur un banc.") % tr(GameState.charm(pk[2])["name"]), 4.5)
