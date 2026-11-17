@@ -29,10 +29,13 @@ func _run() -> void:
 		e.main = main
 		e.position = Vector2(sp.get_center().x, sp.position.y - 30)
 		main.add_child(e)
-		var hp0 := -1
-		await _f(2)
-		hp0 = e.hp
-		await _f(60)
+		await _f(30)
+		var hp_idle: int = e.hp
+		print("guard idle on spikes hp ", hp_idle, " (expected 4: les ennemis connaissent les pics)")
+		if hp_idle < 4: ok = false
+		var hp0: int = e.hp
+		e.hit_ms = Time.get_ticks_msec()   # le héros vient de le frapper
+		await _f(30)
 		var hp1: int = e.hp if is_instance_valid(e) else -99
 		print("guard on spikes hp ", hp0, " -> ", hp1, " dead=", (not is_instance_valid(e)) or e.dead)
 		if is_instance_valid(e) and not e.dead and hp1 >= hp0: ok = false

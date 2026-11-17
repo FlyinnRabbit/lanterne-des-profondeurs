@@ -1059,8 +1059,10 @@ func _enemy_spikes(delta: float) -> void:
 		var r: Rect2 = e.get_rect().grow(-3)
 		for sp in spikes:
 			if r.intersects(sp):
+				if not e.trap_vulnerable():
+					break
 				_spike_cd[e] = 0.5
-				e.take_hit(2, Vector2(0, -1))
+				e.hurt_by_trap(2, Vector2(0, -1))
 				spawn_burst(Vector2(e.global_position.x, sp.position.y), Color(0.85, 0.85, 0.9), 6, 120.0)
 				break
 

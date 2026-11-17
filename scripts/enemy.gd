@@ -99,9 +99,25 @@ func parried(dir: Vector2) -> void:
 	flash_t = 0.1
 	knock = Vector2(signf(dir.x) if dir.x != 0.0 else 1.0, -0.3) * 420.0
 
+# Pièges et pics : les ennemis du coin les connaissent et y passent sans dommage… sauf quand
+# le héros vient de les frapper ou de les projeter (étourdis, repoussés) : c'est à lui de les y attirer.
+var trap_hit := false
+var hit_ms := -100000
+func trap_vulnerable() -> bool:
+	return Time.get_ticks_msec() - hit_ms < 2500 or knock.length() > 10.0 or stun_t > 0.0
+
+func hurt_by_trap(dmg: int, dir: Vector2) -> void:
+	if dead or is_boss or not trap_vulnerable():
+		return
+	trap_hit = true
+	take_hit(dmg, dir)
+	trap_hit = false
+
 func take_hit(dmg: int, dir: Vector2) -> void:
 	if dead:
 		return
+	if not trap_hit:
+		hit_ms = Time.get_ticks_msec()
 	hp -= dmg
 	main.on_damage_dealt(self, dmg)
 	flash_t = 0.12

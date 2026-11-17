@@ -83,6 +83,7 @@ func _run() -> void:
 	main.add_child(e)
 	await _f(10)
 	e.lunge_cd = 99.0
+	e.hit_ms = Time.get_ticks_msec()   # frappé par le héros juste avant : vulnérable aux pièges
 	var hp0: int = e.hp
 	var sp = main._make_trap("spikes", Vector2(e.global_position.x, feet), {})
 	sp.t = sp.CYCLE["spikes"][0] + sp.CYCLE["spikes"][1] - 0.02

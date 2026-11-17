@@ -14,7 +14,6 @@ const DU = preload("res://scripts/draw_util.gd")
 #  steam      (o) : bouche qui crache un jet de vapeur horizontal à hauteur de tête — Citadelle
 #  drip       (d) : goutte acide qui grossit au plafond puis tombe — Profondeurs
 # Les pièges au sol à cycle blessent aussi les ennemis : attire-les dedans !
-# Le totem pivote pour suivre le héros (il se retourne, puis reprend son rythme de tir).
 const Ch = preload("res://scripts/charms.gd")
 var main
 var kind := "dart"
@@ -85,20 +84,6 @@ func _physics_process(delta: float) -> void:
 	_check_pass()
 	match kind:
 		"dart":
-			# tourelle : se retourne vers le héros quand il passe de l'autre côté
-			var pp2: Vector2 = main.player.global_position
-			var want := dir
-			if absf(pp2.x - global_position.x) < 700.0 and absf(pp2.y - global_position.y) < 240.0 and absf(pp2.x - global_position.x) > 8.0:
-				want = signf(pp2.x - global_position.x)
-			if want != dir:
-				turn_t += delta
-				if turn_t >= 0.35:
-					dir = want
-					turn_t = 0.0
-					t = minf(fmod(t, period), period - 0.7)   # laisse le temps de voir la gueule rougeoyer
-				queue_redraw()
-				return
-			turn_t = 0.0
 			if fmod(t, period) < fmod(t - delta, period):
 				var on_screen: bool = absf(main.player.global_position.x - global_position.x) < 700.0
 				# aucun tir pendant un combat de boss
@@ -156,8 +141,9 @@ func _physics_process(delta: float) -> void:
 							pl.grab(1.1)
 						for e in get_tree().get_nodes_in_group("enemies"):
 							if is_instance_valid(e) and not e.dead and not e.is_boss and absf(e.global_position.x - global_position.x) < 22.0 and absf(e.global_position.y - global_position.y) < 40.0:
-								e.stun_t = maxf(e.stun_t, 1.2)
-								e.take_hit(1, Vector2.UP)
+								if e.trap_vulnerable():
+									e.stun_t = maxf(e.stun_t, 1.2)
+									e.hurt_by_trap(1, Vector2.UP)
 				"grab":
 					if hand_t <= 0.0:
 						hand_state = "rest"
@@ -216,13 +202,13 @@ func _hits(r: Rect2, pos: Vector2) -> bool:
 # les pièges blessent aussi les ennemis (pas les boss) : un coup par activation
 func _hurt_foes() -> void:
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if not is_instance_valid(e) or e.dead or e.is_boss or foe_cd.has(e):
+		if not is_instance_valid(e) or e.dead or e.is_boss or foe_cd.has(e) or not e.trap_vulnerable():
 			continue
 		if absf(e.global_position.x - global_position.x) > 200.0:
 			continue
 		if _hits(e.get_rect(), e.global_position):
 			foe_cd[e] = true
-			e.take_hit(2, Vector2(signf(e.global_position.x - global_position.x), -0.3))
+			e.hurt_by_trap(2, Vector2(signf(e.global_position.x - global_position.x), -0.3))
 
 func _danger_rect() -> Rect2:
 	match kind:

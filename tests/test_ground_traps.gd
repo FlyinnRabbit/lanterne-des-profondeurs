@@ -47,6 +47,6 @@ func _run() -> void:
 	var tr = main._make_trap("dart", pl.global_position + Vector2(100, 20), {"dir": 1.0})
 	await _f(60)
 	print("totem dir after 1s with player on its left: ", tr.dir)
-	if tr.dir != -1.0: ok = false
+	if tr.dir != 1.0: ok = false   # le totem ne pivote plus
 	print("RESULT ", "OK" if ok else "FAIL")
 	quit()
