@@ -324,7 +324,7 @@ platform, blade corridors.
 | Weapon | Price | Style | Level 2 (smith) |
 |---|---|---|---|
 | Watcher's Needle | — | balanced | the finisher throws a short air blade |
-| Twin Claws | 180 | one claw on each hand: every attack strikes twice (0.5 damage per claw, 0.875 per claw on a power hit), very fast, short reach, half the soul per claw | bleeding: each claw strike has a 20% chance (50% with the Blood Fang) to make the enemy lose 1 more health a second later |
+| Twin Claws | 180 | one claw on each hand: every attack strikes twice (0.6 damage per claw, 1 per claw on a power hit), very fast, short reach, half the soul per claw | bleeding: each claw strike has a 20% chance (50% with the Blood Fang) to make the enemy lose 1 more health a second later |
 | Bramble Whip | 150 | very long reach ahead and upwards, a little slower | pulls small enemies towards you |
 | Anvil Hammer | 220 | slow, +1 damage, big knockback, stuns | the finisher sends a shockwave both ways |
 | Moon Stars (shurikens) | 260 | ranged; finisher = 3 stars, whirlwind = 8 in a circle, thrust = a large piercing star | they return like a boomerang and hit again |

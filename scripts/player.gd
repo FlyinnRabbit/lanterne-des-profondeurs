@@ -740,10 +740,10 @@ func _do_attack_hits() -> void:
 			if e.get_script() != main.DummyScript:
 				GameState.j_weapon_hit()
 			if split:
-				# coup puissant des griffes : 0,875 par griffe (1,75 au total) ;
+				# coup puissant des griffes : 1 par griffe (2 au total), coup normal 0,6 par griffe ;
 				# la deuxième griffe ne repousse presque pas : sinon l'ennemi, repoussé 8 fois par
 				# seconde, ne pouvait plus jamais attaquer (blocage permanent)
-				var per: float = 0.4375 if attack_kind in ["finisher", "thrust", "air_spin", "spin", "plunge"] else 0.5
+				var per: float = 0.5 if attack_kind in ["finisher", "thrust", "air_spin", "spin", "plunge"] else 0.6
 				_claw_hit(e, hit_damage() * per, kv * (0.25 if second else 1.0))
 			else:
 				e.take_hit(hit_damage(), kv)
