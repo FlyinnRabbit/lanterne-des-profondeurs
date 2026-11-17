@@ -649,6 +649,7 @@ void fragment() {
 		match int(Settings.title_scene):
 			1: _village_troglo(tt)
 			2: _village_hameau(tt)
+			3: _iso_sanctuary(tt)
 		# rayons qui descendent
 		for i in 9:
 			var ang := PI / 2.0 + (i - 4) * 0.2 + sin(tt * 0.5 + i) * 0.03
@@ -718,6 +719,107 @@ void fragment() {
 			var f := 0.7 + 0.3 * sin(tt * 2.5 + i + k)
 			DU.glow(self, p, 7.0, Color(1.0, 0.75, 0.4), 0.45 * f)
 			draw_circle(p, 1.8, Color(1.0, 0.85, 0.5))
+
+	# ---- modèle 3 : le Sanctuaire en vue isométrique, simplifié en volumes (sans rien dévoiler) :
+	# un îlot de roche suspendu dans le noir, quelques bâtisses, une tour d'où pend une corde
+	var _io := Vector2.ZERO
+	var _is := 26.0
+	func iso(x: float, y: float, z := 0.0) -> Vector2:
+		return _io + Vector2((x - y) * 0.866, (x + y) * 0.5 - z) * _is
+	func _face(pts: Array, col: Color, k: float) -> void:
+		var pp := PackedVector2Array(pts)
+		var cc := Vector2.ZERO
+		for q in pp:
+			cc += q
+		draw_colored_polygon(pp, shade(col.darkened(k), cc / pp.size()))
+	func prism(x: float, y: float, wx: float, wy: float, z0: float, hgt: float, col: Color, roof := 0.0) -> void:
+		var z1 := z0 + hgt
+		# faces visibles : avant gauche (y = y + wy), avant droite (x = x + wx), dessus
+		_face([iso(x, y + wy, z0), iso(x + wx, y + wy, z0), iso(x + wx, y + wy, z1), iso(x, y + wy, z1)], col, 0.35)
+		_face([iso(x + wx, y, z0), iso(x + wx, y + wy, z0), iso(x + wx, y + wy, z1), iso(x + wx, y, z1)], col, 0.15)
+		if roof <= 0.0:
+			_face([iso(x, y, z1), iso(x + wx, y, z1), iso(x + wx, y + wy, z1), iso(x, y + wy, z1)], col, -0.1)
+		else:
+			# toit à deux pans, faîte parallèle à x
+			var my := y + wy / 2.0
+			var rc := Color(0.3, 0.2, 0.2)
+			_face([iso(x, y + wy, z1), iso(x + wx, y + wy, z1), iso(x + wx, my, z1 + roof), iso(x, my, z1 + roof)], rc, 0.05)
+			_face([iso(x + wx, y, z1), iso(x + wx, y + wy, z1), iso(x + wx, my, z1 + roof)], col, 0.25)
+			_face([iso(x, y, z1), iso(x + wx, y, z1), iso(x + wx, my, z1 + roof), iso(x, my, z1 + roof)], rc, -0.1)
+	func iso_window(p: Vector2, tt: float, k: int) -> void:
+		var fl := 0.8 + 0.2 * sin(tt * (2.5 + k % 3) + k * 1.3)
+		DU.glow(self, p, _is * 0.9, Color(1.0, 0.7, 0.35), 0.4 * fl)
+		draw_colored_polygon(PackedVector2Array([p + Vector2(-0.18, -0.3) * _is, p + Vector2(0.18, -0.2) * _is, p + Vector2(0.18, 0.2) * _is, p + Vector2(-0.18, 0.1) * _is]), Color(1.0, 0.8, 0.45))
+
+	func _iso_sanctuary(tt: float) -> void:
+		var w := size.x
+		var h := size.y
+		_is = h / 720.0 * 23.0
+		var bob := sin(tt * 0.6) * 3.0 * (h / 720.0)
+		_io = Vector2(w * 0.68, h * 0.53 + bob)
+		var rock := Color(0.3, 0.25, 0.22)
+		# l'îlot : dalle épaisse, puis roche qui s'effile vers le bas
+		var X := 11.0
+		var Y := 8.0
+		var cx := X / 2.0
+		var cy := Y / 2.0
+		_face([iso(0, Y, 0), iso(X, Y, 0), iso(X, Y, -1.4), iso(0, Y, -1.4)], rock, 0.35)
+		_face([iso(X, 0, 0), iso(X, Y, 0), iso(X, Y, -1.4), iso(X, 0, -1.4)], rock, 0.15)
+		_face([iso(0, Y, -1.4), iso(X, Y, -1.4), iso(cx + 1, cy + 1, -9.0)], rock, 0.5)
+		_face([iso(X, 0, -1.4), iso(X, Y, -1.4), iso(cx + 1, cy + 1, -9.0)], rock, 0.3)
+		for k in 5:
+			var a := iso(1.0 + k * 2.2, Y, -1.4)
+			draw_line(a, a.lerp(iso(cx + 1, cy + 1, -9.0), 0.6 + 0.08 * k), shade(rock.darkened(0.55), a), 1.5)
+		_face([iso(0, 0, 0), iso(X, 0, 0), iso(X, Y, 0), iso(0, Y, 0)], Color(0.36, 0.3, 0.25), -0.05)
+		# dallage : quelques lignes
+		for i in range(1, int(X)):
+			draw_line(iso(i, 0, 0), iso(i, Y, 0), shade(Color(0.25, 0.2, 0.17), iso(i, cy, 0)), 1.0)
+		# bâtisses (de l'arrière vers l'avant pour l'ordre de dessin)
+		var wood := Color(0.42, 0.3, 0.2)
+		var stone := Color(0.4, 0.36, 0.33)
+		prism(1.0, 0.6, 2.4, 1.8, 0.0, 1.6, stone, 1.0)
+		iso_window(iso(3.4, 1.4, 0.9), tt, 1)
+		# la tour, ossature ouverte, d'où une corde monte dans le noir
+		var tx := 7.6
+		var ty := 0.8
+		for c in [[0.0, 0.0], [1.4, 0.0], [1.4, 1.4], [0.0, 1.4]]:
+			draw_line(iso(tx + c[0], ty + c[1], 0), iso(tx + c[0], ty + c[1], 5.5), shade(wood.darkened(0.2), iso(tx, ty, 3)), 2.5)
+		for zz in [1.8, 3.6, 5.5]:
+			draw_polyline(PackedVector2Array([iso(tx, ty + 1.4, zz), iso(tx + 1.4, ty + 1.4, zz), iso(tx + 1.4, ty, zz)]), shade(wood, iso(tx, ty, zz)), 2.0)
+		var top := iso(tx + 0.7, ty + 0.7, 5.5)
+		draw_line(top, Vector2(top.x, 0), Color(0.35, 0.3, 0.25, 0.6), 1.2)
+		var cage_z := 1.2 + (sin(tt * 0.35) * 0.5 + 0.5) * 2.8
+		prism(tx + 0.3, ty + 0.3, 0.8, 0.8, cage_z, 0.9, Color(0.5, 0.4, 0.25))
+		# auvent et étals
+		prism(4.3, 0.8, 1.8, 1.2, 0.0, 0.8, wood)
+		_face([iso(4.1, 2.2, 1.5), iso(6.3, 2.2, 1.5), iso(6.3, 0.8, 1.9), iso(4.1, 0.8, 1.9)], Color(0.38, 0.3, 0.3), 0.0)
+		iso_window(iso(5.2, 2.0, 0.5), tt, 2)
+		prism(1.2, 4.2, 2.6, 2.2, 0.0, 1.9, stone, 1.2)
+		iso_window(iso(2.4, 6.4, 1.1), tt, 3)
+		iso_window(iso(3.8, 5.3, 1.1), tt, 4)
+		prism(5.0, 4.6, 1.4, 1.4, 0.0, 1.0, wood, 0.7)
+		iso_window(iso(6.4, 5.3, 0.6), tt, 5)
+		# arche de pierre et banc à l'avant
+		prism(8.2, 5.2, 0.4, 0.4, 0.0, 2.0, stone)
+		prism(9.8, 5.2, 0.4, 0.4, 0.0, 2.0, stone)
+		prism(8.2, 5.2, 2.0, 0.4, 2.0, 0.4, stone)
+		prism(7.4, 7.0, 1.6, 0.4, 0.0, 0.35, wood)
+		# petites lanternes sur poteaux, et silhouette d'un voyageur minuscule
+		for L in [[0.4, 7.4], [10.4, 3.0], [4.0, 7.4], [10.4, 7.4]]:
+			var b2 := iso(L[0], L[1], 0)
+			var t2 := iso(L[0], L[1], 1.3)
+			draw_line(b2, t2, shade(Color(0.2, 0.17, 0.15), b2), 1.5)
+			var f := 0.75 + 0.25 * sin(tt * 3.0 + L[0])
+			DU.glow(self, t2, _is * 0.8, Color(1.0, 0.72, 0.4), 0.45 * f)
+			draw_circle(t2, _is * 0.12, Color(1.0, 0.85, 0.55))
+		var hp := iso(6.8, 6.6, 0)
+		draw_colored_polygon(PackedVector2Array([hp + Vector2(-3, 0), hp + Vector2(3, 0), hp + Vector2(2, -9), hp + Vector2(-2, -9)]), Color(0.08, 0.07, 0.1))
+		draw_circle(hp + Vector2(0, -12), 3.2, Color(0.08, 0.07, 0.1))
+		# poussière lumineuse qui tombe de l'îlot dans le vide
+		for i in 14:
+			var u := fposmod(tt * 0.08 + i * 0.137, 1.0)
+			var p := iso(1.0 + fposmod(i * 3.7, 9.0), Y, -1.4 - u * 9.0)
+			draw_circle(p, 1.4, Color(1.0, 0.75, 0.4, 0.5 * (1.0 - u) * maxf(lit(p), 0.2)))
 
 	# ---- modèle 1 : village troglodyte creusé dans la paroi, fenêtres allumées, guirlandes
 	func _village_troglo(tt: float) -> void:
