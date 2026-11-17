@@ -493,11 +493,11 @@ func _draw_bosses(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> v
 	var x := 900.0
 	var w := 270.0
 	c.draw_circle(Vector2(1035, 205), 100, Color(0.64, 0.33, 0.16, 0.08))
-	_wrap_draw(c, tr(BOSS_NAMES[bid]) if ok2 else "???", Vector2(x, 352), w, 20, red, true)
+	var ny := _wrap_draw(c, tr(BOSS_NAMES[bid]) if ok2 else "???", Vector2(x, 352), w, 20, red, true)
 	if not ok2:
-		_wrap_draw(c, tr("Personne n'en est revenu pour le décrire… pour l'instant."), Vector2(x, 392), w, 14, soft)
+		_wrap_draw(c, tr("Personne n'en est revenu pour le décrire… pour l'instant."), Vector2(x, ny + 6), w, 14, soft)
 		return
-	var y := _wrap_draw(c, tr(BOSS_DESC[bid]), Vector2(x, 386), w, 13, ink)
+	var y := _wrap_draw(c, tr(BOSS_DESC[bid]), Vector2(x, ny + 4), w, 13, ink)
 	var d2 := _boss_data(bid)
 	var rows := [["Victoires", fmt_n(maxi(int(d2.get("w", 0)), 1))], ["Meilleur temps", fmt_time(float(d2["best"])) if float(d2.get("best", 0.0)) > 0.0 else "—"],
 		["Combats perdus", fmt_n(d2.get("l", 0))], ["Victoire sans coup reçu", tr("oui") if bool(d2.get("nohit", false)) else tr("pas encore")]]
@@ -546,14 +546,16 @@ func _draw_charms(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> v
 	elif int(info.get("p", -1)) == 0:
 		lines.append(tr("Acheté au Sanctuaire"))
 	var tot := float(_c("time", 0.0))
-	if tot > 60.0:
-		lines.append(tr("Équipé pendant %d %% de ton temps de jeu") % roundi(100.0 * float(info.get("t", 0.0)) / tot))
+	var pct := 100.0 * float(info.get("t", 0.0)) / maxf(tot, 1.0)
+	if tot > 60.0 and pct >= 0.5:
+		lines.append(tr("Équipé pendant %d %% de ton temps de jeu") % roundi(pct))
 	if GameState.has_charm(id):
 		lines.append(tr("Équipé en ce moment"))
 	if not lines.is_empty():
 		c.draw_rect(Rect2(x, y + 6, w, 1), Color(0.4, 0.3, 0.2, 0.35))
+		var ly := y + 26.0
 		for i in lines.size():
-			_wrap_draw(c, lines[i], Vector2(x, y + 26 + i * 20), w, 12, soft)
+			ly = _wrap_draw(c, lines[i], Vector2(x, ly), w, 12, soft) + 4.0
 
 # ---------------------------------------------------------------- texte
 func _wrap(text: String, width: float, fsize: int) -> Array:
