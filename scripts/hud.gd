@@ -67,30 +67,64 @@ func _draw() -> void:
 	var frac := shown_soul / float(p.SOUL_MAX)
 	if frac > 0.01:
 		var top := c.y + r - 2.0 * r * frac
-		var pts := PackedVector2Array()
+		# Liquide dessiné en fines tranches verticales (des quadrilatères convexes) : un seul polygone
+		# ondulé se recoupait parfois sur les bords du flacon, ne se triangulait plus et disparaissait
+		# une image sur deux (le flacon « clignotait »).
 		var n := 28
+		var tops := PackedVector2Array()
+		var bots := PackedVector2Array()
 		for i in n + 1:
 			var x := c.x - r + 2.0 * r * i / n
 			var dx := x - c.x
 			var half := sqrt(maxf(r * r - dx * dx, 0.0))
 			var wy := top + sin(t * 3.0 + i * 0.6) * 1.8 + sin(t * 1.7 - i * 0.3) * 1.2 if frac < 0.99 else c.y - half
-			pts.append(Vector2(x, clampf(wy, c.y - half, c.y + half)))
-		for i in range(n, -1, -1):
-			var x := c.x - r + 2.0 * r * i / n
-			var dx := x - c.x
-			pts.append(Vector2(x, c.y + sqrt(maxf(r * r - dx * dx, 0.0))))
-		var cols := PackedColorArray()
-		for q in pts:
-			var k := clampf((q.y - (c.y - r)) / (2.0 * r), 0.0, 1.0)
-			cols.append(Color(0.95, 0.97, 1.0).lerp(Color(0.45, 0.6, 0.95), k))
-		if not Geometry2D.triangulate_polygon(pts).is_empty():
-			draw_polygon(pts, cols)
+			tops.append(Vector2(x, clampf(wy, c.y - half, c.y + half)))
+			bots.append(Vector2(x, c.y + half))
+		var c_top := Color(0.95, 0.97, 1.0)
+		var c_bot := Color(0.45, 0.6, 0.95)
+		for i in n:
+			# sur les bords, un côté de la tranche peut être nul : on en fait un triangle
+			var q := PackedVector2Array([tops[i]])
+			for v in [tops[i + 1], bots[i + 1], bots[i]]:
+				if v.distance_to(q[q.size() - 1]) > 0.05 and v.distance_to(q[0]) > 0.05:
+					q.append(v)
+			if q.size() < 3:
+				continue
+			var cols := PackedColorArray()
+			for v in q:
+				cols.append(c_top.lerp(c_bot, clampf((v.y - (c.y - r)) / (2.0 * r), 0.0, 1.0)))
+			draw_polygon(q, cols)
 		# bulles qui montent dans le liquide
 		for i in 4:
 			var u := fposmod(t * 0.4 + i * 0.27, 1.0)
 			var by2 := lerpf(c.y + r - 4.0, top + 3.0, u)
 			if by2 > top + 2.0:
 				draw_circle(Vector2(c.x - 14 + i * 9 + sin(t * 2.0 + i) * 2.0, by2), 1.6, Color(1, 1, 1, 0.6))
+	# graduations : le flacon contient 3 niveaux (un soin ou un sort chacun). Trait fin à travers
+	# le verre, encoche de laiton de chaque côté ; elles s'allument quand le niveau est plein.
+	var levels: int = int(p.soul) / int(p.FOCUS_COST)
+	for k in range(1, 3):
+		var gy := c.y + r - 2.0 * r * k / 3.0
+		var gh := sqrt(maxf(r * r - (gy - c.y) * (gy - c.y), 0.0))
+		var lit: bool = levels >= k
+		var x := c.x - gh + 3.0
+		while x < c.x + gh - 3.0:
+			draw_line(Vector2(x, gy), Vector2(minf(x + 3.0, c.x + gh - 3.0), gy), Color(1, 1, 1, 0.22 if lit else 0.12), 1.0)
+			x += 6.0
+		for sd in [-1.0, 1.0]:
+			var a0 := Vector2(c.x + sd * (gh - 1.0), gy)
+			draw_line(a0, a0 - Vector2(sd * 7.0, 0), Color(0.95, 0.97, 1.0, 0.9) if lit else brass.darkened(0.15), 2.0)
+	# repères de niveau sur le flanc gauche : trois losanges qui s'allument un par un
+	for k in range(1, 4):
+		var gy2 := c.y + r - 2.0 * r * k / 3.0 + (4.0 if k == 3 else 0.0)
+		var gh2 := sqrt(maxf(r * r - (gy2 - c.y) * (gy2 - c.y), 0.0))
+		var mp := Vector2(c.x - gh2 - 12.0, gy2)
+		var lit2: bool = levels >= k
+		if lit2:
+			DU.glow(self, mp, 9.0, Color(0.6, 0.75, 1.0), 0.35 + 0.15 * sin(t * 4.0 + k))
+		var dm := PackedVector2Array([mp + Vector2(0, -4), mp + Vector2(4, 0), mp + Vector2(0, 4), mp + Vector2(-4, 0)])
+		draw_colored_polygon(dm, Color(0.92, 0.96, 1.0) if lit2 else Color(0.12, 0.12, 0.16))
+		draw_polyline(PackedVector2Array([dm[0], dm[1], dm[2], dm[3], dm[0]]), brass, 1.2)
 	# reflet du verre et cerclage
 	draw_arc(c, r - 5, PI * 1.1, PI * 1.45, 12, Color(1, 1, 1, 0.45), 3.0)
 	draw_arc(c, r + 3, 0, TAU, 48, brass.darkened(0.45), 6.0)
