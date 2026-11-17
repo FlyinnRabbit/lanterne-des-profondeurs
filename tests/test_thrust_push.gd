@@ -30,7 +30,7 @@ func _setup(gs, w: String):
 	# un ennemi au sol, rendu très résistant pour qu'il survive aux coups
 	var e = null
 	for c in get_nodes_in_group("enemies"):
-		if c.get_script().resource_path.get_file() in ["crawler.gd", "hopper.gd", "guard.gd", "lancer.gd"]:
+		if c.get_script().resource_path.get_file() in ["crawler.gd", "hopper.gd", "guard.gd", "lancer.gd", "slime.gd", "scorpion.gd", "goblin.gd"]:
 			e = c
 			break
 	return [main, pl, e]
