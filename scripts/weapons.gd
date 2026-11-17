@@ -26,7 +26,7 @@ const W := {
 	"faux": {"name": "Faux du Glaneur", "price": 240, "color": Color(0.6, 0.95, 0.85),
 		"desc": "Grand arc en demi-lune devant et au-dessus de toi, qui fauche plusieurs ennemis à la fois. Plus lente. Le coup final devient un tourbillon tout autour de toi.",
 		"w": 1.25, "h": 1.5, "v": 1.25, "cd": 1.35, "dmg": 0, "knock": 0.9, "stagger": 0.0, "ranged": false},
-	"baton": {"name": "Bâton Cerclé d'Or", "price": 230, "color": Color(1.0, 0.8, 0.35),
+	"baton": {"name": "Bâton Cerclé de Cuivre", "price": 230, "color": Color(0.85, 0.55, 0.32),
 		"desc": "Long et rapide : un estoc fin qui porte loin devant et en hauteur. Accroupi, l'attaque devient un saut à la perche qui te propulse en l'air.",
 		"w": 1.7, "h": 0.6, "v": 1.5, "cd": 0.95, "dmg": 0, "knock": 1.1, "stagger": 0.0, "ranged": false},
 }

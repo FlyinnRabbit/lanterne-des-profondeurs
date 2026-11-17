@@ -944,8 +944,8 @@ func _smear(piv: Vector2, rad: float, a0: float, a1: float, thick: float, col: C
 # ---------------------------------------------------------------- faux et bâton
 const SCYTHE_HAFT := Color(0.28, 0.22, 0.2)
 const SCYTHE_BLADE := Color(0.78, 0.95, 0.9)
-const STAFF_RED := Color(0.55, 0.16, 0.12)
-const STAFF_GOLD := Color(1.0, 0.8, 0.35)
+const STAFF_RED := Color(0.34, 0.24, 0.16)   # bois
+const STAFF_GOLD := Color(0.62, 0.36, 0.24)  # cuivre
 
 # lame de faux : croissant effilé, du talon (root) dans la direction d, courbé du côté n
 func _scythe_blade(root: Vector2, d: Vector2, n: Vector2, size: float, col: Color) -> void:
@@ -965,12 +965,12 @@ func _scythe_blade(root: Vector2, d: Vector2, n: Vector2, size: float, col: Colo
 	draw_line(root, root + n * 3.0, col.darkened(0.3), 3.0)
 	draw_polyline(outer, Color(1, 1, 1, 0.8), 1.2)
 
-# bâton : tige rouge laquée, embouts dorés cerclés
+# bâton : tige de bois, embouts et cerclages de cuivre
 func _staff(a: Vector2, b: Vector2, w: float) -> void:
 	var d := (b - a).normalized()
-	draw_line(a, b, Color(0.12, 0.05, 0.04), w + 1.6)
+	draw_line(a, b, Color(0.16, 0.1, 0.06), w + 1.6)
 	draw_line(a, b, STAFF_RED, w)
-	draw_line(a + d.orthogonal() * w * 0.25, b + d.orthogonal() * w * 0.25, STAFF_RED.lightened(0.3), maxf(w * 0.3, 0.8))
+	draw_line(a + d.orthogonal() * w * 0.25, b + d.orthogonal() * w * 0.25, STAFF_RED.lightened(0.18), maxf(w * 0.3, 0.8))
 	var cap := minf(9.0, (b - a).length() * 0.18)
 	for e in [[a, d], [b, -d]]:
 		var p0: Vector2 = e[0]
