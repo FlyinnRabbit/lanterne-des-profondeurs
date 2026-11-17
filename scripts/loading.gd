@@ -338,6 +338,14 @@ func _emblem(v: Control, c: Vector2, id: String, a: float) -> void:
 			v.draw_colored_polygon(PackedVector2Array([c + Vector2(-28, -4), c + Vector2(22, -4), c + Vector2(30, -12), c + Vector2(30, 2), c + Vector2(14, 6), c + Vector2(10, 18), c + Vector2(18, 24), c + Vector2(-18, 24), c + Vector2(-10, 18), c + Vector2(-14, 6), c + Vector2(-28, 2)]), g)
 			v.draw_line(c + Vector2(-6, -34), c + Vector2(14, -12), d.lightened(0.3), 4.0)
 			v.draw_rect(Rect2(c + Vector2(-16, -40), Vector2(16, 10)), g)
+		"scriptorium":    # livre ouvert et plume
+			v.draw_colored_polygon(PackedVector2Array([c + Vector2(-30, -4), c + Vector2(0, -12), c + Vector2(30, -4), c + Vector2(30, 18), c + Vector2(0, 10), c + Vector2(-30, 18)]), Color(0.9, 0.84, 0.66, a))
+			v.draw_line(c + Vector2(0, -12), c + Vector2(0, 10), d, 2.0)
+			for i in 3:
+				v.draw_line(c + Vector2(-24, -1 + i * 6), c + Vector2(-6, -6 + i * 6), d, 1.2)
+				v.draw_line(c + Vector2(6, -6 + i * 6), c + Vector2(24, -1 + i * 6), d, 1.2)
+			v.draw_line(c + Vector2(14, 4), c + Vector2(36, -30), g, 2.5)
+			v.draw_colored_polygon(PackedVector2Array([c + Vector2(36, -30), c + Vector2(24, -16), c + Vector2(30, -12)]), g)
 		"cartographer":   # carte roulée et plume
 			v.draw_rect(Rect2(c + Vector2(-26, -14), Vector2(52, 34)), Color(0.85, 0.75, 0.55, a))
 			v.draw_polyline(PackedVector2Array([c + Vector2(-18, 10), c + Vector2(-6, -2), c + Vector2(6, 6), c + Vector2(18, -6)]), d, 2.0)

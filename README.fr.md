@@ -34,6 +34,7 @@ ombre garde les éclats perdus là où tu es tombé, et l'ascenseur se souvient 
 - **Le Sanctuaire** : marchand, arsenal, forgeronne, cartographe, tailleuse (53 cosmétiques), ancien et quatre fêtes dans l'année
 - **4 difficultés** et un mode une seule vie, malédictions, **Descente du jour** avec classement en ligne, **Défi des boss**
 - Français, anglais, espagnol et allemand ; clavier et manette Xbox ; navigateur, Windows, macOS, Linux et Steam Deck ; mises à jour automatiques
+- Le **Scriptorium** garde tout : statistiques, records, bestiaire, gardiens et emblèmes
 - Tout est dessiné en code ; musique et sons originaux
 
 ## Captures d'écran
@@ -206,10 +207,15 @@ Après le tutoriel, on arrive au **Sanctuaire de la Lanterne**, le cœur du jeu 
   fois par niveau (on peut s'y rasseoir pour le point de réapparition et les emblèmes), et pas juste après
   un combat (1,5 s).
 - **Marchand** : échange des éclats contre des **masques de vie** (+1 vie maximale, jusqu'à 4), des
-  **encoches** d'emblèmes et les **emblèmes** pas encore trouvés.
+  **encoches** d'emblèmes et les **emblèmes** pas encore trouvés. Sa vieille charrette et son cloporte de
+  trait attendent à côté de lui.
+- **Scriptorium** (en hauteur, sur sa plateforme au-dessus du marchand) : **Maître Plume**, la chouette
+  archiviste, tient les registres de ta partie dans un grand livre : statistiques, records, **bestiaire**
+  et **gardiens** vaincus (descriptions et astuces), et ta **collection d'emblèmes** (où tu as trouvé
+  chacun et combien de temps tu l'as porté).
 - **Arsenal** : acheter et équiper son arme de base. **Essayer** prête une arme tant qu'on reste au Sanctuaire.
 - **Mannequin d'entraînement** (à droite de l'arsenal) : affiche les dégâts par seconde.
-- **Tailleuse** (à gauche du banc) : la garde-robe et les cosmétiques.
+- **Tailleuse** (entre le marchand et le banc) : la garde-robe et les cosmétiques.
 - **Ascenseur** : choisir le **palier** où descendre.
 - Des **habitants** arrivent au fil des paliers : la **forgeronne** (palier 1, forge tes armes au niveau 2), le
   **cartographe** (palier 2, vend une plume qui révèle toute la carte) et l'**ancien** (palier 3,

@@ -34,6 +34,7 @@ Schatten bewahrt die verlorenen Splitter dort, wo du gefallen bist, und der Aufz
 - **Das Heiligtum**: Händler, Arsenal, Schmiedin, Kartograf, Schneiderin (53 kosmetische Objekte), Ältester und vier Feste im Jahr
 - **4 Schwierigkeitsgrade** plus ein Ein-Leben-Modus, Flüche, **Abstieg des Tages** mit Online-Rangliste, **Boss-Herausforderung**
 - Deutsch, Englisch, Französisch und Spanisch; Tastatur und Xbox-Controller; Browser, Windows, macOS, Linux und Steam Deck; automatische Updates
+- Das **Skriptorium** hält alles fest: Statistik, Rekorde, Bestiarium, Wächter und Embleme
 - Alles ist in Code gezeichnet; eigene Musik und Klänge
 
 ## Screenshots
@@ -205,10 +206,15 @@ Nach dem Tutorial erreichst du das **Heiligtum der Laterne**, das Herz des Spiel
   Zone (du kannst dich erneut setzen, um den Wiedereinstiegspunkt zu setzen und Embleme zu wechseln),
   und nicht direkt nach einem Kampf (1,5 s).
 - **Händler**: tauscht Splitter gegen **Lebensmasken** (+1 maximales Leben, bis zu 4), Emblem-**Kerben**
-  und die **Embleme**, die du noch nicht gefunden hast.
+  und die **Embleme**, die du noch nicht gefunden hast. Sein alter Karren und seine Zugassel warten
+  neben ihm.
+- **Skriptorium** (oben auf seiner Plattform über dem Händler): **Meister Feder**, die Archiv-Eule, führt
+  die Register deines Spiels in einem großen Buch: Statistik, Rekorde, **Bestiarium** und besiegte
+  **Wächter** (Beschreibungen und Tipps) sowie deine **Emblemsammlung** (wo du jedes gefunden hast und
+  wie lange du es getragen hast).
 - **Arsenal**: deine Grundwaffe kaufen und ausrüsten. **Ausprobieren** leiht eine Waffe, solange du im Heiligtum bleibst.
 - **Trainingspuppe** (rechts vom Arsenal): zeigt deinen Schaden pro Sekunde.
-- **Schneiderin** (links von der Bank): Garderobe und Kosmetik.
+- **Schneiderin** (zwischen Händler und Bank): Garderobe und Kosmetik.
 - **Aufzug**: wähle die **Ebene**, in die du hinabsteigst.
 - Mit jeder geschafften Ebene kommen **Bewohner** dazu: die **Schmiedin** (Ebene 1, schmiedet deine Waffen auf Stufe 2), der
   **Kartograf** (Ebene 2, verkauft eine Feder, die die ganze Karte aufdeckt) und der **Älteste**

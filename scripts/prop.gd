@@ -97,7 +97,15 @@ func _draw() -> void:
 			DU.flat(self, DU.diamond(Vector2(0, -45), Vector2(2.5, 3.5)), Color(1, 1, 1, g))
 			if not lit:
 				draw_string(ThemeDB.fallback_font, Vector2(-4, -64 + sin(t * 4.0) * 3.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1.0, 0.9, 0.6))
+		"scriptorium":
+			_draw_scriptorium()
 		"merchant":
+			# chariot retourné : les brancards vers la droite, où attend la bête de somme
+			draw_set_transform(Vector2(178, 0), 0.0, Vector2(-1, 1))
+			_draw_merchant_cart()
+			draw_set_transform(Vector2(188, 0), 0.0, Vector2(1.12, 1.12))
+			_draw_pack_beast(Vector2.ZERO)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			# Marchand : grand papillon de nuit voyageur, cape aux ocelles, sac rapiécé de babioles
 			var bob := sin(t * 1.6) * 1.5
 			var cloak := Color(0.36, 0.26, 0.32)
@@ -1132,3 +1140,219 @@ func _draw_nid() -> void:
 	draw_circle(o + Vector2(11, -26), 1.2, Color(0.95, 0.6, 0.7))
 	draw_circle(o + Vector2(-11, -8), 4.5, Color(1, 1, 1))
 	_gift_box(Color(0.6, 0.85, 0.65), Color(1.0, 0.9, 0.5))
+
+# Chariot du marchand, à sa droite : vieille charrette de bois sombre ferrée, bâche de toile usée
+# rapiécée (tons de cave, pas de couleurs vives), caisses, quelques éclats, lanterne éteinte à demi.
+# Dessiné derrière le marchand.
+func _draw_merchant_cart() -> void:
+	var wood := Color(0.27, 0.19, 0.13)
+	var dark := Color(0.16, 0.11, 0.08)
+	var iron := Color(0.28, 0.27, 0.3)
+	var o := Vector2(30, 0)
+	# brancard posé au sol, côté marchand
+	draw_line(o + Vector2(4, -8), o + Vector2(-12, -2), dark, 4.0)
+	# caisse : planches disjointes, coins ferrés
+	DU.box(self, Rect2(o + Vector2(0, -44), Vector2(112, 30)), wood)
+	for k in 3:
+		draw_line(o + Vector2(2, -36 + k * 8), o + Vector2(110, -36 + k * 8), dark, 1.2)
+	for x in [0.0, 108.0]:
+		DU.box(self, Rect2(o + Vector2(x, -46), Vector2(5, 34)), iron)
+		draw_circle(o + Vector2(x + 2.5, -40), 1.1, iron.lightened(0.3))
+		draw_circle(o + Vector2(x + 2.5, -20), 1.1, iron.lightened(0.3))
+	# roues pleines de bois, cerclées de fer
+	for wx in [22.0, 90.0]:
+		var wc := o + Vector2(wx, -12)
+		draw_circle(wc, 12.0, dark)
+		draw_arc(wc, 11.0, 0.0, TAU, 22, iron, 2.6)
+		for k in 4:
+			var a := k * TAU / 4.0 + 0.4
+			draw_line(wc - Vector2.from_angle(a) * 9.0, wc + Vector2.from_angle(a) * 9.0, wood, 2.0)
+		DU.ball(self, wc, 2.6, iron.lightened(0.15))
+	# perches tordues et bâche de toile usée qui pend, rapiécée
+	draw_polyline(PackedVector2Array([o + Vector2(6, -44), o + Vector2(4, -70), o + Vector2(8, -92)]), dark, 3.0)
+	draw_polyline(PackedVector2Array([o + Vector2(106, -44), o + Vector2(109, -68), o + Vector2(104, -88)]), dark, 3.0)
+	var sway := sin(t * 1.1) * 1.0
+	var canvas := Color(0.38, 0.33, 0.27)
+	var tarp := PackedVector2Array([o + Vector2(-2, -96), o + Vector2(56, -102), o + Vector2(114, -92),
+		o + Vector2(118, -78 + sway), o + Vector2(98, -74 + sway), o + Vector2(80, -79 + sway), o + Vector2(60, -73 + sway),
+		o + Vector2(38, -78 + sway), o + Vector2(18, -72 + sway), o + Vector2(-4, -80 + sway)])
+	DU.poly(self, tarp, canvas)
+	# pièces cousues, d'autres tons passés, et points de couture
+	var patches := [[Vector2(14, -92), Vector2(18, 10), Color(0.33, 0.27, 0.3)], [Vector2(70, -95), Vector2(16, 11), Color(0.42, 0.36, 0.24)]]
+	for pt in patches:
+		var r := Rect2(o + pt[0], pt[1])
+		DU.box(self, r, pt[2])
+		for k in int(r.size.x / 4.0):
+			draw_line(r.position + Vector2(2 + k * 4, -1), r.position + Vector2(3 + k * 4, 1), Color(0.6, 0.55, 0.45, 0.7), 1.0)
+	draw_line(o + Vector2(36, -99), o + Vector2(40, -80 + sway), canvas.darkened(0.25), 1.0)
+	draw_line(o + Vector2(88, -97), o + Vector2(84, -79 + sway), canvas.darkened(0.25), 1.0)
+	# marchandise : ballot ficelé, petite caisse, quelques éclats qui luisent faiblement, une fiole
+	DU.poly(self, DU.ellipse(o + Vector2(24, -52), Vector2(14, 9), 16), Color(0.34, 0.28, 0.22))
+	draw_line(o + Vector2(24, -61), o + Vector2(24, -43), Color(0.5, 0.42, 0.3), 1.2)
+	DU.box(self, Rect2(o + Vector2(44, -62), Vector2(22, 18)), wood.lightened(0.08))
+	draw_line(o + Vector2(44, -53), o + Vector2(66, -53), dark, 1.0)
+	for k in 3:
+		var cp := o + Vector2(76 + k * 9, -50 - (k % 2) * 3)
+		DU.glow(self, cp, 6.0, Color(0.55, 0.78, 0.95), 0.18 + 0.1 * sin(t * 2.2 + k))
+		DU.flat(self, DU.diamond(cp, Vector2(3.0, 5.5)), Color(0.5, 0.72, 0.9))
+	DU.ball(self, o + Vector2(102, -50), 4.0, Color(0.42, 0.5, 0.38))
+	DU.box(self, Rect2(o + Vector2(100.5, -58), Vector2(3, 4)), Color(0.55, 0.5, 0.42))
+	# lanterne de route accrochée à la perche, flamme basse
+	var lp := o + Vector2(112, -66 + sin(t * 1.4) * 0.8)
+	draw_line(o + Vector2(108, -72), lp + Vector2(0, -6), dark, 1.2)
+	DU.glow(self, lp, 14.0, Color(1.0, 0.75, 0.4), 0.3)
+	DU.box(self, Rect2(lp + Vector2(-3.5, -5), Vector2(7, 9)), Color(0.85, 0.65, 0.35))
+	draw_rect(Rect2(lp + Vector2(-3.5, -5), Vector2(7, 9)), iron, false, 1.2)
+
+# Bête de somme du marchand : un grand cloporte cuirassé, harnaché, qui a tiré la charrette jusqu'ici.
+# Il somnole : il respire, remue les antennes et cligne de temps en temps.
+func _draw_pack_beast(c: Vector2) -> void:
+	var shell := Color(0.36, 0.38, 0.44)
+	var shell_d := shell.darkened(0.35)
+	var breath := sin(t * 1.4) * 1.2
+	# pattes (une rangée qui piétine doucement)
+	for k in 7:
+		var lx := c.x - 26.0 + k * 8.0
+		var sh := sin(t * 2.0 + k * 0.9) * (0.8 if k % 2 == 0 else -0.8)
+		draw_line(Vector2(lx, -8), Vector2(lx - 2 + sh, 0), shell_d.darkened(0.2), 2.0)
+	# carapace en anneaux superposés
+	var body := DU.ellipse(c + Vector2(0, -14 - breath * 0.5), Vector2(34, 15 + breath * 0.4), 24, PI, TAU)
+	body.append(c + Vector2(34, -8))
+	body.append(c + Vector2(-34, -8))
+	DU.poly(self, body, shell)
+	for k in 6:
+		var x := c.x - 24.0 + k * 9.5
+		var hh := sqrt(maxf(1.0 - pow((x - c.x) / 34.0, 2.0), 0.0)) * (15.0 + breath * 0.4)
+		draw_line(Vector2(x, -14 - breath * 0.5 - hh + 1.0), Vector2(x - 1.5, -9), shell_d, 1.4)
+	draw_arc(c + Vector2(-4, -16 - breath * 0.5), 22.0, PI * 1.15, PI * 1.55, 10, Color(1, 1, 1, 0.18), 2.0)
+	# tête basse vers la droite, antennes, oeil somnolent
+	var hd := c + Vector2(36, -10)
+	DU.poly(self, DU.ellipse(hd, Vector2(9, 7), 16), shell.darkened(0.12))
+	var tw := sin(t * 3.1) * 2.0
+	draw_polyline(PackedVector2Array([hd + Vector2(5, -4), hd + Vector2(13, -12 + tw), hd + Vector2(22, -14 + tw)]), shell_d, 1.4)
+	draw_polyline(PackedVector2Array([hd + Vector2(4, -5), hd + Vector2(9, -15 - tw * 0.5), hd + Vector2(15, -20 - tw * 0.5)]), shell_d, 1.2)
+	var blink := fposmod(t, 4.3) < 0.18
+	if blink:
+		draw_line(hd + Vector2(1, -2), hd + Vector2(5, -2), Color(0.1, 0.08, 0.1), 1.4)
+	else:
+		draw_circle(hd + Vector2(3, -2), 2.0, Color(0.08, 0.07, 0.1))
+		draw_circle(hd + Vector2(2.4, -2.6), 0.7, Color(1, 1, 1, 0.8))
+	# harnais de cuir, sangle vers les brancards et clochette
+	var strap := Color(0.42, 0.27, 0.16)
+	draw_line(c + Vector2(-26, -20 - breath * 0.5), c + Vector2(-26, -6), strap, 3.0)
+	draw_line(c + Vector2(22, -24 - breath * 0.5), c + Vector2(22, -6), strap, 3.0)
+	draw_line(c + Vector2(-26, -14), c + Vector2(-40, -10), strap, 2.0)
+	var bp := c + Vector2(30, -4 + sin(t * 2.2) * 0.8)
+	draw_line(c + Vector2(30, -10), bp, Color(0.3, 0.25, 0.2), 1.0)
+	DU.ball(self, bp + Vector2(0, 2), 2.6, Color(0.8, 0.65, 0.3))
+	# une couverture pliée posée sur le dos
+	DU.poly(self, PackedVector2Array([c + Vector2(-14, -28 - breath * 0.5), c + Vector2(10, -29 - breath * 0.5), c + Vector2(12, -22), c + Vector2(-16, -21)]), Color(0.4, 0.3, 0.32))
+	draw_line(c + Vector2(-14, -25 - breath * 0.5), c + Vector2(10, -26 - breath * 0.5), Color(0.55, 0.45, 0.35), 1.0)
+
+# Le Scriptorium : niche de pierre étroite, trois étagères de livres et de rouleaux, lutrin et
+# grand livre ouvert, bougie, enseigne (livre et plume) ; Maître Plume, la chouette archiviste, à côté.
+func _draw_scriptorium() -> void:
+	var stone := Color(0.25, 0.21, 0.24)
+	var hollow := Color(0.1, 0.08, 0.1)
+	var shelf := Color(0.38, 0.25, 0.15)
+	var nx := -48.0   # bord gauche de la niche
+	var nw := 64.0
+	var top := -104.0
+	# arche de pierre et creux
+	var arch := PackedVector2Array([Vector2(nx, 0), Vector2(nx, top + 22)])
+	for k in 13:
+		var a := PI + k * PI / 12.0
+		arch.append(Vector2(nx + nw / 2.0 + cos(a) * nw / 2.0, top + 22 + sin(a) * 22.0))
+	arch.append(Vector2(nx + nw, 0))
+	DU.poly(self, arch, stone)
+	var inner := PackedVector2Array([Vector2(nx + 6, 0), Vector2(nx + 6, top + 26)])
+	for k in 13:
+		var a := PI + k * PI / 12.0
+		inner.append(Vector2(nx + nw / 2.0 + cos(a) * (nw / 2.0 - 6.0), top + 26 + sin(a) * 17.0))
+	inner.append(Vector2(nx + nw - 6, 0))
+	DU.poly(self, inner, hollow, false)
+	# étagères et livres (couleurs sourdes)
+	var cols := [Color(0.45, 0.18, 0.15), Color(0.2, 0.3, 0.42), Color(0.34, 0.38, 0.22), Color(0.48, 0.36, 0.18), Color(0.3, 0.2, 0.36)]
+	for r in 3:
+		var sy := top + 46.0 + r * 22.0
+		DU.box(self, Rect2(nx + 6, sy, nw - 12, 3), shelf)
+		var bx := nx + 8.0
+		var k := r * 2
+		while bx < nx + nw - 12.0:
+			var bw := 3.0 + float((k * 7) % 3)
+			var bh := 11.0 + float((k * 5) % 5)
+			if (k + r) % 6 == 4:
+				DU.box(self, Rect2(bx, sy - 4, 9, 3.5), Color(0.86, 0.8, 0.66))      # rouleau couché
+				DU.box(self, Rect2(bx + 1, sy - 7.5, 9, 3.5), Color(0.8, 0.74, 0.6))
+				bx += 11.0
+			else:
+				DU.box(self, Rect2(bx, sy - bh, bw, bh), cols[k % cols.size()])
+				bx += bw + 0.6
+			k += 1
+	# bougie sur l'étagère du bas, flamme vacillante
+	var cp := Vector2(nx + 12, top + 90)
+	var fl := 1.0 + 0.15 * sin(t * 9.0) + 0.08 * sin(t * 23.0)
+	DU.glow(self, cp + Vector2(0, -8), 12.0, Color(1.0, 0.75, 0.4), 0.35)
+	DU.box(self, Rect2(cp + Vector2(-2, -6), Vector2(4, 6)), Color(0.92, 0.88, 0.76))
+	DU.flat(self, PackedVector2Array([cp + Vector2(0, -6 - 6 * fl), cp + Vector2(1.8, -7), cp + Vector2(0, -6), cp + Vector2(-1.8, -7)]), Color(1.0, 0.75, 0.3))
+	# lutrin et grand livre ouvert
+	var lx := nx + nw / 2.0
+	DU.box(self, Rect2(lx - 2, -20, 4, 20), shelf.darkened(0.2))
+	DU.box(self, Rect2(lx - 9, -2, 18, 2), shelf.darkened(0.2))
+	DU.poly(self, PackedVector2Array([Vector2(lx - 15, -22), Vector2(lx, -26), Vector2(lx + 15, -22), Vector2(lx + 15, -19), Vector2(lx, -23), Vector2(lx - 15, -19)]), Color(0.9, 0.85, 0.72))
+	draw_line(Vector2(lx, -26), Vector2(lx, -23), Color(0.55, 0.45, 0.3), 1.0)
+	for k in 2:
+		draw_line(Vector2(lx - 12, -22 + k * 1.4), Vector2(lx - 3, -24 + k * 1.4), Color(0.55, 0.5, 0.42, 0.6), 0.6)
+		draw_line(Vector2(lx + 3, -24 + k * 1.4), Vector2(lx + 12, -22 + k * 1.4), Color(0.55, 0.5, 0.42, 0.6), 0.6)
+	# enseigne suspendue : livre ouvert et plume
+	var sg := Vector2(lx, top - 6)
+	draw_line(sg + Vector2(-10, -4), sg + Vector2(-12, -14), Color(0.3, 0.26, 0.22), 1.0)
+	draw_line(sg + Vector2(10, -4), sg + Vector2(12, -14), Color(0.3, 0.26, 0.22), 1.0)
+	DU.box(self, Rect2(sg + Vector2(-14, -5), Vector2(28, 12)), Color(0.22, 0.16, 0.11))
+	draw_rect(Rect2(sg + Vector2(-14, -5), Vector2(28, 12)), Color(0.75, 0.6, 0.32), false, 1.0)
+	DU.poly(self, PackedVector2Array([sg + Vector2(-8, 3), sg + Vector2(0, 0), sg + Vector2(8, 3), sg + Vector2(8, 5), sg + Vector2(0, 2.5), sg + Vector2(-8, 5)]), Color(0.9, 0.85, 0.72))
+	draw_line(sg + Vector2(4, 2), sg + Vector2(10, -4), Color(0.95, 0.93, 0.88), 1.2)
+	_draw_owl(Vector2(30, 0))
+
+# Maître Plume : chouette archiviste, bonnet de scribe, lunettes dorées, plume à la main.
+func _draw_owl(c: Vector2) -> void:
+	var bob := sin(t * 1.3) * 0.8
+	var feath := Color(0.33, 0.25, 0.19)
+	var belly := Color(0.52, 0.44, 0.35)
+	var gold := Color(0.78, 0.63, 0.3)
+	var b := c + Vector2(0, bob)
+	# corps et ventre moucheté
+	DU.poly(self, DU.ellipse(b + Vector2(0, -17), Vector2(12, 17), 20), feath)
+	DU.poly(self, DU.ellipse(b + Vector2(0, -14), Vector2(8, 12), 18), belly, false)
+	for k in 4:
+		var y := -21.0 + k * 4.0
+		draw_arc(b + Vector2(-3 + (k % 2) * 4, y), 1.8, 0.2, PI - 0.2, 5, feath.lightened(0.05), 1.0)
+	# serres
+	for k in [-1.0, 1.0]:
+		draw_line(b + Vector2(k * 4, -1), b + Vector2(k * 5.5, 0.5), gold.darkened(0.2), 1.4)
+	# aile qui tient la plume (la plume écrit un peu dans l'air)
+	var w := sin(t * 2.4) * 1.5
+	DU.poly(self, PackedVector2Array([b + Vector2(9, -26), b + Vector2(15, -16), b + Vector2(10, -6), b + Vector2(7, -16)]), feath.darkened(0.15))
+	draw_line(b + Vector2(13, -14), b + Vector2(22, -30 + w), Color(0.95, 0.93, 0.88), 1.6)
+	DU.flat(self, PackedVector2Array([b + Vector2(22, -30 + w), b + Vector2(19, -24 + w), b + Vector2(24, -26 + w)]), Color(0.98, 0.96, 0.92))
+	# tête, aigrettes, bonnet
+	var h := b + Vector2(0, -36)
+	DU.poly(self, DU.ellipse(h, Vector2(11, 9), 20), feath.lightened(0.06))
+	for k in [-1.0, 1.0]:
+		DU.flat(self, PackedVector2Array([h + Vector2(k * 6, -6), h + Vector2(k * 10, -13), h + Vector2(k * 9, -4)]), feath)
+	DU.poly(self, PackedVector2Array([h + Vector2(-9, -6), h + Vector2(-3, -12), h + Vector2(5, -12), h + Vector2(10, -6), h + Vector2(0, -8)]), Color(0.22, 0.27, 0.4))
+	DU.ball(self, h + Vector2(11, -8), 1.6, gold)
+	# lunettes et yeux (clignent de temps en temps)
+	var blink := fposmod(t, 5.1) < 0.15
+	for k in [-1.0, 1.0]:
+		var e := h + Vector2(k * 4.6, 0.5)
+		draw_circle(e, 3.8, Color(0.93, 0.89, 0.76))
+		if blink:
+			draw_line(e + Vector2(-2.2, 0), e + Vector2(2.2, 0), Color(0.15, 0.1, 0.08), 1.2)
+		else:
+			draw_circle(e + Vector2(0.3, 0.3), 1.8, Color(0.12, 0.08, 0.06))
+			draw_circle(e + Vector2(-0.4, -0.5), 0.6, Color(1, 1, 1, 0.85))
+		draw_arc(e, 4.2, 0.0, TAU, 14, gold, 1.0)
+	draw_line(h + Vector2(-0.4, 0.5), h + Vector2(0.4, 0.5), gold, 1.0)
+	DU.flat(self, PackedVector2Array([h + Vector2(-1.5, 3.5), h + Vector2(1.5, 3.5), h + Vector2(0, 6.5)]), Color(0.85, 0.65, 0.3))
+

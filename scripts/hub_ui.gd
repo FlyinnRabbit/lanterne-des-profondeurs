@@ -567,6 +567,7 @@ func _buy_map() -> void:
 		npc_text.text = tr("Pas assez d'éclats (%d nécessaires).") % CARTO_PRICE
 		return
 	main.player.geo -= CARTO_PRICE
+	GameState.j_add("geo_out", CARTO_PRICE)
 	GameState.prog["geo"] = main.player.geo
 	GameState.prog["map_full"] = true
 	GameState.snapshot = GameState.prog.duplicate(true)
@@ -744,6 +745,7 @@ func _ward_pick(id: String) -> void:
 			ward_status.text = tr("Pas assez d'éclats (%d nécessaires).") % price
 			return
 		main.player.geo -= price
+		GameState.j_add("geo_out", price)
 		GameState.prog["geo"] = main.player.geo
 		GameState.snapshot = GameState.prog.duplicate(true)
 		GameState.save_game()

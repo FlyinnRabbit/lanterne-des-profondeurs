@@ -21,7 +21,11 @@ func _die_once(gs, single: bool) -> Dictionary:
 	await _f(10)
 	var main = current_scene
 	main.player.take_damage(99, main.player.global_position.x - 10)
-	await create_timer(2.6, true, false, true).timeout
+	# attendre la fin de l'animation de chute (plus long quand la machine est chargée)
+	for i in 900:
+		await process_frame
+		if current_scene and current_scene.get("menu") and (current_scene.menu.game_over or gs.mode == "hub"):
+			break
 	await process_frame
 	var m = current_scene.menu
 	return {"exists": gs.slot_exists(3), "over": m.game_over, "title_btn": m.title_row.visible, "mode": gs.mode}

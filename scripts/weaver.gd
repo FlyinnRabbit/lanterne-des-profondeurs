@@ -11,6 +11,8 @@ func _ready() -> void:
 	hp = 3
 	geo_value = 4
 	setup_body()
+	if display:
+		return
 	# cherche le plafond au-dessus d'elle et s'y accroche
 	var y := global_position.y
 	for i in 12:
@@ -51,7 +53,7 @@ func _physics_process(delta: float) -> void:
 
 func _draw() -> void:
 	if hanging:
-		draw_line(Vector2(0, -10), anchor - global_position, Color(0.85, 0.85, 0.95, 0.6), 1.0)
+		draw_line(Vector2(0, -10), Vector2(0, -26) if display else anchor - global_position, Color(0.85, 0.85, 0.95, 0.6), 1.0)
 	var body := body_color(Color(0.24, 0.21, 0.3))
 	var walk := sin(anim_t * (18.0 if absf(velocity.x) > 5.0 else 3.0)) * 3.0
 	# huit pattes à trois segments, les plus lointaines plus sombres

@@ -80,6 +80,9 @@ var used_benches := {}     # bancs qui ont déjà soigné dans cette zone
 var exit_gate
 var enemy_spawns := []   # [script, position, node]
 var boss_started := false
+var boss_id := ""
+var boss_t0 := 0.0          # début du combat (registres : meilleur temps)
+var boss_hurt0 := 0         # coups reçus au début du combat (victoire sans coup reçu)
 var arena_entry_pos := Vector2.ZERO   # où le héros est entré dans l'arène (filet de sécurité)
 var boss_dead := false
 var won := false
@@ -87,6 +90,8 @@ var shake_amt := 0.0
 var light_tex: GradientTexture2D
 var menu
 var inventory
+var scriptorium
+const ScriptoriumScript = preload("res://scripts/scriptorium.gd")
 var map_view
 var challenge_start = null
 var challenge_goal = null
@@ -146,6 +151,10 @@ func _ready() -> void:
 	inventory.set_script(InventoryScript)
 	inventory.main = self
 	add_child(inventory)
+	scriptorium = CanvasLayer.new()
+	scriptorium.set_script(ScriptoriumScript)
+	scriptorium.main = self
+	add_child(scriptorium)
 	GameState.equipment_changed.connect(player.apply_equipment)
 	hub_ui = CanvasLayer.new()
 	hub_ui.set_script(HubUIScript)
@@ -357,6 +366,10 @@ func _spawn_everything() -> void:
 					signs.append([sp, data, false])
 				"m":
 					enemy_spawns.append([DummyScript, _cell_feet(x, y, 44), null, false])
+				"j":
+					# le Scriptorium de Maître Plume (Sanctuaire, sur sa plateforme)
+					var scp = _make_prop("scriptorium", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(0.85, 0.7, 0.55), 1.3)
+					interactables.append([scp, "scriptorium"])
 				"M":
 					var mp = _make_prop("merchant", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.5), 2.5)
 					interactables.append([mp, "merchant"])
@@ -456,6 +469,7 @@ func _spawn_everything() -> void:
 					enemy_spawns.append([WraithScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
 				"K", "Q":
 					var bid: String = level.get("boss_id", "abbesse" if row[x] == "Q" else "gardien")
+					boss_id = bid
 					var scripts := {"reine": BossQueen, "colosse": BossColossus, "ver": BossWorm, "chevalier": BossKnight, "ombre": BossLantern,
 						"cerbere": BossCerberus, "centaure": BossCentaur, "oeil": BossEye}
 					var heights := {"reine": 62, "colosse": 112, "ver": 54, "chevalier": 72, "ombre": 76, "cerbere": 84, "centaure": 96, "oeil": 96}
@@ -612,6 +626,7 @@ func _update_rooms(delta: float) -> void:
 				challenge_goal.lit = true
 				var reward := roundi((40 + 15 * GameState.palier) * GameState.geo_mult())
 				player.geo += reward
+				GameState.j_add("geo_in", reward)
 				spawn_burst(challenge_goal.position, Color(1.0, 0.85, 0.4), 40, 260.0, 0.0)
 				Audio.sfx("pickup", 0.0, 3.0)
 				show_message(tr("Défi réussi ! +%d éclats") % reward, 3.0)
@@ -627,6 +642,7 @@ func _update_rooms(delta: float) -> void:
 			altar_state = "done"
 			var reward2 := roundi((50 + 15 * GameState.palier) * GameState.geo_mult())
 			player.geo += reward2
+			GameState.j_add("geo_in", reward2)
 			var cid := _random_charm(int(pp.x))
 			if cid >= 0:
 				var rp = _make_prop("charm", pp + Vector2(0, -60), GameState.charm(cid)["color"], 1.6)
@@ -777,6 +793,8 @@ func _process(delta: float) -> void:
 	_update_rooms(delta)
 	if GameState.mode in ["descent", "rush"] and not get_tree().paused:
 		Achievements.run["time"] = float(Achievements.run.get("time", 0.0)) + delta
+	if not get_tree().paused:
+		GameState.j_tick(delta)
 	if player and player.geo >= 1000:
 		Achievements.unlock("rich")
 	if _reveal_t <= 0.0 and player:
@@ -801,7 +819,8 @@ func _process(delta: float) -> void:
 		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
 			var verbs := {"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur",
 				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "cartographer": "parler au cartographe", "elder": "écouter l'ancien",
-				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau", "winch": "se faire hisser"}
+				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau", "winch": "se faire hisser",
+				"scriptorium": "consulter les registres"}
 			if it[1] == "altar" and altar_state != "":
 				continue
 			if it[1] == "gift" and not it[0].lit:
@@ -810,7 +829,8 @@ func _process(delta: float) -> void:
 			if Input.is_action_just_pressed("up") and player.is_on_floor() and not get_tree().paused:
 				# écran d'entrée animé : battants de bois qui s'ouvrent sur la boutique
 				var shop_names := {"merchant": ["shop", "Marchand"], "arsenal": ["arsenal", "Arsenal"], "smith": ["smith", "Forgeronne"],
-					"cartographer": ["cartographer", "Cartographe"], "elder": ["elder", "Ancien"], "tailor": ["tailor", "Tailleuse"]}
+					"cartographer": ["cartographer", "Cartographe"], "elder": ["elder", "Ancien"], "tailor": ["tailor", "Tailleuse"],
+					"scriptorium": ["scriptorium", "Scriptorium"]}
 				if shop_names.has(it[1]):
 					LoadingScript.shop(get_tree(), shop_names[it[1]][0], tr(shop_names[it[1]][1]))
 				if it[1] == "merchant":
@@ -823,6 +843,8 @@ func _process(delta: float) -> void:
 					hub_ui.open_npc(it[1])
 				elif it[1] == "tailor":
 					hub_ui.open_wardrobe()
+				elif it[1] == "scriptorium":
+					scriptorium.open()
 				elif it[1] == "gift":
 					_open_gift(it[0])
 				elif it[1] == "winch":
@@ -831,6 +853,7 @@ func _process(delta: float) -> void:
 					wn.pulling = 0.9 if fast else 1.6
 					var bottom := Vector2(wn.position.x, player.global_position.y)
 					player.hoist([bottom, Vector2(wn.position.x, wn.arrive.y), wn.arrive], 2.0 if fast else 1.0)
+					GameState.j_add("winches")
 					# Nœud de Grimpeur : la première remontée de chaque treuil rend 33 d'âme
 					if fast and not wn.has_meta("soul_given"):
 						wn.set_meta("soul_given", true)
@@ -879,6 +902,8 @@ func _process(delta: float) -> void:
 	# Déclenchement du boss
 	if boss and not boss_started and not boss_dead and entry_gate and pp.x > entry_gate.rect.end.x + TILE * 3 and in_arena(pp):
 		boss_started = true
+		boss_t0 = clock
+		boss_hurt0 = int(GameState.j_get("hurt"))
 		arena_entry_pos = player.global_position
 		entry_gate.set_closed(true)
 		# aucun ennemi ordinaire ne reste enfermé avec le boss
@@ -907,12 +932,15 @@ func _process(delta: float) -> void:
 			if pk[1] == "geo":
 				var amount := roundi((40 + 15 * GameState.palier) * GameState.geo_mult() * (1.6 if player.eq(player.C.PLUNDERER) else 1.0))
 				player.geo += amount
+				GameState.j_add("geo_in", amount)
+				GameState.j_add("chests")
 				GameState.prog["collected"].append(pk[2])     # cachette vidée
 				Audio.sfx("pickup", 0.0)
 				show_message(tr("Trésor caché : +%d éclats !") % amount, 3.0)
 				Achievements.unlock("room")
 			elif pk[1] == "charm":
 				GameState.add_charm(pk[2])
+				GameState.j_charm_found(int(pk[2]), String(level.get("name", "")))
 				Audio.sfx("pickup", 0.0)
 				show_message(tr("Emblème obtenu : %s\nÉquipe-le depuis l'inventaire ({inventory|1}) en te reposant sur un banc.") % tr(GameState.charm(pk[2])["name"]), 4.5)
 			else:
@@ -1044,7 +1072,14 @@ func spawn_fx(kind: String, pos: Vector2, color := Color(1, 1, 1), dir := Vector
 # ---------------------------------------------------------------- événements
 func on_enemy_killed(e, geo: int) -> void:
 	# l'ombre rend exactement les éclats perdus ; les autres ennemis suivent le barème
-	player.geo += geo if e.get_script() == ShadeScript else GameState.kill_geo(geo)
+	var gained: int = geo if e.get_script() == ShadeScript else GameState.kill_geo(geo)
+	player.geo += gained
+	if e.get_script() != DummyScript and e.get_script() != ShadeScript and not e.is_boss:
+		GameState.j_add("geo_in", gained)
+		GameState.j_add("kills")
+		if e.elite:
+			GameState.j_add("elites")
+		GameState.j_mob_kill(String(e.get_script().resource_path.get_file()).get_basename(), e.elite, String(level.get("name", "")))
 	# Récolte d'Âme : chaque ennemi vaincu rend 8 d'âme
 	if player.eq(player.C.SOUL_HARVEST) and not e.is_boss:
 		player.soul = mini(player.soul + 8, player.SOUL_MAX)
@@ -1068,6 +1103,9 @@ func on_player_hurt() -> void:
 
 func on_player_died() -> void:
 	show_message("Vous avez sombré...", 2.0)
+	GameState.j_add("deaths")
+	if boss_started and not boss_dead and boss_id != "":
+		GameState.j_boss_loss(boss_id)
 	spawn_burst(player.global_position, Color(0.15, 0.1, 0.2), 40, 260.0)
 	await get_tree().create_timer(1.6).timeout
 	# En descente : retour au hub, le butin de la descente est perdu
@@ -1120,6 +1158,9 @@ func on_boss_killed() -> void:
 		if is_instance_valid(pr) and pr.hostile:
 			pr.pop()
 	player.geo += GameState.boss_geo()
+	GameState.j_add("geo_in", GameState.boss_geo())
+	GameState.j_add("bosses")
+	GameState.j_boss_win(boss_id, clock - boss_t0, int(GameState.j_get("hurt")) == boss_hurt0)
 	spawn_burst(boss.global_position, Color(1.0, 0.7, 0.4), 70, 380.0)
 	shake(18)
 	hit_stop(0.25)
@@ -1179,6 +1220,7 @@ func thrust_shock(pos: Vector2) -> void:
 
 # Onde de choc de l'ultime : gros dégâts à tout ce qui est dans le rayon, détruit les spores.
 func ultimate_blast(pos: Vector2) -> void:
+	GameState.j_add("ults")
 	Audio.sfx("ult", 0.0)
 	var ring := Node2D.new()
 	ring.set_script(RingScript)
@@ -1224,6 +1266,10 @@ func on_damage_dealt(e, dmg: int) -> void:
 		kind = "crit"
 		Achievements.on_crit()
 	Achievements.stat("damage", dmg)
+	if e.get_script() != DummyScript:
+		GameState.j_add("damage", dmg)
+		if kind == "crit":
+			GameState.j_add("crits")
 	hud.add_damage(dmg, n, kind, e.hp <= 0)
 
 # Coquille Épineuse : riposte quand le joueur est touché

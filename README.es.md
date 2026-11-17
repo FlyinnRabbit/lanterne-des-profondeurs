@@ -34,6 +34,7 @@ guarda las esquirlas perdidas donde caíste, y el ascensor recuerda hasta dónde
 - **El Santuario**: mercader, arsenal, herrera, cartógrafo, sastra (53 cosméticos), anciano y cuatro fiestas al año
 - **4 dificultades** y un modo de una sola vida, maldiciones, **Descenso del día** con clasificación en línea, **Desafío de jefes**
 - Español, inglés, francés y alemán; teclado y mando Xbox; navegador, Windows, macOS, Linux y Steam Deck; actualizaciones automáticas
+- El **Scriptorium** lo registra todo: estadísticas, récords, bestiario, guardianes y emblemas
 - Todo está dibujado con código; música y sonidos originales
 
 ## Capturas de pantalla
@@ -205,10 +206,15 @@ Tras el tutorial llegas al **Santuario de la Linterna**, el corazón del juego:
   vez por zona (puedes volver a sentarte para el punto de reaparición y los emblemas), y no justo después
   de un combate (1,5 s).
 - **Mercader**: cambia esquirlas por **máscaras de vida** (+1 vida máxima, hasta 4), **muescas** de
-  emblemas y los **emblemas** que aún no hayas encontrado.
+  emblemas y los **emblemas** que aún no hayas encontrado. Su vieja carreta y su cochinilla de tiro
+  esperan a su lado.
+- **Scriptorium** (en lo alto, sobre su plataforma encima del mercader): el **Maestro Pluma**, la lechuza
+  archivera, lleva los registros de tu partida en un gran libro: estadísticas, récords, **bestiario** y
+  **guardianes** derrotados (descripciones y consejos), y tu **colección de emblemas** (dónde encontraste
+  cada uno y cuánto tiempo lo has llevado).
 - **Arsenal**: comprar y equipar tu arma base. **Probar** presta un arma mientras sigas en el Santuario.
 - **Muñeco de entrenamiento** (a la derecha del arsenal): muestra tu daño por segundo.
-- **Costurera** (a la izquierda del banco): el guardarropa y los cosméticos.
+- **Costurera** (entre el mercader y el banco): el guardarropa y los cosméticos.
 - **Ascensor**: elige el **nivel** al que bajar.
 - Llegan **habitantes** a medida que superas niveles: la **herrera** (nivel 1, forja tus armas al nivel 2), el
   **cartógrafo** (nivel 2, vende una pluma que revela todo el mapa) y el **anciano** (nivel 3, la

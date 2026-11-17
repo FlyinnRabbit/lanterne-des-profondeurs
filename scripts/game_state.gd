@@ -97,6 +97,9 @@ var record := 0              # plus haut palier terminé
 var run_seed := 0
 var prog := {}               # progression : éclats, emblèmes, encoches, vie bonus…
 var snapshot := {}           # état au départ de la descente (restauré à la mort)
+# Registres du Scriptorium : statistiques de la partie. À part de prog, car prog est restauré à
+# la mort (le butin est perdu) alors que les registres, eux, se souviennent de tout.
+var journal := {}
 var pending_message := ""    # message à afficher à l'arrivée dans la scène suivante
 var _cache := {}
 
@@ -367,6 +370,7 @@ func go_next_level(player) -> void:
 			carry_soul = int(player.soul)
 			carry_ult = int(player.ult)
 		else:
+			j_end_run(true)
 			record = maxi(record, palier)
 			unlocked = maxi(unlocked, palier + 1)
 			mode = "hub"
@@ -413,6 +417,7 @@ func die_in_descent(geo_now: int = -1, pos: Vector2 = Vector2.ZERO) -> void:
 		save_game()
 		_reload(true)
 		return
+	j_end_run(false)
 	var where := tr("Vous avez sombré au palier %d (niveau %d/%d).") % [palier, step, STEPS_PER_PALIER]
 	var lost := geo_now - int(snapshot.get("geo", 0))
 	prog = snapshot.duplicate(true)
@@ -471,6 +476,7 @@ func new_game(skip_tutorial := false, diff := -1, s := -1, single_life := false)
 	run_seed = randi() % 1000000
 	_cache.clear()
 	prog = _fresh()
+	journal = {}
 	unlocked = 1
 	record = 0
 	palier = 1
@@ -556,6 +562,7 @@ func save_game() -> void:
 	cfg.set_value("game", "tutorial_done", mode != "tutorial")
 	# en descente on sauvegarde l'état du départ : quitter en pleine descente = abandon
 	cfg.set_value("game", "prog", snapshot if mode in ["descent", "rush"] else prog)
+	cfg.set_value("game", "journal", journal)
 	cfg.save(Paths.file(save_name()))
 
 func has_save(s := -1) -> bool:
@@ -588,6 +595,8 @@ func load_game() -> bool:
 		for k in p:
 			prog[k] = p[k]
 	snapshot = prog.duplicate(true)
+	var j = cfg.get_value("game", "journal", {})
+	journal = j if j is Dictionary else {}
 	_cache.clear()
 	return true
 
@@ -621,6 +630,7 @@ func buy(kind: String, id: int, player) -> String:
 	if player.geo < price:
 		return tr("Pas assez d'éclats (%d nécessaires).") % price
 	player.geo -= price
+	j_add("geo_out", price)
 	prog["geo"] = player.geo
 	match kind:
 		"charm":
@@ -662,6 +672,7 @@ func upgrade_weapon(id: String, player) -> String:
 	if player.geo < price:
 		return tr("Pas assez d'éclats (%d nécessaires).") % price
 	player.geo -= price
+	j_add("geo_out", price)
 	prog["geo"] = player.geo
 	var lv: Dictionary = prog.get("weapon_lv", {})
 	lv[id] = 2
@@ -684,6 +695,7 @@ func buy_weapon(id: String, player) -> String:
 	if player.geo < price:
 		return tr("Pas assez d'éclats (%d nécessaires).") % price
 	player.geo -= price
+	j_add("geo_out", price)
 	prog["geo"] = player.geo
 	var arr: Array = prog.get("weapons_owned", [])
 	arr.append(id)
@@ -756,3 +768,120 @@ func toggle_equip(id: int) -> String:
 		prog["equipped"].append(id)
 	equipment_changed.emit()
 	return ""
+
+# ---------------------------------------------------------------- registres (Scriptorium)
+# journal = {"c": compteurs, "w": coups par arme, "mobs": {type: {k, e, hurt, b[]}},
+#   "bosses": {id: {w, l, best, nohit}}, "charms": {id: {p, b, t}}, "rec": records, "streak": série}
+func _j(key: String) -> Dictionary:
+	if not journal.has(key) or not journal[key] is Dictionary:
+		journal[key] = {}
+	return journal[key]
+
+func j_add(key: String, n = 1) -> void:
+	if mode == "tutorial":
+		return
+	var c := _j("c")
+	c[key] = c.get(key, 0) + n
+
+func j_get(key: String, def = 0):
+	return _j("c").get(key, def)
+
+func j_weapon_hit() -> void:
+	if mode == "tutorial":
+		return
+	var w := _j("w")
+	w[weapon()] = int(w.get(weapon(), 0)) + 1
+
+func _mob(kind: String) -> Dictionary:
+	var m := _j("mobs")
+	if not m.has(kind):
+		m[kind] = {"k": 0, "e": 0, "hurt": 0, "b": []}
+	return m[kind]
+
+func j_mob_kill(kind: String, elite: bool, biome: String) -> void:
+	if mode == "tutorial" or kind == "":
+		return
+	var m := _mob(kind)
+	m["k"] = int(m["k"]) + 1
+	if elite:
+		m["e"] = int(m["e"]) + 1
+	if biome != "" and not (m["b"] as Array).has(biome):
+		(m["b"] as Array).append(biome)
+
+func j_mob_hurt(kind: String) -> void:
+	if mode == "tutorial" or kind == "":
+		return
+	var m := _mob(kind)
+	m["hurt"] = int(m["hurt"]) + 1
+
+func _boss(id: String) -> Dictionary:
+	var b := _j("bosses")
+	if not b.has(id):
+		b[id] = {"w": 0, "l": 0, "best": 0.0, "nohit": false}
+	return b[id]
+
+func j_boss_win(id: String, secs: float, no_hit: bool) -> void:
+	var b := _boss(id)
+	b["w"] = int(b["w"]) + 1
+	if float(b["best"]) <= 0.0 or secs < float(b["best"]):
+		b["best"] = secs
+	if no_hit:
+		b["nohit"] = true
+
+func j_boss_loss(id: String) -> void:
+	var b := _boss(id)
+	b["l"] = int(b["l"]) + 1
+
+func j_charm_found(id: int, biome: String) -> void:
+	var c := _j("charms")
+	var k := str(id)
+	if not c.has(k):
+		c[k] = {"p": palier if mode in ["descent", "rush"] else 0, "b": biome, "t": 0.0}
+	else:
+		c[k]["p"] = palier if mode in ["descent", "rush"] else 0
+		c[k]["b"] = biome
+
+# temps de jeu, temps passé avec chaque emblème équipé
+func j_tick(delta: float) -> void:
+	if mode == "tutorial":
+		return
+	var c := _j("c")
+	c["time"] = float(c.get("time", 0.0)) + delta
+	var ch := _j("charms")
+	for id in prog["equipped"]:
+		var k := str(id)
+		if not ch.has(k):
+			ch[k] = {"p": -1, "b": "", "t": 0.0}
+		ch[k]["t"] = float(ch[k].get("t", 0.0)) + delta
+
+# série de parades parfaites (le record est gardé)
+func j_perfect(ok: bool) -> void:
+	var st := int(journal.get("streak", 0))
+	st = st + 1 if ok else 0
+	journal["streak"] = st
+	j_record_max("streak", st)
+
+func j_record_max(key: String, v) -> void:
+	var r := _j("rec")
+	if v > r.get(key, 0):
+		r[key] = v
+
+func j_record_min(key: String, v: float) -> void:
+	var r := _j("rec")
+	if float(r.get(key, 0.0)) <= 0.0 or v < float(r[key]):
+		r[key] = v
+
+# fin d'une descente (palier terminé ou chute) : records de la descente
+func j_end_run(completed: bool) -> void:
+	if mode == "tutorial":
+		return
+	var run: Dictionary = Achievements.run
+	j_record_max("kills_run", int(run.get("kills", 0)))
+	j_record_max("dmg_run", int(run.get("damage", 0)))
+	j_record_max("crits_run", int(run.get("crits", 0)))
+	if completed:
+		j_add("descents")
+		j_record_min("fast_palier", float(run.get("time", 0.0)))
+		if int(run.get("hurt", 0)) == 0:
+			j_add("flawless")
+

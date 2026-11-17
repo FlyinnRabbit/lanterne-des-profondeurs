@@ -332,6 +332,7 @@ func _physics_process(delta: float) -> void:
 			focus_t = 0.0
 			soul -= FOCUS_COST
 			hp += 1
+			GameState.j_add("heals")
 			Audio.sfx("heal", 0.0)
 			main.spawn_burst(global_position, Color(1, 1, 1), 20, 160.0, -100.0)
 		move_and_slide()
@@ -344,6 +345,7 @@ func _physics_process(delta: float) -> void:
 		plunging = true
 		plunge_used = true
 		plunge_cd = 0.6
+		GameState.j_add("plunges")
 		crouch_block = true
 		crouch_latch = false
 		dash_t = 0.0
@@ -366,6 +368,7 @@ func _physics_process(delta: float) -> void:
 			facing = int(dir)
 		dash_t = DASH_TIME
 		dash_hit.clear()
+		GameState.j_add("dashes")
 		dash_cd = dash_cooldown()
 		Audio.sfx("dash")
 		crouch_latch = false      # la ruée relève le héros (mode bascule compris)
@@ -378,6 +381,7 @@ func _physics_process(delta: float) -> void:
 		_start_attack("thrust", Vector2(facing, 0))
 		thrust_t = THRUST_TIME
 		thrust_push = thrust_push_cd <= 0.0 and GameState.weapon() != "shuriken"
+		GameState.j_add("thrusts")
 		attack_t = THRUST_TIME
 		dash_t = 0.0
 		post_dash_t = 0.0
@@ -425,6 +429,7 @@ func _physics_process(delta: float) -> void:
 	if buffer_t > 0.0 and coyote_t > 0.0 and knock_t <= 0.0:
 		velocity.y = JUMP_VELOCITY
 		Audio.sfx("jump", 0.1, -4.0)
+		GameState.j_add("jumps")
 		buffer_t = 0.0
 		coyote_t = 0.0
 		squash = Vector2(0.7, 1.3)
@@ -476,6 +481,7 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("spell") and soul >= SPELL_COST and spell_cd <= 0.0 and knock_t <= 0.0:
 		soul -= SPELL_COST
 		spell_cd = 0.45
+		GameState.j_add("spells")
 		bench_lock_t = BENCH_LOCK
 		var crit := _take_crit()
 		var sdmg := 3 + (1 if eq(C.BRUTE) else 0)
@@ -688,6 +694,8 @@ func _do_attack_hits() -> void:
 			var kv: Vector2 = kdir * (1.6 if attack_kind == "finisher" else 1.0) * float(wpn["knock"])
 			var split := claw_split and attack_kind == claw_kind
 			var second := split and claw_hand == 1
+			if e.get_script() != main.DummyScript:
+				GameState.j_weapon_hit()
 			if split:
 				# coup puissant des griffes : 0,875 par griffe (1,75 au total) ;
 				# la deuxième griffe ne repousse presque pas : sinon l'ennemi, repoussé 8 fois par
@@ -702,6 +710,7 @@ func _do_attack_hits() -> void:
 				e.stun_t = maxf(e.stun_t, 0.45)
 				thrust_push_cd = THRUST_PUSH_CD
 				main.thrust_shock(e.global_position)
+				GameState.j_add("pushes")
 			# saignée : 1 dégât une seconde plus tard (pas de cumul sur le même ennemi), avec une chance
 			# par coup : 20 % avec les Griffes niv. 2, +30 % avec le Croc Sanglant (toutes armes)
 			var bc := bleed_chance()
@@ -762,6 +771,7 @@ func _do_attack_hits() -> void:
 				break
 
 func _pogo() -> void:
+	GameState.j_add("pogos")
 	velocity.y = POGO_VELOCITY
 	air_dash_used = false
 	dash_cd = 0.0
@@ -786,6 +796,8 @@ func _check_hazards() -> void:
 		if is_instance_valid(e) and e.is_harmful() and r.intersects(e.get_rect()):
 			if not e.is_boss and main.wall_between(global_position, e.global_position):
 				continue      # pas de coup à travers un mur (estoc du lancier, charge…)
+			if not e.is_boss and invuln_t <= 0.0 and parry_t <= 0.0 and not sitting:
+				GameState.j_mob_hurt(String(e.get_script().resource_path.get_file()).get_basename())
 			receive_hit(e.global_position, e)
 			return
 
@@ -806,6 +818,7 @@ func _on_parry(from_pos: Vector2, source) -> void:
 	parry_perfect_now = parry_window() - parry_t <= PERFECT_PARRY
 	if not _from_trap(source):
 		Achievements.on_parry()
+		GameState.j_add("parries")
 	if parry_perfect_now:
 		crit_ready = true
 		crit_t = CRIT_TIME
@@ -813,6 +826,8 @@ func _on_parry(from_pos: Vector2, source) -> void:
 		Audio.sfx("crit_ready", 0.0, 0.0)
 		if not _from_trap(source):
 			Achievements.on_perfect_parry()
+			GameState.j_add("perfect")
+			GameState.j_perfect(true)
 		if eq(C.ECHO):
 			var ed := signf(from_pos.x - global_position.x)
 			if ed == 0.0:
@@ -1049,6 +1064,8 @@ func take_damage(amount: int, from_x: float) -> void:
 		return
 	hp -= amount
 	invuln_t = INVULN_TIME
+	GameState.j_add("hurt")
+	GameState.j_perfect(false)
 	knock_t = 0.22
 	dash_t = 0.0
 	focus_t = 0.0

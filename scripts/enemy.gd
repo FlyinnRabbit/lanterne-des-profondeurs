@@ -17,6 +17,7 @@ var elite := false      # version élite : plus de vie, plus rapide, attaque sp�
 var is_boss := false
 var hp_max := 0          # vie de départ (pour la barre de vie)
 var show_bar := true
+var display := false     # portrait (Scriptorium) : dessiné seulement, aucune logique de jeu
 const HpBarScript = preload("res://scripts/hp_bar.gd")
 const TelegraphScript = preload("res://scripts/telegraph.gd")
 
@@ -28,6 +29,9 @@ func aggro() -> float:
 	return float(GameState.scaled("aggro")) * (1.25 if elite else 1.0)
 
 func setup_body() -> void:
+	if display:
+		hp_max = hp
+		return
 	var s := RectangleShape2D.new()
 	s.size = size
 	var cs := CollisionShape2D.new()

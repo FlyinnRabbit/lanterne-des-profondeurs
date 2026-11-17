@@ -21,7 +21,7 @@ func _run() -> void:
 	for e in get_nodes_in_group("enemies"):
 		if e.get_script() == main.DummyScript:
 			dummy = e
-	dummy.global_position = Vector2(12 * 32, 16 * 32)   # à l'air libre (pas de plateforme au-dessus)
+	dummy.global_position = Vector2(21 * 32, 16 * 32)   # à l'air libre (pas de plateforme au-dessus)
 	await _frames(30)
 	var all_ok := true
 	for w in ["aiguille", "fouet", "marteau", "shuriken"]:

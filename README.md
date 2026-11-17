@@ -34,6 +34,7 @@ keeps the shards you dropped where you fell, and the lift remembers how deep you
 - **The Sanctuary**: merchant, arsenal, smith, cartographer, seamstress (53 cosmetics), elder and four yearly festivals
 - **4 difficulties** plus a one-life mode, curses, a **Daily Descent** with an online leaderboard, and a **Boss Rush**
 - English, French, Spanish and German; keyboard and Xbox controller; browser, Windows, macOS, Linux and Steam Deck; automatic updates
+- The **Scriptorium** records everything: statistics, records, bestiary, guardians and charms
 - Everything drawn in code; original music and sounds
 
 ## Screenshots
@@ -202,9 +203,14 @@ After the tutorial you arrive at **The Lantern Sanctuary**, the hub of the game:
 - **Bench**: rest, restore health, change charms. In the depths, each bench heals only once per level
   (you can sit again to set your respawn point and change charms), and not right after a fight (1.5 s).
 - **Merchant**: trades shards for **health masks** (+1 max health, up to 4), charm **notches**
-  and the **charms** you have not found yet.
+  and the **charms** you have not found yet. His old cart and its pack woodlouse wait beside him.
+- **Scriptorium** (up on its platform, above the merchant): **Master Quill**, the archivist owl, keeps
+  the records of your game in a big book: game statistics, records, a **bestiary** and the **guardians**
+  defeated (with descriptions and tips), and your **charm collection** (where you found each one and
+  how long you have worn it).
 - **Arsenal**: buy and equip your base weapon. **Try** lends a weapon while you stay in the Sanctuary.
 - **Training dummy** (right of the arsenal): shows your damage per second.
+- **Seamstress** (between the merchant and the bench): the wardrobe and cosmetics.
 - **Elevator**: choose the **tier** to descend to.
 - **Residents** arrive as you clear tiers: the **smith** (tier 1, forges your weapons to level 2), the
   **cartographer** (tier 2, sells a quill that reveals the whole map) and the **elder**
