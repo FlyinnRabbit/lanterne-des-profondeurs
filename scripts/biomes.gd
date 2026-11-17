@@ -1,4 +1,4 @@
-# Les 9 biomes. Chaque partie en tire 5 au hasard, dans un ordre aléatoire,
+# Les 12 biomes. Chaque partie en tire 5 au hasard, dans un ordre aléatoire,
 # et chaque niveau est reconstruit à partir de « salles » assemblées (voir levelgen.gd).
 #  chunks  : poids des types de salles (définit la forme du biome)
 #  enemies : poids c = rampant, f = volant, s = cracheur
@@ -81,4 +81,25 @@ static func _all() -> Array:
 			"pal": {"bg": C(0.04, 0.04, 0.04), "far": C(0.09, 0.09, 0.08), "mid": C(0.13, 0.12, 0.11), "near": C(0.1, 0.1, 0.09),
 				"rock": C(0.14, 0.13, 0.12), "rock_hi": C(0.35, 0.33, 0.3), "moss": C(0.8, 0.78, 0.7), "spike": C(0.9, 0.88, 0.8),
 				"ambient": C(0.62, 0.6, 0.58), "dust": C(0.9, 0.9, 0.85, 0.4), "dust_dir": Vector2(0.0, 1), "light": C(0.95, 0.9, 0.8)}},
+		{"id": "jungle", "extras": {"n": 1.4, "(": 1.8}, "name": "La Jungle Noyée",
+			"music": [M + "jungle_canopee_noyee.ogg"],
+			"chunks": {"platforms": 3, "islands": 3, "moving": 2, "bridge": 2, "hill": 1, "cave": 1, "zigzag": 1},
+			"enemies": {"c": 1, "f": 2, "s": 2},
+			"pal": {"bg": C(0.02, 0.05, 0.035), "far": C(0.04, 0.09, 0.05), "mid": C(0.06, 0.13, 0.07), "near": C(0.05, 0.1, 0.06),
+				"rock": C(0.08, 0.12, 0.08), "rock_hi": C(0.22, 0.34, 0.18), "moss": C(0.45, 0.85, 0.35), "spike": C(0.75, 0.85, 0.6),
+				"ambient": C(0.6, 0.75, 0.55), "dust": C(0.75, 1.0, 0.5, 0.45), "dust_dir": Vector2(0.0, -1), "light": C(0.85, 1.0, 0.7)}},
+		{"id": "desert", "extras": {")": 2.0, "p": 0.8}, "name": "Les Sables Enfouis",
+			"music": [M + "desert_sables_enfouis.ogg"],
+			"chunks": {"flat": 3, "hill": 3, "pit": 2, "crumble": 2, "pillars": 1, "split": 1},
+			"enemies": {"c": 3, "f": 1, "s": 1},
+			"pal": {"bg": C(0.07, 0.045, 0.03), "far": C(0.14, 0.09, 0.05), "mid": C(0.2, 0.13, 0.07), "near": C(0.16, 0.1, 0.06),
+				"rock": C(0.24, 0.16, 0.09), "rock_hi": C(0.58, 0.42, 0.25), "moss": C(0.85, 0.7, 0.4), "spike": C(0.92, 0.82, 0.6),
+				"ambient": C(0.85, 0.72, 0.56), "dust": C(1.0, 0.85, 0.6, 0.4), "dust_dir": Vector2(1.0, 0.15), "light": C(1.0, 0.82, 0.55)}},
+		{"id": "antique", "extras": {"%": 2.0, "l": 0.8}, "name": "Le Temple Antique",
+			"music": [M + "antique_temple_oublie.ogg"],
+			"chunks": {"pillars": 3, "arena": 2, "blades": 2, "bridge": 1, "platforms": 2, "crumble": 1},
+			"enemies": {"c": 2, "f": 1, "s": 1},
+			"pal": {"bg": C(0.04, 0.05, 0.065), "far": C(0.09, 0.1, 0.12), "mid": C(0.13, 0.14, 0.17), "near": C(0.11, 0.12, 0.14),
+				"rock": C(0.18, 0.18, 0.2), "rock_hi": C(0.58, 0.57, 0.6), "moss": C(0.4, 0.75, 0.65), "spike": C(0.88, 0.84, 0.72),
+				"ambient": C(0.72, 0.74, 0.8), "dust": C(0.95, 0.92, 0.8, 0.35), "dust_dir": Vector2(0.0, 1), "light": C(0.98, 0.92, 0.8)}},
 	]

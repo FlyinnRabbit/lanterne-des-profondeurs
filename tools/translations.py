@@ -768,6 +768,18 @@ T = {
 "Un singe t'a volé %d éclats ! Rattrape-le !": ("A monkey stole %d shards! Catch it!", "¡Un mono te ha robado %d esquirlas! ¡Atrápalo!", "Ein Affe hat dir %d Splitter gestohlen! Fang ihn!"),
 "Le singe s'est enfui avec %d éclats…": ("The monkey ran off with %d shards…", "El mono huyó con %d esquirlas…", "Der Affe ist mit %d Splittern entwischt…"),
 "Éclats récupérés : +%d": ("Shards recovered: +%d", "Esquirlas recuperadas: +%d", "Splitter zurückgeholt: +%d"),
+"La Jungle Noyée": ("The Drowned Jungle", "La Jungla Anegada", "Der Versunkene Dschungel"),
+"Les Sables Enfouis": ("The Buried Sands", "Las Arenas Enterradas", "Der Verschüttete Sand"),
+"Le Temple Antique": ("The Ancient Temple", "El Templo Antiguo", "Der Antike Tempel"),
+"Slime": ("Slime", "Limo", "Schleim"),
+"Scorpion": ("Scorpion", "Escorpión", "Skorpion"),
+"Gobelin": ("Goblin", "Goblin", "Kobold"),
+"Avance par bonds écrasés ; tué, il se divise en deux petits slimes.": ("Moves in squashy hops; when killed, it splits into two small slimes.", "Avanza a saltos aplastados; al morir, se divide en dos limos pequeños.", "Bewegt sich in plumpen Sprüngen; getötet, teilt er sich in zwei kleine Schleime."),
+"Arme son dard puis pique en avant : le venin te coûte un masque de plus un peu après.": ("Raises its stinger then strikes forward: the venom costs you one more mask a moment later.", "Arma su aguijón y pica hacia delante: el veneno te cuesta una máscara más poco después.", "Spannt seinen Stachel und sticht nach vorn: Das Gift kostet dich kurz darauf eine weitere Maske."),
+"Lance des dagues de loin, frappe deux fois de près, et s'enfuit quand il faiblit.": ("Throws daggers from afar, strikes twice up close, and runs off when weakened.", "Lanza dagas de lejos, golpea dos veces de cerca y huye cuando flaquea.", "Wirft Dolche aus der Ferne, schlägt aus der Nähe zweimal zu und flieht, wenn er schwächelt."),
+"Un rebond dessus l'écrase net ; garde de la place pour ses petits.": ("Bouncing on it squashes it flat; leave room for its little ones.", "Rebotar encima lo aplasta; deja sitio para sus pequeños.", "Ein Abpraller zerquetscht ihn; lass Platz für seine Kleinen."),
+"Ses pinces parent les coups bas : frappe-le de dessus. Repose-toi pour chasser le venin.": ("Its pincers block low hits: strike it from above. Rest to clear the venom.", "Sus pinzas paran los golpes bajos: golpéalo desde arriba. Descansa para quitarte el veneno.", "Seine Scheren blocken tiefe Hiebe: Triff ihn von oben. Ruh dich aus, um das Gift loszuwerden."),
+"Pare ses dagues pour les lui renvoyer ; s'il fuit, achève-le avant qu'il ne revienne.": ("Parry his daggers to send them back; if he flees, finish him before he returns.", "Para sus dagas para devolvérselas; si huye, acábalo antes de que vuelva.", "Pariere seine Dolche, um sie zurückzuschicken; flieht er, erledige ihn, bevor er zurückkommt."),
 }
 LANGS = ["en", "es", "de"]
 def gd(s):

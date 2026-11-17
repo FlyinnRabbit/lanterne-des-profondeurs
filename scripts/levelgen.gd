@@ -688,7 +688,7 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 	for k in ["b", "w", "l", "r"]:
 		ew[k] = variety * 0.5 + float(extras.get(k, 0.0))
 	# singe (n), mite (e), taupe (p) : rares ailleurs, fréquents dans leurs biomes
-	for k in ["n", "e", "p"]:
+	for k in ["n", "e", "p", "(", ")", "%"]:
 		ew[k] = variety * 0.3 + float(extras.get(k, 0.0))
 	var ground := _shuffled(ground_spots.filter(func(p): return p.x > 18))
 	var air := _shuffled(air_spots.filter(func(p): return p.x > 18))
@@ -701,7 +701,7 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 		elif not ground.is_empty():
 			var p: Vector2i = ground.pop_back()
 			if g[p.y][p.x] == "." and g[p.y + 1][p.x] == "#":
-				put(p.x, p.y, k if k in ["s", "h", "g", "b", "l", "n", "p"] else "c")
+				put(p.x, p.y, k if k in ["s", "h", "g", "b", "l", "n", "p", "(", ")", "%"] else "c")
 	# mimique : parfois une fausse cachette au trésor, sur un sol sûr
 	if rng.randf() < 0.3 + depth * 0.03 and not ground.is_empty():
 		var mp: Vector2i = ground.pop_back()
@@ -717,7 +717,7 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 			var q := Vector2i(p.x + dx, p.y)
 			if q.x > 0 and q.x < W - 1 and q.y + 1 < H and g[q.y][q.x] == "." and g[q.y + 1][q.x] == "#":
 				var k := _pick(gtypes) if not gtypes.is_empty() else "c"
-				put(q.x, q.y, k if k in ["s", "h", "g", "b", "l", "n", "p"] else "c")
+				put(q.x, q.y, k if k in ["s", "h", "g", "b", "l", "n", "p", "(", ")", "%"] else "c")
 				break
 	# emblèmes (« * ») et encoche
 	item_spots = _shuffled(item_spots)
@@ -754,6 +754,9 @@ func _ground_traps(depth: int) -> void:
 		"cristal": pool = {"x": 1.4, "k": 0.6}
 		"bibliotheque": pool = {"z": 1.4, "k": 0.6}
 		"ossuaire": pool = {"a": 1.4, "k": 0.6}
+		"jungle": pool = {"q": 1.0, "k": 0.8}
+		"desert": pool = {"v": 1.0, "k": 1.0}
+		"antique": pool = {"o": 0.8, "k": 1.0}
 	var want := clampi(1 + depth / 2, 1, 4)
 	var boss_x := -1000
 	for y in H:

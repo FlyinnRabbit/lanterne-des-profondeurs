@@ -32,21 +32,21 @@ func _run() -> void:
 	var pl = main.player
 	pl.sitting = false
 	var feet: float = pl.get_rect().end.y
-	var base := Vector2(pl.global_position.x - 230, feet)
+	var base := Vector2(pl.global_position.x - 200, feet)
 	pl.visible = false
 	var x := base.x
-	_mk(main, "res://scripts/monkey.gd", Vector2(x, feet - 12), {"dir": 1.0}); x += 60
-	_mk(main, "res://scripts/monkey.gd", Vector2(x, feet - 12), {"dir": 1.0, "windup_t": 0.3}); x += 60
-	_mk(main, "res://scripts/monkey.gd", Vector2(x, feet - 12), {"dir": -1.0, "loot": 20, "elite": true}); x += 70
-	_mk(main, "res://scripts/mimic.gd", Vector2(x, feet - 11), {"state": "sleep"}); x += 60
-	_mk(main, "res://scripts/mimic.gd", Vector2(x, feet - 11), {"state": "hop", "dir": -1.0}); x += 60
-	_mk(main, "res://scripts/moth.gd", Vector2(x, feet - 60), {}); 
-	_mk(main, "res://scripts/moth.gd", Vector2(x + 26, feet - 40), {"anim_t": 1.3, "elite": true}); x += 80
-	_mk(main, "res://scripts/mole.gd", Vector2(x, feet - 12), {"state": "windup", "state_t": 0.2}); x += 60
-	_mk(main, "res://scripts/mole.gd", Vector2(x, feet - 12), {"state": "exposed"}); x += 60
+	_mk(main, "res://scripts/slime.gd", Vector2(x, feet - 11), {"dir": 1.0}); x += 50
+	_mk(main, "res://scripts/slime.gd", Vector2(x, feet - 7), {"small": true, "dir": 1.0, "size": Vector2(18, 14)}); x += 40
+	_mk(main, "res://scripts/slime.gd", Vector2(x, feet - 11), {"dir": -1.0, "squish": 0.8, "elite": true}); x += 70
+	_mk(main, "res://scripts/scorpion.gd", Vector2(x, feet - 10), {"dir": 1.0}); x += 75
+	_mk(main, "res://scripts/scorpion.gd", Vector2(x, feet - 10), {"dir": 1.0, "state": "windup_sting"}); x += 75
+	_mk(main, "res://scripts/scorpion.gd", Vector2(x, feet - 10), {"dir": -1.0, "state": "sting"}); x += 80
+	_mk(main, "res://scripts/goblin.gd", Vector2(x, feet - 15), {"dir": 1.0}); x += 55
+	_mk(main, "res://scripts/goblin.gd", Vector2(x, feet - 15), {"dir": 1.0, "state": "windup_slash"}); x += 55
+	_mk(main, "res://scripts/goblin.gd", Vector2(x, feet - 15), {"dir": -1.0, "state": "slash", "elite": true}); x += 55
 	main.camera.zoom = Vector2(2.4, 2.4)
 	main.camera.position_smoothing_enabled = false
 	await _f(6)
 	await RenderingServer.frame_post_draw
-	get_root().get_texture().get_image().save_png("/tmp/newmobs.png")
+	get_root().get_texture().get_image().save_png("/tmp/newmobs2.png")
 	quit()

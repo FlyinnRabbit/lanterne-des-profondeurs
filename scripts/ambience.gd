@@ -25,7 +25,7 @@ func _ready() -> void:
 		snow_only = true
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(main.level.get("seed", 0)) + 99
-	var n: int = {"jardins": 34, "glace": 70, "ruche": 30, "profondeurs": 22, "bibliotheque": 16, "ossuaire": 10, "cristal": 18, "citadelle": 14, "forge": 26, "hub": 14}.get(biome, 14)
+	var n: int = {"jardins": 34, "glace": 70, "ruche": 30, "profondeurs": 22, "bibliotheque": 16, "ossuaire": 10, "cristal": 18, "citadelle": 14, "forge": 26, "hub": 14, "jungle": 30, "desert": 40, "antique": 14}.get(biome, 14)
 	for i in n:
 		flakes.append([Vector2(rng.randf_range(0, 1400), rng.randf_range(0, 800)), Vector2.ZERO, rng.randf_range(0, TAU), rng.randf_range(0.6, 1.4)])
 	var T: int = main.TILE
@@ -161,6 +161,21 @@ func _draw() -> void:
 				draw_colored_polygon(PackedVector2Array([p, p + Vector2(6, flap) * sc, p + Vector2(6, 5 + flap) * sc, p + Vector2(0, 5) * sc]), Color(0.92, 0.87, 0.72, 0.75))
 			"forge":
 				draw_circle(p, 1.3 * sc, Color(1.0, 0.6, 0.2, 0.5 + 0.5 * sin(ph * 6.0)))
+			"jungle":
+				# lucioles vertes et feuilles
+				if int(sc * 10.0) % 3 == 0:
+					var a2 := ph * 1.6
+					draw_colored_polygon(PackedVector2Array([p + Vector2(-4, 0).rotated(a2) * sc, p + Vector2(0, -2).rotated(a2) * sc, p + Vector2(4, 0).rotated(a2) * sc, p + Vector2(0, 2).rotated(a2) * sc]), Color(0.35, 0.65, 0.3, 0.8))
+				else:
+					var bl := 0.5 + 0.5 * sin(ph * 3.0)
+					DU.glow(self, p, 7.0 * sc, Color(0.7, 1.0, 0.4), 0.45 * bl)
+					draw_circle(p, 1.2 * sc, Color(0.9, 1.0, 0.7, bl))
+			"desert":
+				# grains de sable portés par le vent
+				draw_line(p, p + Vector2(4.0, 0.6) * sc, Color(1.0, 0.85, 0.6, 0.55), 1.0)
+			"antique":
+				# poussière dorée dans les rais de lumière
+				draw_circle(p, 1.1 * sc, Color(1.0, 0.92, 0.7, 0.4 + 0.3 * sin(ph * 2.0)))
 			"ossuaire":
 				# feux follets
 				DU.glow(self, p, 12.0 * sc, Color(0.7, 1.0, 0.8), 0.5)

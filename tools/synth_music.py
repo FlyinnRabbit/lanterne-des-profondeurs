@@ -356,6 +356,9 @@ jobs.update({
     "glace": lambda: ambient(44, "glace_souffle_givre", 60, 52, "minor", [0, 6, 5, 6, 0, 3, 4, 4], "bell", None, cutoff=1800, rev=6.0),
     "ruche": lambda: ambient(45, "ruche_bourdonnement", 112, 57, "dorian", [0, 0, 3, 4, 0, 0, 6, 4], "piano", "pluck", perc=True, drone_on=False, cutoff=2000, rev=2.0),
     "ossuaire": lambda: ambient(46, "ossuaire_requiem", 62, 47, "harm", [0, 3, 4, 0, 5, 1, 4, 4], "choir", None, cutoff=900, rev=5.5),
+    "jungle": lambda: ambient(47, "jungle_canopee_noyee", 100, 55, "dorian", [0, 3, 0, 4, 5, 3, 1, 4], "bell", "pluck", perc=True, drone_on=False, cutoff=2200, rev=2.5),
+    "desert": lambda: ambient(48, "desert_sables_enfouis", 72, 50, "harm", [0, 1, 0, 6, 0, 1, 4, 4], "piano", "box", drone_on=True, cutoff=1400, rev=4.0),
+    "antique": lambda: ambient(49, "antique_temple_oublie", 68, 52, "major", [0, 5, 3, 4, 0, 3, 4, 4], "organ", "bell", drone_on=True, cutoff=1600, rev=5.0),
 })
 
 # ---------------- bruitages ----------------

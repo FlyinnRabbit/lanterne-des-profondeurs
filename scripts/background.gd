@@ -162,6 +162,21 @@ class Layer extends Node2D:
 					_ribs(x, s)
 				else:
 					_column(x, s)
+			"jungle":
+				_tree(x, s)
+				return rng.randf_range(160.0, 320.0) * (0.7 + s)
+			"desert":
+				if rng.randf() < 0.3:
+					_obelisk(x, s)
+				else:
+					_dune(x, s)
+				return rng.randf_range(260.0, 460.0) * (0.7 + s)
+			"antique":
+				if rng.randf() < 0.25:
+					_statue(x, s)
+				else:
+					_fluted(x, s)
+				return rng.randf_range(200.0, 340.0) * (0.7 + s)
 			_:
 				_column(x, s)
 		return gap
@@ -178,6 +193,77 @@ class Layer extends Node2D:
 		var sl := rng.randf_range(80.0, 380.0)
 		var sw := rng.randf_range(18.0, 40.0) * s
 		sil(PackedVector2Array([Vector2(sx - sw, -400), Vector2(sx + sw, -400), Vector2(sx + sw * 0.3, sl * 0.6), Vector2(sx, sl)]))
+
+	# arbre géant : tronc, branches, lianes qui pendent
+	func _tree(x: float, s: float) -> void:
+		var w := rng.randf_range(40.0, 90.0) * s
+		var base := height + 400.0
+		var bend := rng.randf_range(-40.0, 40.0)
+		sil(PackedVector2Array([Vector2(x - w, base), Vector2(x - w * 0.6 + bend, height * 0.2), Vector2(x - w * 0.5 + bend, -400),
+			Vector2(x + w * 0.5 + bend, -400), Vector2(x + w * 0.6 + bend, height * 0.2), Vector2(x + w, base)]))
+		# racines contreforts
+		sil(PackedVector2Array([Vector2(x - w * 2.2, base), Vector2(x - w * 0.6, height * 0.55), Vector2(x - w * 0.4, base)]))
+		sil(PackedVector2Array([Vector2(x + w * 0.4, base), Vector2(x + w * 0.6, height * 0.6), Vector2(x + w * 2.0, base)]))
+		for i in rng.randi_range(2, 4):
+			var vx := x + rng.randf_range(-w * 3.0, w * 3.0)
+			var vl := rng.randf_range(height * 0.2, height * 0.7)
+			var pts := PackedVector2Array()
+			for k in 9:
+				var u := k / 8.0
+				pts.append(Vector2(vx + sin(u * 4.0 + i) * 10.0 * s, -300.0 + (vl + 300.0) * u))
+			draw_polyline(pts, Color(col, 1.0), 3.0 * s + 1.0)
+			draw_circle(pts[8], 4.0 * s + 1.0, Color(col, 1.0))
+			if rng.randf() < 0.5:
+				DU.glow(self, pts[8] + Vector2(0, 6), 12.0 * s + 4.0, accent, 0.3)
+
+	# dune : grande courbe de sable
+	func _dune(x: float, s: float) -> void:
+		var w := rng.randf_range(260.0, 520.0) * s
+		var hh := rng.randf_range(height * 0.15, height * 0.4)
+		var base := height + 300.0
+		var pts := PackedVector2Array([Vector2(x - w, base)])
+		for k in 13:
+			var u := k / 12.0
+			pts.append(Vector2(x - w + 2.0 * w * u, height - hh * pow(sin(u * PI), 0.8) * (1.0 + 0.15 * sin(u * 9.0))))
+		pts.append(Vector2(x + w, base))
+		sil(pts)
+
+	# obélisque de grès
+	func _obelisk(x: float, s: float) -> void:
+		var w := rng.randf_range(26.0, 46.0) * s
+		var top := rng.randf_range(height * 0.05, height * 0.35)
+		var base := height + 300.0
+		sil(PackedVector2Array([Vector2(x - w, base), Vector2(x - w * 0.7, top + w), Vector2(x, top), Vector2(x + w * 0.7, top + w), Vector2(x + w, base)]))
+		for k in 3:
+			draw_line(Vector2(x - w * 0.25, top + w * 2.0 + k * 40.0 * s), Vector2(x + w * 0.25, top + w * 2.0 + k * 40.0 * s), Color(accent, 0.2), 2.0)
+
+	# colonne cannelée à chapiteau
+	func _fluted(x: float, s: float) -> void:
+		var w := rng.randf_range(26.0, 44.0) * s
+		var top := rng.randf_range(-120.0, height * 0.3)
+		var broken := rng.randf() < 0.35
+		if broken:
+			top = rng.randf_range(height * 0.35, height * 0.65)
+		var base := height + 300.0
+		sil(PackedVector2Array([Vector2(x - w, base), Vector2(x - w, top), Vector2(x + w, top), Vector2(x + w, base)]))
+		if broken:
+			sil(PackedVector2Array([Vector2(x - w, top + 2), Vector2(x - w * 0.3, top - 18.0 * s), Vector2(x + w * 0.2, top - 6.0 * s), Vector2(x + w, top - 24.0 * s), Vector2(x + w, top + 2)]))
+		else:
+			sil(PackedVector2Array([Vector2(x - w * 1.5, top), Vector2(x - w * 1.5, top - 14.0 * s), Vector2(x + w * 1.5, top - 14.0 * s), Vector2(x + w * 1.5, top)]))
+			sil(PackedVector2Array([Vector2(x - w * 1.8, top - 14.0 * s), Vector2(x - w * 1.8, top - 26.0 * s), Vector2(x + w * 1.8, top - 26.0 * s), Vector2(x + w * 1.8, top - 14.0 * s)]))
+		for k in 3:
+			var fx := x - w * 0.5 + k * w * 0.5
+			draw_line(Vector2(fx, top + 10), Vector2(fx, height + 200), Color(accent, 0.07), 2.0 * s + 1.0)
+
+	# tête de statue colossale effondrée
+	func _statue(x: float, s: float) -> void:
+		var r := rng.randf_range(60.0, 110.0) * s
+		var base := height + 300.0
+		var c := Vector2(x, height - r * 0.4)
+		sil(DU.ellipse(c, Vector2(r * 0.8, r)))
+		sil(PackedVector2Array([Vector2(c.x - r * 1.2, base), Vector2(c.x - r * 0.9, c.y + r * 0.4), Vector2(c.x + r * 0.9, c.y + r * 0.4), Vector2(c.x + r * 1.2, base)]))
+		draw_line(c + Vector2(-r * 0.4, -r * 0.15), c + Vector2(-r * 0.1, -r * 0.15), Color(accent, 0.18), 3.0)
+		draw_line(c + Vector2(r * 0.1, -r * 0.15), c + Vector2(r * 0.4, -r * 0.15), Color(accent, 0.18), 3.0)
 
 	func _mushroom(x: float, s: float) -> void:
 		var hgt := rng.randf_range(height * 0.3, height * 0.8)

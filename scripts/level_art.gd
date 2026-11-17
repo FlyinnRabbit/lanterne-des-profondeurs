@@ -5,10 +5,10 @@ extends Node2D
 const DU = preload("res://scripts/draw_util.gd")
 const RockShader = preload("res://shaders/rock.gdshader")
 const STYLE := {"profondeurs": 0, "jardins": 7, "citadelle": 1, "cristal": 2, "forge": 3,
-	"bibliotheque": 1, "glace": 4, "ruche": 5, "ossuaire": 6, "hub": 1}
+	"bibliotheque": 1, "glace": 4, "ruche": 5, "ossuaire": 6, "hub": 1, "jungle": 7, "desert": 0, "antique": 1}
 # quantité d'herbe sur les sols
 const GRASS := {"profondeurs": 0.7, "jardins": 1.0, "hub": 0.8, "citadelle": 0.35, "cristal": 0.25,
-	"bibliotheque": 0.2, "ruche": 0.3, "ossuaire": 0.35, "forge": 0.0, "glace": 0.0}
+	"bibliotheque": 0.2, "ruche": 0.3, "ossuaire": 0.35, "forge": 0.0, "glace": 0.0, "jungle": 1.0, "desert": 0.08, "antique": 0.3}
 
 var main
 var depth := {}
@@ -237,6 +237,12 @@ func _decor(r: Rect2, h: float, x: int, y: int) -> void:
 				_crystals(g, 6.0 + h * 10.0, moss)
 			"ossuaire":
 				_bones(g, h)
+			"jungle":
+				_fern(g, h)
+			"desert":
+				_cactus(g, h)
+			"antique":
+				_ruin(g, h)
 			"ruche":
 				DU.poly(self, DU.ellipse(g + Vector2(0, -3), Vector2(6, 4)), Color(0.85, 0.6, 0.2))
 			"bibliotheque":
@@ -256,8 +262,58 @@ func _decor(r: Rect2, h: float, x: int, y: int) -> void:
 				_flower(g, h)
 			"ossuaire":
 				_skull(g)
+			"jungle":
+				_flower(g, h)
+			"desert":
+				DU.poly(self, DU.ellipse(g + Vector2(0, -1), Vector2(8, 3), 12, PI, TAU), main.pal["rock_hi"].lightened(0.1))
+			"antique":
+				_amphora(g, h)
 			"forge":
 				DU.poly(self, PackedVector2Array([g + Vector2(-7, 0), g + Vector2(-2, -5), g + Vector2(4, -4), g + Vector2(8, 0)]), Color(0.18, 0.12, 0.1))
+
+# fougère : frondes arquées de part et d'autre
+func _fern(g: Vector2, h: float) -> void:
+	var col := Color(0.3, 0.62, 0.28).lerp(Color(0.45, 0.75, 0.3), h)
+	for k in 5:
+		var a := -PI / 2.0 + (k - 2) * 0.42
+		var tip := g + Vector2.from_angle(a) * (10.0 + h * 6.0 - absf(k - 2) * 1.5)
+		var mid := (g + tip) * 0.5 + Vector2.from_angle(a + PI / 2.0) * 2.0
+		draw_polyline(PackedVector2Array([g, mid, tip]), col, 1.4)
+		for j in 3:
+			var q := g.lerp(tip, 0.35 + j * 0.2)
+			draw_line(q, q + Vector2.from_angle(a - 0.9) * 3.0, col.lightened(0.15), 1.0)
+			draw_line(q, q + Vector2.from_angle(a + 0.9) * 3.0, col.lightened(0.15), 1.0)
+
+# cactus à bras
+func _cactus(g: Vector2, h: float) -> void:
+	var c := Color(0.36, 0.55, 0.32)
+	var hh := 10.0 + h * 8.0
+	draw_line(g, g + Vector2(0, -hh), c.darkened(0.3), 6.0)
+	draw_line(g, g + Vector2(0, -hh), c, 4.0)
+	draw_circle(g + Vector2(0, -hh), 2.0, c)
+	var s := 1.0 if h > 0.5 else -1.0
+	draw_polyline(PackedVector2Array([g + Vector2(0, -hh * 0.45), g + Vector2(s * 5, -hh * 0.45), g + Vector2(s * 5, -hh * 0.75)]), c, 3.0)
+	for k in 3:
+		draw_line(g + Vector2(-2.5, -hh * (0.3 + k * 0.22)), g + Vector2(-4, -hh * (0.3 + k * 0.22) - 1), Color(0.95, 0.9, 0.75), 0.7)
+
+# tronçon de colonne brisée
+func _ruin(g: Vector2, h: float) -> void:
+	var m := Color(0.72, 0.7, 0.66)
+	var hh := 8.0 + h * 10.0
+	DU.box(self, Rect2(g + Vector2(-6, -hh), Vector2(12, hh)), m)
+	for k in 3:
+		draw_line(g + Vector2(-3 + k * 3, -hh + 1), g + Vector2(-3 + k * 3, -1), m.darkened(0.25), 1.0)
+	DU.flat(self, PackedVector2Array([g + Vector2(-6, -hh), g + Vector2(-2, -hh - 3), g + Vector2(3, -hh - 1), g + Vector2(6, -hh - 4), g + Vector2(6, -hh)]), m.lightened(0.1))
+	DU.box(self, Rect2(g + Vector2(-8, -2), Vector2(16, 2)), m.darkened(0.15))
+
+# amphore
+func _amphora(g: Vector2, h: float) -> void:
+	var c := Color(0.62, 0.36, 0.22) if h > 0.5 else Color(0.5, 0.42, 0.34)
+	DU.poly(self, DU.ellipse(g + Vector2(0, -6), Vector2(4.5, 6)), c)
+	DU.box(self, Rect2(g + Vector2(-1.5, -14), Vector2(3, 3)), c)
+	draw_arc(g + Vector2(-3, -10), 2.0, PI * 0.5, PI * 1.5, 6, c.darkened(0.2), 1.0)
+	draw_arc(g + Vector2(3, -10), 2.0, -PI * 0.5, PI * 0.5, 6, c.darkened(0.2), 1.0)
+	draw_line(g + Vector2(-4, -6), g + Vector2(4, -6), Color(0.15, 0.1, 0.08, 0.6), 1.2)
 
 func _mushroom(g: Vector2, s: float, cap: Color) -> void:
 	DU.poly(self, PackedVector2Array([g + Vector2(-s * 0.18, 0), g + Vector2(-s * 0.12, -s), g + Vector2(s * 0.12, -s), g + Vector2(s * 0.18, 0)]), Color(0.85, 0.82, 0.7), false)

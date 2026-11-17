@@ -23,10 +23,11 @@ var _close_rect := Rect2()
 const PAGES := ["Statistiques de la partie", "Records", "Bestiaire", "Gardiens", "Emblèmes"]
 const PAGE_SUBS := ["tout depuis la création de ta sauvegarde", "tes meilleurs exploits", "les créatures vaincues", "les boss vaincus", "ta collection"]
 
-const MOBS := ["crawler", "flyer", "spitter", "hopper", "guard", "bomber", "weaver", "lancer", "wraith", "monkey", "mimic", "moth", "mole"]
+const MOBS := ["crawler", "flyer", "spitter", "hopper", "guard", "bomber", "weaver", "lancer", "wraith", "monkey", "mimic", "moth", "mole", "slime", "scorpion", "goblin"]
 const MOB_NAMES := {"crawler": "Rampant", "flyer": "Volant", "spitter": "Cracheur", "hopper": "Sauteur", "guard": "Garde",
 	"bomber": "Bulbe", "weaver": "Tisseuse", "lancer": "Lancier", "wraith": "Spectre",
-	"monkey": "Singe", "mimic": "Mimique", "moth": "Mite", "mole": "Taupe"}
+	"monkey": "Singe", "mimic": "Mimique", "moth": "Mite", "mole": "Taupe",
+	"slime": "Slime", "scorpion": "Scorpion", "goblin": "Gobelin"}
 const MOB_DESC := {
 	"crawler": "Patrouille au sol ; quand il te voit, il se ramasse puis charge tête baissée.",
 	"flyer": "Tourne en l'air puis plonge droit sur toi.",
@@ -40,7 +41,10 @@ const MOB_DESC := {
 	"monkey": "Bondit partout, lance des fruits durs et te vole des éclats avant de s'enfuir.",
 	"mimic": "Se fait passer pour une cachette au trésor, puis mord et sautille vers toi.",
 	"moth": "Attirée par ta lanterne : en tournant autour de toi, elle assombrit tout.",
-	"mole": "Creuse sous le sol jusqu'à toi, puis jaillit sous tes pieds."}
+	"mole": "Creuse sous le sol jusqu'à toi, puis jaillit sous tes pieds.",
+	"slime": "Avance par bonds écrasés ; tué, il se divise en deux petits slimes.",
+	"scorpion": "Arme son dard puis pique en avant : le venin te coûte un masque de plus un peu après.",
+	"goblin": "Lance des dagues de loin, frappe deux fois de près, et s'enfuit quand il faiblit."}
 const MOB_TIPS := {
 	"crawler": "Un rebond sur sa carapace l'arrête net.",
 	"flyer": "Recule au moment du piqué, puis frappe vers le haut.",
@@ -54,7 +58,10 @@ const MOB_TIPS := {
 	"monkey": "Frappe-le avant qu'il ne file : il rend tout ce qu'il a volé.",
 	"mimic": "Son couvercle tressaille parfois : une vraie cachette ne bouge jamais.",
 	"moth": "Fragile : un coup suffit. Vise-la quand elle s'arrête avant de foncer.",
-	"mole": "Écarte-toi quand le sol se fissure, puis frappe-la pendant qu'elle est sortie."}
+	"mole": "Écarte-toi quand le sol se fissure, puis frappe-la pendant qu'elle est sortie.",
+	"slime": "Un rebond dessus l'écrase net ; garde de la place pour ses petits.",
+	"scorpion": "Ses pinces parent les coups bas : frappe-le de dessus. Repose-toi pour chasser le venin.",
+	"goblin": "Pare ses dagues pour les lui renvoyer ; s'il fuit, achève-le avant qu'il ne revienne."}
 
 const BOSSES := ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre", "cerbere", "centaure", "oeil"]
 const BOSS_NAMES := {"gardien": "Le Gardien du Puits", "abbesse": "L'Abbesse Engloutie", "reine": "La Reine Essaim",

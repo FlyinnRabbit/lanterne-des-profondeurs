@@ -59,6 +59,9 @@ const MonkeyScript = preload("res://scripts/monkey.gd")
 const MimicScript = preload("res://scripts/mimic.gd")
 const MothScript = preload("res://scripts/moth.gd")
 const MoleScript = preload("res://scripts/mole.gd")
+const SlimeScript = preload("res://scripts/slime.gd")
+const ScorpionScript = preload("res://scripts/scorpion.gd")
+const GoblinScript = preload("res://scripts/goblin.gd")
 const LancerScript = preload("res://scripts/lancer.gd")
 const WraithScript = preload("res://scripts/wraith.gd")
 
@@ -509,6 +512,12 @@ func _spawn_everything() -> void:
 					enemy_spawns.append([MimicScript, _cell_feet(x, y, 22), null, _roll_elite(x, y)])
 				"p":
 					enemy_spawns.append([MoleScript, _cell_feet(x, y, 24), null, _roll_elite(x, y)])
+				"(":
+					enemy_spawns.append([SlimeScript, _cell_feet(x, y, 22), null, _roll_elite(x, y)])
+				")":
+					enemy_spawns.append([ScorpionScript, _cell_feet(x, y, 20), null, _roll_elite(x, y)])
+				"%":
+					enemy_spawns.append([GoblinScript, _cell_feet(x, y, 30), null, _roll_elite(x, y)])
 				"e":
 					# mites : arrivent par deux ou trois
 					var nm := 2 + int(fposmod(float(x * 7 + y * 3), 2.0))
@@ -1425,7 +1434,7 @@ func ultimate_blast(pos: Vector2) -> void:
 
 # Journal des dégâts infligés (coin de l'écran)
 const ENEMY_NAMES := {"crawler.gd": "Rampant", "flyer.gd": "Volant", "spitter.gd": "Cracheur", "hopper.gd": "Sauteur",
-	"guard.gd": "Garde", "bomber.gd": "Bulbe", "weaver.gd": "Tisseuse", "monkey.gd": "Singe", "mimic.gd": "Mimique", "moth.gd": "Mite", "mole.gd": "Taupe", "lancer.gd": "Lancier", "wraith.gd": "Spectre",
+	"guard.gd": "Garde", "bomber.gd": "Bulbe", "weaver.gd": "Tisseuse", "monkey.gd": "Singe", "mimic.gd": "Mimique", "moth.gd": "Mite", "mole.gd": "Taupe", "slime.gd": "Slime", "scorpion.gd": "Scorpion", "goblin.gd": "Gobelin", "lancer.gd": "Lancier", "wraith.gd": "Spectre",
 	"dummy.gd": "Mannequin", "shade.gd": "Ombre"}
 func on_damage_dealt(e, dmg: int) -> void:
 	if player and e.get_script() != DummyScript:

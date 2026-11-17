@@ -570,7 +570,8 @@ func _draw() -> void:
 # ---------------------------------------------------------------- portails de fin de niveau, un par biome
 const DOOR_COLORS := {"jardins": Color(0.6, 1.0, 0.6), "citadelle": Color(0.85, 0.75, 1.0), "cristal": Color(0.55, 1.0, 1.0),
 	"forge": Color(1.0, 0.6, 0.3), "bibliotheque": Color(1.0, 0.85, 0.5), "glace": Color(0.82, 0.95, 1.0),
-	"ruche": Color(1.0, 0.8, 0.3), "ossuaire": Color(0.8, 0.92, 0.75)}
+	"ruche": Color(1.0, 0.8, 0.3), "ossuaire": Color(0.8, 0.92, 0.75),
+	"jungle": Color(0.6, 1.0, 0.45), "desert": Color(1.0, 0.8, 0.45), "antique": Color(0.75, 0.95, 0.9)}
 
 static func door_color(biome: String) -> Color:
 	return DOOR_COLORS.get(biome, Color(0.55, 0.8, 1.0))
@@ -639,6 +640,9 @@ func _door() -> void:
 		"glace": _door_ice(c, a)
 		"ruche": _door_hive(c, a)
 		"ossuaire": _door_bones(c, a)
+		"jungle": _door_stone(c, a, Color(0.28, 0.36, 0.24), Color(0.35, 0.65, 0.3))
+		"desert": _door_stone(c, a, Color(0.62, 0.48, 0.3), Color(0.75, 0.6, 0.35))
+		"antique": _door_stone(c, a, Color(0.68, 0.67, 0.66), Color(0.4, 0.7, 0.62))
 		_: _door_stone(c, a, Color(0.34, 0.35, 0.44), Color(0.3, 0.48, 0.32))
 
 # arche de pierre en plein cintre (Profondeurs, tutoriel, Sanctuaire) ; sert aussi de base
