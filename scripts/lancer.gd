@@ -52,21 +52,26 @@ func _physics_process(delta: float) -> void:
 							state_t = (0.4 if elite else 0.55) / sqrt(aggro())
 						elif absf(d.x) > 70.0:
 							velocity.x = dir * 75.0 * spd()
-					if is_on_floor() and not main.is_solid_at(global_position + Vector2(dir * 20.0, size.y / 2.0 + 8.0)):
+					if _edge(dir):
 						velocity.x = 0.0
 			"windup":
-				velocity.x = -dir * 15.0
+				velocity.x = 0.0 if _edge(-dir) else -dir * 15.0
 				if state_t <= 0.0:
 					state = "thrust"
 					state_t = 0.25
 					Audio.sfx("slash", 0.1, -2.0)
 			"thrust":
-				velocity.x = dir * 160.0 * spd()
+				# la fente s'arrête net au bord du vide
+				velocity.x = 0.0 if _edge(dir) else dir * 160.0 * spd()
 				if state_t <= 0.0:
 					state = "walk"
 					cd = 1.3 / aggro()
 	move_and_slide()
 	queue_redraw()
+
+# vide juste devant lui dans la direction d ?
+func _edge(d: float) -> bool:
+	return is_on_floor() and not main.is_solid_at(global_position + Vector2(d * 20.0, size.y / 2.0 + 8.0))
 
 func _draw() -> void:
 	var f := dir
