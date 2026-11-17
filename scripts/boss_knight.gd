@@ -2,7 +2,8 @@ extends "res://scripts/boss_base.gd"
 # Le Chevalier Spectral : duelliste rapide en armure fantôme.
 # Attaques : estoc fulgurant (ruée + entaille), téléportation dans le dos suivie d'une entaille,
 # piliers spectraux qui jaillissent en ligne vers le joueur, salve de braises.
-# Phase 2 : combos de trois estocs, piliers des deux côtés, téléportations plus rapides.
+# Phase 2 : combos de deux estocs, piliers des deux côtés, téléportations plus rapides.
+# (rééquilibré : préparations plus longues, ruée moins rapide, plus de temps pour riposter)
 
 var combo := 0
 var fade := 1.0
@@ -24,10 +25,10 @@ func is_harmful() -> bool:
 
 func _choose() -> void:
 	face_player()
-	match pick({"thrust": 3, "blink": 2.5, "pillars": 2, "embers": 1.5, "stalk": 1}):
+	match pick({"thrust": 3, "blink": 1.8, "pillars": 2, "embers": 1.5, "stalk": 1}):
 		"thrust":
-			combo = 1 if phase == 1 else 3
-			go("windup_thrust", tele(0.4))
+			combo = 1 if phase == 1 else 2
+			go("windup_thrust", tele(0.5))
 		"blink":
 			go("fade_out", 0.3 / sqrt(rage()))
 		"pillars":
@@ -63,15 +64,15 @@ func _tick(delta: float) -> void:
 				Audio.sfx("dash", 0.1)
 				go("thrust", 0.28)
 		"thrust":
-			velocity.x = dir * 760.0 * rage()
+			velocity.x = dir * 640.0 * rage()
 			if int(anim_t * 60) % 3 == 0:
 				ghosts.append([global_position, 0.0])
 			if state_t <= 0.0 or is_on_wall():
 				combo -= 1
 				if combo > 0:
-					go("windup_thrust", 0.22)
+					go("windup_thrust", tele(0.35))
 				else:
-					go("recover", 0.7 / rage())
+					go("recover", 1.0 / rage())
 		"fade_out":
 			velocity.x = 0.0
 			fade = clampf(state_t / 0.3, 0.0, 1.0)
@@ -81,13 +82,14 @@ func _tick(delta: float) -> void:
 				ghosts.append([global_position, 0.0])
 				global_position = Vector2(behind, floor_y - size.y / 2.0 - 2.0)
 				face_player()
-				go("fade_in", 0.25)
+				Audio.sfx("dash", 0.2, -4.0)     # on l'entend revenir dans le dos
+				go("fade_in", 0.3)
 		"fade_in":
-			fade = 1.0 - clampf(state_t / 0.25, 0.0, 1.0)
+			fade = 1.0 - clampf(state_t / 0.3, 0.0, 1.0)
 			if state_t <= 0.0:
 				fade = 1.0
 				combo = 1
-				go("windup_thrust", tele(0.3))
+				go("windup_thrust", tele(0.45))
 		"windup_pillars":
 			velocity.x = 0.0
 			if state_t <= 0.0:
@@ -99,7 +101,7 @@ func _tick(delta: float) -> void:
 		"windup_embers":
 			velocity.x = 0.0
 			if state_t <= 0.0:
-				var n := 5 if phase == 1 else 7
+				var n := 5 if phase == 1 else 6
 				for i in n:
 					var a := (pp - global_position).angle() + (i - (n - 1) / 2.0) * 0.16
 					main.spawn_projectile(global_position + Vector2(dir * 20, -20), Vector2.from_angle(a) * 300.0 * spd(), {"kind": "ember"})
