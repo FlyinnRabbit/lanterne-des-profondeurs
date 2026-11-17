@@ -101,8 +101,9 @@ func _run() -> void:
 	var spot: Vector2 = pl.global_position
 	var mobs := {"crawler": main.CrawlerScript, "flyer": main.FlyerScript, "spitter": main.SpitterScript, "hopper": main.HopperScript,
 		"guard": main.GuardScript, "bomber": main.BomberScript, "weaver": main.WeaverScript, "lancer": main.LancerScript, "wraith": main.WraithScript,
-		"monkey": main.MonkeyScript, "mimic": main.MimicScript, "moth": main.MothScript, "mole": main.MoleScript}
-	var ids: Array = ["monkey", "mimic", "moth", "mole"] if only_new else ([] if only_bosses else mobs.keys())
+		"monkey": main.MonkeyScript, "mimic": main.MimicScript, "moth": main.MothScript, "mole": main.MoleScript,
+		"slime": main.SlimeScript, "scorpion": main.ScorpionScript, "goblin": main.GoblinScript}
+	var ids: Array = ["slime", "scorpion", "goblin"] if only_new else ([] if only_bosses else mobs.keys())
 	for id in ids:
 		for elite in [false, true]:
 			if elite and not id in ["crawler", "flyer", "spitter", "hopper", "guard"]:
