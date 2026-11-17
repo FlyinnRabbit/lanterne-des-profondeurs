@@ -831,6 +831,7 @@ func _process(delta: float) -> void:
 	_update_darkness()
 	_reveal_t -= delta
 	_update_rooms(delta)
+	_enemy_spikes(delta)
 	if GameState.mode in ["descent", "rush"] and not get_tree().paused:
 		Achievements.run["time"] = float(Achievements.run.get("time", 0.0)) + delta
 	if not get_tree().paused:
@@ -1040,6 +1041,28 @@ func is_solid_at(p: Vector2) -> bool:
 		if g and is_instance_valid(g) and g.closed and g.rect.grow(2.0).has_point(p):
 			return true
 	return false
+
+# Les pics des fosses blessent aussi les ennemis qui y tombent (ou qu'on y pousse) :
+# 2 dégâts, puis toutes les 0,5 s tant qu'ils restent dessus. Pas les boss.
+var _spike_cd := {}
+func _enemy_spikes(delta: float) -> void:
+	if spikes.is_empty():
+		return
+	for e in _spike_cd.keys():
+		if not is_instance_valid(e):
+			_spike_cd.erase(e)
+		else:
+			_spike_cd[e] -= delta
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e) or e.dead or e.is_boss or float(_spike_cd.get(e, 0.0)) > 0.0:
+			continue
+		var r: Rect2 = e.get_rect().grow(-3)
+		for sp in spikes:
+			if r.intersects(sp):
+				_spike_cd[e] = 0.5
+				e.take_hit(2, Vector2(0, -1))
+				spawn_burst(Vector2(e.global_position.x, sp.position.y), Color(0.85, 0.85, 0.9), 6, 120.0)
+				break
 
 # Pluie de gravats (Mines de Cristal) : poussière qui tombe d'abord du plafond au-dessus de x,
 # puis quelques pierres, décalées dans le temps.
