@@ -317,7 +317,14 @@ func _spawn_everything() -> void:
 					player.hp = player.max_hp
 					if GameState.carry_hp > 0 and GameState.mode == "descent" and GameState.step > 1:
 						player.hp = mini(GameState.carry_hp, player.max_hp)
+						# l'âme et l'ultime suivent aussi le héros à travers le portail
+						if GameState.carry_soul >= 0:
+							player.soul = mini(GameState.carry_soul, player.SOUL_MAX)
+						if GameState.carry_ult >= 0:
+							player.ult = mini(GameState.carry_ult, player.ULT_MAX)
 					GameState.carry_hp = -1
+					GameState.carry_soul = -1
+					GameState.carry_ult = -1
 				"B":
 					bench_pos = _cell_feet(x, y, 34)
 					benches.append(bench_pos)

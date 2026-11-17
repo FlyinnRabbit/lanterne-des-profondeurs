@@ -4,7 +4,7 @@ extends Node
 
 const FADE := 1.5
 const SFX_NAMES := ["slash", "hit", "hurt", "parry", "dash", "jump", "ult", "pickup", "heal", "spit", "kill", "door",
-	"whip", "hammer", "star", "star_hit", "crit", "crit_ready", "achievement"]
+	"whip", "hammer", "star", "star_hit", "crit", "crit_ready", "achievement", "soul_level", "soul_full"]
 
 var players: Array[AudioStreamPlayer] = []
 var active := 0

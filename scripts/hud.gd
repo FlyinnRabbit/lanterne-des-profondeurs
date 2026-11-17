@@ -9,6 +9,8 @@ var main
 var message := ""
 var message_t := 0.0
 var shown_soul := 0.0
+var soul_levels := -1          # niveaux pleins du flacon à l'image précédente (-1 : pas encore lu)
+var level_flash := [0.0, 0.0, 0.0, 0.0]   # éclat de chaque losange quand son niveau se remplit
 var damage_log := []     # [dégâts, nom, type de coup, coup fatal, âge]
 const LOG_TIME := 1.6
 var t := 0.0
@@ -43,8 +45,17 @@ func _process(delta: float) -> void:
 	for ts in toasts:
 		ts[1] += delta
 	toasts = toasts.filter(func(ts): return ts[1] < 4.0)
-	if main and main.player:
+	if main and main.player and is_instance_valid(main.player):
 		shown_soul = lerpf(shown_soul, float(main.player.soul), minf(delta * 10.0, 1.0))
+		# un niveau du flacon vient de se remplir : tintement (arpège quand il est plein) et éclat
+		var lv: int = int(main.player.soul) / int(main.player.FOCUS_COST)
+		if soul_levels >= 0 and lv > soul_levels:
+			Audio.sfx("soul_full" if lv >= 3 else "soul_level", 0.03, -4.0)
+			for k in range(soul_levels + 1, lv + 1):
+				level_flash[mini(k, 3)] = 1.0
+		soul_levels = lv
+	for k in 4:
+		level_flash[k] = maxf(level_flash[k] - delta * 2.2, 0.0)
 	queue_redraw()
 
 func _draw() -> void:
@@ -122,9 +133,24 @@ func _draw() -> void:
 		var lit2: bool = levels >= k
 		if lit2:
 			DU.glow(self, mp, 9.0, Color(0.6, 0.75, 1.0), 0.35 + 0.15 * sin(t * 4.0 + k))
+		if level_flash[k] > 0.0:
+			var fl: float = level_flash[k]
+			DU.glow(self, mp, 9.0 + 14.0 * (1.0 - fl), Color(0.85, 0.92, 1.0), 0.9 * fl)
+			draw_line(Vector2(c.x - gh2 + 2.0, gy2), Vector2(c.x + gh2 - 2.0, gy2), Color(1, 1, 1, 0.7 * fl), 2.0)
 		var dm := PackedVector2Array([mp + Vector2(0, -4), mp + Vector2(4, 0), mp + Vector2(0, 4), mp + Vector2(-4, 0)])
 		draw_colored_polygon(dm, Color(0.92, 0.96, 1.0) if lit2 else Color(0.12, 0.12, 0.16))
 		draw_polyline(PackedVector2Array([dm[0], dm[1], dm[2], dm[3], dm[0]]), brass, 1.2)
+	# flacon plein : un reflet lumineux balaie le verre de temps en temps (l'âme en plus est perdue)
+	if levels >= 3:
+		var sw := fposmod(t * 0.55, 1.6)
+		if sw < 1.0:
+			var sx := c.x - r + 2.0 * r * sw
+			for j in 3:
+				var xx := sx + j * 3.0 - 3.0
+				var hh := sqrt(maxf(r * r - (xx - c.x) * (xx - c.x), 0.0)) - 2.0
+				if hh > 0.0:
+					draw_line(Vector2(xx + 4.0, c.y - hh), Vector2(xx - 4.0, c.y + hh), Color(1, 1, 1, 0.16 if j != 1 else 0.3), 2.0)
+		draw_arc(c, r + 7, 0, TAU, 48, Color(0.75, 0.85, 1.0, 0.18 + 0.12 * sin(t * 3.0)), 2.0)
 	# reflet du verre et cerclage
 	draw_arc(c, r - 5, PI * 1.1, PI * 1.45, 12, Color(1, 1, 1, 0.45), 3.0)
 	draw_arc(c, r + 3, 0, TAU, 48, brass.darkened(0.45), 6.0)

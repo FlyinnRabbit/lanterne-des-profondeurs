@@ -85,6 +85,8 @@ const DIFFS := [
 var difficulty := 1
 var one_life := false      # mode « une seule vie » : la partie s'efface à la première mort (hors tutoriel)
 var carry_hp := -1          # vie gardée en passant le portail vers la zone suivante (-1 : vie pleine)
+var carry_soul := -1        # âme et jauge d'ultime gardées aussi d'une zone à l'autre (-1 : rien)
+var carry_ult := -1
 var show_title := true       # écran titre au lancement du jeu
 
 var mode := "tutorial"
@@ -362,6 +364,8 @@ func go_next_level(player) -> void:
 			# La vie est conservée d'une zone à l'autre du palier ; en Facile et Normal,
 			# le portail rend un masque (en Difficile et Cauchemar, rien).
 			carry_hp = int(player.hp) + (1 if difficulty <= 1 else 0)
+			carry_soul = int(player.soul)
+			carry_ult = int(player.ult)
 		else:
 			record = maxi(record, palier)
 			unlocked = maxi(unlocked, palier + 1)

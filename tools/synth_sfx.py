@@ -1,5 +1,5 @@
 # Bruitages supplémentaires générés par synthèse (aucun échantillon externe).
-# python3 tools/synth_sfx.py -> sfx/whip.wav, hammer.wav, star.wav, star_hit.wav, crit.wav, crit_ready.wav, achievement.wav
+# python3 tools/synth_sfx.py -> sfx/whip.wav, hammer.wav, star.wav, star_hit.wav, crit.wav, crit_ready.wav, achievement.wav, soul_level.wav, soul_full.wav
 import numpy as np, wave, os
 SR = 44100
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "sfx")
@@ -70,4 +70,17 @@ for i, f in enumerate((784, 988, 1175, 1568)):
     tt = np.arange(m) / SR
     x[s0:] += (np.sin(2 * np.pi * f * tt) + 0.3 * np.sin(4 * np.pi * f * tt)) * env(m, 0.003, 1, 4)
 write("achievement", x)
+# flacon d'âme : un niveau se remplit (tintement de verre, court et doux)
+n = int(0.45 * SR); t = np.arange(n) / SR
+x = (np.sin(2 * np.pi * 1760 * t) + 0.45 * np.sin(2 * np.pi * 2637 * t) + 0.2 * np.sin(2 * np.pi * 4186 * t)) * env(n, 0.001, 1, 7)
+x += bandpass(noise(n), 5000, 11000) * env(n, 0, 0.12, 60)
+write("soul_level", x)
+
+# flacon plein : petit arpège cristallin qui scintille
+n = int(0.8 * SR); x = np.zeros(n)
+for i, f in enumerate((1319, 1760, 2217, 2637)):
+    s0 = int(i * 0.05 * SR); m = n - s0
+    tt = np.arange(m) / SR
+    x[s0:] += np.sin(2 * np.pi * f * tt) * (1 + 0.25 * np.sin(2 * np.pi * 9 * tt)) * env(m, 0.002, 0.8, 5)
+write("soul_full", x)
 print("ok")

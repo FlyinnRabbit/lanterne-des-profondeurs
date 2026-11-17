@@ -1,5 +1,6 @@
 extends SceneTree
 # Vie conservée au portail entre les zones d'un palier : +1 masque en Facile/Normal, rien en Difficile/Cauchemar.
+# L'âme et la jauge d'ultime passent aussi le portail telles quelles.
 func _initialize() -> void:
 	_run()
 func _f(n):
@@ -22,6 +23,8 @@ func _run() -> void:
 		await _f(10)
 		var pl = current_scene.player
 		pl.hp = 2
+		pl.soul = 57
+		pl.ult = 41
 		gs.go_next_level(pl)
 		await process_frame
 		await process_frame
@@ -29,8 +32,8 @@ func _run() -> void:
 		await _f(10)
 		var pl2 = current_scene.player
 		var want := 3 if diff <= 1 else 2
-		print("difficulté %d : zone %d, vie %d/%d (attendu %d)" % [diff, gs.step, pl2.hp, pl2.max_hp, want])
-		if pl2.hp != want or gs.step != 2:
+		print("difficulté %d : zone %d, vie %d/%d (attendu %d), âme %d, ultime %d" % [diff, gs.step, pl2.hp, pl2.max_hp, want, pl2.soul, pl2.ult])
+		if pl2.hp != want or gs.step != 2 or pl2.soul != 57 or pl2.ult != 41:
 			ok = false
 	print("RÉSULTAT : ", "OK" if ok else "ÉCHEC")
 	quit()

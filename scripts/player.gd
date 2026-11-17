@@ -96,6 +96,8 @@ var claw_split := false
 var claw_kind := ""
 var claw_second := -1.0
 var claw_hand := 0
+var ult_frac := 0.0               # demi-points d'ultime en attente (griffes)
+var soul_frac := 0.0              # demi-points d'âme en attente (griffes)
 var last_crit_t := 0.0          # pour le journal des dégâts
 var perfect_t := 0.0
 var cs: CollisionShape2D
@@ -169,6 +171,10 @@ func focus_time() -> float:
 func soul_per_hit() -> int:
 	# armes très rapides (griffes) : moins d'âme par coup, pour garder le même rythme de soins
 	return roundi((SOUL_PER_HIT + (6 if eq(C.GREED) else 0)) * float(GameState.d("soul")) * float(weapon().get("soul", 1.0)))
+
+# âme d'une attaque complète, sans arrondi (les griffes la partagent entre leurs deux coups)
+func _soul_per_attack() -> float:
+	return (SOUL_PER_HIT + (6 if eq(C.GREED) else 0)) * float(GameState.d("soul")) * float(weapon().get("soul", 1.0))
 
 func ult_per_hit() -> int:
 	return roundi((ULT_PER_HIT + (4 if eq(C.GREED) else 0)) * float(GameState.d("ult")))
@@ -688,8 +694,22 @@ func _do_attack_hits() -> void:
 					e.knock = pull.normalized() * minf(sqrt(4400.0 * gap), 900.0)   # s'arrête à ~70 px
 					e.stun_t = maxf(e.stun_t, 0.7)
 			Audio.sfx("hit")
-			soul = mini(soul + soul_per_hit(), SOUL_MAX)
-			ult = mini(ult + (ult_per_hit() / 2 if split else ult_per_hit()), ULT_MAX)
+			if split:
+				# chaque griffe rapporte la moitié de l'âme d'une attaque, au demi-point près
+				soul_frac += _soul_per_attack() * 0.5
+				var whole_s := int(soul_frac)
+				soul_frac -= whole_s
+				soul = mini(soul + whole_s, SOUL_MAX)
+			else:
+				soul = mini(soul + soul_per_hit(), SOUL_MAX)
+			if split:
+				# demi-gain par griffe, sans perdre la moitié d'un point quand le gain est impair
+				ult_frac += ult_per_hit() * 0.5
+				var whole_u := int(ult_frac)
+				ult_frac -= whole_u
+				ult = mini(ult + whole_u, ULT_MAX)
+			else:
+				ult = mini(ult + ult_per_hit(), ULT_MAX)
 			main.shake(4 if attack_kind == "slash" else 8)
 			main.hit_stop(0.04 if attack_kind == "slash" else 0.07)
 			if attack_kind in ["spin", "thrust", "air_spin", "air_rise"]:
@@ -797,7 +817,7 @@ func _on_parry(from_pos: Vector2, source) -> void:
 
 # Arme tenue en main (dessinée dans le repère du personnage, pieds en 0, tourné à droite)
 # traînée de coup « peinte » : croissant effilé, bord extérieur vif qui s'estompe vers l'intérieur
-func _smear(piv: Vector2, rad: float, a0: float, a1: float, thick: float, col: Color, k: float) -> void:
+func _smear(piv: Vector2, rad: float, a0: float, a1: float, thick: float, col: Color, k: float, pale := true) -> void:
 	col = col * Color(GameState.cos.look("trail")["slash"], 1.0)
 	var n := 16
 	var outer := PackedVector2Array()
@@ -808,19 +828,26 @@ func _smear(piv: Vector2, rad: float, a0: float, a1: float, thick: float, col: C
 		var th := thick * sin(u * PI) * (0.5 + 0.7 * u)
 		outer.append(piv + Vector2.from_angle(a) * rad)
 		inner.append(piv + Vector2.from_angle(a) * (rad - th))
-	var pts := PackedVector2Array()
-	var cols := PackedColorArray()
-	for i in n + 1:
-		pts.append(outer[i])
-		var u := float(i) / n
-		cols.append(Color(col.lightened(0.6), (0.45 + 0.55 * u) * k))
-	for i in range(n, -1, -1):
-		pts.append(inner[i])
-		cols.append(Color(col.darkened(0.1), 0.18 * k))
-	if Geometry2D.triangulate_polygon(pts).is_empty():
-		return
-	draw_polygon(pts, cols)
-	draw_polyline(outer, Color(1, 1, 1, 0.7 * k), 1.4)
+	# en tranches (quadrilatères) : un seul polygone fin échouait parfois à se trianguler
+	var c_out := col.lightened(0.6) if pale else col
+	for i in n:
+		var u0 := float(i) / n
+		var u1 := float(i + 1) / n
+		var q := PackedVector2Array([outer[i], outer[i + 1], inner[i + 1], inner[i]])
+		if q[0].distance_to(q[3]) < 0.05 and q[1].distance_to(q[2]) < 0.05:
+			continue
+		if q[0].distance_to(q[3]) < 0.05:
+			q = PackedVector2Array([outer[i], outer[i + 1], inner[i + 1]])
+		elif q[1].distance_to(q[2]) < 0.05:
+			q = PackedVector2Array([outer[i], outer[i + 1], inner[i]])
+		var cols := PackedColorArray()
+		for j in q.size():
+			var v: Vector2 = q[j]
+			var on_out := v == outer[i] or v == outer[i + 1]
+			var uu := u0 if (v == outer[i] or v == inner[i]) else u1
+			cols.append(Color(c_out, (0.45 + 0.55 * uu) * k) if on_out else Color(col.darkened(0.1), 0.18 * k))
+		draw_polygon(q, cols)
+	draw_polyline(outer, Color(1, 1, 1, 0.7 * k) if pale else Color(col.lightened(0.35), 0.8 * k), 1.4 if pale else 1.0)
 
 func _draw_held(wid: String, bob: float) -> void:
 	match wid:
@@ -1233,9 +1260,15 @@ func _draw() -> void:
 				var a0: float = ang - sweep
 				var a_now := lerpf(a0, ang + sweep, minf(ease * 1.15, 1.0))
 				var thick := (20.0 if fin else 15.0) * (1.4 if hammer else 1.0)
-				_smear(piv, rad, a0, a_now, thick, col, k)
-				if fin:
-					_smear(piv, rad - 9.0, a0 + 0.3 * signf(sweep), a_now, thick * 0.6, Color(1, 1, 1), k * 0.7)
+				if GameState.weapon() == "griffes":
+					# trois griffures parallèles, une par lame, violettes (dorées sur un coup puissant)
+					var ccol := Color(1.0, 0.6, 0.25) if attack_crit else (Color(0.95, 0.6, 0.15) if fin else Color(0.42, 0.12, 0.85))
+					for j in 3:
+						_smear(piv, rad - 7.0 + j * 7.0, a0 + j * 0.06 * signf(sweep), a_now, 4.5 if j == 1 else 3.5, ccol, k, false)
+				else:
+					_smear(piv, rad, a0, a_now, thick, col, k)
+					if fin:
+						_smear(piv, rad - 9.0, a0 + 0.3 * signf(sweep), a_now, thick * 0.6, Color(1, 1, 1), k * 0.7)
 				# l'arme suit le coup
 				var wdir := Vector2.from_angle(a_now)
 				if hammer:
