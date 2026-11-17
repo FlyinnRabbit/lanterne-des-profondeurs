@@ -28,6 +28,7 @@ var telegraphs := true     # « ! » au-dessus des ennemis qui préparent un cou
 var colorblind := false    # dangers en couleurs très contrastées (blanc / magenta)
 var crouch_toggle := false # appuyer sur bas pour s'accroupir / se relever
 var game_speed := 0        # index dans SPEED_CHOICES
+var menu_anim := true      # écran titre animé (lanterne qui se balance, menu qui glisse)
 var last_slot := 1         # dernier emplacement de sauvegarde utilisé
 var auto_update := true  # télécharger les mises à jour au lancement (voir updater.gd)
 var player_name := ""      # pseudo affiché au classement de la Descente du jour
@@ -105,6 +106,7 @@ func reset_defaults() -> void:
 	colorblind = false
 	crouch_toggle = false
 	game_speed = 0
+	menu_anim = true
 	Engine.time_scale = speed()
 	apply_display()
 	save_settings()
@@ -112,7 +114,7 @@ func reset_defaults() -> void:
 
 const KEYS := ["hud_scale", "menu_scale", "shake", "zoom", "fullscreen", "vsync", "hitstop", "show_hints",
 	"master_volume", "music_volume", "sfx_volume", "fps_cap", "show_fps", "pad_style", "enemy_bars", "damage_numbers", "language",
-	"minimap", "telegraphs", "colorblind", "crouch_toggle", "game_speed", "last_slot", "kb_layout", "auto_update", "player_name", "player_id", "board_online", "gfx_quality"]
+	"minimap", "telegraphs", "colorblind", "crouch_toggle", "game_speed", "last_slot", "kb_layout", "auto_update", "player_name", "player_id", "board_online", "gfx_quality", "menu_anim"]
 
 func save_settings() -> void:
 	var cfg := ConfigFile.new()

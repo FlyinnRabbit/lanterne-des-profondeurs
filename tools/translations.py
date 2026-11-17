@@ -2,6 +2,7 @@
 # Lancer : python3 tools/translations.py  -> génère scripts/translations.gd
 import json, os
 T = {
+"Écran titre animé": ("Animated title screen", "Pantalla de título animada", "Animierter Titelbildschirm"),
 "%s vaincus": ("%s defeated", "%s derrotados", "%s besiegt"),
 "%s · temps de jeu : %s": ("%s · play time: %s", "%s · tiempo de juego: %s", "%s · Spielzeit: %s"),
 "Accroupis-toi sous son balayage ; recule quand il lève le poing.": ("Crouch under his sweep; back off when he raises his fist.", "Agáchate bajo su barrido; retrocede cuando alce el puño.", "Duck unter seinem Armschwung; weich zurück, wenn er die Faust hebt."),

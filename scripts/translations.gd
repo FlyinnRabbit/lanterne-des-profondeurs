@@ -1,6 +1,7 @@
 # Fichier généré par tools/translations.py — ne pas modifier à la main.
 const T := {
 	"en": {
+		"Écran titre animé": "Animated title screen",
 		"%s vaincus": "%s defeated",
 		"%s · temps de jeu : %s": "%s · play time: %s",
 		"Accroupis-toi sous son balayage ; recule quand il lève le poing.": "Crouch under his sweep; back off when he raises his fist.",
@@ -745,6 +746,7 @@ const T := {
 		"Clavier :": "Keyboard:",
 	},
 	"es": {
+		"Écran titre animé": "Pantalla de título animada",
 		"%s vaincus": "%s derrotados",
 		"%s · temps de jeu : %s": "%s · tiempo de juego: %s",
 		"Accroupis-toi sous son balayage ; recule quand il lève le poing.": "Agáchate bajo su barrido; retrocede cuando alce el puño.",
@@ -1489,6 +1491,7 @@ const T := {
 		"Clavier :": "Teclado:",
 	},
 	"de": {
+		"Écran titre animé": "Animierter Titelbildschirm",
 		"%s vaincus": "%s besiegt",
 		"%s · temps de jeu : %s": "%s · Spielzeit: %s",
 		"Accroupis-toi sous son balayage ; recule quand il lève le poing.": "Duck unter seinem Armschwung; weich zurück, wenn er die Faust hebt.",

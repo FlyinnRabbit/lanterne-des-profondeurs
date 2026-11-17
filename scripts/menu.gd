@@ -86,70 +86,191 @@ func _panels() -> Array:
 	return [pause_panel, controls_panel, options_panel, title_panel, diff_panel, ach_panel, slots_panel]
 
 # Affiche un seul panneau
+var title_wrap: Control
+# conteneur à afficher / cacher pour un panneau (l'écran titre a son propre cadre plein écran)
+func _holder(p: Control) -> Control:
+	return title_wrap if p == title_panel and title_wrap else p.get_parent()
+
 func _go(panel: PanelContainer) -> void:
 	if title_backdrop:
 		title_backdrop.visible = title_mode
+	# sur l'écran titre, les autres panneaux (options, parties…) gardent un voile sombre
+	if title_mode:
+		dim.visible = panel != title_panel
+		dim.color = Color(0.0, 0.0, 0.03, 0.6)
 	for p in _panels():
 		if p:
-			p.get_parent().visible = (p == panel)
+			_holder(p).visible = (p == panel)
 	_apply_scale()
 
 # ---------------------------------------------------------------- écran titre et difficulté
 func _build_title(root: Control) -> void:
-	title_panel = _centered_panel(root)
+	# Écran titre plein écran : colonne à gauche (titre et menu en texte), la Lanterne suspendue à
+	# droite, et le Sanctuaire qui se devine dans sa lumière (TitleBackdrop).
+	var wrap := Control.new()
+	wrap.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(wrap)
+	title_wrap = wrap
+	var mc := MarginContainer.new()
+	mc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	mc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mc.add_theme_constant_override("margin_left", 70)
+	mc.add_theme_constant_override("margin_top", 30)
+	mc.add_theme_constant_override("margin_bottom", 80)
+	wrap.add_child(mc)
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mc.add_child(col)
+	title_panel = PanelContainer.new()
+	title_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	title_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	col.add_child(title_panel)
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 10)
+	v.add_theme_constant_override("separation", 2)
 	title_panel.add_child(v)
-	var logo := TextureRect.new()
-	logo.texture = load("res://art/lantern_logo.png")
-	logo.custom_minimum_size = Vector2(150, 150)
-	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	v.add_child(logo)
-	var t := _title("Lanterne des Profondeurs")
-	t.add_theme_font_size_override("font_size", 42)
-	t.add_theme_color_override("font_color", Color(1.0, 0.88, 0.6))
+	title_items.clear()
+	var t := Label.new()
+	t.text = tr("Lanterne des Profondeurs")
+	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	t.custom_minimum_size = Vector2(470, 0)
+	t.add_theme_font_size_override("font_size", 58)
+	t.add_theme_constant_override("line_spacing", -14)
+	t.add_theme_color_override("font_color", Color(0.96, 0.85, 0.6))
+	t.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	t.add_theme_constant_override("shadow_offset_x", 0)
+	t.add_theme_constant_override("shadow_offset_y", 3)
 	v.add_child(t)
+	title_items.append(t)
 	var sub := Label.new()
 	sub.text = "Un metroidvania aux profondeurs changeantes"
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
+	sub.add_theme_font_size_override("font_size", 16)
+	sub.add_theme_color_override("font_color", Color(0.62, 0.69, 0.84))
 	v.add_child(sub)
-	v.add_child(Control.new())
+	title_items.append(sub)
+	var rule := TitleRule.new()
+	rule.custom_minimum_size = Vector2(300, 22)
+	v.add_child(rule)
+	title_items.append(rule)
 	var cs: int = GameState.continue_slot()
 	if cs > 0:
-		first_title_button = _button("Continuer", func(): GameState.continue_game(cs))
+		first_title_button = _item("Continuer", func(): GameState.continue_game(cs))
 		v.add_child(first_title_button)
 		var sv := Label.new()
 		save_label = sv
-		sv.text = tr("Emplacement %d") % cs + " — " + GameState.save_summary(cs)
-		sv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		sv.add_theme_font_size_override("font_size", 14)
-		sv.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
-		v.add_child(sv)
-		v.add_child(_button("Parties (3 emplacements)", _open_slots))
+		sv.text = tr("Emplacement %d") % cs + " · " + GameState.save_summary(cs).replace(" — ", " · ")
+		sv.add_theme_font_size_override("font_size", 12)
+		sv.add_theme_color_override("font_color", Color(0.55, 0.6, 0.74))
+		var sm := MarginContainer.new()
+		sm.add_theme_constant_override("margin_left", 30)
+		sm.add_theme_constant_override("margin_bottom", 6)
+		sm.add_child(sv)
+		v.add_child(sm)
+		title_items.append(sm)
+		v.add_child(_item("Parties", _open_slots))
 	else:
-		first_title_button = _button("Jouer", _open_slots)
+		first_title_button = _item("Jouer", _open_slots)
 		v.add_child(first_title_button)
-	v.add_child(_button("Commandes", _open_controls))
-	v.add_child(_button("Options", _open_options))
-	v.add_child(_button("Succès", _open_achievements))
+	v.add_child(_item("Commandes", _open_controls))
+	v.add_child(_item("Options", _open_options))
+	v.add_child(_item("Succès", _open_achievements))
 	if not OS.has_feature("web"):   # dans un navigateur, on ferme simplement l'onglet
-		v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
-	# version et mise à jour (voir updater.gd)
-	upd_button = _button("", _on_update_pressed)
+		v.add_child(_item("Quitter le jeu", func(): get_tree().quit()))
+	# version et mise à jour (voir updater.gd), en bas de l'écran
+	var foot := VBoxContainer.new()
+	foot.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	foot.offset_left = 70
+	foot.offset_right = 600
+	foot.offset_top = -78
+	foot.offset_bottom = -18
+	foot.alignment = BoxContainer.ALIGNMENT_END
+	wrap.add_child(foot)
+	upd_button = _item("", _on_update_pressed)
 	upd_button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-	upd_button.add_theme_color_override("font_color", Color(1.0, 0.88, 0.6))
+	upd_button.add_theme_font_size_override("font_size", 15)
+	upd_button.add_theme_color_override("font_color", Color(1.0, 0.86, 0.55))
 	upd_button.visible = false
-	v.add_child(upd_button)
+	foot.add_child(upd_button)
 	upd_label = Label.new()
 	upd_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-	upd_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	upd_label.add_theme_font_size_override("font_size", 13)
-	upd_label.add_theme_color_override("font_color", Color(0.5, 0.56, 0.68))
-	v.add_child(upd_label)
+	upd_label.add_theme_font_size_override("font_size", 12)
+	upd_label.add_theme_color_override("font_color", Color(0.42, 0.45, 0.55))
+	foot.add_child(upd_label)
+	title_items.append(foot)
 	Updater.changed.connect(_refresh_update)
 	_refresh_update()
+
+# Entrée du menu titre : du texte seul, un losange doré devant l'entrée choisie qui glisse un peu
+var title_items := []
+var title_intro := 0.0
+
+func _item(text: String, cb: Callable) -> Button:
+	var b := TitleItem.new()
+	b.text = text
+	b.pressed.connect(cb)
+	b.mouse_entered.connect(func(): if b.visible and not b.disabled: b.grab_focus())
+	title_items.append(b)
+	return b
+
+class TitleItem extends Button:
+	var slide := 0.0
+	var sb := StyleBoxEmpty.new()
+	func _ready() -> void:
+		alignment = HORIZONTAL_ALIGNMENT_LEFT
+		flat = true
+		focus_mode = Control.FOCUS_ALL
+		sb.content_margin_left = 30
+		sb.content_margin_top = 3
+		sb.content_margin_bottom = 3
+		for st in ["normal", "hover", "pressed", "focus", "disabled", "hover_pressed"]:
+			add_theme_stylebox_override(st, sb)
+		if not has_theme_font_size_override("font_size"):
+			add_theme_font_size_override("font_size", 25)
+		if not has_theme_color_override("font_color"):
+			add_theme_color_override("font_color", Color(0.78, 0.74, 0.66))
+		add_theme_color_override("font_hover_color", Color(1.0, 0.89, 0.65))
+		add_theme_color_override("font_focus_color", Color(1.0, 0.89, 0.65))
+		add_theme_color_override("font_pressed_color", Color(1.0, 0.95, 0.8))
+		add_theme_color_override("font_outline_color", Color(1.0, 0.65, 0.25, 0.0))
+	func _process(delta: float) -> void:
+		var anim: bool = Settings.menu_anim
+		var want := 12.0 if has_focus() else 0.0
+		slide = lerpf(slide, want, minf(delta * 12.0, 1.0)) if anim else want
+		sb.content_margin_left = 30.0 + slide
+		if has_focus():
+			queue_redraw()
+	func _draw() -> void:
+		if not has_focus():
+			return
+		var t := Time.get_ticks_msec() / 1000.0
+		var pulse := (0.5 + 0.5 * sin(t * 3.0)) if Settings.menu_anim else 0.6
+		var c := Vector2(10.0 + slide * 0.5, size.y / 2.0)
+		var r := 6.0
+		draw_circle(c, 13.0, Color(1.0, 0.7, 0.3, 0.10 + 0.08 * pulse))
+		draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), Color(0.92, 0.74, 0.38))
+		draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r * 0.45), c + Vector2(r * 0.45, 0), c + Vector2(0, r * 0.45), c + Vector2(-r * 0.45, 0)]), Color(1.0, 0.95, 0.75))
+
+class TitleRule extends Control:
+	func _draw() -> void:
+		var y := size.y / 2.0
+		var n := 40
+		for i in n:
+			var a := 1.0 - float(i) / n
+			draw_line(Vector2(4 + i * 7.5, y), Vector2(4 + (i + 1) * 7.5, y), Color(0.79, 0.63, 0.29, 0.8 * a), 1.5)
+
+# animation d'arrivée du menu titre : les éléments glissent et apparaissent l'un après l'autre
+func _process_title_intro(delta: float) -> void:
+	if not title_mode or not title_panel or not _holder(title_panel).visible:
+		return
+	title_intro += delta
+	for i in title_items.size():
+		var it = title_items[i]
+		if not is_instance_valid(it):
+			continue
+		var k := clampf((title_intro - 0.15 - i * 0.06) / 0.45, 0.0, 1.0) if Settings.menu_anim else 1.0
+		k = 1.0 - pow(1.0 - k, 3.0)
+		it.modulate.a = k
 
 func _refresh_update() -> void:
 	if upd_label == null:
@@ -347,12 +468,30 @@ func open_title() -> void:
 	title_mode = true
 	home_panel = title_panel
 	visible = true
-	dim.visible = true
-	dim.color = Color(0.0, 0.0, 0.03, 0.82)
+	dim.visible = false
+	title_intro = 0.0
+	_frame_title_scene()
 	_go(title_panel)
 	get_tree().paused = true
 	first_title_button.grab_focus()
 	Audio.play_boss(GameState.CosmeticsScript.hub_music())
+
+# Écran titre : la caméra (figée, le jeu est en pause) cadre le Sanctuaire sous la Lanterne
+func _frame_title_scene() -> void:
+	if main == null or main.camera == null:
+		return
+	if main.hud:
+		main.hud.visible = false
+	var vp: Vector2 = get_viewport().get_visible_rect().size
+	var z: float = main.camera.zoom.x
+	var lamp: Vector2 = vp * Vector2(0.68, 0.0)
+	# point du monde à placer sous la Lanterne, sol aux 4/5 de l'écran
+	var target: Vector2 = Vector2(17.5 * 32.0, 17.0 * 32.0) if GameState.mode == "hub" else main.player.global_position + Vector2(0, 24)
+	var screen := Vector2(lamp.x, vp.y * 0.8)
+	main.camera.position_smoothing_enabled = false
+	main.camera.offset = Vector2.ZERO
+	main.camera.global_position = target - (screen - vp / 2.0) / z
+	main.camera.force_update_scroll()
 
 # ---------------------------------------------------------------- construction
 func _make_theme() -> Theme:
@@ -426,62 +565,96 @@ func _make_theme() -> Theme:
 
 # ---------------------------------------------------------------- fond peint de l'écran titre
 class TitleBackdrop extends Control:
+	# Le jeu (le Sanctuaire) reste visible derrière : on le recouvre de nuit, sauf dans le cône de
+	# lumière de la Lanterne suspendue à droite. Colonne de gauche assombrie pour le menu.
 	const DU = preload("res://scripts/draw_util.gd")
+	const SHADER := """
+shader_type canvas_item;
+uniform vec2 rect_size = vec2(1280.0, 720.0);
+uniform vec2 lamp = vec2(870.0, 300.0);
+uniform float breath = 1.0;
+void fragment() {
+	vec2 p = UV * rect_size;
+	float h = rect_size.y;
+	// halo rond autour de la lanterne, puis grand ovale de lumière qui descend sur le Sanctuaire
+	float halo = 1.0 - smoothstep(0.0, h * 0.42, length(p - lamp));
+	vec2 d = (p - (lamp + vec2(0.0, h * 0.40))) / vec2(h * 0.62, h * 0.46);
+	float cone = 1.0 - smoothstep(0.30, 1.0, length(d));
+	float light = clamp(max(cone * 0.92, halo * 0.75) * breath, 0.0, 1.0);
+	float a = 1.0 - light;
+	// colonne de gauche : nuit profonde pour lire le menu
+	float col = smoothstep(rect_size.x * 0.52, rect_size.x * 0.22, p.x);
+	a = max(a, col * 0.96);
+	vec3 night = vec3(0.018, 0.016, 0.03);
+	vec3 warm = vec3(0.32, 0.18, 0.06);
+	COLOR = vec4(mix(warm, night, a), max(a, light * 0.10));
+}
+"""
 	var t := 0.0
+	var veil: ColorRect
+	var mat: ShaderMaterial
+	func _ready() -> void:
+		veil = ColorRect.new()
+		veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+		veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sh := Shader.new()
+		sh.code = SHADER
+		mat = ShaderMaterial.new()
+		mat.shader = sh
+		veil.material = mat
+		veil.show_behind_parent = true
+		add_child(veil)
+	func _lamp() -> Vector2:
+		return Vector2(size.x * 0.68, size.y * 0.36)
 	func _process(d: float) -> void:
+		if not visible:
+			return
 		t += d
-		if visible:
-			queue_redraw()
+		var anim: bool = Settings.menu_anim
+		mat.set_shader_parameter("rect_size", size)
+		mat.set_shader_parameter("lamp", _lamp())
+		mat.set_shader_parameter("breath", (0.96 + 0.04 * sin(t * 1.7) + 0.02 * sin(t * 6.1)) if anim else 1.0)
+		queue_redraw()
 	func _draw() -> void:
-		var sz := size
-		var cx := sz.x * 0.5
-		# puits de la caverne : dégradé, lumière tout au fond
-		DU.vgrad(self, Rect2(Vector2.ZERO, sz), Color(0.02, 0.02, 0.05), Color(0.12, 0.07, 0.04))
-		var lamp := Vector2(cx, sz.y * 0.86)
-		DU.glow(self, lamp, sz.y * 0.75, Color(1.0, 0.7, 0.35), 0.5 + 0.05 * sin(t * 2.0))
-		# rayons qui montent du fond
+		var anim: bool = Settings.menu_anim
+		var c := _lamp()
+		var tt := t if anim else 0.0
+		# balancement léger de la lanterne au bout de sa chaîne
+		var sway := sin(tt * 0.9) * 0.035
+		var pivot := Vector2(c.x, 0)
+		var flick := (0.92 + 0.08 * sin(tt * 17.0) * sin(tt * 7.3)) if anim else 1.0
+		var GLOW := Color(1.0, 0.72, 0.36)
+		var BRASS := Color(0.72, 0.58, 0.32)
+		# rayons qui descendent
 		for i in 9:
-			var a := -PI / 2.0 + (i - 4) * 0.16 + sin(t * 0.3 + i) * 0.02
-			var d := Vector2.from_angle(a)
-			var nn := d.orthogonal() * 14.0
-			draw_polygon(PackedVector2Array([lamp - nn, lamp + nn, lamp + d * sz.y * 1.2 + nn * 4.0, lamp + d * sz.y * 1.2 - nn * 4.0]),
-				PackedColorArray([Color(1.0, 0.8, 0.45, 0.07), Color(1.0, 0.8, 0.45, 0.07), Color(1.0, 0.8, 0.45, 0.0), Color(1.0, 0.8, 0.45, 0.0)]))
-		# parois du puits : trois plans de roche de chaque côté
-		for layer in 3:
-			var col := Color(0.05, 0.035, 0.03).lerp(Color(0.16, 0.1, 0.06), (2 - layer) / 2.0 * 0.6)
-			for side in [-1.0, 1.0]:
-				var pts := PackedVector2Array([Vector2(cx + side * sz.x, -10), Vector2(cx + side * sz.x, sz.y + 10)])
-				for k in 13:
-					var u := 1.0 - k / 12.0
-					var wob := sin(u * 9.0 + layer * 2.0 + side) * 22.0 + sin(u * 23.0 + layer) * 8.0
-					var x: float = cx + side * (sz.x * (0.18 + layer * 0.08) + u * sz.x * 0.08 + wob)
-					pts.append(Vector2(x, sz.y + 10 - (1.0 - u) * (sz.y + 20)))
-				draw_colored_polygon(pts, col)
-		# stalactites en haut
-		for k in 16:
-			var x := k * sz.x / 15.0
-			var l := 40.0 + fposmod(sin(k * 7.3) * 431.0, 1.0) * 120.0
-			draw_colored_polygon(PackedVector2Array([Vector2(x - 22, -2), Vector2(x + 22, -2), Vector2(x + 4, l * 0.6), Vector2(x, l)]), Color(0.03, 0.02, 0.02))
-		# la Lanterne, minuscule, tout au fond du puits
-		DU.glow(self, lamp, 50.0, Color(1.0, 0.85, 0.5), 0.8)
-		draw_colored_polygon(PackedVector2Array([lamp + Vector2(-9, -10), lamp + Vector2(9, -10), lamp + Vector2(0, -19)]), Color(0.15, 0.1, 0.08))
-		draw_rect(Rect2(lamp + Vector2(-7, -10), Vector2(14, 18)), Color(1.0, 0.82, 0.45))
-		for k in 3:
-			draw_line(lamp + Vector2(-7 + k * 7, -10), lamp + Vector2(-7 + k * 7, 8), Color(0.15, 0.1, 0.08), 1.6)
-		draw_rect(Rect2(lamp + Vector2(-9, 7), Vector2(18, 3)), Color(0.15, 0.1, 0.08))
-		# braises qui montent et brume
-		for k in 40:
-			var u := fposmod(t * (0.04 + (k % 5) * 0.01) + k * 0.137, 1.0)
-			var x := cx + sin(k * 3.1 + t * 0.5) * sz.x * 0.25 * (0.3 + u)
-			var y := lamp.y - u * sz.y * 1.0
-			draw_circle(Vector2(x, y), 1.0 + (k % 3) * 0.7, Color(1.0, 0.7, 0.35, 0.8 * sin(u * PI)))
-		for k in 4:
-			var y := sz.y * (0.55 + k * 0.1)
-			DU.vgrad(self, Rect2(0, y, sz.x, 60), Color(0.5, 0.35, 0.25, 0.0), Color(0.5, 0.35, 0.25, 0.05))
-		# vignette
-		for k in 10:
-			var kk := k / 10.0
-			draw_rect(Rect2(Vector2.ZERO, sz).grow(-kk * 60.0), Color(0, 0, 0, 0.04), false, 60.0)
+			var ang := PI / 2.0 + (i - 4) * 0.2 + sin(tt * 0.5 + i) * 0.03
+			var d := Vector2.from_angle(ang)
+			draw_colored_polygon(PackedVector2Array([c, c + d.rotated(-0.05) * size.y, c + d.rotated(0.05) * size.y]), Color(GLOW, 0.03))
+		draw_set_transform(pivot, sway, Vector2.ONE)
+		var lc := c - pivot
+		DU.glow(self, lc, 120.0, GLOW, 0.35 * flick)
+		draw_line(Vector2(0, 0), lc + Vector2(0, -70), Color(0.3, 0.26, 0.22), 3.0)
+		for i in 8:
+			draw_arc(Vector2(0, lc.y - 74.0 - i * 16.0), 5.0, 0.0, TAU, 10, Color(0.42, 0.36, 0.28), 2.0)
+		var body := Rect2(lc + Vector2(-30, -44), Vector2(60, 84))
+		DU.flat(self, PackedVector2Array([lc + Vector2(-38, -44), lc + Vector2(0, -72), lc + Vector2(38, -44)]), Color(0.22, 0.17, 0.11))
+		draw_arc(lc + Vector2(0, -76), 9.0, PI, TAU, 10, BRASS.darkened(0.3), 3.0)
+		draw_rect(body, Color(0.06, 0.05, 0.05))
+		draw_rect(body.grow(-7), Color(1.0, 0.86, 0.55).lerp(Color(1.0, 0.95, 0.75), 0.3 * (flick - 0.92) / 0.08))
+		var fc := lc + Vector2(0, 14)
+		var fh := 30.0 * flick
+		draw_colored_polygon(PackedVector2Array([fc + Vector2(-9, 0), fc + Vector2(-3, -fh * 0.6), fc + Vector2(sin(tt * 9.0) * 2.0, -fh), fc + Vector2(3, -fh * 0.6), fc + Vector2(9, 0), fc + Vector2(0, 6)]), Color(1.0, 0.65, 0.2))
+		draw_colored_polygon(PackedVector2Array([fc + Vector2(-4, 0), fc + Vector2(0, -fh * 0.65), fc + Vector2(4, 0), fc + Vector2(0, 4)]), Color(1.0, 0.95, 0.75))
+		for x: float in [-30.0, 30.0]:
+			draw_line(lc + Vector2(x, -44), lc + Vector2(x, 40), BRASS.darkened(0.15), 4.0)
+		draw_line(lc + Vector2(0, -44), lc + Vector2(0, 40), Color(BRASS.darkened(0.25), 0.8), 2.0)
+		DU.box(self, Rect2(lc + Vector2(-36, 40), Vector2(72, 10)), Color(0.22, 0.17, 0.11))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# braises qui montent de la lanterne
+		for i in 22:
+			var s := fposmod(tt * (0.06 + fposmod(i * 0.137, 0.05)) + i * 0.31, 1.0)
+			var p := c + Vector2(sin(i * 3.1 + tt * 0.8) * (30.0 + i * 9.0), 30.0 - s * size.y * 0.55)
+			draw_circle(p, 1.6 * (1.0 - s) + 0.4, Color(1.0, 0.7, 0.3, (1.0 - s) * 0.8))
 
 func _centered_panel(root: Control) -> PanelContainer:
 	var center := CenterContainer.new()
@@ -722,6 +895,7 @@ func _build_options(root: Control) -> void:
 	_choice_row(g, "Limite d'images par seconde", "fps_cap", Settings.FPS_LABELS)
 	_choice_row(g, "Qualité graphique", "gfx_quality", Settings.GFX_LABELS)
 	_check_row(g, "Afficher les FPS", "show_fps")
+	_check_row(g, "Écran titre animé", "menu_anim")
 	_check_row(g, "Barres de vie des ennemis", "enemy_bars")
 	_check_row(g, "Dégâts infligés (coin de l'écran)", "damage_numbers")
 	_check_row(g, "Mini-carte", "minimap")
@@ -859,7 +1033,7 @@ func _apply_scale() -> void:
 	var s: float = Settings.menu_scale
 	for p in _panels():
 		if p:
-			p.pivot_offset = p.size / 2.0
+			p.pivot_offset = p.size / 2.0 if p != title_panel else Vector2(0, p.size.y / 2.0)
 			p.scale = Vector2(s, s)
 
 func _on_vib_toggled(on: bool) -> void:
@@ -963,6 +1137,7 @@ func _cell_gui_input(event: InputEvent, action: String, slot: int) -> void:
 
 func _process(delta: float) -> void:
 	wait_t = maxf(wait_t - delta, 0.0)
+	_process_title_intro(delta)
 
 func _input(event: InputEvent) -> void:
 	if waiting_action != "":
@@ -1003,7 +1178,7 @@ func _input(event: InputEvent) -> void:
 		return
 	# B à la manette : retour (comme Échap), uniquement quand le menu est ouvert
 	if visible and event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_B:
-		if not home_panel.get_parent().visible:
+		if not _holder(home_panel).visible:
 			_back_to_pause()
 		elif not title_mode and not game_over:
 			close()
@@ -1014,7 +1189,7 @@ func _input(event: InputEvent) -> void:
 			if main and main.inventory and main.inventory.visible:
 				return
 			open()
-		elif not home_panel.get_parent().visible:
+		elif not _holder(home_panel).visible:
 			_back_to_pause()
 		elif not title_mode and not game_over:
 			close()

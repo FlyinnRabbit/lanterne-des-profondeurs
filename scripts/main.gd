@@ -116,6 +116,9 @@ var pickups := []   # [prop, "charm"/"notch", id ou clé]
 
 func _ready() -> void:
 	randomize()
+	# au lancement, l'écran titre se dessine devant le Sanctuaire (et non le tutoriel)
+	if GameState.show_title and GameState.mode == "tutorial":
+		GameState.mode = "hub"
 	level = GameState.current_level()
 	MAP = level["map"]
 	pal = level.get("palette", Biomes.all()[0]["pal"])

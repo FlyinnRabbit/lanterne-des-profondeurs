@@ -24,11 +24,11 @@ func _run() -> void:
 	await process_frame
 	var main = current_scene
 	var m = main.menu
-	print("titre visible : ", m.title_panel.get_parent().visible, " focus : ", root.gui_get_focus_owner().text if root.gui_get_focus_owner() else "aucun")
+	print("titre visible : ", m._holder(m.title_panel).visible, " focus : ", root.gui_get_focus_owner().text if root.gui_get_focus_owner() else "aucun")
 	await _tap(JOY_BUTTON_A)     # Jouer
 	print("après A -> parties visible : ", m.slots_panel.get_parent().visible, " focus : ", root.gui_get_focus_owner().text)
 	await _tap(JOY_BUTTON_B)     # retour
-	print("après B -> titre visible : ", m.title_panel.get_parent().visible)
+	print("après B -> titre visible : ", m._holder(m.title_panel).visible)
 	await _tap(JOY_BUTTON_DPAD_DOWN)
 	await _tap(JOY_BUTTON_DPAD_DOWN)
 	print("croix bas x2 -> focus : ", root.gui_get_focus_owner().text)
