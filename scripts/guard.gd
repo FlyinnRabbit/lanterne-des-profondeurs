@@ -70,8 +70,8 @@ func _physics_process(delta: float) -> void:
 						stun_t = maxf(stun_t, 1.0)
 						shove_t = 0.0
 					elif not was_inv and p.invuln_t > 0.0:
-						p.velocity = Vector2(facing * 720.0, -300.0)   # le coup de bouclier projette loin
-						p.knock_t = 0.4
+						p.velocity = Vector2(facing * 600.0, -300.0)   # le coup de bouclier projette loin
+						p.knock_t = 0.25
 						main.shake(5)
 		elif bash_t <= 0.0 and near and shove_cd <= 0.0 and is_on_floor() \
 				and absf(p.global_position.y - global_position.y) < 40.0 \

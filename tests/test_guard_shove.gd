@@ -38,7 +38,7 @@ func _run() -> void:
 		if hit: maxpush = maxf(maxpush, absf(pl.global_position.x - x0))
 		if hit and absf(pl.global_position.x - x0) < maxpush - 1.0: break
 	print("windup=", wound, " hit=", hit, " pushed=", maxpush)
-	if not (wound and hit and maxpush > 120): ok = false
+	if not (wound and hit and maxpush > 85): ok = false
 	# parade : étourdit
 	await _f(90)
 	pl.global_position = e.global_position + Vector2(-e.facing * -50, 0)
