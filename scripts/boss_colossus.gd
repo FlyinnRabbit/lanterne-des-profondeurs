@@ -32,11 +32,11 @@ func _choose() -> void:
 		w["stomp"] = 3
 	match pick(w):
 		"slam":
-			go("windup_slam", 0.75 / rage())
+			go("windup_slam", tele(0.75))
 		"sweep":
-			go("windup_sweep", 0.5 / rage())
+			go("windup_sweep", tele(0.5))
 		"stomp":
-			go("windup_stomp", 0.6 / rage())
+			go("windup_stomp", tele(0.6))
 		"walk":
 			go("walk", 1.2)
 

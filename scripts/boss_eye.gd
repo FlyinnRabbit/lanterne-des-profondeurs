@@ -42,13 +42,13 @@ func _choose() -> void:
 		w["spawn"] = 1.2
 	match pick(w):
 		"tentacles":
-			go("windup_tentacles", 0.5 / rage())
+			go("windup_tentacles", tele(0.5))
 		"beam":
 			beams_left = 1 if phase == 1 else 2
 			beam_high = randf() < 0.6
-			go("windup_beam", 0.9 / rage())
+			go("windup_beam", tele(0.9))
 		"gaze":
-			go("windup_gaze", 0.6 / rage())
+			go("windup_gaze", tele(0.6))
 		"spawn":
 			go("windup_spawn", 0.8)
 

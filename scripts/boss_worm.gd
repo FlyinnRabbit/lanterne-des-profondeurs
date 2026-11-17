@@ -27,11 +27,11 @@ func _choose() -> void:
 	match pick({"burrow": 4, "charge": 2, "spit": 2}):
 		"burrow":
 			emerges_left = 1 if phase == 1 else 3
-			go("windup_burrow", 0.4 / rage())
+			go("windup_burrow", tele(0.4))
 		"charge":
-			go("windup_charge", 0.5 / rage())
+			go("windup_charge", tele(0.5))
 		"spit":
-			go("windup_spit", 0.45 / rage())
+			go("windup_spit", tele(0.45))
 
 func _tick(delta: float) -> void:
 	var pp: Vector2 = p().global_position

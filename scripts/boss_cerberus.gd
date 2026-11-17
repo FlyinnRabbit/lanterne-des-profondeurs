@@ -34,14 +34,14 @@ func _choose() -> void:
 	match pick(w):
 		"breath":
 			breath_left = 1 if phase == 1 else 3
-			go("windup_breath", 0.55 / rage())
+			go("windup_breath", tele(0.55))
 		"pounce":
-			go("windup_pounce", 0.5 / rage())
+			go("windup_pounce", tele(0.5))
 		"bite":
 			bites = 3
-			go("windup_bite", 0.45 / rage())
+			go("windup_bite", tele(0.45))
 		"howl":
-			go("windup_howl", 0.7 / rage())
+			go("windup_howl", tele(0.7))
 
 func _tick(delta: float) -> void:
 	var pl = p()

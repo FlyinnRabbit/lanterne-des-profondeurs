@@ -23,12 +23,12 @@ func _choose() -> void:
 	var a := pick({"dive": 3, "barrage": 3, "ring": 2, "summon": 1.0})
 	match a:
 		"dive":
-			go("windup_dive", 0.55 / rage())
+			go("windup_dive", tele(0.55))
 		"barrage":
 			shots_left = 3 if phase == 1 else 5
-			go("windup_barrage", 0.45 / rage())
+			go("windup_barrage", tele(0.45))
 		"ring":
-			go("windup_ring", 0.6 / rage())
+			go("windup_ring", tele(0.6))
 		"summon":
 			go("windup_summon", 0.7)
 

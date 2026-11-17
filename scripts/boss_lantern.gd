@@ -44,13 +44,13 @@ func _choose() -> void:
 		w["summon"] = 1.2
 	match pick(w):
 		"crown":
-			go("windup_crown", 0.6 / rage())
+			go("windup_crown", tele(0.6))
 		"sweep":
-			go("windup_sweep", 0.75 / rage())
+			go("windup_sweep", tele(0.75))
 		"ash":
-			go("windup_ash", 0.5 / rage())
+			go("windup_ash", tele(0.5))
 		"light":
-			go("windup_light", 0.6 / rage())
+			go("windup_light", tele(0.6))
 		"summon":
 			go("windup_summon", 0.8)
 

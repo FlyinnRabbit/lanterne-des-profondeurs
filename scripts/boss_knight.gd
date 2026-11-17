@@ -27,13 +27,13 @@ func _choose() -> void:
 	match pick({"thrust": 3, "blink": 2.5, "pillars": 2, "embers": 1.5, "stalk": 1}):
 		"thrust":
 			combo = 1 if phase == 1 else 3
-			go("windup_thrust", 0.4 / rage())
+			go("windup_thrust", tele(0.4))
 		"blink":
 			go("fade_out", 0.3 / sqrt(rage()))
 		"pillars":
-			go("windup_pillars", 0.55 / rage())
+			go("windup_pillars", tele(0.55))
 		"embers":
-			go("windup_embers", 0.45 / rage())
+			go("windup_embers", tele(0.45))
 		"stalk":
 			go("stalk", 0.8)
 
@@ -87,7 +87,7 @@ func _tick(delta: float) -> void:
 			if state_t <= 0.0:
 				fade = 1.0
 				combo = 1
-				go("windup_thrust", 0.3 / rage())
+				go("windup_thrust", tele(0.3))
 		"windup_pillars":
 			velocity.x = 0.0
 			if state_t <= 0.0:

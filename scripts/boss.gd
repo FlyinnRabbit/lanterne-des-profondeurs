@@ -39,6 +39,12 @@ func reset() -> void:
 func is_harmful() -> bool:
 	return not dead and state != "sleep" and stun_t <= 0.0
 
+# Durée d'une préparation (télégraphe) : raccourcie par la difficulté et la profondeur,
+# mais jamais sous le temps de réaction humain — sinon le Cauchemar devient du par-cœur.
+const WINDUP_FLOOR := 0.25
+func tele(t0: float) -> float:
+	return maxf(t0 / rage(), WINDUP_FLOOR)
+
 func rage() -> float:
 	var r := 1.3 if hp <= max_hp / 2 else 1.0
 	# la difficulté accélère le boss et raccourcit ses pauses
@@ -69,19 +75,19 @@ func _choose() -> void:
 	var r := randf()
 	if variant == 2 and r < 0.3:
 		state = "windup_volley"
-		state_t = 0.6 / rage()
+		state_t = tele(0.6)
 	elif variant == 2 and r < 0.45:
 		state = "windup_ring"           # anneau de spores autour d'elle
-		state_t = 0.7 / rage()
+		state_t = tele(0.7)
 	elif variant == 1 and hp <= max_hp / 2 and r < 0.25:
 		state = "windup_quake"          # Gardien enragé : frappe le sol, ondes de choc
-		state_t = 0.6 / rage()
+		state_t = tele(0.6)
 	elif r < 0.55:
 		state = "windup_charge"
-		state_t = 0.55 / rage()
+		state_t = tele(0.55)
 	elif r < 0.85:
 		state = "windup_leap"
-		state_t = 0.45 / rage()
+		state_t = tele(0.45)
 	else:
 		state = "walk"
 		state_t = 0.9

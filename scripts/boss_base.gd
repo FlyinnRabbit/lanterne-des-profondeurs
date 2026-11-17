@@ -42,6 +42,12 @@ func reset() -> void:
 func is_harmful() -> bool:
 	return not dead and state != "sleep" and stun_t <= 0.0
 
+# Durée d'une préparation (télégraphe) : raccourcie par la difficulté et la profondeur,
+# mais jamais sous le temps de réaction humain — sinon le Cauchemar devient du par-cœur.
+const WINDUP_FLOOR := 0.25
+func tele(t0: float) -> float:
+	return maxf(t0 / rage(), WINDUP_FLOOR)
+
 func rage() -> float:
 	return (1.3 if phase == 2 else 1.0) * sqrt(float(GameState.scaled("speed")) * float(GameState.scaled("aggro")))
 

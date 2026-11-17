@@ -31,16 +31,16 @@ func _choose() -> void:
 		w["leap"] = 1.5
 	match pick(w):
 		"gallop":
-			go("windup_gallop", 0.6 / rage())
+			go("windup_gallop", tele(0.6))
 		"volley":
 			arrows_left = 3 if phase == 1 else 5
-			go("windup_volley", 0.5 / rage())
+			go("windup_volley", tele(0.5))
 		"rain":
-			go("windup_rain", 0.5 / rage())
+			go("windup_rain", tele(0.5))
 		"lance":
-			go("windup_lance", 0.5 / rage())
+			go("windup_lance", tele(0.5))
 		"leap":
-			go("windup_leap", 0.35 / rage())
+			go("windup_leap", tele(0.35))
 
 func _tick(delta: float) -> void:
 	var pl = p()
