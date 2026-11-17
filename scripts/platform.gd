@@ -80,6 +80,9 @@ func _physics_process(delta: float) -> void:
 						state = "shake"
 						st_t = 0.55
 						Audio.sfx("door", 0.2, -12.0)
+						# Mines de Cristal : la secousse fait pleuvoir des gravats du plafond
+						if String(main.pal.get("id", "")) == "cristal":
+							main.debris_rain(global_position.x + size.x / 2.0, global_position.y)
 				"shake":
 					st_t -= delta
 					if st_t <= 0.0:

@@ -154,10 +154,16 @@ func eq(id: int) -> bool:
 	return GameState.has_charm(id)
 
 func run_speed() -> float:
-	return RUN_SPEED * (1.12 if eq(C.SWIFT_CLOAK) else 1.0) * (0.5 if web_t > 0.0 else 1.0)
+	return RUN_SPEED * (1.12 if eq(C.SWIFT_CLOAK) else 1.0) * (0.5 if web_t > 0.0 else 1.0) * (0.0 if grab_t > 0.0 else 1.0)
 
 # Toile de tisseuse : englué, on court deux fois moins vite et on saute moins haut. La ruée arrache la toile.
 var web_t := 0.0
+var grab_t := 0.0     # main squelettique : immobilisé (pas de course ni de saut) ; la ruée libère
+func grab(secs: float) -> void:
+	if dead or sitting or dash_t > 0.0:
+		return
+	grab_t = maxf(grab_t, secs)
+	Audio.sfx("hit", 0.1, -8.0)
 func ensnare(secs: float) -> void:
 	if dead or sitting:
 		return
@@ -231,7 +237,7 @@ func _physics_process(delta: float) -> void:
 	anim_t += delta
 	for t in ["coyote_t", "buffer_t", "dash_t", "dash_cd", "attack_cd", "attack_t", "invuln_t", "knock_t", "recoil_t",
 			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t", "plunge_cd", "plunge_kill_t",
-			"bench_lock_t", "web_t"]:
+			"bench_lock_t", "web_t", "grab_t"]:
 		set(t, maxf(get(t) - delta, 0.0))
 	if attack_t > 0.0 or thrust_t > 0.0 or ult_charge_t > 0.0:
 		bench_lock_t = BENCH_LOCK
@@ -377,8 +383,9 @@ func _physics_process(delta: float) -> void:
 			facing = int(dir)
 		dash_t = DASH_TIME
 		dash_hit.clear()
-		if web_t > 0.0:
+		if web_t > 0.0 or grab_t > 0.0:
 			web_t = 0.0
+			grab_t = 0.0
 			main.spawn_burst(global_position, Color(0.9, 0.9, 0.95), 10, 140.0)
 		GameState.j_add("dashes")
 		dash_cd = dash_cooldown()
@@ -438,7 +445,7 @@ func _physics_process(delta: float) -> void:
 
 	# Saut
 	velocity.y = minf(velocity.y + GRAVITY * delta, FALL_MAX)
-	if buffer_t > 0.0 and coyote_t > 0.0 and knock_t <= 0.0:
+	if buffer_t > 0.0 and coyote_t > 0.0 and knock_t <= 0.0 and grab_t <= 0.0:
 		velocity.y = JUMP_VELOCITY * (0.8 if web_t > 0.0 else 1.0)
 		Audio.sfx("jump", 0.1, -4.0)
 		GameState.j_add("jumps")

@@ -23,14 +23,14 @@ func _run() -> void:
 			for y in map.size():
 				var row: String = map[y]
 				for x in row.length():
-					if "kqvy".contains(row[x]):
+					if "kqvyxzaod".contains(row[x]):
 						counts[row[x]] = int(counts.get(row[x], 0)) + 1
 						pts.append(Vector2i(x, y))
 			for p in pts:
 				for y in range(maxi(p.y - 5, 0), mini(p.y + 6, map.size())):
 					var row2: String = map[y]
 					for x in range(maxi(p.x - 9, 0), mini(p.x + 10, row2.length())):
-						if Vector2i(x, y) != p and "^ZUVkqvy".contains(row2[x]):
+						if Vector2i(x, y) != p and "^ZUVkqvyxzaod".contains(row2[x]):
 							too_close += 1
 		print(b["id"], " ", counts, " too_close=", too_close)
 		if counts.is_empty() or too_close > 0: ok = false

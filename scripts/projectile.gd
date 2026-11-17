@@ -172,6 +172,7 @@ func _color() -> Color:
 		"shuriken": return Color(0.8, 0.85, 0.95)
 		"dart": return Color(1.0, 0.55, 0.3)
 		"web", "webpatch": return Color(0.9, 0.9, 0.97)
+		"page": return Color(0.95, 0.88, 0.7)
 		"slashwave": return Color(0.85, 0.92, 1.0)
 	return Color(0.85, 0.45, 0.95)
 
@@ -192,6 +193,18 @@ func _draw() -> void:
 	if crit and kind == "soulblade":
 		c = Color(1.0, 0.75, 0.35)
 	match kind:
+		"page":
+			# page arrachée qui tournoie, lignes d'écriture, bord rougeoyant
+			_tail(c, 3.0, 20.0)
+			var a := t * 12.0
+			var u := Vector2.from_angle(a) * 7.0
+			var v := Vector2.from_angle(a + PI / 2.0) * 5.0 * absf(cos(t * 7.0))
+			DU.flat(self, PackedVector2Array([-u - v, u - v, u + v, -u + v]), c)
+			for k in 3:
+				var f := -0.5 + k * 0.5
+				draw_line(-u * 0.7 + v * f * 0.8, u * 0.7 + v * f * 0.8, Color(0.3, 0.2, 0.25, 0.7), 0.8)
+			draw_line(-u - v, u - v, Color(1.0, 0.45, 0.6, 0.8), 1.2)
+			return
 		"web":
 			# boule de toile : pelote de fils qui tourne, brins qui traînent
 			_tail(Color(0.95, 0.95, 1.0), radius * 0.5, 24.0)

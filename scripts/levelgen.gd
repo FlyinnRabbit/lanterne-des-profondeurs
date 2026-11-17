@@ -733,7 +733,7 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 # geyser de flammes (Forge) ou de glace (Abysses Gelés). Posés avec parcimonie et jamais
 # près d'un autre danger (pas de piège sur piège), ni près du départ, de la sortie, d'un banc
 # ou de l'arène du boss.
-const HAZARDS := "^ZUVkqvyCXK"
+const HAZARDS := "^ZUVkqvyCXKxzaod"
 const KEEP_CLEAR := "PEBOHLSGR*N$"
 func _ground_traps(depth: int) -> void:
 	var pool := {"k": 1.0}
@@ -741,6 +741,11 @@ func _ground_traps(depth: int) -> void:
 		"jardins", "ruche": pool = {"q": 1.6, "k": 0.6}
 		"forge": pool = {"v": 1.6, "k": 0.6}
 		"glace": pool = {"y": 1.6, "k": 0.6}
+		"profondeurs": pool = {"d": 1.4, "k": 0.6}
+		"citadelle": pool = {"o": 1.4, "k": 0.6}
+		"cristal": pool = {"x": 1.4, "k": 0.6}
+		"bibliotheque": pool = {"z": 1.4, "k": 0.6}
+		"ossuaire": pool = {"a": 1.4, "k": 0.6}
 	var want := clampi(1 + depth / 2, 1, 4)
 	var boss_x := -1000
 	for y in H:
@@ -765,7 +770,15 @@ func _ground_traps(depth: int) -> void:
 			break
 		if _near(c, HAZARDS, 9, 5) or _near(c, KEEP_CLEAR, 6, 4):
 			continue
-		put(c.x, c.y, _pick(pool))
+		var kc := _pick(pool)
+		if kc == "d":
+			# la goutte acide a besoin d'un plafond pas trop haut au-dessus
+			var cy: int = c.y
+			while cy > 0 and g[cy - 1][c.x] != "#" and c.y - cy < 12:
+				cy -= 1
+			if cy <= 0 or g[cy - 1][c.x] != "#":
+				kc = "k"
+		put(c.x, c.y, kc)
 		placed += 1
 
 func _near(c: Vector2i, chars: String, rx: int, ry: int) -> bool:

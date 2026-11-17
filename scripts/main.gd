@@ -436,9 +436,24 @@ func _spawn_everything() -> void:
 					while x + dr + 1 < row.length() - 1 and row[x + dr + 1] != "#":
 						dr += 1
 					_make_trap("dart", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), {"dir": 1.0 if dr >= dl else -1.0})
-				"k", "q", "v", "y":
-					var tk: String = {"k": "spikes", "q": "gas", "v": "geyser", "y": "geyser"}[row[x]]
+				"k", "q", "v", "y", "x", "z", "a":
+					var tk: String = {"k": "spikes", "q": "gas", "v": "geyser", "y": "geyser", "x": "crystal", "z": "book", "a": "hand"}[row[x]]
 					_make_trap(tk, Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), {"element": "ice" if row[x] == "y" else "fire"})
+				"o":
+					# jet de vapeur : bouche posée au sol, souffle vers le côté le plus dégagé
+					var ol := 0
+					while x - ol - 1 > 0 and row[x - ol - 1] != "#" and ol < 6:
+						ol += 1
+					var orr := 0
+					while x + orr + 1 < row.length() - 1 and row[x + orr + 1] != "#" and orr < 6:
+						orr += 1
+					_make_trap("steam", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), {"dir": 1.0 if orr >= ol else -1.0})
+				"d":
+					# goutte acide : accrochée au plafond au-dessus de cette case
+					var cy := y
+					while cy > 0 and row != "" and not solid.has(Vector2i(x, cy - 1)) and y - cy < 12:
+						cy -= 1
+					_make_trap("drip", Vector2(x * TILE + TILE / 2.0, cy * TILE), {"floor_y": (y + 1) * TILE})
 				"U":
 					var fy := y + 1
 					while fy < map_size.y - 1 and not solid.has(Vector2i(x, fy)):
@@ -1025,6 +1040,27 @@ func is_solid_at(p: Vector2) -> bool:
 		if g and is_instance_valid(g) and g.closed and g.rect.grow(2.0).has_point(p):
 			return true
 	return false
+
+# Pluie de gravats (Mines de Cristal) : poussière qui tombe d'abord du plafond au-dessus de x,
+# puis quelques pierres, décalées dans le temps.
+func debris_rain(x: float, y: float) -> void:
+	var cy := y
+	for i in 14:
+		if is_solid_at(Vector2(x, cy - TILE)):
+			break
+		cy -= TILE
+	if cy >= y - TILE * 2:
+		return
+	for k in 4:
+		var px := x + randf_range(-70.0, 70.0)
+		spawn_burst(Vector2(px, cy + 4), Color(0.6, 0.62, 0.7), 5, 40.0, 300.0)
+	await get_tree().create_timer(0.45, false).timeout
+	for k in 5:
+		if not is_inside_tree():
+			return
+		var px2 := x + randf_range(-80.0, 80.0)
+		spawn_projectile(Vector2(px2, cy + 8), Vector2(randf_range(-20, 20), 60), {"kind": "rock", "radius": 7.0, "gravity": 900.0, "life": 3.0, "from_trap": true})
+		await get_tree().create_timer(randf_range(0.12, 0.25), false).timeout
 
 # Chemin pour les ennemis volants : parcours en largeur sur la grille des cases, limité à
 # un rayon autour d'eux. Renvoie le point de passage le plus éloigné du chemin encore visible

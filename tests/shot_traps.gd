@@ -19,17 +19,21 @@ func _run() -> void:
 	pl.sitting = false
 	var base: Vector2 = Vector2(roundf(pl.global_position.x / 32.0) * 32.0 + 16.0, roundf((pl.global_position.y + 20) / 32.0) * 32.0)
 	pl.global_position.x -= 400
-	var specs := [["spikes", {}, 2], ["spikes", {}, 1], ["gas", {}, 2], ["geyser", {"element": "fire"}, 2], ["geyser", {"element": "ice"}, 2], ["dart", {"dir": 1.0}, -1]]
+	var specs := [["drip", {}, 1], ["steam", {"dir": 1.0}, 2], ["crystal", {}, 2], ["book", {}, 1], ["hand", {}, 9]]
 	var trs := []
 	for i in specs.size():
-		var tr = main._make_trap(specs[i][0], base + Vector2(-260 + i * 110, 0), specs[i][1])
+		var off := Vector2(-300 + i * 150, -150 if specs[i][0] == "drip" else 0)
+		var tr = main._make_trap(specs[i][0], base + off, specs[i][1])
 		trs.append(tr)
 	for frame in 3:
 		for i in trs.size():
 			var tr = trs[i]
-			if specs[i][2] >= 0:
+			if specs[i][2] == 9:
+				tr.hand_state = "grab"
+				tr.hand_t = 0.5
+			elif specs[i][2] >= 0:
 				var c: Array = tr.CYCLE[tr.kind]
-				tr.t = c[0] + (c[1] * 0.6 if specs[i][2] == 1 else c[1] + c[2] * 0.4)
+				tr.t = c[0] + (c[1] * 0.6 if specs[i][2] == 1 else c[1] + c[2] * 0.45)
 			else:
 				tr.turn_t = 0.12
 		await process_frame

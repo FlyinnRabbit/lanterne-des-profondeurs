@@ -8,6 +8,12 @@ const DU = preload("res://scripts/draw_util.gd")
 #  spikes     (k) : herse de pics qui sort du sol puis rentre (les pointes dépassent juste avant)
 #  gas        (q) : champignon qui gonfle puis libère un nuage de spores toxiques (Jardins, Ruche)
 #  geyser     (v / y) : geyser de flammes (Forge) ou de glace (Abysses Gelés) qui jaillit du sol
+#  crystal    (x) : cristal résonnant qui libère une onde au ras du sol (saute par-dessus) — Mines
+#  book       (z) : livre maudit qui lance une volée de pages tranchantes (parables) — Bibliothèque
+#  hand       (a) : main squelettique qui jaillit sous le héros et l'agrippe (la ruée libère) — Ossuaire
+#  steam      (o) : bouche qui crache un jet de vapeur horizontal à hauteur de tête — Citadelle
+#  drip       (d) : goutte acide qui grossit au plafond puis tombe — Profondeurs
+# Les pièges au sol à cycle blessent aussi les ennemis : attire-les dedans !
 # Le totem pivote pour suivre le héros (il se retourne, puis reprend son rythme de tir).
 const Ch = preload("res://scripts/charms.gd")
 var main
@@ -19,7 +25,12 @@ var period := 2.4
 var hit_cd := 0.0
 var turn_t := 0.0        # totem : en train de pivoter
 var element := "fire"    # geyser : "fire" / "ice"
-const CYCLE := {"spikes": [1.6, 0.55, 0.9], "gas": [1.8, 0.7, 1.5], "geyser": [1.9, 0.7, 1.0]}   # repos, alerte, actif
+const CYCLE := {"spikes": [1.6, 0.55, 0.9], "gas": [1.8, 0.7, 1.5], "geyser": [1.9, 0.7, 1.0],
+	"crystal": [2.0, 0.7, 0.6], "steam": [1.8, 0.6, 1.2], "book": [2.4, 0.6, 0.3], "drip": [2.2, 0.6, 0.1]}
+var foe_cd := {}         # ennemis déjà blessés pendant ce jet (un coup par activation)
+# main squelettique
+var hand_t := 0.0
+var hand_state := "hidden"   # hidden / warn / grab / rest   # repos, alerte, actif
 # pendule
 var length := 120.0
 var amp := 1.05
@@ -95,14 +106,65 @@ func _physics_process(delta: float) -> void:
 					main.spawn_projectile(global_position + Vector2(dir * 14.0, -28.0), Vector2(dir * 300.0, 0),
 						{"kind": "dart", "hostile": true, "radius": 5.0, "life": 2.6, "from_trap": true})
 					Audio.sfx("spit", 0.15, -6.0)
-		"spikes", "gas", "geyser":
-			if _phase() == 2 and _danger_rect().intersects(_player_rect()):
-				_hurt(global_position + Vector2(0, 8))
-			if _phase() == 2 and fmod(t, period) - CYCLE[kind][0] - CYCLE[kind][1] < delta and absf(main.player.global_position.x - global_position.x) < 600.0:
+		"spikes", "gas", "geyser", "crystal", "steam":
+			var starting: bool = _phase() == 2 and fmod(t, period) - CYCLE[kind][0] - CYCLE[kind][1] < delta
+			if starting:
+				foe_cd.clear()
+			if _phase() == 2:
+				if _hits(_player_rect(), main.player.global_position):
+					_hurt(global_position + Vector2(0, 8))
+				_hurt_foes()
+			if starting and absf(main.player.global_position.x - global_position.x) < 600.0:
 				match kind:
 					"spikes": Audio.sfx("slash", 0.2, -10.0)
 					"gas": Audio.sfx("spit", 0.2, -8.0)
 					"geyser": Audio.sfx("ult" if element == "fire" else "parry", 0.2, -14.0)
+					"crystal": Audio.sfx("crit_ready", 0.2, -10.0)
+					"steam": Audio.sfx("dash", 0.2, -8.0)
+		"book":
+			var pp3: Vector2 = main.player.global_position
+			var near: bool = pp3.distance_to(global_position) < 380.0 and not main.wall_between(global_position + Vector2(0, -14), pp3)
+			if _phase() == 2 and fmod(t, period) - CYCLE[kind][0] - CYCLE[kind][1] < delta:
+				if near and not (main.boss_started and not main.boss_dead):
+					var d0 := (pp3 + Vector2(0, -10) - (global_position + Vector2(0, -16))).normalized()
+					for k in 3:
+						main.spawn_projectile(global_position + Vector2(0, -16), d0.rotated((k - 1) * 0.28) * 270.0,
+							{"kind": "page", "hostile": true, "radius": 6.0, "life": 2.2, "from_trap": true})
+					Audio.sfx("whip", 0.2, -6.0)
+			elif not near and _phase() != 2:
+				t = minf(fmod(t, period), CYCLE[kind][0] * 0.5)   # dort tant que le héros est loin
+		"drip":
+			if _phase() == 2 and fmod(t, period) - CYCLE[kind][0] - CYCLE[kind][1] < delta:
+				if absf(main.player.global_position.x - global_position.x) < 650.0:
+					main.spawn_projectile(global_position + Vector2(0, 10), Vector2(0, 40),
+						{"kind": "acid", "hostile": true, "radius": 6.0, "gravity": 900.0, "life": 2.5, "from_trap": true})
+		"hand":
+			var pl = main.player
+			var over: bool = absf(pl.global_position.x - global_position.x) < 20.0 and absf(pl.get_rect().end.y - global_position.y) < 10.0
+			hand_t -= delta
+			match hand_state:
+				"hidden":
+					if over and not pl.dead:
+						hand_state = "warn"
+						hand_t = 0.35
+						Audio.sfx("door", 0.2, -10.0)
+				"warn":
+					if hand_t <= 0.0:
+						hand_state = "grab"
+						hand_t = 0.9
+						if over:
+							pl.grab(1.1)
+						for e in get_tree().get_nodes_in_group("enemies"):
+							if is_instance_valid(e) and not e.dead and not e.is_boss and absf(e.global_position.x - global_position.x) < 22.0 and absf(e.global_position.y - global_position.y) < 40.0:
+								e.stun_t = maxf(e.stun_t, 1.2)
+								e.take_hit(1, Vector2.UP)
+				"grab":
+					if hand_t <= 0.0:
+						hand_state = "rest"
+						hand_t = 2.2
+				"rest":
+					if hand_t <= 0.0:
+						hand_state = "hidden"
 		"blade":
 			var bp := blade_pos()
 			if Rect2(bp - Vector2(16, 9), Vector2(32, 18)).intersects(_player_rect()):
@@ -144,11 +206,32 @@ func _phase_k() -> float:
 	var ph := _phase()
 	return (m / c[0]) if ph == 0 else (((m - c[0]) / c[1]) if ph == 1 else ((m - c[0] - c[1]) / c[2]))
 
+func _hits(r: Rect2, pos: Vector2) -> bool:
+	if kind == "crystal":
+		# onde au ras du sol qui s'élargit : il faut la sauter
+		var rad := 130.0 * _phase_k()
+		return absf(absf(pos.x - global_position.x) - rad) < 14.0 and r.end.y > global_position.y - 14.0 and absf(pos.y - global_position.y) < 60.0
+	return _danger_rect().intersects(r)
+
+# les pièges blessent aussi les ennemis (pas les boss) : un coup par activation
+func _hurt_foes() -> void:
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e) or e.dead or e.is_boss or foe_cd.has(e):
+			continue
+		if absf(e.global_position.x - global_position.x) > 200.0:
+			continue
+		if _hits(e.get_rect(), e.global_position):
+			foe_cd[e] = true
+			e.take_hit(2, Vector2(signf(e.global_position.x - global_position.x), -0.3))
+
 func _danger_rect() -> Rect2:
 	match kind:
 		"spikes": return Rect2(global_position + Vector2(-30, -20), Vector2(60, 20))
 		"gas": return Rect2(global_position + Vector2(-44, -96), Vector2(88, 84))
 		"geyser": return Rect2(global_position + Vector2(-14, -150), Vector2(28, 150))
+		"steam":
+			var l := 132.0 * minf(_phase_k() * 5.0, 1.0)
+			return Rect2(global_position + Vector2(12.0 if dir > 0 else -12.0 - l, -38), Vector2(l, 16))
 	return Rect2()
 
 func _check_pass() -> void:
@@ -175,6 +258,104 @@ func _shatter() -> void:
 
 func _draw() -> void:
 	match kind:
+		"crystal":
+			var ph := _phase()
+			var k := _phase_k()
+			var cc := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.55, 0.85, 1.0)
+			var shake := Vector2(sin(t * 70.0) * 1.5, 0) if ph == 1 else Vector2.ZERO
+			var glow_a := 0.2 + (0.6 * k if ph == 1 else (0.6 if ph == 2 else 0.0))
+			DU.glow(self, Vector2(0, -16), 26.0, cc, glow_a)
+			for sp in [[-7.0, 18.0, -0.25], [0.0, 28.0, 0.0], [7.0, 20.0, 0.3]]:
+				var b := Vector2(sp[0], 0) + shake
+				var tip: Vector2 = b + Vector2.from_angle(-PI / 2.0 + sp[2]) * sp[1]
+				var nn: Vector2 = Vector2.from_angle(sp[2]) * 4.5
+				DU.flat(self, PackedVector2Array([b - nn, tip, b + nn]), cc.darkened(0.15))
+				draw_line(b - nn * 0.3, tip, Color(1, 1, 1, 0.6), 1.0)
+			if ph == 2:
+				var rad := 130.0 * k
+				for sgn in [-1.0, 1.0]:
+					var x: float = sgn * rad
+					draw_arc(Vector2(x, 0), 12.0, PI, TAU, 10, Color(cc, 0.9 * (1.0 - k)), 3.0)
+					DU.glow(self, Vector2(x, -6), 16.0, cc, 0.5 * (1.0 - k))
+				draw_line(Vector2(-rad, -1), Vector2(rad, -1), Color(cc, 0.25 * (1.0 - k)), 2.0)
+		"book":
+			var ph := _phase()
+			var k := _phase_k()
+			var lift := (sin(t * 3.0) * 2.0 - 6.0) if ph >= 1 else 0.0
+			var cov := Color(0.45, 0.16, 0.22)
+			var pg := Color(0.93, 0.87, 0.7)
+			if ph >= 1:
+				DU.glow(self, Vector2(0, -12 + lift), 26.0, Color(1.0, 0.4, 0.6), 0.25 + 0.3 * k)
+			# couverture ouverte et pages qui se soulèvent
+			DU.flat(self, PackedVector2Array([Vector2(-18, -3 + lift), Vector2(0, 0 + lift), Vector2(18, -3 + lift), Vector2(18, 0 + lift), Vector2(0, 3 + lift), Vector2(-18, 0 + lift)]), cov)
+			DU.flat(self, PackedVector2Array([Vector2(-16, -5 + lift), Vector2(0, -2 + lift), Vector2(0, 1 + lift), Vector2(-16, -2 + lift)]), pg)
+			DU.flat(self, PackedVector2Array([Vector2(16, -5 + lift), Vector2(0, -2 + lift), Vector2(0, 1 + lift), Vector2(16, -2 + lift)]), pg.darkened(0.08))
+			var flips := 2 if ph == 0 else 4
+			for i in flips:
+				var a := fposmod(t * (1.5 if ph == 0 else 5.0) + i * 0.7, PI)
+				var tip := Vector2(-cos(a) * 15.0, -2 - sin(a) * 9.0 + lift)
+				draw_line(Vector2(0, -2 + lift), tip, pg.lightened(0.1), 2.0)
+			# sceau maudit
+			draw_circle(Vector2(0, -12 + lift), 2.0, Color(1.0, 0.5, 0.65, 0.8 if ph >= 1 else 0.3))
+		"hand":
+			var bone := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.86, 0.82, 0.72)
+			# terre retournée
+			DU.flat(self, PackedVector2Array([Vector2(-16, 0), Vector2(-8, -3), Vector2(8, -3), Vector2(16, 0)]), Color(0.28, 0.22, 0.2))
+			match hand_state:
+				"warn":
+					for i in 3:
+						var x := -6.0 + i * 6.0 + sin(t * 40.0 + i) * 1.0
+						draw_line(Vector2(x, -2), Vector2(x, -7), bone, 2.2)
+				"grab":
+					var u := minf((0.9 - hand_t) * 8.0, 1.0)
+					var h := 30.0 * u
+					draw_line(Vector2(0, 0), Vector2(0, -h * 0.6), bone, 4.0)
+					var palm := Vector2(0, -h * 0.6)
+					DU.ball(self, palm, 5.0, bone)
+					for i in 4:
+						var a := -PI / 2.0 + (i - 1.5) * 0.45
+						var k1 := palm + Vector2.from_angle(a) * 9.0
+						var k2 := k1 + Vector2.from_angle(a + (0.9 if i < 2 else -0.9)) * 7.0 * u
+						draw_line(palm, k1, bone, 2.2)
+						draw_line(k1, k2, bone, 1.8)
+						draw_circle(k1, 1.4, bone.darkened(0.3))
+					draw_line(palm + Vector2(4, 2), palm + Vector2(12, -4), bone, 2.0)
+		"steam":
+			var ph := _phase()
+			var k := _phase_k()
+			var d := dir
+			var metal := Color(0.4, 0.42, 0.38)
+			# bouche de bronze sur un socle
+			DU.box(self, Rect2(-9, -22, 18, 22), metal.darkened(0.2))
+			DU.box(self, Rect2(-11, -40, 22, 18), metal)
+			DU.ball(self, Vector2(d * 11.0, -31.0), 6.0, metal.lightened(0.15))
+			draw_circle(Vector2(d * 13.0, -31.0), 3.5, Color(0.08, 0.08, 0.08) if ph == 0 else Color(1, 1, 1, 0.8))
+			if ph == 1:
+				for i in 3:
+					var y := -31.0 + sin(t * 30.0 + i) * 3.0
+					draw_circle(Vector2(d * (16.0 + fposmod(t * 40.0 + i * 5.0, 14.0)), y), 2.0, Color(1, 1, 1, 0.5))
+			elif ph == 2:
+				var l := 132.0 * minf(k * 5.0, 1.0)
+				var a := 1.0 if k < 0.8 else (1.0 - k) / 0.2
+				var sc := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.92, 0.95, 1.0)
+				for i in 8:
+					var x := d * (16.0 + l * i / 8.0)
+					var r := 6.0 + i * 1.4 + sin(t * 20.0 + i) * 1.5
+					draw_circle(Vector2(x, -31.0 + sin(t * 15.0 + i) * 2.0), r, Color(sc, 0.35 * a))
+				DU.glow(self, Vector2(d * (16.0 + l * 0.5), -31.0), l * 0.5, sc, 0.25 * a)
+		"drip":
+			var ph := _phase()
+			var k := _phase_k()
+			var ac := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.6, 1.0, 0.35)
+			# flaque au plafond et goutte qui grossit
+			DU.poly(self, DU.ellipse(Vector2(0, 1), Vector2(12, 4)), ac.darkened(0.45))
+			var r := 2.0 + (5.0 * k if ph == 0 else (6.0 if ph == 1 else 0.0))
+			if r > 0.5:
+				var y := 3.0 + r
+				draw_circle(Vector2(0, y), r, ac)
+				draw_circle(Vector2(-r * 0.3, y - r * 0.3), r * 0.3, Color(1, 1, 1, 0.6))
+				if ph == 1:
+					DU.glow(self, Vector2(0, y), 14.0, ac, 0.4)
 		"spikes":
 			var ph := _phase()
 			var k := _phase_k()
