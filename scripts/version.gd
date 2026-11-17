@@ -1,3 +1,3 @@
 # Version du jeu. Le workflow de publication remplace cette valeur par le tag de la Release.
 # (Lue par updater.gd après le chargement d'un éventuel patch.)
-const VERSION := "2.5.6"
+const VERSION := "2.5.7"
