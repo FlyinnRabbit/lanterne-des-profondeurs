@@ -223,10 +223,10 @@ func _draw() -> void:
 				DU.glow(self, gp, 6.0, gems[k], 0.25 * tw)
 				if tw > 0.9:
 					draw_line(gp + Vector2(-3, -4), gp + Vector2(3, 4), Color(1, 1, 1, 0.6), 0.8)
-			# lampe suspendue
-			draw_line(Vector2(0, -110), Vector2(0, -92), Color(0.4, 0.38, 0.35), 1.2)
-			DU.flat(self, PackedVector2Array([Vector2(-8, -92), Vector2(8, -92), Vector2(4, -86), Vector2(-4, -86)]), Color(0.75, 0.6, 0.3))
-			DU.glow(self, Vector2(0, -84), 30.0, Color(1.0, 0.9, 0.6), 0.35)
+			# petite lampe à huile posée sur le comptoir
+			DU.box(self, Rect2(-34, -40, 6, 7), Color(0.75, 0.6, 0.3))
+			draw_circle(Vector2(-31, -43), 2.0 + sin(t * 7.0) * 0.4, Color(1.0, 0.85, 0.45))
+			DU.glow(self, Vector2(-31, -43), 26.0, Color(1.0, 0.9, 0.6), 0.35)
 			# le joaillier, derrière le comptoir : corps fin, longs bras, loupe
 			var hb := Vector2(20, -76 + bob)
 			draw_line(Vector2(20, -33), hb + Vector2(0, 10), bug.darkened(0.2), 5.0)
