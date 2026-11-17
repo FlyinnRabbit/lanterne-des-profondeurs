@@ -88,7 +88,13 @@ func _ready() -> void:
 	add_child(stage)
 
 # ---------------------------------------------------------------- ouverture
+var _open_t := 0.0
 func open() -> void:
+	# reçoit les évènements avant le Sanctuaire et les menus
+	get_parent().move_child(self, -1)
+	_open_t = 0.15
+	_b_was = Input.is_joy_button_pressed(0, JOY_BUTTON_B)
+	_hold_dir = Vector2i(0, -1) if Input.is_action_pressed("up") else Vector2i.ZERO
 	visible = true
 	page = 0
 	focus_grid = false
@@ -105,6 +111,10 @@ func close() -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
+	if _open_t > 0.0:
+		_open_t -= delta          # ignore la touche qui vient d'ouvrir le livre
+	else:
+		_nav_input(delta)
 	t += delta
 	var k := _k()
 	stage.scale = Vector2(k, k)
@@ -587,50 +597,89 @@ func _set_sel(i: int) -> void:
 	if page in [2, 3]:
 		_build_portraits()
 
+# Clavier et manette (croix, stick gauche, A, B) : lus à chaque image avec répétition quand on
+# maintient la direction. Les évènements sont gardés pour le livre (le Sanctuaire derrière ne les
+# reçoit pas) ; la souris passe par _on_gui_input.
+var _hold_dir := Vector2i.ZERO
+var _hold_t := 0.0
+
 func _input(event: InputEvent) -> void:
-	if not visible:
-		return
-	if event.is_action_pressed("pause_menu") or event.is_action_pressed("ui_cancel") or event.is_action_pressed("inventory") \
-			or (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_B):
+	if visible and not (event is InputEventMouse):
+		get_viewport().set_input_as_handled()
+
+func _pressed(acts: Array) -> bool:
+	for a in acts:
+		if InputMap.has_action(a) and Input.is_action_just_pressed(a):
+			return true
+	return false
+
+func _held(acts: Array) -> bool:
+	for a in acts:
+		if InputMap.has_action(a) and Input.is_action_pressed(a):
+			return true
+	return false
+
+func _nav_input(delta: float) -> void:
+	var b_edge := _b_edge()
+	if _pressed(["pause_menu", "ui_cancel", "inventory"]) or b_edge:
 		if focus_grid:
 			focus_grid = false
 		else:
 			close()
-		get_viewport().set_input_as_handled()
 		return
+	if _pressed(["jump", "ui_accept", "attack"]):
+		if not focus_grid and _grid_count() > 0:
+			focus_grid = true
+		return
+	var d := Vector2i.ZERO
+	if _held(["up", "ui_up"]):
+		d.y = -1
+	elif _held(["down", "ui_down"]):
+		d.y = 1
+	elif _held(["move_left", "ui_left"]):
+		d.x = -1
+	elif _held(["move_right", "ui_right"]):
+		d.x = 1
+	if d == Vector2i.ZERO:
+		_hold_dir = d
+		return
+	if d != _hold_dir:
+		_hold_dir = d
+		_hold_t = 0.35          # premier pas immédiat, puis répétition après une courte pause
+		_step(d)
+		return
+	_hold_t -= delta
+	if _hold_t <= 0.0:
+		_hold_t = 0.12
+		_step(d)
+
+var _b_was := false
+func _b_edge() -> bool:
+	var now := Input.is_joy_button_pressed(0, JOY_BUTTON_B)
+	var edge := now and not _b_was
+	_b_was = now
+	return edge
+
+func _step(d: Vector2i) -> void:
 	var grid := _grid_count() > 0
 	var cols := _grid_cols()
-	if event.is_action_pressed("up") or event.is_action_pressed("ui_up"):
+	if d.y != 0:
 		if focus_grid:
-			if sel - cols >= 0:
-				_set_sel(sel - cols)
+			var n := sel + d.y * cols
+			if n >= 0 and n < _grid_count():
+				_set_sel(n)
 		else:
-			_set_page(posmod(page - 1, PAGES.size()))
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("down") or event.is_action_pressed("ui_down"):
-		if focus_grid:
-			if sel + cols < _grid_count():
-				_set_sel(sel + cols)
-		else:
-			_set_page(posmod(page + 1, PAGES.size()))
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("move_right") or event.is_action_pressed("ui_right"):
+			_set_page(posmod(page + d.y, PAGES.size()))
+	elif d.x > 0:
 		if not focus_grid and grid:
 			focus_grid = true
-		elif focus_grid and sel % cols < cols - 1:
+		elif focus_grid and sel % cols < cols - 1 and sel + 1 < _grid_count():
 			_set_sel(sel + 1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("move_left") or event.is_action_pressed("ui_left"):
-		if focus_grid:
-			if sel % cols == 0:
-				focus_grid = false
-			else:
-				_set_sel(sel - 1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("jump") or event.is_action_pressed("ui_accept"):
-		if not focus_grid and grid:
-			focus_grid = true
-		get_viewport().set_input_as_handled()
+	elif d.x < 0 and focus_grid:
+		if sel % cols == 0:
+			focus_grid = false
+		else:
+			_set_sel(sel - 1)
 
 func _on_gui_input(event: InputEvent) -> void:
 	if not (event is InputEventMouse):
