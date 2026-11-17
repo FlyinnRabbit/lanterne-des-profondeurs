@@ -675,8 +675,11 @@ func _do_attack_hits() -> void:
 			var wpn := weapon()
 			var kv: Vector2 = kdir * (1.6 if attack_kind == "finisher" else 1.0) * float(wpn["knock"])
 			var split := claw_split and attack_kind == claw_kind
+			var second := split and claw_hand == 1
 			if split:
-				_claw_hit(e, hit_damage() * 0.5, kv)
+				# la deuxième griffe ne repousse presque pas : sinon l'ennemi, repoussé 8 fois par
+				# seconde, ne pouvait plus jamais attaquer (blocage permanent)
+				_claw_hit(e, hit_damage() * 0.5, kv * (0.25 if second else 1.0))
 			else:
 				e.take_hit(hit_damage(), kv)
 			# griffes niv. 2 : saignée, 1 dégât une seconde plus tard (pas de cumul sur le même ennemi)
@@ -710,10 +713,11 @@ func _do_attack_hits() -> void:
 				ult = mini(ult + whole_u, ULT_MAX)
 			else:
 				ult = mini(ult + ult_per_hit(), ULT_MAX)
-			main.shake(4 if attack_kind == "slash" else 8)
-			main.hit_stop(0.04 if attack_kind == "slash" else 0.07)
-			if attack_kind in ["spin", "thrust", "air_spin", "air_rise"]:
-				pass   # pas de recul : ces coups traversent
+			if not second:
+				main.shake(4 if attack_kind == "slash" else 8)
+				main.hit_stop(0.04 if attack_kind == "slash" else 0.07)
+			if attack_kind in ["spin", "thrust", "air_spin", "air_rise"] or second:
+				pass   # pas de recul : ces coups traversent (ni pour la 2e griffe : un seul rebond par attaque)
 			elif attack_dir == Vector2.DOWN:
 				_pogo()
 			elif attack_dir.x != 0.0 and not crouching and attack_kind != "low":
@@ -817,6 +821,12 @@ func _on_parry(from_pos: Vector2, source) -> void:
 
 # Arme tenue en main (dessinée dans le repère du personnage, pieds en 0, tourné à droite)
 # traînée de coup « peinte » : croissant effilé, bord extérieur vif qui s'estompe vers l'intérieur
+func _area(q: PackedVector2Array) -> float:
+	var a := 0.0
+	for i in q.size():
+		a += q[i].cross(q[(i + 1) % q.size()])
+	return a * 0.5
+
 func _smear(piv: Vector2, rad: float, a0: float, a1: float, thick: float, col: Color, k: float, pale := true) -> void:
 	col = col * Color(GameState.cos.look("trail")["slash"], 1.0)
 	var n := 16
@@ -840,6 +850,8 @@ func _smear(piv: Vector2, rad: float, a0: float, a1: float, thick: float, col: C
 			q = PackedVector2Array([outer[i], outer[i + 1], inner[i + 1]])
 		elif q[1].distance_to(q[2]) < 0.05:
 			q = PackedVector2Array([outer[i], outer[i + 1], inner[i]])
+		if absf(_area(q)) < 0.4:
+			continue
 		var cols := PackedColorArray()
 		for j in q.size():
 			var v: Vector2 = q[j]

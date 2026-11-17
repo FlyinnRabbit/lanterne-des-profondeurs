@@ -101,6 +101,11 @@ func _draw() -> void:
 					q.append(v)
 			if q.size() < 3:
 				continue
+			var ar := 0.0
+			for j in q.size():
+				ar += q[j].cross(q[(j + 1) % q.size()])
+			if absf(ar) < 0.8:     # tranche sans surface : Godot refuserait de la trianguler
+				continue
 			var cols := PackedColorArray()
 			for v in q:
 				cols.append(c_top.lerp(c_bot, clampf((v.y - (c.y - r)) / (2.0 * r), 0.0, 1.0)))
