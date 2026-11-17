@@ -173,6 +173,7 @@ func _color() -> Color:
 		"dart": return Color(1.0, 0.55, 0.3)
 		"web", "webpatch": return Color(0.9, 0.9, 0.97)
 		"page": return Color(0.95, 0.88, 0.7)
+		"drop": return Color(0.62, 1.0, 0.3)
 		"slashwave": return Color(0.85, 0.92, 1.0)
 	return Color(0.85, 0.45, 0.95)
 
@@ -193,6 +194,24 @@ func _draw() -> void:
 	if crit and kind == "soulblade":
 		c = Color(1.0, 0.75, 0.35)
 	match kind:
+		"drop":
+			# goutte d'acide en chute : larme étirée par la vitesse, reflet, gouttelettes derrière
+			var st := clampf(vel.y / 500.0, 0.0, 1.0)
+			var r := radius
+			DU.glow(self, Vector2.ZERO, r * 2.6, c, 0.35)
+			var pts := PackedVector2Array()
+			for a in 16:
+				var ang := a * TAU / 16.0
+				var q := Vector2(cos(ang) * r, sin(ang) * r)
+				if q.y < 0.0:
+					q.x *= 1.0 + q.y / r * 0.6
+					q.y *= 1.0 + 1.6 * st
+				pts.append(q)
+			DU.flat(self, pts, c)
+			draw_circle(Vector2(-r * 0.35, -r * 0.1), r * 0.3, Color(1, 1, 1, 0.75))
+			for k in 3:
+				draw_circle(Vector2(sin(t * 20.0 + k) * 1.5, -r * (2.4 + st * 2.0) - k * 7.0), 1.6 - k * 0.4, Color(c, 0.7 - k * 0.2))
+			return
 		"page":
 			# page arrachée qui tournoie, lignes d'écriture, bord rougeoyant
 			_tail(c, 3.0, 20.0)

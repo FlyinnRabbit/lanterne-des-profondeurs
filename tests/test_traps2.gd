@@ -59,8 +59,8 @@ func _run() -> void:
 	var dr = main._make_trap("drip", Vector2(px + 300, feet - 200), {})
 	dr.t = dr.CYCLE["drip"][0] + dr.CYCLE["drip"][1] - 0.05
 	await _f(10)
-	print("drip acid=", _count("acid"))
-	if _count("acid") < 1: ok = false
+	print("drip drop=", _count("drop"))
+	if _count("drop") < 1: ok = false
 	dr.queue_free()
 	# cristal : onde au sol, sautée = pas touché
 	var cr = main._make_trap("crystal", Vector2(pl.global_position.x - 80, pl.get_rect().end.y), {})

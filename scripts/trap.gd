@@ -136,8 +136,8 @@ func _physics_process(delta: float) -> void:
 		"drip":
 			if _phase() == 2 and fmod(t, period) - CYCLE[kind][0] - CYCLE[kind][1] < delta:
 				if absf(main.player.global_position.x - global_position.x) < 650.0:
-					main.spawn_projectile(global_position + Vector2(0, 10), Vector2(0, 40),
-						{"kind": "acid", "hostile": true, "radius": 6.0, "gravity": 900.0, "life": 2.5, "from_trap": true})
+					main.spawn_projectile(global_position + Vector2(0, 20), Vector2(0, 60),
+						{"kind": "drop", "hostile": true, "radius": 6.0, "gravity": 900.0, "life": 2.5, "from_trap": true})
 		"hand":
 			var pl = main.player
 			var over: bool = absf(pl.global_position.x - global_position.x) < 20.0 and absf(pl.get_rect().end.y - global_position.y) < 10.0
@@ -321,41 +321,107 @@ func _draw() -> void:
 						draw_circle(k1, 1.4, bone.darkened(0.3))
 					draw_line(palm + Vector2(4, 2), palm + Vector2(12, -4), bone, 2.0)
 		"steam":
+			# tuyau de cuivre qui sort du sol, coudé, buse rivetée, manomètre dont l'aiguille monte
 			var ph := _phase()
 			var k := _phase_k()
 			var d := dir
-			var metal := Color(0.4, 0.42, 0.38)
-			# bouche de bronze sur un socle
-			DU.box(self, Rect2(-9, -22, 18, 22), metal.darkened(0.2))
-			DU.box(self, Rect2(-11, -40, 22, 18), metal)
-			DU.ball(self, Vector2(d * 11.0, -31.0), 6.0, metal.lightened(0.15))
-			draw_circle(Vector2(d * 13.0, -31.0), 3.5, Color(0.08, 0.08, 0.08) if ph == 0 else Color(1, 1, 1, 0.8))
+			# bronze vieilli teinté par la pierre du biome, liserés de la couleur d'accent, vert-de-gris
+			var pal: Dictionary = main.pal if main else {}
+			var stone: Color = pal.get("rock_hi", Color(0.3, 0.28, 0.3))
+			var accent: Color = pal.get("moss", Color(0.85, 0.75, 0.45))
+			var cu := Color(0.5, 0.4, 0.3).lerp(stone.lightened(0.3), 0.65)
+			var cu_d := cu.darkened(0.45)
+			draw_line(Vector2(-2, 0), Vector2(-2, -22), cu_d, 10.0)
+			draw_line(Vector2(-2, 0), Vector2(-2, -22), cu, 6.0)
+			draw_line(Vector2(-4, -2), Vector2(-4, -20), cu.lightened(0.3), 1.5)
+			draw_arc(Vector2(d * 6.0 - 2.0, -22), 8.0, PI if d > 0 else 0.0, PI * 1.5, 8, cu_d, 10.0)
+			draw_arc(Vector2(d * 6.0 - 2.0, -22), 8.0, PI if d > 0 else 0.0, PI * 1.5, 8, cu, 6.0)
+			draw_line(Vector2(d * 4.0, -30), Vector2(d * 14.0, -30), cu_d, 10.0)
+			draw_line(Vector2(d * 4.0, -30), Vector2(d * 14.0, -30), cu, 6.0)
+			# vert-de-gris et anneaux de la couleur d'accent
+			var verd := Color(0.36, 0.62, 0.56, 0.85)
+			for vp in [Vector2(-1, -8), Vector2(-3, -15), Vector2(d * 8.0, -30)]:
+				draw_circle(vp, 1.8, verd)
+			for ry2 in [-5.0, -19.0]:
+				draw_line(Vector2(-7, ry2), Vector2(3, ry2), accent.darkened(0.2), 2.0)
+			# buse évasée et rivets
+			DU.flat(self, PackedVector2Array([Vector2(d * 13, -35), Vector2(d * 19, -38), Vector2(d * 19, -22), Vector2(d * 13, -25)]), cu.darkened(0.15))
+			draw_line(Vector2(d * 13, -35), Vector2(d * 13, -25), accent.darkened(0.15), 2.0)
+			for ry in [-34.0, -26.0]:
+				draw_circle(Vector2(d * 15.5, ry), 1.0, accent.lightened(0.3))
+			# eau qui perle sous le coude (cité engloutie)
+			var dk := fposmod(t * 0.9, 1.0)
+			draw_circle(Vector2(d * 8.0, -25.0 + dk * 22.0), 1.2, Color(0.6, 0.75, 0.9, 0.7 * (1.0 - dk)))
+			draw_line(Vector2(d * 19, -37), Vector2(d * 19, -23), Color(0.1, 0.07, 0.05), 2.0)
+			# collier au sol
+			DU.box(self, Rect2(-9, -4, 14, 4), stone.darkened(0.2))
+			# manomètre
+			var gc := Vector2(-2 - d * 9.0, -16)
+			draw_circle(gc, 5.5, accent.darkened(0.45))
+			draw_circle(gc, 4.3, Color(0.92, 0.88, 0.76))
+			var need := 0.15 + (0.0 if ph == 0 else (0.8 * k if ph == 1 else 0.8 * (1.0 - k)))
+			var na := PI * 0.75 + need * PI * 1.5
+			draw_line(gc, gc + Vector2.from_angle(na) * 3.6, Color(0.85, 0.15, 0.1) if need > 0.6 else Color(0.15, 0.12, 0.1), 1.2)
+			var sc := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.93, 0.95, 1.0)
+			var mouth := Vector2(d * 20.0, -30.0)
 			if ph == 1:
-				for i in 3:
-					var y := -31.0 + sin(t * 30.0 + i) * 3.0
-					draw_circle(Vector2(d * (16.0 + fposmod(t * 40.0 + i * 5.0, 14.0)), y), 2.0, Color(1, 1, 1, 0.5))
+				# sifflement : filets de vapeur qui s'échappent
+				for i in 4:
+					var u := fposmod(t * 2.2 + i * 0.25, 1.0)
+					var p := mouth + Vector2(d * u * 22.0, -u * 10.0 + sin(u * 9.0 + i) * 3.0)
+					draw_circle(p, 1.5 + u * 3.0, Color(sc, 0.5 * (1.0 - u)))
 			elif ph == 2:
 				var l := 132.0 * minf(k * 5.0, 1.0)
 				var a := 1.0 if k < 0.8 else (1.0 - k) / 0.2
-				var sc := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.92, 0.95, 1.0)
-				for i in 8:
-					var x := d * (16.0 + l * i / 8.0)
-					var r := 6.0 + i * 1.4 + sin(t * 20.0 + i) * 1.5
-					draw_circle(Vector2(x, -31.0 + sin(t * 15.0 + i) * 2.0), r, Color(sc, 0.35 * a))
-				DU.glow(self, Vector2(d * (16.0 + l * 0.5), -31.0), l * 0.5, sc, 0.25 * a)
+				# cône de vapeur : bouffées qui gonflent en s'éloignant, stries rapides au centre
+				DU.glow(self, mouth + Vector2(d * l * 0.5, 0), l * 0.45 + 8.0, sc, 0.22 * a)
+				for i in 12:
+					var u := fposmod(i / 12.0 + t * 2.5, 1.0) * (l / 132.0)
+					var p := mouth + Vector2(d * u * 132.0, sin(t * 12.0 + i * 1.7) * (2.0 + u * 6.0))
+					var r := 4.0 + u * 11.0
+					draw_circle(p, r, Color(sc, (0.45 - u * 0.25) * a))
+					draw_circle(p + Vector2(-d * r * 0.3, -r * 0.3), r * 0.45, Color(1, 1, 1, 0.25 * a))
+				for i in 3:
+					var y := -3.0 + i * 3.0
+					var u0 := fposmod(t * 6.0 + i * 0.3, 1.0)
+					draw_line(mouth + Vector2(d * u0 * l * 0.6, y), mouth + Vector2(d * (u0 * l * 0.6 + 26.0), y), Color(1, 1, 1, 0.55 * a), 1.2)
+
 		"drip":
+			# bosse de roche moussue au plafond, suintante ; la goutte s'étire au bout d'un col fin
 			var ph := _phase()
 			var k := _phase_k()
-			var ac := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.6, 1.0, 0.35)
-			# flaque au plafond et goutte qui grossit
-			DU.poly(self, DU.ellipse(Vector2(0, 1), Vector2(12, 4)), ac.darkened(0.45))
-			var r := 2.0 + (5.0 * k if ph == 0 else (6.0 if ph == 1 else 0.0))
-			if r > 0.5:
-				var y := 3.0 + r
-				draw_circle(Vector2(0, y), r, ac)
-				draw_circle(Vector2(-r * 0.3, y - r * 0.3), r * 0.3, Color(1, 1, 1, 0.6))
+			var ac := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.62, 1.0, 0.3)
+			var rock := Color(0.3, 0.29, 0.31)
+			DU.flat(self, PackedVector2Array([Vector2(-17, -2), Vector2(-13, 4), Vector2(-7, 6), Vector2(-4, 10), Vector2(0, 13), Vector2(4, 9), Vector2(9, 7), Vector2(13, 3), Vector2(17, -2)]), rock)
+			DU.flat(self, PackedVector2Array([Vector2(-9, 1), Vector2(-4, 7), Vector2(0, 10), Vector2(3, 6), Vector2(-2, 3)]), rock.darkened(0.3))
+			draw_line(Vector2(-13, 3), Vector2(-5, 8), rock.lightened(0.2), 1.0)
+			for mx in [-12.0, 10.0]:
+				draw_circle(Vector2(mx, 1), 2.4, Color(0.3, 0.42, 0.28))
+			# coulées d'acide sur la roche
+			for sx in [-7.0, 6.0]:
+				draw_line(Vector2(sx, 3), Vector2(sx * 0.5, 9), Color(ac, 0.7), 1.6)
+			DU.glow(self, Vector2(0, 14), 12.0, ac, 0.25)
+			var grow := k if ph == 0 else (1.0 if ph == 1 else 0.0)
+			if grow > 0.05:
+				var r := 2.0 + 4.0 * grow
+				var neck := 1.0 + (6.0 * sin(t * 18.0) * 0.15 + 5.0 if ph == 1 else 2.0 * grow)
+				var top := Vector2(0, 11)
+				var c := top + Vector2(0, neck + r)
+				# goutte en larme : col fin puis ventre rond
+				var pts := PackedVector2Array()
+				for a in 16:
+					var ang := PI / 2.0 + a * TAU / 16.0
+					var q := c + Vector2(cos(ang) * r, sin(ang) * r)
+					if sin(ang) < -0.2:
+						q.x *= 0.55 + 0.45 * (1.0 + sin(ang))   # s'affine vers le haut
+						q.y = lerpf(q.y, top.y, 0.6 * -sin(ang))
+					pts.append(q)
+				DU.flat(self, pts, ac)
+				draw_circle(c + Vector2(-r * 0.35, -r * 0.2), r * 0.32, Color(1, 1, 1, 0.75))
+				draw_arc(c, r - 0.5, 0.2, 1.6, 6, Color(ac.darkened(0.35), 0.8), 1.2)
 				if ph == 1:
-					DU.glow(self, Vector2(0, y), 14.0, ac, 0.4)
+					DU.glow(self, c, 16.0, ac, 0.45)
+
 		"spikes":
 			var ph := _phase()
 			var k := _phase_k()
