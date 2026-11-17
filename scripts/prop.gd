@@ -100,12 +100,15 @@ func _draw() -> void:
 		"scriptorium":
 			_draw_scriptorium()
 		"merchant":
-			# chariot retourné : les brancards vers la droite, où attend la bête de somme
-			draw_set_transform(Vector2(178, 0), 0.0, Vector2(-1, 1))
-			_draw_merchant_cart()
-			draw_set_transform(Vector2(188, 0), 0.0, Vector2(1.12, 1.12))
-			_draw_pack_beast(Vector2.ZERO)
-			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			# chariot retourné : les brancards vers la droite, où attend la bête de somme.
+			# Seulement au Sanctuaire : le marchand itinérant des niveaux voyage léger (sinon la
+			# charrette passait dans les murs et par-dessus le banc).
+			if GameState.is_hub():
+				draw_set_transform(Vector2(178, 0), 0.0, Vector2(-1, 1))
+				_draw_merchant_cart()
+				draw_set_transform(Vector2(188, 0), 0.0, Vector2(1.12, 1.12))
+				_draw_pack_beast(Vector2.ZERO)
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			# Marchand : grand papillon de nuit voyageur, cape aux ocelles, sac rapiécé de babioles
 			var bob := sin(t * 1.6) * 1.5
 			var cloak := Color(0.36, 0.26, 0.32)
