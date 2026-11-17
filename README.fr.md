@@ -27,7 +27,7 @@ ombre garde les éclats perdus là où tu es tombé, et l'ascenseur se souvient 
 
 ## En bref
 
-- **9 biomes** ; les niveaux sont générés à chaque descente, avec grottes, strates sur trois étages et treuils
+- **12 biomes** ; les niveaux sont générés à chaque descente, avec grottes, strates sur trois étages et treuils
 - **10 boss** : 6 gardiens de palier et 4 boss finaux, chacun avec une phase 2 et sa musique
 - **Combat** : combos en 3 coups, tourbillon chargé, combo aérien, pogo, attaque plongée, estoc en ruée, parade (parfaite = coup critique), lame d'âme, ultime
 - **5 armes** améliorées chez la forgeronne (les Griffes Jumelles se portent aux deux mains), **21 emblèmes**
@@ -242,7 +242,7 @@ Depuis l'ascenseur, on peut aussi :
 
 Il y a 29 **succès**, consultables depuis l'écran-titre ou le menu pause.
 
-### Les 9 biomes
+### Les 12 biomes
 
 | Biome | Particularités |
 |---|---|
@@ -255,6 +255,9 @@ Il y a 29 **succès**, consultables depuis l'écran-titre ou le menu pause.
 | L'Abîme Gelé | neige, ponts fragiles et gouffres, cracheurs |
 | La Ruche Bourdonnante | couloirs étroits envahis de volants |
 | L'Ossuaire | collines et arènes, rampants et cracheurs |
+| La Jungle Noyée | plateformes, îlots et ponts dans les lianes, slimes et singes |
+| Les Sables Enfouis | dunes, fosses et blocs fragiles, scorpions et taupes |
+| Le Temple Antique | colonnes, arènes et lames, gobelins et lanciers |
 
 ### Profondeurs : grottes et strates
 
@@ -329,6 +332,10 @@ mobile, couloirs de lames.
 | Fouet de Ronces | 150 | très longue portée devant et vers le haut, un peu plus lent | attire les petits ennemis vers soi |
 | Marteau d'Enclume | 220 | lent, +1 dégât, gros recul, étourdit | le coup final envoie une onde de choc des deux côtés (elle franchit les marches) |
 | Étoiles de Lune (shurikens) | 260 | à distance ; coup final = 3 étoiles, tourbillon = 8 en cercle, estoc = une grande étoile perçante | elles reviennent comme un boomerang et touchent à nouveau |
+| Faux du Glaneur | 240 | grand arc en demi-lune devant et au-dessus, fauche plusieurs ennemis ; le coup final est un tourbillon | chaque ennemi fauché rend de l'âme, le tourbillon lance une lame fantôme qui revient |
+| Bâton Cerclé de Cuivre | 230 | estoc long et rapide ; accroupi, saut à la perche | le coup final s'abat en frappe géante et envoie une onde au sol |
+
+La forgeronne monte ensuite chaque arme jusqu'au **niveau 5** : le niveau 2 donne l'effet spécial ci-dessus (palier 1 terminé), les niveaux 3, 4 et 5 (paliers 2, 3 et 5) renforcent ce que l'arme fait de mieux : +1 dégât, +12 % de portée, +10 % de vitesse de frappe ou +8 % de chance de critique.
 
 Étoiles de Lune : au plus 3 étoiles simples à l'écran, moins d'âme par coup, et les boss n'encaissent
 que 75 % des dégâts à distance.
@@ -362,6 +369,8 @@ en trouve (anneaux dorés) ou on en achète d'autres. On ne change d'équipement
 | Dernier Souffle | 3 | un coup fatal te laisse à 1 masque, une fois par niveau |
 | Croc Sanglant | 2 | +30 % de chances de faire saigner à chaque coup, avec toutes les armes (1 dégât une seconde plus tard) ; 50 % avec les Griffes niv. 2 |
 
+Le **joaillier**, un pharaon momifié qui s'installe au Sanctuaire après le palier 2, renforce les emblèmes que tu portes : niveau 2 (palier 2 terminé) puis niveau 3 (palier 4). Chaque emblème gagne en puissance (par exemple Cœur de Verre : +2, +3 puis +4 masques).
+
 Les effets sont définis dans `scripts/charms.gd` et appliqués dans `scripts/player.gd`.
 
 ## Ennemis
@@ -369,9 +378,16 @@ Les effets sont définis dans `scripts/charms.gd` et appliqués dans `scripts/pl
 - **Sauteur** : une sauterelle qui bondit sur toi.
 - **Garde au bouclier** : bloque les coups de face. Frapper par-dessus, par derrière, ou avec l'ultime.
 - **Bulbe explosif** : roule vers toi, s'allume et explose (blessant aussi les ennemis proches).
-- **Tisseuse** : une araignée pendue au plafond qui se laisse tomber quand on passe dessous.
+- **Tisseuse** : une araignée pendue au plafond qui crache une toile qui englue (la Ruée l'arrache), tombe sur sa proie puis remonte à son fil.
 - **Lancier** : prend la pose puis porte un long estoc ; une parade l'étourdit.
 - **Spectre** : disparaît (intouchable), réapparaît près de toi et lance un orbe lent.
+- **Singe chapardeur** : bondit partout, lance des fruits et te vole des éclats ; tue-le avant qu'il ne s'enfuie pour tout récupérer.
+- **Mimique** : une fausse cachette au trésor qui mord et sautille vers toi.
+- **Mite-éteignoir** : arrive en groupe et assombrit tout en tournant autour de ta lanterne.
+- **Taupe fouisseuse** : creuse jusqu'à toi et jaillit sous tes pieds après un avertissement (sol fissuré, « ! »).
+- **Slime** : avance par bonds ; tué, il se divise en deux petits slimes.
+- **Scorpion** : arme son dard puis pique ; le venin coûte un masque de plus un peu après (sans jamais tuer).
+- **Gobelin** : lance des dagues de loin, frappe deux fois de près, s'enfuit quand il faiblit.
 - **Élites** (lueur rouge) : plus de vie, plus rapides, butin double et une attaque en plus — le rampant
   charge, le volant pique, le cracheur tire 3 spores, le sauteur enchaîne deux bonds, le garde charge
   avec son bouclier.

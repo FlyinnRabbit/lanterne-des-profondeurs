@@ -224,10 +224,10 @@ func _draw() -> void:
 			# petite lampe à huile posée sur le comptoir
 			DU.box(self, Rect2(-34, -40, 6, 7), Color(0.75, 0.6, 0.3))
 			draw_circle(Vector2(-31, -43), 2.0 + sin(t * 7.0) * 0.4, Color(1.0, 0.85, 0.45))
-			DU.glow(self, Vector2(-31, -43), 26.0, Color(1.0, 0.9, 0.6), 0.35)
+			DU.glow(self, Vector2(-31, -43), 18.0, Color(1.0, 0.9, 0.6), 0.2)
 			# le joaillier : un pharaon momifié, derrière son comptoir. Bandelettes, némès rayé
 			# bleu et or, large collier d'or, yeux qui luisent ; il tient une gemme à la lumière.
-			var linen := Color(0.86, 0.8, 0.66)
+			var linen := Color(0.66, 0.6, 0.48)
 			var gold := Color(0.95, 0.75, 0.3)
 			var lapis := Color(0.2, 0.32, 0.62)
 			var hb := Vector2(18, -78 + bob)
@@ -235,7 +235,10 @@ func _draw() -> void:
 			DU.poly(self, PackedVector2Array([hb + Vector2(-10, 12), hb + Vector2(10, 12), hb + Vector2(12, 46), hb + Vector2(-12, 46)]), linen)
 			for k in 5:
 				var yy := 16.0 + k * 6.0
-				draw_line(hb + Vector2(-11, yy), hb + Vector2(11, yy + 3.0 - (k % 2) * 5.0), linen.darkened(0.25), 1.0)
+				draw_line(hb + Vector2(-11, yy), hb + Vector2(11, yy + 3.0 - (k % 2) * 5.0), linen.darkened(0.45), 1.4)
+			for k in 4:
+				var yy2 := 18.0 + k * 7.0
+				draw_line(hb + Vector2(-11, yy2 + 4.0), hb + Vector2(11, yy2 - 2.0), linen.darkened(0.3), 1.0)
 			# collier ousekh
 			for k in 3:
 				draw_arc(hb + Vector2(0, 10), 9.0 + k * 2.5, 0.25, PI - 0.25, 12, [gold, lapis, gold][k], 2.2)
@@ -244,7 +247,7 @@ func _draw() -> void:
 			draw_line(hb + Vector2(-8, 16), hb + Vector2(-16, 22), linen.darkened(0.08), 4.5)
 			draw_line(hb + Vector2(-16, 22), gem_p + Vector2(2, 4), linen.darkened(0.08), 4.0)
 			DU.flat(self, DU.diamond(gem_p, Vector2(3.5, 5.0)), Color(0.5, 0.85, 1.0))
-			DU.glow(self, gem_p, 10.0, Color(0.5, 0.85, 1.0), 0.4 + 0.2 * sin(t * 3.0))
+			DU.glow(self, gem_p, 8.0, Color(0.5, 0.85, 1.0), 0.25 + 0.1 * sin(t * 3.0))
 			draw_line(hb + Vector2(9, 16), hb + Vector2(16, 40), linen.darkened(0.08), 4.5)
 			# tête : visage bandé, némès rayé qui retombe sur les épaules
 			var nem := PackedVector2Array([hb + Vector2(-9, -8), hb + Vector2(9, -8), hb + Vector2(14, 12), hb + Vector2(8, 12), hb + Vector2(6, 2), hb + Vector2(-6, 2), hb + Vector2(-8, 12), hb + Vector2(-14, 12)])
@@ -255,7 +258,7 @@ func _draw() -> void:
 				draw_line(hb + Vector2(7, yy), hb + Vector2(10 + k, yy), lapis, 1.6)
 			DU.ball(self, hb, 7.0, linen)
 			for k in 3:
-				draw_line(hb + Vector2(-6, -3 + k * 3), hb + Vector2(6, -1 + k * 3 - (k % 2) * 3), linen.darkened(0.3), 0.9)
+				draw_line(hb + Vector2(-6, -3 + k * 3), hb + Vector2(6, -1 + k * 3 - (k % 2) * 3), linen.darkened(0.45), 1.2)
 			# bandeau d'or et uræus
 			DU.flat(self, PackedVector2Array([hb + Vector2(-8, -8), hb + Vector2(8, -8), hb + Vector2(7, -5), hb + Vector2(-7, -5)]), gold.lightened(0.1))
 			draw_line(hb + Vector2(0, -8), hb + Vector2(0, -13), gold, 2.0)

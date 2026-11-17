@@ -27,7 +27,7 @@ keeps the shards you dropped where you fell, and the lift remembers how deep you
 
 ## At a glance
 
-- **9 biomes**; levels are generated anew on every descent, with grottos, three-storey strata and winches
+- **12 biomes**; levels are generated anew on every descent, with grottos, three-storey strata and winches
 - **10 bosses**: 6 tier guardians and 4 final bosses, each with a phase 2 and its own music
 - **Combat**: 3-hit combos, charged whirl, air combo, pogo, plunge attack, dash thrust, parry (a perfect parry makes your next hit critical), soul blade, ultimate
 - **5 weapons** upgraded by the smith (the Twin Claws are worn on both hands), **21 charms**
@@ -238,7 +238,7 @@ From the elevator you can also:
 
 There are 29 **achievements**, viewable from the title screen or the pause menu.
 
-### The 9 biomes
+### The 12 biomes
 
 | Biome | Features |
 |---|---|
@@ -251,6 +251,9 @@ There are 29 **achievements**, viewable from the title screen or the pause menu.
 | The Frozen Abyss | snow, fragile bridges and chasms, spitters |
 | The Humming Hive | narrow corridors overrun with flyers |
 | The Ossuary | hills and arenas, crawlers and spitters |
+| The Drowned Jungle | platforms, islets and vine bridges, slimes and monkeys |
+| The Buried Sands | dunes, pits and crumbling blocks, scorpions and moles |
+| The Ancient Temple | columns, arenas and blades, goblins and lancers |
 
 ### Depths: grottos and strata
 
@@ -328,6 +331,10 @@ platform, blade corridors.
 | Bramble Whip | 150 | very long reach ahead and upwards, a little slower | pulls small enemies towards you |
 | Anvil Hammer | 220 | slow, +1 damage, big knockback, stuns | the finisher sends a shockwave both ways |
 | Moon Stars (shurikens) | 260 | ranged; finisher = 3 stars, whirlwind = 8 in a circle, thrust = a large piercing star | they return like a boomerang and hit again |
+| Gleaner's Scythe | 240 | wide crescent arc in front and above, reaps several enemies; the finisher is a whirlwind | every enemy reaped restores soul, the whirlwind throws a returning ghost blade |
+| Copper-Ringed Staff | 230 | long, fast thrust; crouching, a pole vault | the finisher comes down as a giant strike and sends a ground shockwave |
+
+The smith then takes each weapon up to **level 5**: level 2 gives the special effect above (tier 1 cleared), levels 3, 4 and 5 (tiers 2, 3 and 5) strengthen what the weapon does best: +1 damage, +12% reach, +10% attack speed or +8% critical chance.
 
 Moon Stars: at most 3 plain stars on screen, less soul per hit, and bosses take 75% of
 ranged damage.
@@ -361,6 +368,8 @@ to find in the levels. Each charm costs notches; you start with 3, and more can 
 | Last Breath | 3 | a fatal blow leaves you at 1 mask instead, once per level |
 | Blood Fang | 2 | +30% chance to cause bleeding with every hit, with any weapon (1 damage a second later); 50% with Twin Claws lv. 2 |
 
+The **jeweler**, a mummified pharaoh who settles in the Sanctuary after tier 2, strengthens the charms you wear: level 2 (tier 2 cleared) then level 3 (tier 4). Every charm grows stronger (for example Glass Heart: +2, +3 then +4 masks).
+
 Effects are defined in `scripts/charms.gd` and applied in `scripts/player.gd`.
 
 ## Enemies
@@ -368,9 +377,16 @@ Effects are defined in `scripts/charms.gd` and applied in `scripts/player.gd`.
 - **Hopper**: a grasshopper that leaps at you.
 - **Shield guard**: blocks hits from the front. Strike from above, from behind, or with the ultimate.
 - **Exploding bulb**: rolls towards you, lights up and explodes (hurting nearby enemies too).
-- **Weaver**: a spider hanging from the ceiling that drops when you pass underneath.
+- **Weaver**: a spider hanging from the ceiling that spits sticky webs (dashing tears free), drops on its prey, then climbs back up its thread.
 - **Lancer**: takes a stance then delivers a long thrust; a parry stuns it.
 - **Wraith**: fades out (untouchable), reappears near you and throws a slow orb.
+- **Thieving monkey**: leaps everywhere, throws fruit and steals your shards; kill it before it escapes to get them all back.
+- **Mimic**: a fake treasure cache that bites and hops toward you.
+- **Lantern moth**: arrives in groups and darkens everything as it circles your lantern.
+- **Burrowing mole**: digs toward you and bursts out under your feet after a warning (cracked ground, "!").
+- **Slime**: moves in hops; when killed, it splits into two small slimes.
+- **Scorpion**: raises its stinger then strikes; the venom costs one more mask a moment later (never lethal).
+- **Goblin**: throws daggers from afar, strikes twice up close, runs away when weakened.
 - **Elites** (red glow): more health, faster, double loot, and an extra attack — the crawler
   charges, the flyer dive-bombs, the spitter fires 3 spores, the hopper chains two leaps,
   the guard charges with its shield.

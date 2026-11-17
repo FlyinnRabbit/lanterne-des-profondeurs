@@ -408,7 +408,8 @@ func _spawn_everything() -> void:
 					var npc: String = {"F": "smith", "J": "cartographer", "I": "elder", "]": "jeweler"}[row[x]]
 					var need: int = {"smith": 1, "cartographer": 2, "elder": 3, "jeweler": 2}[npc]
 					if GameState.record >= need:
-						var np2 = _make_prop(npc, Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.55), 2.0)
+						# le joaillier, juste sous la lumière, était tout blanc : lumière plus douce
+						var np2 = _make_prop(npc, Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.55), 0.8 if npc == "jeweler" else 2.0)
 						interactables.append([np2, npc])
 				"t":
 					# la tailleuse (garde-robe) ; pendant l'évènement de Noël : sapin, cadeau et guirlandes

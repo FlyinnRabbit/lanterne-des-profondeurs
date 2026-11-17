@@ -27,7 +27,7 @@ guarda las esquirlas perdidas donde caíste, y el ascensor recuerda hasta dónde
 
 ## En resumen
 
-- **9 biomas**; los niveles se generan en cada descenso, con grutas, estratos de tres pisos y tornos
+- **12 biomas**; los niveles se generan en cada descenso, con grutas, estratos de tres pisos y tornos
 - **10 jefes**: 6 guardianes de nivel y 4 jefes finales, cada uno con una fase 2 y su música
 - **Combate**: combos de 3 golpes, torbellino cargado, combo aéreo, pogo, ataque en picado, estocada en carrera, parada (la perfecta hace crítico el siguiente golpe), hoja de alma, definitiva
 - **5 armas** mejoradas por la herrera (las Garras Gemelas se llevan en las dos manos), **21 emblemas**
@@ -241,7 +241,7 @@ Desde el ascensor también puedes:
 
 Hay 29 **logros**, visibles desde la pantalla de título o el menú de pausa.
 
-### Los 9 biomas
+### Los 12 biomas
 
 | Bioma | Características |
 |---|---|
@@ -254,6 +254,9 @@ Hay 29 **logros**, visibles desde la pantalla de título o el menú de pausa.
 | El Abismo Helado | nieve, puentes frágiles y abismos, escupidores |
 | La Colmena Zumbante | pasillos estrechos invadidos por voladores |
 | El Osario | colinas y arenas, reptantes y escupidores |
+| La Jungla Anegada | plataformas, islotes y puentes de lianas, limos y monos |
+| Las Arenas Enterradas | dunas, fosos y bloques frágiles, escorpiones y topos |
+| El Templo Antiguo | columnas, arenas y cuchillas, goblins y lanceros |
 
 ### Profundidades: grutas y estratos
 
@@ -328,6 +331,10 @@ pasillos de cuchillas.
 | Látigo de Zarzas | 150 | alcance muy largo hacia delante y hacia arriba, algo más lento | atrae a los enemigos pequeños |
 | Martillo de Yunque | 220 | lento, +1 de daño, gran retroceso, aturde | el golpe final lanza una onda expansiva a ambos lados (sube los escalones) |
 | Estrellas de Luna (shurikens) | 260 | a distancia; golpe final = 3 estrellas, torbellino = 8 en círculo, estocada = una gran estrella perforante | vuelven como un bumerán y golpean de nuevo |
+| Guadaña del Espigador | 240 | gran arco en media luna delante y arriba, siega a varios enemigos; el golpe final es un torbellino | cada enemigo segado devuelve alma, el torbellino lanza una hoja fantasma que vuelve |
+| Bastón de Anillos de Cobre | 230 | estocada larga y rápida; agachado, salto con pértiga | el golpe final cae como un golpe gigante y lanza una onda por el suelo |
+
+La herrera sube luego cada arma hasta el **nivel 5**: el nivel 2 da el efecto especial de arriba (nivel 1 superado), los niveles 3, 4 y 5 (niveles 2, 3 y 5) refuerzan lo que mejor hace el arma: +1 de daño, +12 % de alcance, +10 % de velocidad de ataque o +8 % de probabilidad de crítico.
 
 Estrellas de Luna: como mucho 3 estrellas simples en pantalla, menos alma por golpe, y los jefes solo
 reciben el 75 % del daño a distancia.
@@ -361,6 +368,8 @@ Tab abre el inventario (el juego se pausa): objetos, esquirlas, estadísticas y 
 | Último Aliento | 3 | un golpe fatal te deja con 1 máscara, una vez por zona |
 | Colmillo Sangriento | 2 | +30 % de probabilidad de hacer sangrar con cada golpe, con cualquier arma (1 de daño un segundo después); 50 % con las Garras Gemelas niv. 2 |
 
+El **joyero**, un faraón momificado que se instala en el Santuario tras el nivel 2, refuerza los emblemas que llevas: nivel 2 (nivel 2 superado) y luego nivel 3 (nivel 4). Cada emblema gana potencia (por ejemplo Corazón de Cristal: +2, +3 y luego +4 máscaras).
+
 Los efectos se definen en `scripts/charms.gd` y se aplican en `scripts/player.gd`.
 
 ## Enemigos
@@ -368,9 +377,16 @@ Los efectos se definen en `scripts/charms.gd` y se aplican en `scripts/player.gd
 - **Saltador**: un saltamontes que salta sobre ti.
 - **Guardia con escudo**: bloquea los golpes de frente. Golpéalo desde arriba, por detrás o con la definitiva.
 - **Bulbo explosivo**: rueda hacia ti, se enciende y explota (también hiere a los enemigos cercanos).
-- **Tejedora**: una araña colgada del techo que se deja caer cuando pasas por debajo.
+- **Tejedora**: una araña colgada del techo que escupe telarañas pegajosas (el Impulso las rompe), cae sobre su presa y vuelve a subir por su hilo.
 - **Lancero**: toma posición y lanza una larga estocada; una parada lo aturde.
 - **Espectro**: se desvanece (intocable), reaparece cerca de ti y lanza un orbe lento.
+- **Mono ladrón**: salta por todas partes, lanza frutas y te roba esquirlas; mátalo antes de que huya para recuperarlas.
+- **Mímico**: un falso escondite de tesoro que muerde y salta hacia ti.
+- **Polilla apagadora**: llega en grupo y lo oscurece todo girando alrededor de tu linterna.
+- **Topo excavador**: excava hasta ti y surge bajo tus pies tras un aviso (suelo agrietado, «!»).
+- **Limo**: avanza a saltos; al morir, se divide en dos limos pequeños.
+- **Escorpión**: arma el aguijón y pica; el veneno cuesta una máscara más poco después (nunca mata).
+- **Goblin**: lanza dagas de lejos, golpea dos veces de cerca y huye cuando flaquea.
 - **Élites** (brillo rojo): más vida, más rápidos, botín doble y un ataque extra — el reptante embiste,
   el volador cae en picado, el escupidor lanza 3 esporas, el saltador encadena dos saltos, el guardia
   carga con su escudo.

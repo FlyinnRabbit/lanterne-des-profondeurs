@@ -27,7 +27,7 @@ Schatten bewahrt die verlorenen Splitter dort, wo du gefallen bist, und der Aufz
 
 ## Auf einen Blick
 
-- **9 Biome**; die Ebenen werden bei jedem Abstieg neu erzeugt, mit Grotten, dreistöckigen Schichten und Seilwinden
+- **12 Biome**; die Ebenen werden bei jedem Abstieg neu erzeugt, mit Grotten, dreistöckigen Schichten und Seilwinden
 - **10 Bosse**: 6 Ebenen-Wächter und 4 Endbosse, jeder mit Phase 2 und eigener Musik
 - **Kampf**: 3er-Kombos, aufgeladener Wirbel, Luftkombo, Pogo, Sturzangriff, Ausfall im Sprint, Parade (eine perfekte macht den nächsten Treffer kritisch), Seelenklinge, Ultimate
 - **5 Waffen**, von der Schmiedin verbessert (die Zwillingsklauen trägst du an beiden Händen), **21 Embleme**
@@ -241,7 +241,7 @@ Vom Aufzug aus kannst du außerdem:
 
 Es gibt 29 **Erfolge**, einsehbar über den Titelbildschirm oder das Pausenmenü.
 
-### Die 9 Biome
+### Die 12 Biome
 
 | Biom | Merkmale |
 |---|---|
@@ -254,6 +254,9 @@ Es gibt 29 **Erfolge**, einsehbar über den Titelbildschirm oder das Pausenmenü
 | Der Eisige Abgrund | Schnee, brüchige Brücken und Abgründe, Spucker |
 | Der Summende Stock | enge Gänge voller Flieger |
 | Das Beinhaus | Hügel und Arenen, Kriecher und Spucker |
+| Der Versunkene Dschungel | Plattformen, Inseln und Lianenbrücken, Schleime und Affen |
+| Der Verschüttete Sand | Dünen, Gruben und brüchige Blöcke, Skorpione und Maulwürfe |
+| Der Antike Tempel | Säulen, Arenen und Klingen, Kobolde und Lanzenträger |
 
 ### Tiefen: Grotten und Schichten
 
@@ -328,6 +331,10 @@ beweglicher Plattform, Klingengänge.
 | Dornenpeitsche | 150 | sehr große Reichweite nach vorn und oben, etwas langsamer | zieht kleine Gegner heran |
 | Ambosshammer | 220 | langsam, +1 Schaden, starker Rückstoß, betäubt | der Abschlussschlag sendet zu beiden Seiten eine Schockwelle (steigt Stufen hinauf) |
 | Mondsterne (Shuriken) | 260 | Fernkampf; Abschluss = 3 Sterne, Wirbel = 8 im Kreis, Ausfall = ein großer durchbohrender Stern | kehren wie ein Bumerang zurück und treffen erneut |
+| Sense des Ährenlesers | 240 | großer Halbmondbogen vorn und oben, mäht mehrere Gegner; der Abschluss ist ein Wirbel | jeder gemähte Gegner gibt Seele, der Wirbel schleudert eine zurückkehrende Geisterklinge |
+| Kupferberingter Stab | 230 | langer, schneller Stoß; in der Hocke Stabhochsprung | der Abschluss saust als Riesenschlag herab und schickt eine Bodenwelle |
+
+Die Schmiedin bringt danach jede Waffe bis **Stufe 5**: Stufe 2 gibt den Spezialeffekt oben (Ebene 1 geschafft), Stufen 3, 4 und 5 (Ebenen 2, 3 und 5) stärken, was die Waffe am besten kann: +1 Schaden, +12 % Reichweite, +10 % Angriffstempo oder +8 % Chance auf kritische Treffer.
 
 Mondsterne: höchstens 3 einfache Sterne gleichzeitig auf dem Bildschirm, weniger Seele pro Treffer, und
 Bosse erleiden nur 75 % des Fernkampfschadens.
@@ -361,6 +368,8 @@ weitere finden (goldene Ringe) oder kaufen. Die Ausrüstung lässt sich nur **au
 | Letzter Atemzug | 3 | ein tödlicher Treffer lässt dich mit 1 Maske überleben, einmal pro Zone |
 | Blutzahn | 2 | +30 % Chance auf Blutung bei jedem Treffer, mit jeder Waffe (1 Schaden eine Sekunde später); 50 % mit den Zwillingsklauen St. 2 |
 
+Der **Juwelier**, ein mumifizierter Pharao, der sich nach Ebene 2 im Heiligtum niederlässt, verstärkt die Embleme, die du trägst: Stufe 2 (Ebene 2 geschafft), dann Stufe 3 (Ebene 4). Jedes Emblem wird stärker (zum Beispiel Glasherz: +2, +3, dann +4 Masken).
+
 Die Wirkungen sind in `scripts/charms.gd` definiert und werden in `scripts/player.gd` angewendet.
 
 ## Gegner
@@ -368,9 +377,16 @@ Die Wirkungen sind in `scripts/charms.gd` definiert und werden in `scripts/playe
 - **Springer**: eine Heuschrecke, die auf dich springt.
 - **Schildwache**: blockt Schläge von vorn. Triff sie von oben, von hinten oder mit dem Ultimate.
 - **Sprengknolle**: rollt auf dich zu, leuchtet auf und explodiert (verletzt auch nahe Gegner).
-- **Weberin**: eine an der Decke hängende Spinne, die herabfällt, wenn du darunter gehst.
+- **Weberin**: eine an der Decke hängende Spinne, die klebrige Netze spuckt (Sprinten reißt sie los), auf ihre Beute stürzt und an ihrem Faden zurückklettert.
 - **Lanzenträger**: geht in Stellung und führt einen langen Ausfall aus; eine Parade betäubt ihn.
 - **Geist**: verblasst (unberührbar), taucht neben dir wieder auf und schleudert eine langsame Kugel.
+- **Diebischer Affe**: springt überall herum, wirft Früchte und stiehlt dir Splitter; töte ihn, bevor er flieht, um alles zurückzubekommen.
+- **Mimik**: ein falsches Schatzversteck, das beißt und auf dich zuhüpft.
+- **Löschmotte**: kommt in Gruppen und verdunkelt alles, während sie deine Laterne umkreist.
+- **Wühlmaulwurf**: gräbt sich zu dir und bricht nach einer Warnung (rissiger Boden, „!“) unter deinen Füßen hervor.
+- **Schleim**: bewegt sich in Sprüngen; getötet, teilt er sich in zwei kleine Schleime.
+- **Skorpion**: spannt den Stachel und sticht; das Gift kostet kurz darauf eine weitere Maske (nie tödlich).
+- **Kobold**: wirft Dolche aus der Ferne, schlägt aus der Nähe zweimal zu und flieht, wenn er schwächelt.
 - **Eliten** (rotes Leuchten): mehr Leben, schneller, doppelte Beute und ein Zusatzangriff — der Kriecher
   stürmt, der Flieger stürzt herab, der Spucker spuckt 3 Sporen, der Springer springt zweimal hintereinander,
   die Wache stürmt mit ihrem Schild.
