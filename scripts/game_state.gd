@@ -664,18 +664,22 @@ func weapon_level(id: String = "") -> int:
 	return int((prog.get("weapon_lv", {}) as Dictionary).get(id, 1))
 
 func upgrade_weapon(id: String, player) -> String:
-	if weapon_level(id) >= 2:
-		return "Déjà améliorée."
+	var to_lv := weapon_level(id) + 1
+	if to_lv > WeaponsData.MAX_LV:
+		return "Déjà au niveau maximum."
 	if not owns_weapon(id):
 		return "Achète d'abord cette arme."
-	var price := int(WeaponsData.UP[id]["price"])
+	var need := int(WeaponsData.NEED.get(to_lv, 1))
+	if record < need:
+		return tr("Termine d'abord le palier %d.") % need
+	var price := WeaponsData.up_price(id, to_lv)
 	if player.geo < price:
 		return tr("Pas assez d'éclats (%d nécessaires).") % price
 	player.geo -= price
 	j_add("geo_out", price)
 	prog["geo"] = player.geo
 	var lv: Dictionary = prog.get("weapon_lv", {})
-	lv[id] = 2
+	lv[id] = to_lv
 	prog["weapon_lv"] = lv
 	snapshot = prog.duplicate(true)
 	save_game()

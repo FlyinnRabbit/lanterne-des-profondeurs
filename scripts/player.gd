@@ -211,8 +211,24 @@ func apply_equipment() -> void:
 	max_hp = 5 + (2 if eq(C.GLASS_HEART) else 0) + GameState.max_hp_bonus()
 	hp = mini(hp, max_hp)
 
+# arme équipée, avec les bonus de niveau (3 à 5) déjà appliqués
+var _wcache_key := ""
+var _wcache := {}
 func weapon() -> Dictionary:
-	return Weapons.get_w(GameState.weapon())
+	var id: String = GameState.weapon()
+	var lv: int = GameState.weapon_level(id)
+	var key := "%s:%d" % [id, lv]
+	if key != _wcache_key:
+		var w: Dictionary = Weapons.get_w(id).duplicate()
+		var b: Dictionary = Weapons.bonus(id, lv)
+		w["dmg"] = int(w["dmg"]) + int(b["dmg"])
+		for k in ["w", "h", "v"]:
+			w[k] = float(w[k]) * (1.0 + float(b["reach"]))
+		w["cd"] = float(w["cd"]) / (1.0 + float(b["speed"]))
+		w["crit"] = float(b["crit"])
+		_wcache = w
+		_wcache_key = key
+	return _wcache
 
 func get_rect() -> Rect2:
 	if crouching:
@@ -540,6 +556,11 @@ func _take_crit() -> bool:
 	if crit_ready:
 		crit_ready = false
 		main.spawn_burst(global_position + Vector2(facing * 18, -4), Color(1.0, 0.8, 0.35), 14, 220.0, 0.0)
+		return true
+	# chance de critique de l'arme (niveaux 3 à 5 selon l'arme)
+	var cc := float(weapon().get("crit", 0.0))
+	if cc > 0.0 and randf() < cc:
+		main.spawn_burst(global_position + Vector2(facing * 18, -4), Color(1.0, 0.8, 0.35), 8, 160.0, 0.0)
 		return true
 	return false
 

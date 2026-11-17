@@ -42,5 +42,44 @@ const UP := {
 	"baton": {"price": 270, "desc": "Niv. 2 : le coup final s'abat en frappe géante et fait courir une onde au sol devant toi."},
 }
 
+# ---------------------------------------------------------------- niveaux 3 à 5
+# Au-delà du niveau 2 (l'effet spécial), la forgeronne renforce une caractéristique propre à
+# chaque arme : dégâts (+1), portée (+12 %), vitesse de frappe (+10 %) ou chance de critique (+8 %).
+const MAX_LV := 5
+const GROWTH := {
+	"aiguille": ["speed", "crit", "dmg"],
+	"griffes": ["crit", "speed", "crit"],
+	"fouet": ["reach", "speed", "dmg"],
+	"marteau": ["dmg", "speed", "reach"],
+	"shuriken": ["speed", "crit", "dmg"],
+	"faux": ["reach", "dmg", "crit"],
+	"baton": ["speed", "reach", "crit"],
+}
+# palier qu'il faut avoir terminé pour forger chaque niveau
+const NEED := {2: 1, 3: 2, 4: 3, 5: 5}
+const STAT_NAMES := {"dmg": "+1 dégât", "reach": "+12 % de portée", "speed": "+10 % de vitesse de frappe", "crit": "+8 % de chance de critique"}
+
+static func up_price(id: String, to_lv: int) -> int:
+	var base := int(UP.get(id, {"price": 220})["price"])
+	return [0, 0, base, roundi(base * 1.5 / 10.0) * 10, base * 2, base * 3][clampi(to_lv, 0, 5)]
+
+# effet du niveau to_lv (2 : effet spécial, 3-5 : caractéristique)
+static func level_desc(id: String, to_lv: int) -> String:
+	if to_lv == 2:
+		return String(UP[id]["desc"])
+	return String(STAT_NAMES[GROWTH[id][to_lv - 3]])
+
+# bonus cumulés d'une arme à un niveau donné
+static func bonus(id: String, lv: int) -> Dictionary:
+	var b := {"dmg": 0, "reach": 0.0, "speed": 0.0, "crit": 0.0}
+	for l in range(3, mini(lv, MAX_LV) + 1):
+		var k: String = GROWTH.get(id, ["dmg", "dmg", "dmg"])[l - 3]
+		match k:
+			"dmg": b["dmg"] += 1
+			"reach": b["reach"] += 0.12
+			"speed": b["speed"] += 0.10
+			"crit": b["crit"] += 0.08
+	return b
+
 static func get_w(id: String) -> Dictionary:
 	return W.get(id, W["aiguille"])

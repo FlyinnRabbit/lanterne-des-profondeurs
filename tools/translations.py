@@ -780,6 +780,21 @@ T = {
 "Un rebond dessus l'écrase net ; garde de la place pour ses petits.": ("Bouncing on it squashes it flat; leave room for its little ones.", "Rebotar encima lo aplasta; deja sitio para sus pequeños.", "Ein Abpraller zerquetscht ihn; lass Platz für seine Kleinen."),
 "Ses pinces parent les coups bas : frappe-le de dessus. Repose-toi pour chasser le venin.": ("Its pincers block low hits: strike it from above. Rest to clear the venom.", "Sus pinzas paran los golpes bajos: golpéalo desde arriba. Descansa para quitarte el veneno.", "Seine Scheren blocken tiefe Hiebe: Triff ihn von oben. Ruh dich aus, um das Gift loszuwerden."),
 "Pare ses dagues pour les lui renvoyer ; s'il fuit, achève-le avant qu'il ne revienne.": ("Parry his daggers to send them back; if he flees, finish him before he returns.", "Para sus dagas para devolvérselas; si huye, acábalo antes de que vuelva.", "Pariere seine Dolche, um sie zurückzuschicken; flieht er, erledige ihn, bevor er zurückkommt."),
+"+1 dégât": ("+1 damage", "+1 de daño", "+1 Schaden"),
+"+12 % de portée": ("+12% reach", "+12 % de alcance", "+12 % Reichweite"),
+"+10 % de vitesse de frappe": ("+10% attack speed", "+10 % de velocidad de ataque", "+10 % Angriffstempo"),
+"+8 % de chance de critique": ("+8% critical chance", "+8 % de probabilidad de crítico", "+8 % Chance auf kritische Treffer"),
+"Forgée : %s": ("Forged: %s", "Forjada: %s", "Geschmiedet: %s"),
+"« Choisis une arme : je la forge un niveau plus haut. Le niveau 2 lui donne son effet spécial, les suivants renforcent ce qu'elle fait de mieux. Plus tu descends, plus je peux forger. »": ("“Pick a weapon: I'll forge it one level higher. Level 2 gives it its special effect, the next ones strengthen what it does best. The deeper you go, the more I can forge.”", "«Elige un arma: la forjo un nivel más. El nivel 2 le da su efecto especial; los siguientes refuerzan lo que mejor hace. Cuanto más bajes, más podré forjar.»", "„Wähl eine Waffe: Ich schmiede sie eine Stufe höher. Stufe 2 gibt ihr ihren Spezialeffekt, die nächsten stärken, was sie am besten kann. Je tiefer du kommst, desto mehr kann ich schmieden.“"),
+"%s — niveau %d (max) ✓": ("%s — level %d (max) ✓", "%s — nivel %d (máx.) ✓", "%s — Stufe %d (max.) ✓"),
+"Forgée au maximum.": ("Fully forged.", "Forjada al máximo.", "Voll geschmiedet."),
+"Niveau %d : %s": ("Level %d: %s", "Nivel %d: %s", "Stufe %d: %s"),
+"%s niv. %d → %d — termine le palier %d": ("%s lv. %d → %d — clear tier %d", "%s nv. %d → %d — supera el nivel %d", "%s St. %d → %d — schaffe Ebene %d"),
+"%s niv. %d → %d — %d éclats": ("%s lv. %d → %d — %d shards", "%s nv. %d → %d — %d esquirlas", "%s St. %d → %d — %d Splitter"),
+"%s améliorée : niveau %d !": ("%s upgraded: level %d!", "%s mejorada: ¡nivel %d!", "%s verbessert: Stufe %d!"),
+"niv. %d": ("lv. %d", "nv. %d", "St. %d"),
+"Termine d'abord le palier %d.": ("Clear tier %d first.", "Supera primero el nivel %d.", "Schaffe zuerst Ebene %d."),
+"Déjà au niveau maximum.": ("Already at max level.", "Ya está al nivel máximo.", "Bereits auf Höchststufe."),
 }
 LANGS = ["en", "es", "de"]
 def gd(s):

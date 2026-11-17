@@ -419,7 +419,7 @@ func _refresh_arsenal(focus_id: String = "") -> void:
 		else:
 			state = tr("%d éclats") % int(w["price"])
 		var lvl: int = GameState.weapon_level(id)
-		b.text = "%s%s — %s" % [tr(w["name"]), (" " + tr("niv. 2")) if lvl >= 2 else "", state]
+		b.text = "%s%s — %s" % [tr(w["name"]), (" " + tr("niv. %d") % lvl) if lvl >= 2 else "", state]
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.custom_minimum_size = Vector2(430, 40)
 		b.add_theme_color_override("font_color", w["color"] if id != cur else Color(1.0, 0.9, 0.55))
@@ -436,7 +436,13 @@ func _refresh_arsenal(focus_id: String = "") -> void:
 		b.add_child(wic)
 		b.pressed.connect(_pick_weapon.bind(id))
 		var full := func() -> String:
-			return tr(w["desc"]) + "\n" + tr(Weapons.UP[id]["desc"]) + ("" if lvl >= 2 else (" " + (tr("(forgeronne : palier 1 terminé)") if not forge else tr("(à forger chez la forgeronne)"))))
+			var t: String = tr(w["desc"]) + "\n" + tr(Weapons.UP[id]["desc"]) + ("" if lvl >= 2 else (" " + (tr("(forgeronne : palier 1 terminé)") if not forge else tr("(à forger chez la forgeronne)"))))
+			if lvl >= 3:
+				var got := []
+				for l in range(3, lvl + 1):
+					got.append(tr(Weapons.level_desc(id, l)))
+				t += "\n" + tr("Forgée : %s") % ", ".join(got)
+			return t
 		b.focus_entered.connect(func(): ars_desc.text = full.call())
 		b.mouse_entered.connect(func(): ars_desc.text = full.call())
 		line.add_child(b)
@@ -515,18 +521,27 @@ func open_npc(kind: String) -> void:
 	match kind:
 		"smith":
 			npc_name.text = "La forgeronne"
-			npc_text.text = tr("« Tu reviens vivant du premier palier ? Alors tes armes méritent mieux. Choisis une arme : je la forge au niveau 2. »")
+			npc_text.text = tr("« Choisis une arme : je la forge un niveau plus haut. Le niveau 2 lui donne son effet spécial, les suivants renforcent ce qu'elle fait de mieux. Plus tu descends, plus je peux forger. »")
 			for id in Weapons.ORDER:
 				if not GameState.owns_weapon(id):
 					continue
 				var wname: String = tr(Weapons.W[id]["name"])
 				var b: Button
-				if GameState.weapon_level(id) >= 2:
-					b = _npc_button(tr("%s — niveau 2 ✓") % wname, func(): pass)
+				var cur_lv: int = GameState.weapon_level(id)
+				var to_lv := cur_lv + 1
+				var up_desc: String
+				if cur_lv >= Weapons.MAX_LV:
+					b = _npc_button(tr("%s — niveau %d (max) ✓") % [wname, cur_lv], func(): pass)
 					b.disabled = true
+					up_desc = tr("Forgée au maximum.")
 				else:
-					b = _npc_button(tr("Améliorer : %s — %d éclats") % [wname, int(Weapons.UP[id]["price"])], _smith_upgrade.bind(id))
-				var up_desc: String = tr(Weapons.UP[id]["desc"])
+					var need: int = int(Weapons.NEED.get(to_lv, 1))
+					up_desc = tr("Niveau %d : %s") % [to_lv, tr(Weapons.level_desc(id, to_lv))]
+					if GameState.record < need:
+						b = _npc_button(tr("%s niv. %d → %d — termine le palier %d") % [wname, cur_lv, to_lv, need], func(): pass)
+						b.disabled = true
+					else:
+						b = _npc_button(tr("%s niv. %d → %d — %d éclats") % [wname, cur_lv, to_lv, Weapons.up_price(id, to_lv)], _smith_upgrade.bind(id))
 				b.focus_entered.connect(func(): npc_text.text = wname + " — " + up_desc)
 				b.mouse_entered.connect(func(): npc_text.text = wname + " — " + up_desc)
 				if first == null and not b.disabled:
@@ -559,7 +574,7 @@ func _smith_upgrade(id: String) -> void:
 	Audio.sfx("pickup", 0.0, 3.0)
 	Controls.rumble(0.4, 0.2, 0.15)
 	open_npc("smith")
-	npc_text.text = tr("%s améliorée : niveau 2 !") % tr(Weapons.W[id]["name"])
+	npc_text.text = tr("%s améliorée : niveau %d !") % [tr(Weapons.W[id]["name"]), GameState.weapon_level(id)]
 
 
 func _buy_map() -> void:
