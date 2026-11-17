@@ -203,7 +203,7 @@ Desde el ascensor también puedes:
 - jugar el **Descenso del día** (el mismo nivel para todos, mejor tiempo), con una **clasificación en línea**
   por dificultad: tu tiempo se envía al final con el apodo que elijas (Ascensor → «Clasificación del día»),
   y ves el top 10 y tu puesto. El envío se desactiva en la misma pantalla;
-- afrontar el **Desafío de jefes** (jefes seguidos, cronometrado) tras superar el nivel 6.
+- afrontar el **Desafío de jefes** (jefes seguidos, cronometrado) tras superar el nivel 6: +300 esquirlas cada vez y una muesca de emblema en la primera victoria.
 
 Hay 29 **logros**, visibles desde la pantalla de título o el menú de pausa.
 

@@ -224,6 +224,8 @@ func open_elevator() -> void:
 	if GameState.record >= 6:
 		var rbest := float(Achievements.counters.get("rush_best", 0.0))
 		var rl := tr("Défi des boss : les %d boss à la suite") % GameState.RUSH_ORDER.size()
+		if not bool(GameState.prog.get("rush_cleared", false)):
+			rl += tr(" — 1re victoire : +1 encoche")
 		if rbest > 0.0:
 			rl += "  — " + tr("meilleur : %d:%02d") % [int(rbest) / 60, int(rbest) % 60]
 		var rb := _lift_button(rl, _rush)

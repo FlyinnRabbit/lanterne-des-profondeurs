@@ -1,6 +1,8 @@
 # Fichier généré par tools/translations.py — ne pas modifier à la main.
 const T := {
 	"en": {
+		"Première victoire : +1 encoche d'emblème !": "First victory: +1 charm notch!",
+		" — 1re victoire : +1 encoche": " — first win: +1 notch",
 		"Version %s": "Version %s",
 		"Version %s — à jour": "Version %s — up to date",
 		"Mise à jour %s : téléchargement… %d %%": "Update %s: downloading… %d%%",
@@ -628,6 +630,8 @@ const T := {
 		"Clavier :": "Keyboard:",
 	},
 	"es": {
+		"Première victoire : +1 encoche d'emblème !": "Primera victoria: ¡+1 muesca de emblema!",
+		" — 1re victoire : +1 encoche": " — 1.ª victoria: +1 muesca",
 		"Version %s": "Versión %s",
 		"Version %s — à jour": "Versión %s — actualizada",
 		"Mise à jour %s : téléchargement… %d %%": "Actualización %s: descargando… %d %%",
@@ -1255,6 +1259,8 @@ const T := {
 		"Clavier :": "Teclado:",
 	},
 	"de": {
+		"Première victoire : +1 encoche d'emblème !": "Erster Sieg: +1 Emblemkerbe!",
+		" — 1re victoire : +1 encoche": " — erster Sieg: +1 Kerbe",
 		"Version %s": "Version %s",
 		"Version %s — à jour": "Version %s — aktuell",
 		"Mise à jour %s : téléchargement… %d %%": "Update %s: wird geladen… %d %%",

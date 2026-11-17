@@ -315,8 +315,15 @@ func go_next_level(player) -> void:
 			Achievements.unlock("rush")
 			_end_special()
 			prog["geo"] = int(prog.get("geo", 0)) + RUSH_REWARD     # récompense gardée
+			# première victoire dans cette partie : une encoche d'emblème en plus
+			var first: bool = not bool(prog.get("rush_cleared", false))
+			if first:
+				prog["rush_cleared"] = true
+				prog["notches"] = int(prog["notches"]) + 1
 			snapshot = prog.duplicate(true)
 			pending_message = tr("Défi des boss terminé en %d:%02d !") % [int(t) / 60, int(t) % 60] + "  " + tr("+%d éclats") % RUSH_REWARD + "\n" + tr("Meilleur temps : %d:%02d") % [int(Achievements.counters["rush_best"]) / 60, int(Achievements.counters["rush_best"]) % 60]
+			if first:
+				pending_message += "\n" + tr("Première victoire : +1 encoche d'emblème !")
 			save_game()
 		_reload(true)
 		return

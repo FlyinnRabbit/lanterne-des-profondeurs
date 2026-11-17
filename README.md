@@ -200,7 +200,7 @@ From the elevator you can also:
 - play the **Daily descent** (same level for everyone, best time), with an **online leaderboard** per
   difficulty: your time is sent at the end with the name you pick (Elevator → "Daily leaderboard"), and
   you see the top 10 and your rank. Sending can be switched off on the same screen;
-- take on the **Boss rush** (bosses in a row, timed) once tier 6 is cleared.
+- take on the **Boss rush** (bosses in a row, timed) once tier 6 is cleared: +300 shards each time, plus a charm notch on your first win.
 
 There are 29 **achievements**, viewable from the title screen or the pause menu.
 

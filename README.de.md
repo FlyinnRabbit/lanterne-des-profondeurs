@@ -203,7 +203,7 @@ Vom Aufzug aus kannst du außerdem:
 - den **Abstieg des Tages** spielen (dieselbe Ebene für alle, Bestzeit), mit einer **Online-Rangliste** pro
   Schwierigkeit: Deine Zeit wird am Ende mit deinem gewählten Namen gesendet (Aufzug → „Tagesrangliste"),
   und du siehst die Top 10 und deinen Platz. Das Senden lässt sich auf demselben Bildschirm abschalten;
-- nach Ebene 6 die **Boss-Herausforderung** annehmen (Bosse nacheinander, mit Zeitmessung).
+- nach Ebene 6 die **Boss-Herausforderung** annehmen (Bosse nacheinander, mit Zeitmessung): jedes Mal +300 Splitter und beim ersten Sieg eine Emblemkerbe.
 
 Es gibt 29 **Erfolge**, einsehbar über den Titelbildschirm oder das Pausenmenü.
 
