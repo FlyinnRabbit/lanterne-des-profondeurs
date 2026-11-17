@@ -16,7 +16,7 @@ T = {
 "Astuce de Maître Plume : ": ("Master Quill's tip: ", "Consejo del Maestro Pluma: ", "Tipp von Meister Feder: "),
 "Attaques plongées": ("Plunge attacks", "Ataques en picado", "Sturzangriffe"),
 "Avance derrière son bouclier et bloque les coups de face.": ("Advances behind its shield and blocks blows from the front.", "Avanza tras su escudo y bloquea los golpes de frente.", "Rückt hinter seinem Schild vor und blockt Hiebe von vorn."),
-"Avance sans relâche sur le sol et fait demi-tour au bord du vide.": ("Crawls relentlessly along the ground and turns back at the edge of a drop.", "Avanza sin descanso por el suelo y da media vuelta al borde del vacío.", "Kriecht unermüdlich über den Boden und kehrt am Abgrund um."),
+"Patrouille au sol ; quand il te voit, il se ramasse puis charge tête baissée.": ("Patrols the ground; when it spots you, it crouches and then charges headlong.", "Patrulla el suelo; cuando te ve, se agazapa y embiste de cabeza.", "Patrouilliert am Boden; sieht er dich, duckt er sich und stürmt kopfüber los."),
 "Bestiaire": ("Bestiary", "Bestiario", "Bestiarium"),
 "Bestiaire — %d / %d créatures": ("Bestiary — %d / %d creatures", "Bestiario — %d / %d criaturas", "Bestiarium — %d / %d Kreaturen"),
 "Bondit vers toi par grands sauts.": ("Leaps at you in great bounds.", "Salta hacia ti a grandes brincos.", "Springt dich in großen Sätzen an."),

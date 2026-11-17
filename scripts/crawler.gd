@@ -1,11 +1,13 @@
 extends "res://scripts/enemy.gd"
 # Rampant : petit scarabée à carapace pâle qui patrouille et fait demi-tour au bord du vide.
+# Quand il voit le héros, il se ramasse (clignote) puis charge ; l'élite enchaîne deux ruées.
 
 const SPEED := 70.0
 var dir := -1
-var lunge_t := 0.0     # élite : ruée vers le joueur
+var lunge_t := 0.0     # ruée vers le joueur
 var lunge_cd := 0.0
 var windup_t := 0.0
+var combo := 0       # élite : ruées restantes à enchaîner
 
 func _ready() -> void:
 	size = Vector2(30, 22)
@@ -33,16 +35,33 @@ func _physics_process(delta: float) -> void:
 			lunge_t = 0.45
 	elif lunge_t > 0.0:
 		lunge_t -= delta
-		velocity.x = dir * SPEED * 4.5 * spd()
+		velocity.x = dir * SPEED * (4.0 if not elite else 4.8) * spd()
+		# au bord du vide, il pile net au lieu de s'y jeter
+		var ah := global_position + Vector2(dir * (size.x / 2.0 + 4.0), size.y / 2.0 + 8.0)
+		if is_on_floor() and not main.is_solid_at(ah):
+			lunge_t = 0.0
+			velocity.x = 0.0
+		if lunge_t <= 0.0 and combo > 0:
+			combo -= 1
+			var p2 = main.player
+			if p2 and not p2.dead:
+				dir = -1 if p2.global_position.x < global_position.x else 1
+			windup_t = 0.25
 	else:
 		knock = Vector2.ZERO
 		lunge_cd -= delta
 		var p = main.player
-		if elite and lunge_cd <= 0.0 and p and not p.dead and absf(p.global_position.y - global_position.y) < 50.0 and absf(p.global_position.x - global_position.x) < 230.0 * aggro():
-			dir = -1 if p.global_position.x < global_position.x else 1
-			windup_t = 0.35
-			lunge_cd = 2.2 / aggro()
-			flash_t = 0.1
+		# repère le héros devant lui (ou tout près derrière), se ramasse puis charge tête baissée.
+		# Élite : charge plus tôt, plus loin, et enchaîne une seconde ruée.
+		if lunge_cd <= 0.0 and p and not p.dead and is_on_floor() and absf(p.global_position.y - global_position.y) < 50.0:
+			var dxp: float = p.global_position.x - global_position.x
+			var seen := (signf(dxp) == dir and absf(dxp) < (200.0 if not elite else 250.0) * aggro()) or absf(dxp) < 70.0
+			if seen and not main.wall_between(global_position, p.global_position):
+				dir = -1 if dxp < 0.0 else 1
+				windup_t = 0.5 if not elite else 0.35
+				lunge_cd = (2.6 if not elite else 2.0) / aggro()
+				combo = 1 if elite else 0
+				flash_t = 0.1
 		velocity.x = dir * SPEED * spd()
 		if is_on_floor():
 			var ahead := global_position + Vector2(dir * (size.x / 2.0 + 4.0), size.y / 2.0 + 8.0)

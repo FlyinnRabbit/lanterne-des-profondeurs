@@ -27,7 +27,7 @@ const MOBS := ["crawler", "flyer", "spitter", "hopper", "guard", "bomber", "weav
 const MOB_NAMES := {"crawler": "Rampant", "flyer": "Volant", "spitter": "Cracheur", "hopper": "Sauteur", "guard": "Garde",
 	"bomber": "Bulbe", "weaver": "Tisseuse", "lancer": "Lancier", "wraith": "Spectre"}
 const MOB_DESC := {
-	"crawler": "Avance sans relâche sur le sol et fait demi-tour au bord du vide.",
+	"crawler": "Patrouille au sol ; quand il te voit, il se ramasse puis charge tête baissée.",
 	"flyer": "Tourne en l'air puis plonge droit sur toi.",
 	"spitter": "Plante enracinée qui crache des spores en cloche.",
 	"hopper": "Bondit vers toi par grands sauts.",
