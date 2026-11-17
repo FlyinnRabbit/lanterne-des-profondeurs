@@ -13,6 +13,7 @@ func _run() -> void:
 	var lang: String = args[0] if args.size() > 0 else "fr"
 	if args.size() > 1:
 		st.title_scene = int(args[1])
+
 	st.set_value("language", ["", "fr", "en", "es", "de"].find(lang))
 	# une partie sauvegardée pour avoir « Continuer »
 	gs.new_game(true, 2, 2, false)
@@ -24,10 +25,17 @@ func _run() -> void:
 	for c in root.get_children():
 		if c.get_script() and String(c.get_script().resource_path).ends_with("loading.gd"):
 			c.queue_free()
+	if args.size() > 2:
+		var bd = current_scene.menu.title_backdrop
+		if bd.camp:
+			bd.camp.queue_free()
+			bd.camp = null
+			bd.camp_props.clear()
+		bd.force_cast = int(args[2])
 	await _f(12)
 	root.get_viewport().get_texture().get_image().save_png("/tmp/menu/title_intro_%s.png" % lang)
 	await _f(70)
-	root.get_viewport().get_texture().get_image().save_png("/tmp/menu/title_%s_%d.png" % [lang, st.title_scene])
+	root.get_viewport().get_texture().get_image().save_png("/tmp/menu/title_%s_%d_%s.png" % [lang, st.title_scene, args[2] if args.size() > 2 else "x"])
 	for k in 2:
 		var ev := InputEventKey.new()
 		ev.keycode = KEY_DOWN

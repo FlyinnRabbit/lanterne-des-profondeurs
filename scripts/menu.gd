@@ -726,19 +726,34 @@ void fragment() {
 	# ---- modèle 4 : les habitants réunis autour d'un feu sous la Lanterne, quelques échoppes dans
 	# les coins ; tout est éclairé par la Lanterne qui vacille. Ce sont les vrais dessins du jeu.
 	var camp: Node2D
+	var force_cast := -1
 	var camp_props := []    # [noeud, x relatif, y relatif, échelle, regard]
 	const PropScript = preload("res://scripts/prop.gd")
 	func _camp_setup() -> void:
 		camp = Node2D.new()
 		add_child(camp)
 		# (type, x en fraction de largeur, décalage du sol, échelle, regard)
-		var cast := [["tailor", 0.6, 0.01, 1.15, 1.0], ["elder", 0.77, 0.01, 1.15, -1.0]]
+		# une composition tirée au hasard à chaque lancement du jeu
+		var casts := [
+			[["tailor", 0.585, 0.01, 1.15, 1.0], ["hero", 0.685, 0.0, 1.2, 1.0], ["elder", 0.77, 0.01, 1.15, -1.0]],
+			[["scriptorium", 0.55, -0.01, 1.1, 1.0], ["hero", 0.645, 0.0, 1.2, 1.0], ["merchant", 0.71, -0.01, 1.1, 1.0]],
+			[["cartographer", 0.6, 0.0, 1.1, 1.0], ["hero", 0.7, 0.0, 1.2, -1.0], ["elder", 0.785, 0.01, 1.1, -1.0]],
+		]
+		var cast: Array = casts[force_cast if force_cast >= 0 else randi() % casts.size()]
 		for c in cast:
 			var pr := Node2D.new()
-			pr.set_script(PropScript)
-			pr.kind = c[0]
-			camp.add_child(pr)
-			pr.remove_from_group("sleepy")
+			if c[0] == "hero":
+				# le héros (avec ses cosmétiques), au centre, sous la Lanterne
+				pr.draw.connect(func():
+					var tt := t if Settings.menu_anim else 0.0
+					pr.draw_colored_polygon(PackedVector2Array([Vector2(-14, 0), Vector2(0, -3), Vector2(14, 0), Vector2(0, 3)]), Color(0, 0, 0, 0.45))
+					GameState.cos.draw_hero(pr, sin(tt * 2.5) * 0.6, sin(tt * 2.0) * 1.0, tt, false, false))
+				camp.add_child(pr)
+			else:
+				pr.set_script(PropScript)
+				pr.kind = c[0]
+				camp.add_child(pr)
+				pr.remove_from_group("sleepy")
 			camp_props.append([pr, c[1], c[2], c[3], c[4]])
 	func _campfire(tt: float) -> void:
 		if camp == null:
@@ -770,6 +785,8 @@ void fragment() {
 			var v := lerpf(0.18, 1.1, l) * flux
 			pr.modulate = Color(v, v * 0.9, v * 0.76)
 			pr.z_index = 1
+			if pr.get_script() == null:
+				pr.queue_redraw()
 
 	var camp_fire: Node2D
 	func _draw_fire() -> void:
