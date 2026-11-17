@@ -1165,6 +1165,18 @@ const ULT_RADIUS := 260.0
 const ULT_DAMAGE := 8
 const ULT_RUMBLE := 0.5
 
+# Petite onde de choc de l'estoc repoussant
+func thrust_shock(pos: Vector2) -> void:
+	var ring := Node2D.new()
+	ring.set_script(RingScript)
+	ring.radius = 46.0
+	ring.position = pos
+	ring.c1 = Color(0.9, 0.95, 1.0)
+	ring.c2 = Color(0.6, 0.75, 1.0)
+	add_child(ring)
+	shake(7)
+	Audio.sfx("hammer", 0.08, -6.0)
+
 # Onde de choc de l'ultime : gros dégâts à tout ce qui est dans le rayon, détruit les spores.
 func ultimate_blast(pos: Vector2) -> void:
 	Audio.sfx("ult", 0.0)

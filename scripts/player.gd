@@ -72,6 +72,12 @@ var combo_i := 0
 var combo_t := 0.0
 var charge_t := 0.0
 var thrust_t := 0.0
+# Estoc repoussant : l'estoc projette les petits ennemis au loin (toutes armes sauf shuriken),
+# puis il faut attendre THRUST_PUSH_CD avant le prochain estoc repoussant.
+const THRUST_PUSH_CD := 2.0
+const THRUST_PUSH_FORCE := 1150.0
+var thrust_push_cd := 0.0
+var thrust_push := false          # l'estoc en cours repousse
 var post_dash_t := 0.0
 var spell_cd := 0.0
 var air_i := -1                 # combo aérien (0, 1, 2)
@@ -220,6 +226,11 @@ func _physics_process(delta: float) -> void:
 		set(t, maxf(get(t) - delta, 0.0))
 	if attack_t > 0.0 or thrust_t > 0.0 or ult_charge_t > 0.0:
 		bench_lock_t = BENCH_LOCK
+	if thrust_push_cd > 0.0:
+		thrust_push_cd = maxf(thrust_push_cd - delta, 0.0)
+		if thrust_push_cd == 0.0:
+			# prêt : petit éclat clair autour du héros
+			main.spawn_burst(global_position + Vector2(0, -8), Color(0.85, 0.92, 1.0), 6, 70.0, 0.0)
 	if claw_second > 0.0:
 		claw_second -= delta
 		if claw_second <= 0.0 and claw_split and attack_kind == claw_kind:
@@ -366,6 +377,7 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("attack") and (dash_t > 0.0 or post_dash_t > 0.0) and thrust_t <= 0.0 and knock_t <= 0.0:
 		_start_attack("thrust", Vector2(facing, 0))
 		thrust_t = THRUST_TIME
+		thrust_push = thrust_push_cd <= 0.0 and GameState.weapon() != "shuriken"
 		attack_t = THRUST_TIME
 		dash_t = 0.0
 		post_dash_t = 0.0
@@ -684,6 +696,12 @@ func _do_attack_hits() -> void:
 				_claw_hit(e, hit_damage() * per, kv * (0.25 if second else 1.0))
 			else:
 				e.take_hit(hit_damage(), kv)
+			# estoc repoussant : projette l'ennemi au loin (pas les boss), une fois toutes les 2 s
+			if attack_kind == "thrust" and thrust_push and is_instance_valid(e) and not e.dead and not e.is_boss:
+				e.knock = Vector2(facing, -0.35).normalized() * THRUST_PUSH_FORCE * float(e.knock_resist)
+				e.stun_t = maxf(e.stun_t, 0.45)
+				thrust_push_cd = THRUST_PUSH_CD
+				main.thrust_shock(e.global_position)
 			# saignée : 1 dégât une seconde plus tard (pas de cumul sur le même ennemi), avec une chance
 			# par coup : 20 % avec les Griffes niv. 2, +30 % avec le Croc Sanglant (toutes armes)
 			var bc := bleed_chance()

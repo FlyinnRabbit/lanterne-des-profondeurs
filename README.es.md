@@ -289,6 +289,7 @@ pasillos de cuchillas.
 - **Golpe cargado**: mantén Atacar unos 0,7 s (la aguja brilla) y suelta = un **torbellino** que
   golpea alrededor.
 - **Estocada**: ataca **durante (o justo después de) una Embestida** = un golpe perforante en línea recta.
+  **Lanza lejos a los enemigos** (no a los jefes, ni con los shurikens), y vuelve a empujar 2 s después.
 - **Combo aéreo** (distinto del de suelo): tajo, **tajo ascendente** que te vuelve a elevar y un
   **giro** que golpea alrededor.
 - **Picado**: en el aire, abajo + Embestida. Caes en picado, rebotas en el enemigo golpeado o provocas

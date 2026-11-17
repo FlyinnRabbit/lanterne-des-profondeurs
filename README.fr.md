@@ -289,7 +289,8 @@ mobile, couloirs de lames.
 - **Combo au sol** : trois coups, le 3ᵉ est un **coup final** plus large et plus fort.
 - **Coup chargé** : maintenir Frapper environ 0,7 s (l'aiguille scintille) puis relâcher = un
   **tourbillon** qui touche tout autour.
-- **Estoc** : frapper **pendant (ou juste après) une Ruée** = un coup perçant en ligne droite.
+- **Estoc** : frapper **pendant (ou juste après) une Ruée** = un coup perçant en ligne droite. Il **projette
+  les ennemis au loin** (pas les boss, ni avec les shurikens), puis repousse de nouveau 2 s plus tard.
 - **Combo aérien** (différent du combo au sol) : taillade, **taillade montante** qui fait remonter,
   puis une **vrille** qui touche tout autour.
 - **Piqué** : en l'air, bas + Ruée. On fonce vers le sol, on rebondit sur l'ennemi touché, ou on crée une

@@ -285,7 +285,8 @@ platform, blade corridors.
 - **Ground combo**: three strikes, the 3rd is a wider, stronger **finisher**.
 - **Charged strike**: hold Attack for about 0.7 s (the needle sparkles) then release = a
   **whirlwind** that hits all around.
-- **Thrust**: attack **during (or just after) a dash** = a piercing thrust in a straight line.
+- **Thrust**: attack **during (or just after) a dash** = a piercing thrust in a straight line. It **sends
+  enemies flying** (not bosses, and not with the shurikens), and can push again 2 s later.
 - **Air combo** (different from the ground combo): slash, **rising slash** that lifts you
   again, then a **spin** that hits all around.
 - **Dive attack**: in the air, down + Dash. Dive to the ground, bounce off the enemy you hit,

@@ -289,6 +289,7 @@ beweglicher Plattform, Klingengänge.
 - **Aufgeladener Schlag**: Angriff etwa 0,7 s halten (die Nadel leuchtet) und loslassen = ein **Wirbel**,
   der rundum trifft.
 - **Ausfall**: greife **während (oder direkt nach) einem Sprint** an = ein durchbohrender Stoß in gerader Linie.
+  Er **schleudert Gegner weit weg** (keine Bosse, nicht mit den Shuriken) und stößt 2 s später wieder.
 - **Luftkombo** (anders als am Boden): Hieb, **Aufwärtshieb**, der dich wieder anhebt, und eine
   **Drehung**, die rundum trifft.
 - **Sturzangriff**: in der Luft unten + Sprint. Du stürzt hinab, prallst vom getroffenen Gegner ab oder
