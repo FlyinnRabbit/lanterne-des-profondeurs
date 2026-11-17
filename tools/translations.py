@@ -15,7 +15,7 @@ T = {
 "Arme favorite": ("Favourite weapon", "Arma favorita", "Lieblingswaffe"),
 "Astuce de Maître Plume : ": ("Master Quill's tip: ", "Consejo del Maestro Pluma: ", "Tipp von Meister Feder: "),
 "Attaques plongées": ("Plunge attacks", "Ataques en picado", "Sturzangriffe"),
-"Avance derrière son bouclier et bloque les coups de face.": ("Advances behind its shield and blocks blows from the front.", "Avanza tras su escudo y bloquea los golpes de frente.", "Rückt hinter seinem Schild vor und blockt Hiebe von vorn."),
+"Avance derrière son bouclier, bloque les coups de face et te repousse d'un coup de bouclier (parable).": ("Advances behind its shield, blocks blows from the front and knocks you back with a shield bash (parryable).", "Avanza tras su escudo, bloquea los golpes de frente y te repele con un golpe de escudo (se puede parar).", "Rückt hinter seinem Schild vor, blockt Hiebe von vorn und stößt dich mit einem Schildschlag zurück (parierbar)."),
 "Patrouille au sol ; quand il te voit, il se ramasse puis charge tête baissée.": ("Patrols the ground; when it spots you, it crouches and then charges headlong.", "Patrulla el suelo; cuando te ve, se agazapa y embiste de cabeza.", "Patrouilliert am Boden; sieht er dich, duckt er sich und stürmt kopfüber los."),
 "Bestiaire": ("Bestiary", "Bestiario", "Bestiarium"),
 "Bestiaire — %d / %d créatures": ("Bestiary — %d / %d creatures", "Bestiario — %d / %d criaturas", "Bestiarium — %d / %d Kreaturen"),

@@ -31,7 +31,7 @@ const MOB_DESC := {
 	"flyer": "Tourne en l'air puis plonge droit sur toi.",
 	"spitter": "Plante enracinée qui crache des spores en cloche.",
 	"hopper": "Bondit vers toi par grands sauts.",
-	"guard": "Avance derrière son bouclier et bloque les coups de face.",
+	"guard": "Avance derrière son bouclier, bloque les coups de face et te repousse d'un coup de bouclier (parable).",
 	"bomber": "Roule vers toi, s'allume… et explose.",
 	"weaver": "Crache une toile qui englue (la ruée l'arrache), tombe sur sa proie puis remonte à son fil.",
 	"lancer": "Se met en garde et lance une longue estocade.",

@@ -1,13 +1,18 @@
 extends "res://scripts/enemy.gd"
 # Garde à bouclier : insecte cuirassé qui avance vers le joueur, bouclier levé.
 # Les coups de face sont bloqués : frappe-le par-dessus (coup vers le bas), dans le dos,
-# ou utilise l'ultime. Élite : charge au bouclier.
+# ou utilise l'ultime. De près, il assène un coup de bouclier (préparé : bouclier ramené en arrière)
+# qui projette le héros ; une parade l'étourdit. Élite : charge au bouclier en plus.
 
 const SPEED := 60.0
 var facing := -1.0
 var block_flash := 0.0
 var bash_t := 0.0
 var bash_cd := 2.0
+var windup_t := 0.0     # coup de bouclier : préparation
+var shove_t := 0.0      # coup de bouclier : frappe
+var shove_cd := 0.8
+var shove_hit := false
 
 func _ready() -> void:
 	size = Vector2(32, 30)
@@ -44,9 +49,40 @@ func _physics_process(delta: float) -> void:
 		if near and bash_t <= 0.0:
 			facing = -1.0 if p.global_position.x < global_position.x else 1.0
 		var sp := SPEED * spd() * (1.4 if near else 0.7)
+		shove_cd -= delta
+		if windup_t > 0.0:
+			windup_t -= delta
+			sp = 0.0
+			if windup_t <= 0.0:
+				shove_t = 0.16
+				shove_hit = false
+				Audio.sfx("hammer", 0.1, -6.0)
+		elif shove_t > 0.0:
+			shove_t -= delta
+			sp = SPEED * 4.0 * spd()
+			if not shove_hit and p and not p.dead and p.dash_t <= 0.0:
+				var box := Rect2(global_position + Vector2(facing * 10.0 - (0.0 if facing > 0 else 26.0), -20), Vector2(26, 36))
+				if box.intersects(p.get_rect()):
+					shove_hit = true
+					var was_inv: bool = p.invuln_t > 0.0
+					var parried: bool = p.receive_hit(global_position, self)
+					if parried:
+						stun_t = maxf(stun_t, 1.0)
+						shove_t = 0.0
+					elif not was_inv and p.invuln_t > 0.0:
+						p.velocity = Vector2(facing * 720.0, -300.0)   # le coup de bouclier projette loin
+						p.knock_t = 0.4
+						main.shake(5)
+		elif bash_t <= 0.0 and near and shove_cd <= 0.0 and is_on_floor() \
+				and absf(p.global_position.y - global_position.y) < 40.0 \
+				and absf(p.global_position.x - global_position.x) < 70.0 \
+				and signf(p.global_position.x - global_position.x) == facing:
+			windup_t = 0.4 if not elite else 0.3
+			shove_cd = (1.8 if not elite else 1.4) / aggro()
+			sp = 0.0
 		if elite:
 			bash_cd -= delta
-			if near and bash_cd <= 0.0:
+			if near and bash_cd <= 0.0 and windup_t <= 0.0 and shove_t <= 0.0:
 				bash_t = 0.4
 				bash_cd = 2.5 / aggro()
 		if bash_t > 0.0:
@@ -91,6 +127,12 @@ func _draw() -> void:
 	# bouclier : bord, umbo, rivets
 	var sh := Color(0.75, 0.7, 0.55) if block_flash <= 0.0 else Color(1, 1, 0.85)
 	var sx := f * 17.0
+	if windup_t > 0.0:
+		sx = f * (11.0 + sin(anim_t * 40.0) * 0.8)
+	elif shove_t > 0.0:
+		sx = f * 26.0
+		for k in 3:
+			draw_line(Vector2(f * (8 - k * 5), -10 + k * 10), Vector2(f * (-4 - k * 5), -10 + k * 10), Color(1, 1, 0.9, 0.45), 1.4)
 	var shield := PackedVector2Array([Vector2(sx, -15), Vector2(sx + f * 5, -8), Vector2(sx + f * 5, 8), Vector2(sx, 15), Vector2(sx - f * 3, 0)])
 	DU.poly(self, shield, body_color(sh.darkened(0.25)))
 	var inner := PackedVector2Array([Vector2(sx + f * 0.5, -11), Vector2(sx + f * 3.5, -6), Vector2(sx + f * 3.5, 6), Vector2(sx + f * 0.5, 11), Vector2(sx - f * 1.5, 0)])
