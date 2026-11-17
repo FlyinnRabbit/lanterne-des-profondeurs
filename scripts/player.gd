@@ -90,6 +90,12 @@ var plunge_kill_t := 0.0
 var crit_ready := false         # coup critique prêt (après une parade parfaite)
 var crit_t := 0.0
 var attack_crit := false        # le coup en cours est critique
+# Griffes Jumelles : arme à deux mains, chaque attaque = deux coups de griffe séparés
+# (main avant, puis main arrière à la moitié du temps de recharge), chacun moitié des dégâts.
+var claw_split := false
+var claw_kind := ""
+var claw_second := -1.0
+var claw_hand := 0
 var last_crit_t := 0.0          # pour le journal des dégâts
 var perfect_t := 0.0
 var cs: CollisionShape2D
@@ -208,6 +214,13 @@ func _physics_process(delta: float) -> void:
 		set(t, maxf(get(t) - delta, 0.0))
 	if attack_t > 0.0 or thrust_t > 0.0 or ult_charge_t > 0.0:
 		bench_lock_t = BENCH_LOCK
+	if claw_second > 0.0:
+		claw_second -= delta
+		if claw_second <= 0.0 and claw_split and attack_kind == claw_kind:
+			claw_hand = 1                       # deuxième griffe
+			attack_hit.clear()
+			attack_t = maxf(attack_t, ATTACK_TIME * (1.4 if attack_kind in ["finisher", "air_spin"] else 1.0))
+			Audio.sfx("slash", 0.22, -5.0)
 	parry_t = maxf(parry_t - delta, 0.0)
 	parry_cd = maxf(parry_cd - delta, 0.0)
 	parry_flash = maxf(parry_flash - delta, 0.0)
@@ -495,6 +508,10 @@ func _start_attack(kind: String, adir: Vector2) -> void:
 	attack_t = ATTACK_TIME * (1.4 if kind in ["finisher", "air_spin"] else 1.0)
 	attack_hit.clear()
 	attack_crit = _take_crit()
+	claw_hand = 0
+	claw_split = GameState.weapon() == "griffes"
+	claw_kind = kind
+	claw_second = attack_cd * 0.5 if claw_split else -1.0
 	match GameState.weapon():
 		"griffes": Audio.sfx("slash", 0.18, -3.0)
 		"fouet": Audio.sfx("whip", 0.1, -3.0)
@@ -650,7 +667,12 @@ func _do_attack_hits() -> void:
 			if attack_crit:
 				last_crit_t = 0.2
 			var wpn := weapon()
-			e.take_hit(hit_damage(), kdir * (1.6 if attack_kind == "finisher" else 1.0) * float(wpn["knock"]))
+			var kv: Vector2 = kdir * (1.6 if attack_kind == "finisher" else 1.0) * float(wpn["knock"])
+			var split := claw_split and attack_kind == claw_kind
+			if split:
+				_claw_hit(e, hit_damage() * 0.5, kv)
+			else:
+				e.take_hit(hit_damage(), kv)
 			# griffes niv. 2 : saignée, 1 dégât une seconde plus tard (pas de cumul sur le même ennemi)
 			if GameState.weapon() == "griffes" and GameState.weapon_level() >= 2 and is_instance_valid(e) and not e.dead and not e.has_meta("bleeding"):
 				_bleed(e)
@@ -667,7 +689,7 @@ func _do_attack_hits() -> void:
 					e.stun_t = maxf(e.stun_t, 0.7)
 			Audio.sfx("hit")
 			soul = mini(soul + soul_per_hit(), SOUL_MAX)
-			ult = mini(ult + ult_per_hit(), ULT_MAX)
+			ult = mini(ult + (ult_per_hit() / 2 if split else ult_per_hit()), ULT_MAX)
 			main.shake(4 if attack_kind == "slash" else 8)
 			main.hit_stop(0.04 if attack_kind == "slash" else 0.07)
 			if attack_kind in ["spin", "thrust", "air_spin", "air_rise"]:
@@ -803,14 +825,17 @@ func _smear(piv: Vector2, rad: float, a0: float, a1: float, thick: float, col: C
 func _draw_held(wid: String, bob: float) -> void:
 	match wid:
 		"griffes":
-			# trois lames courbes fixées sur un gantelet, violet pâle
-			var g := Vector2(11, -8 + bob)
-			DU.box(self, Rect2(g + Vector2(-4, -3), Vector2(7, 6)), Color(0.35, 0.28, 0.4))
-			for i in 3:
-				var o := Vector2(3, -3 + i * 3)
-				var pts := PackedVector2Array([g + o, g + o + Vector2(5, -2), g + o + Vector2(9, 1), g + o + Vector2(4, 1)])
-				DU.flat(self, pts, Color(0.85, 0.78, 0.98))
-				draw_line(g + o + Vector2(1, 0), g + o + Vector2(8, 0.5), Color(1, 1, 1, 0.6), 0.8)
+			# une griffe à chaque main : trois lames courbes sur un gantelet, violet pâle.
+			# Main arrière d'abord (plus sombre, lames vers l'arrière), puis main avant.
+			for hand in [-1, 1]:
+				var g := Vector2(11 * hand, -8 + bob + (1.0 if hand < 0 else 0.0))
+				var dk := 0.0 if hand > 0 else 0.25
+				DU.box(self, Rect2(g + Vector2(-4 if hand > 0 else -3, -3), Vector2(7, 6)), Color(0.35, 0.28, 0.4).darkened(dk))
+				for i in 3:
+					var o := Vector2(3 * hand, -3 + i * 3)
+					var pts := PackedVector2Array([g + o, g + o + Vector2(5 * hand, -2), g + o + Vector2(9 * hand, 1), g + o + Vector2(4 * hand, 1)])
+					DU.flat(self, pts, Color(0.85, 0.78, 0.98).darkened(dk))
+					draw_line(g + o + Vector2(1 * hand, 0), g + o + Vector2(8 * hand, 0.5), Color(1, 1, 1, 0.6 - dk), 0.8)
 		"fouet":
 			# liane enroulée à la ceinture, épines
 			var c := Vector2(13, -8 + bob)
@@ -919,6 +944,14 @@ func _phantom_dash() -> void:
 			dash_hit[e] = true
 			e.take_hit(1, Vector2(facing, 0))
 			main.spawn_burst(e.global_position, Color(0.75, 0.65, 1.0), 8, 140.0)
+
+# Coup d'une griffe : demi-dégâts. Les demi-points s'accumulent sur l'ennemi
+# (deux coups de 0,5 = 1 point de vie) ; un coup puissant (2) fait 1 par griffe.
+func _claw_hit(e, amount: float, kv: Vector2) -> void:
+	var tot: float = float(e.get_meta("claw_frac", 0.0)) + amount
+	var whole := int(floor(tot + 0.001))
+	e.set_meta("claw_frac", tot - whole)
+	e.take_hit(whole, kv)
 
 func _bleed(e) -> void:
 	e.set_meta("bleeding", true)
@@ -1092,7 +1125,7 @@ func _draw() -> void:
 	GameState.cos.draw_hero(self, bob, sway, anim_t, sitting, moving)
 	# Arme tenue au repos
 	var wid: String = GameState.weapon()
-	if attack_t <= 0.0 and not sitting:
+	if (attack_t <= 0.0 or wid == "griffes") and not sitting:
 		_draw_held(wid, bob)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# Coup critique prêt : lumière dorée au bout de l'arme
@@ -1192,6 +1225,11 @@ func _draw() -> void:
 				var ease := 1.0 - pow(1.0 - prog, 3.0)
 				# sens du coup : de haut en bas devant soi, et pour les coups verticaux dans le sens du regard
 				var sweep: float = 1.3 * (float(facing) if attack_dir.y != 0.0 else 1.0)
+				# griffes : la deuxième griffe (main arrière) remonte de bas en haut, un peu plus bas
+				if claw_split and claw_hand == 1 and attack_kind == claw_kind:
+					sweep = -sweep
+					piv += Vector2(0, 5)
+					col = col.lightened(0.15)
 				var a0: float = ang - sweep
 				var a_now := lerpf(a0, ang + sweep, minf(ease * 1.15, 1.0))
 				var thick := (20.0 if fin else 15.0) * (1.4 if hammer else 1.0)
@@ -1205,6 +1243,17 @@ func _draw() -> void:
 					draw_line(piv + wdir * 6.0, hp, Color(0.45, 0.32, 0.2), 3.4)
 					var hn := wdir.orthogonal()
 					DU.poly(self, PackedVector2Array([hp - hn * 8.0 - wdir * 4.0, hp + hn * 8.0 - wdir * 4.0, hp + hn * 8.0 + wdir * 5.0, hp - hn * 8.0 + wdir * 5.0]), Color(0.55, 0.56, 0.64))
+				elif GameState.weapon() == "griffes":
+					# la griffe qui frappe : gantelet au bout du bras, trois lames courbes en éventail
+					var gp := piv + wdir * (rad * 0.62)
+					var hn := wdir.orthogonal() * signf(sweep)
+					DU.box(self, Rect2(gp - Vector2(4, 3.5), Vector2(8, 7)), Color(0.35, 0.28, 0.4))
+					for j in 3:
+						var bd := wdir.rotated((j - 1) * 0.32)
+						var root := gp + bd * 3.0
+						var tip2 := root + bd * 13.0 + hn * 3.5
+						DU.flat(self, PackedVector2Array([root + hn * 1.8, root + bd * 7.0 + hn * 2.6, tip2, root - hn * 1.4]), Color(0.85, 0.78, 0.98))
+						draw_line(root + bd * 2.0, tip2 - bd * 2.0, Color(1, 1, 1, 0.7), 0.9)
 				else:
 					var tip := piv + wdir * (rad + 6.0)
 					var hn := wdir.orthogonal()

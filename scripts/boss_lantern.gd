@@ -40,7 +40,7 @@ func get_rect() -> Rect2:
 func _choose() -> void:
 	face_player()
 	var w := {"crown": 3, "sweep": 2.5, "ash": 2, "light": 2}
-	if phase == 2:
+	if phase == 2 and main.minion_room() >= 2:
 		w["summon"] = 1.2
 	match pick(w):
 		"crown":

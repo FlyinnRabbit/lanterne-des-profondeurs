@@ -20,7 +20,10 @@ func reset() -> void:
 
 func _choose() -> void:
 	face_player()
-	var a := pick({"dive": 3, "barrage": 3, "ring": 2, "summon": 1.0})
+	var w := {"dive": 3, "barrage": 3, "ring": 2}
+	if main.minion_room() >= 2:     # n'invoque pas si l'essaim est déjà au complet
+		w["summon"] = 1.0
+	var a := pick(w)
 	match a:
 		"dive":
 			go("windup_dive", tele(0.55))

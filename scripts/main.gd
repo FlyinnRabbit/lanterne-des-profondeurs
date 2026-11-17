@@ -1242,10 +1242,15 @@ func spawn_pillar(x: float, floor_y: float, delay: float = 0.0, opts: Dictionary
 
 # Sbire invoqué par un boss (pas de réapparition au banc)
 var minions := []
+const MINION_CAP := 3          # au plus 3 sbires vivants à la fois, quelle que soit la difficulté
+
+# Places libres pour des sbires (les morts et ceux qui disparaissent ne comptent pas)
+func minion_room() -> int:
+	minions = minions.filter(func(m): return is_instance_valid(m) and not m.dead)
+	return MINION_CAP - minions.size()
+
 func spawn_minion(script, pos: Vector2) -> void:
-	var alive := minions.filter(func(m): return is_instance_valid(m))
-	minions = alive
-	if minions.size() >= 3:    # au plus 3 sbires vivants à la fois
+	if minion_room() <= 0:
 		return
 	var e := CharacterBody2D.new()
 	e.set_script(script)

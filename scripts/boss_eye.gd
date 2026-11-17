@@ -38,7 +38,7 @@ func beam_rect() -> Rect2:
 
 func _choose() -> void:
 	var w := {"tentacles": 3, "beam": 2.5, "gaze": 2}
-	if phase == 2:
+	if phase == 2 and main.minion_room() >= 2:
 		w["spawn"] = 1.2
 	match pick(w):
 		"tentacles":
