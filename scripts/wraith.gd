@@ -67,13 +67,7 @@ func _physics_process(delta: float) -> void:
 # Le spectre ne se téléporte jamais de l'autre côté d'une grille d'arène de boss :
 # sinon il suivait le joueur dans la cage du boss.
 func _crosses_gate(target: Vector2) -> bool:
-	for g in [main.entry_gate, main.exit_gate]:
-		if g and is_instance_valid(g):
-			var r: Rect2 = g.rect
-			var mid := r.position.x + r.size.x / 2.0
-			if (global_position.x < mid) != (target.x < mid):
-				return true
-	return false
+	return main.in_arena(global_position) != main.in_arena(target)
 
 func _draw() -> void:
 	var c := body_color(Color(0.72, 0.8, 0.96))

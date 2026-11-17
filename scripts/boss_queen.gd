@@ -20,7 +20,7 @@ func reset() -> void:
 
 func _choose() -> void:
 	face_player()
-	var a := pick({"dive": 3, "barrage": 3, "ring": 2, "summon": 1.5})
+	var a := pick({"dive": 3, "barrage": 3, "ring": 2, "summon": 1.0})
 	match a:
 		"dive":
 			go("windup_dive", 0.55 / rage())

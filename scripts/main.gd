@@ -80,6 +80,7 @@ var used_benches := {}     # bancs qui ont déjà soigné dans cette zone
 var exit_gate
 var enemy_spawns := []   # [script, position, node]
 var boss_started := false
+var arena_entry_pos := Vector2.ZERO   # où le héros est entré dans l'arène (filet de sécurité)
 var boss_dead := false
 var won := false
 var shake_amt := 0.0
@@ -859,13 +860,23 @@ func _process(delta: float) -> void:
 		dash_orb = null
 		shake(8)
 		show_message("Cape d'Ombre-Vive obtenue !\n{dash} pour faire une Ruée", 4.0)
+	# Filet de sécurité : pendant le combat, un héros qui se retrouve hors de l'arène (bug de
+	# collision, recul…) est remis à l'intérieur, là où il est entré, au lieu d'être bloqué dehors.
+	if boss_started and not boss_dead and entry_gate and is_instance_valid(entry_gate) and entry_gate.closed \
+			and not player.dead and not in_arena(pp) and arena_entry_pos != Vector2.ZERO:
+		spawn_burst(player.global_position, Color(0.8, 0.85, 1.0), 14, 160.0)
+		player.global_position = arena_entry_pos
+		player.velocity = Vector2.ZERO
+		player.invuln_t = maxf(player.invuln_t, 0.8)
+		spawn_burst(arena_entry_pos, Color(0.8, 0.85, 1.0), 14, 160.0)
 	# Déclenchement du boss
-	if boss and not boss_started and not boss_dead and entry_gate and pp.x > entry_gate.rect.end.x + TILE * 3:
+	if boss and not boss_started and not boss_dead and entry_gate and pp.x > entry_gate.rect.end.x + TILE * 3 and in_arena(pp):
 		boss_started = true
+		arena_entry_pos = player.global_position
 		entry_gate.set_closed(true)
 		# aucun ennemi ordinaire ne reste enfermé avec le boss
 		for e in get_tree().get_nodes_in_group("enemies"):
-			if e != boss and not e.is_boss and e.global_position.x > entry_gate.rect.end.x:
+			if e != boss and not e.is_boss and in_arena(e.global_position):
 				e.queue_free()
 		boss.wake()
 		Audio.play_boss(level.get("boss_music", "res://music/boss_gardien_du_puits.ogg"))
@@ -931,8 +942,27 @@ func fmt(text: String) -> String:
 	out = out.replace("{pause}", Controls.pause_label())
 	return out
 
+# Le point est-il dans l'arène du boss ? Entre les deux grilles ET à la hauteur de l'arène :
+# sur les niveaux en strates, l'arène est en bas, sous des étages qui la dépassent en largeur.
+func in_arena(p: Vector2) -> bool:
+	if not entry_gate or not is_instance_valid(entry_gate):
+		return false
+	var r: Rect2 = entry_gate.rect
+	if p.x <= r.end.x or p.y < r.position.y - TILE or p.y > r.end.y + TILE:
+		return false
+	if exit_gate and is_instance_valid(exit_gate) and p.x >= exit_gate.rect.position.x:
+		return false
+	return true
+
 func is_solid_at(p: Vector2) -> bool:
-	return solid.has(Vector2i(floori(p.x / TILE), floori(p.y / TILE)))
+	if solid.has(Vector2i(floori(p.x / TILE), floori(p.y / TILE))):
+		return true
+	# grille d'arène fermée : un mur pour les coups, les projectiles et les ennemis
+	# (avant, seuls les blocs de roche comptaient : on touchait le boss à travers les barreaux)
+	for g in [entry_gate, exit_gate]:
+		if g and is_instance_valid(g) and g.closed and g.rect.grow(2.0).has_point(p):
+			return true
+	return false
 
 # Y a-t-il de la roche entre deux points ? (on ignore les extrémités : les corps touchent le sol)
 func wall_between(a: Vector2, b: Vector2) -> bool:
@@ -1215,7 +1245,7 @@ var minions := []
 func spawn_minion(script, pos: Vector2) -> void:
 	var alive := minions.filter(func(m): return is_instance_valid(m))
 	minions = alive
-	if minions.size() >= 4:
+	if minions.size() >= 3:    # au plus 3 sbires vivants à la fois
 		return
 	var e := CharacterBody2D.new()
 	e.set_script(script)

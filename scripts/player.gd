@@ -640,6 +640,9 @@ func _do_attack_hits() -> void:
 			var tgt := Vector2(clampf(global_position.x, er.position.x, er.end.x), clampf(global_position.y - 4.0, er.position.y, er.end.y))
 			if main.wall_between(global_position + Vector2(0, -4), tgt):
 				continue
+			# le boss ne se touche que depuis l'intérieur de son arène
+			if e.is_boss and main.entry_gate and is_instance_valid(main.entry_gate) and not main.in_arena(global_position):
+				continue
 			attack_hit[e] = true
 			var kdir := attack_dir
 			if attack_kind in ["spin", "air_spin"]:

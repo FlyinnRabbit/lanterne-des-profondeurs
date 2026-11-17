@@ -89,6 +89,9 @@ func _physics_process(delta: float) -> void:
 	else:
 		for e in get_tree().get_nodes_in_group("enemies"):
 			if is_instance_valid(e) and not e.dead and not _hit.has(e) and r.intersects(e.get_rect()):
+				# le boss ne se touche que depuis l'intérieur de son arène
+				if e.is_boss and main.entry_gate and is_instance_valid(main.entry_gate) and not main.in_arena(main.player.global_position):
+					continue
 				if volley != null and not returning and volley.has(e):
 					continue
 				if volley != null and not returning:
