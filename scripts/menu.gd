@@ -632,7 +632,7 @@ void fragment() {
 		var anim: bool = Settings.menu_anim
 		mat.set_shader_parameter("rect_size", size)
 		mat.set_shader_parameter("lamp", _lamp())
-		breath = (0.96 + 0.04 * sin(t * 1.7) + 0.02 * sin(t * 6.1)) if anim else 1.0
+		breath = (0.97 + 0.03 * sin(t * 0.9) + 0.01 * sin(t * 1.7)) if anim else 1.0
 		mat.set_shader_parameter("breath", breath)
 		mat.set_shader_parameter("reveal", 1.0 if int(Settings.title_scene) == 0 else 0.0)
 		queue_redraw()
@@ -643,7 +643,7 @@ void fragment() {
 		# balancement léger de la lanterne au bout de sa chaîne
 		var sway := sin(tt * 0.9) * 0.035
 		var pivot := Vector2(c.x, 0)
-		var flick := (0.92 + 0.08 * sin(tt * 17.0) * sin(tt * 7.3)) if anim else 1.0
+		var flick := (0.95 + 0.05 * sin(tt * 2.2) * sin(tt * 1.3)) if anim else 1.0
 		var GLOW := Color(1.0, 0.72, 0.36)
 		var BRASS := Color(0.72, 0.58, 0.32)
 		if camp:
@@ -668,10 +668,10 @@ void fragment() {
 		DU.flat(self, PackedVector2Array([lc + Vector2(-38, -44), lc + Vector2(0, -72), lc + Vector2(38, -44)]), Color(0.22, 0.17, 0.11))
 		draw_arc(lc + Vector2(0, -76), 9.0, PI, TAU, 10, BRASS.darkened(0.3), 3.0)
 		draw_rect(body, Color(0.06, 0.05, 0.05))
-		draw_rect(body.grow(-7), Color(1.0, 0.86, 0.55).lerp(Color(1.0, 0.95, 0.75), 0.3 * (flick - 0.92) / 0.08))
+		draw_rect(body.grow(-7), Color(1.0, 0.86, 0.55).lerp(Color(1.0, 0.95, 0.75), 0.3 * (flick - 0.95) / 0.05))
 		var fc := lc + Vector2(0, 14)
 		var fh := 30.0 * flick
-		draw_colored_polygon(PackedVector2Array([fc + Vector2(-9, 0), fc + Vector2(-3, -fh * 0.6), fc + Vector2(sin(tt * 9.0) * 2.0, -fh), fc + Vector2(3, -fh * 0.6), fc + Vector2(9, 0), fc + Vector2(0, 6)]), Color(1.0, 0.65, 0.2))
+		draw_colored_polygon(PackedVector2Array([fc + Vector2(-9, 0), fc + Vector2(-3, -fh * 0.6), fc + Vector2(sin(tt * 1.8) * 1.5, -fh), fc + Vector2(3, -fh * 0.6), fc + Vector2(9, 0), fc + Vector2(0, 6)]), Color(1.0, 0.65, 0.2))
 		draw_colored_polygon(PackedVector2Array([fc + Vector2(-4, 0), fc + Vector2(0, -fh * 0.65), fc + Vector2(4, 0), fc + Vector2(0, 4)]), Color(1.0, 0.95, 0.75))
 		for x: float in [-30.0, 30.0]:
 			draw_line(lc + Vector2(x, -44), lc + Vector2(x, 40), BRASS.darkened(0.15), 4.0)
@@ -764,7 +764,7 @@ void fragment() {
 		var ground := h * 0.84
 		var fire := Vector2(w * 0.7, ground)
 		# la Lanterne vacille : la lumière arrive par vagues
-		var flux := (0.86 + 0.08 * sin(tt * 2.1) + 0.06 * sin(tt * 7.7) * sin(tt * 3.1)) if Settings.menu_anim else 1.0
+		var flux := (0.93 + 0.05 * sin(tt * 0.9) + 0.02 * sin(tt * 1.6)) if Settings.menu_anim else 1.0
 		# sol : un tertre de roche éclairé
 		var mound := PackedVector2Array()
 		for i in 25:
