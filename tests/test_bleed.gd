@@ -1,6 +1,6 @@
 extends SceneTree
 # Saignée en pourcentage : 20 % par coup avec les Griffes niv. 2, +30 % avec le Croc Sanglant (toutes armes).
-# Coup puissant des griffes : 0,75 par griffe (1,5 au total).
+# Coup puissant des griffes : 0,875 par griffe (1,75 au total).
 func _initialize() -> void:
 	_run()
 func _run() -> void:
@@ -23,7 +23,7 @@ func _run() -> void:
 	print(res)
 	var ok: bool = is_equal_approx(res["aiguille niv.1"], 0.0) and is_equal_approx(res["aiguille niv.1 + croc"], 0.3) \
 		and is_equal_approx(res["griffes niv.1"], 0.0) and is_equal_approx(res["griffes niv.2"], 0.2) and is_equal_approx(res["griffes niv.2 + croc"], 0.5)
-	# coup puissant des griffes : deux griffes à 0,75 -> 1,5 ; un coup normal : 0,5 + 0,5 -> 1
+	# coup puissant des griffes : deux griffes à 0,875 -> 1,75 ; un coup normal : 0,5 + 0,5 -> 1
 	gs.prog["weapon"] = "griffes"
 	gs.prog["equipped"] = []
 	var dummy = null
@@ -36,13 +36,13 @@ func _run() -> void:
 	pl.claw_kind = "finisher"
 	dummy.set_meta("claw_frac", 0.0)
 	dummy.hits.clear()
-	var per: float = 0.375 * pl.hit_damage()
+	var per: float = 0.4375 * pl.hit_damage()
 	pl._claw_hit(dummy, per, Vector2.ZERO)
 	pl._claw_hit(dummy, per, Vector2.ZERO)
 	var got := 0
 	for h in dummy.hits:
 		got += int(h[1])
 	print("coup puissant : %.2f par griffe, %d dégât(s) entier(s) + reste %.2f" % [per, got, float(dummy.get_meta("claw_frac"))])
-	ok = ok and is_equal_approx(per, 0.75) and got == 1 and is_equal_approx(float(dummy.get_meta("claw_frac")), 0.5)
+	ok = ok and is_equal_approx(per, 0.875) and got == 1 and is_equal_approx(float(dummy.get_meta("claw_frac")), 0.75)
 	print("RÉSULTAT : ", "OK" if ok else "ÉCHEC")
 	quit()

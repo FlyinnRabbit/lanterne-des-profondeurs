@@ -677,10 +677,10 @@ func _do_attack_hits() -> void:
 			var split := claw_split and attack_kind == claw_kind
 			var second := split and claw_hand == 1
 			if split:
-				# coup puissant des griffes : 0,75 par griffe (1,5 au total) au lieu de 1 ;
+				# coup puissant des griffes : 0,875 par griffe (1,75 au total) ;
 				# la deuxième griffe ne repousse presque pas : sinon l'ennemi, repoussé 8 fois par
 				# seconde, ne pouvait plus jamais attaquer (blocage permanent)
-				var per: float = 0.375 if attack_kind in ["finisher", "thrust", "air_spin", "spin", "plunge"] else 0.5
+				var per: float = 0.4375 if attack_kind in ["finisher", "thrust", "air_spin", "spin", "plunge"] else 0.5
 				_claw_hit(e, hit_damage() * per, kv * (0.25 if second else 1.0))
 			else:
 				e.take_hit(hit_damage(), kv)

@@ -318,7 +318,7 @@ mobile, couloirs de lames.
 | Arme | Prix | Style | Niveau 2 (forgeronne) |
 |---|---|---|---|
 | Aiguille du Veilleur | — | équilibrée | le coup final lance une courte lame d'air |
-| Griffes Jumelles | 180 | une griffe à chaque main : chaque attaque frappe deux fois (0,5 dégât par griffe, 0,75 par griffe sur un coup puissant), très rapides, portée courte, moitié moins d'âme par griffe | saignée : chaque coup de griffe a 20 % de chances (50 % avec le Croc Sanglant) de faire perdre 1 vie de plus une seconde plus tard |
+| Griffes Jumelles | 180 | une griffe à chaque main : chaque attaque frappe deux fois (0,5 dégât par griffe, 0,875 par griffe sur un coup puissant), très rapides, portée courte, moitié moins d'âme par griffe | saignée : chaque coup de griffe a 20 % de chances (50 % avec le Croc Sanglant) de faire perdre 1 vie de plus une seconde plus tard |
 | Fouet de Ronces | 150 | très longue portée devant et vers le haut, un peu plus lent | attire les petits ennemis vers soi |
 | Marteau d'Enclume | 220 | lent, +1 dégât, gros recul, étourdit | le coup final envoie une onde de choc des deux côtés (elle franchit les marches) |
 | Étoiles de Lune (shurikens) | 260 | à distance ; coup final = 3 étoiles, tourbillon = 8 en cercle, estoc = une grande étoile perçante | elles reviennent comme un boomerang et touchent à nouveau |

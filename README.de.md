@@ -317,7 +317,7 @@ beweglicher Plattform, Klingengänge.
 | Waffe | Preis | Stil | Stufe 2 (Schmiedin) |
 |---|---|---|---|
 | Nadel des Wächters | — | ausgewogen | der Abschlussschlag schleudert eine kurze Luftklinge |
-| Zwillingsklauen | 180 | eine Klaue an jeder Hand: Jeder Angriff trifft zweimal (0,5 Schaden pro Klaue, 0,75 pro Klaue bei einem starken Schlag), sehr schnell, kurze Reichweite, halb so viel Seele pro Klaue | Blutung: Jeder Klauenhieb hat 20 % Chance (50 % mit dem Blutzahn), dass der Gegner eine Sekunde später noch 1 Leben verliert |
+| Zwillingsklauen | 180 | eine Klaue an jeder Hand: Jeder Angriff trifft zweimal (0,5 Schaden pro Klaue, 0,875 pro Klaue bei einem starken Schlag), sehr schnell, kurze Reichweite, halb so viel Seele pro Klaue | Blutung: Jeder Klauenhieb hat 20 % Chance (50 % mit dem Blutzahn), dass der Gegner eine Sekunde später noch 1 Leben verliert |
 | Dornenpeitsche | 150 | sehr große Reichweite nach vorn und oben, etwas langsamer | zieht kleine Gegner heran |
 | Ambosshammer | 220 | langsam, +1 Schaden, starker Rückstoß, betäubt | der Abschlussschlag sendet zu beiden Seiten eine Schockwelle (steigt Stufen hinauf) |
 | Mondsterne (Shuriken) | 260 | Fernkampf; Abschluss = 3 Sterne, Wirbel = 8 im Kreis, Ausfall = ein großer durchbohrender Stern | kehren wie ein Bumerang zurück und treffen erneut |

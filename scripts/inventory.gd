@@ -105,14 +105,14 @@ func _ready() -> void:
 	el.add_theme_color_override("font_color", Color(0.55, 0.62, 0.78))
 	left.add_child(el)
 	var grid := GridContainer.new()
-	grid.columns = 5
+	grid.columns = 7    # 21 emblèmes : 3 rangées de 7 (5 rangées débordaient de l'écran)
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	left.add_child(grid)
 	for id in GameState.charm_count():
 		var b := CharmSlot.new()
 		b.charm_id = id
-		b.custom_minimum_size = Vector2(84, 80)
+		b.custom_minimum_size = Vector2(80, 76)
 		b.focus_entered.connect(_show_desc.bind(id))
 		b.mouse_entered.connect(_show_desc.bind(id))
 		b.pressed.connect(_toggle.bind(id))
@@ -164,6 +164,10 @@ func _ready() -> void:
 
 func _apply_scale() -> void:
 	var s: float = Settings.menu_scale
+	# ne jamais dépasser de l'écran, quelle que soit la taille des menus choisie
+	var vp: Vector2 = get_viewport().get_visible_rect().size
+	if panel.size.y > 0.0 and panel.size.x > 0.0:
+		s = minf(s, minf(vp.y * 0.96 / panel.size.y, vp.x * 0.96 / panel.size.x))
 	panel.pivot_offset = panel.size / 2.0
 	panel.scale = Vector2(s, s)
 

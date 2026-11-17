@@ -317,7 +317,7 @@ pasillos de cuchillas.
 | Arma | Precio | Estilo | Nivel 2 (herrera) |
 |---|---|---|---|
 | Aguja del Vigía | — | equilibrada | el golpe final lanza una corta hoja de aire |
-| Garras Gemelas | 180 | una garra en cada mano: cada ataque golpea dos veces (0,5 de daño por garra, 0,75 por garra en un golpe potente), muy rápidas, alcance corto, la mitad de alma por garra | sangrado: cada golpe de garra tiene un 20 % de probabilidad (50 % con el Colmillo Sangriento) de quitar 1 de vida más un segundo después |
+| Garras Gemelas | 180 | una garra en cada mano: cada ataque golpea dos veces (0,5 de daño por garra, 0,875 por garra en un golpe potente), muy rápidas, alcance corto, la mitad de alma por garra | sangrado: cada golpe de garra tiene un 20 % de probabilidad (50 % con el Colmillo Sangriento) de quitar 1 de vida más un segundo después |
 | Látigo de Zarzas | 150 | alcance muy largo hacia delante y hacia arriba, algo más lento | atrae a los enemigos pequeños |
 | Martillo de Yunque | 220 | lento, +1 de daño, gran retroceso, aturde | el golpe final lanza una onda expansiva a ambos lados (sube los escalones) |
 | Estrellas de Luna (shurikens) | 260 | a distancia; golpe final = 3 estrellas, torbellino = 8 en círculo, estocada = una gran estrella perforante | vuelven como un bumerán y golpean de nuevo |
