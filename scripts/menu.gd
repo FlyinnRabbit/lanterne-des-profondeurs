@@ -646,10 +646,13 @@ void fragment() {
 		var flick := (0.92 + 0.08 * sin(tt * 17.0) * sin(tt * 7.3)) if anim else 1.0
 		var GLOW := Color(1.0, 0.72, 0.36)
 		var BRASS := Color(0.72, 0.58, 0.32)
+		if camp:
+			camp.visible = int(Settings.title_scene) == 4
 		match int(Settings.title_scene):
 			1: _village_troglo(tt)
 			2: _village_hameau(tt)
 			3: _iso_sanctuary(tt)
+			4: _campfire(tt)
 		# rayons qui descendent
 		for i in 9:
 			var ang := PI / 2.0 + (i - 4) * 0.2 + sin(tt * 0.5 + i) * 0.03
@@ -719,6 +722,85 @@ void fragment() {
 			var f := 0.7 + 0.3 * sin(tt * 2.5 + i + k)
 			DU.glow(self, p, 7.0, Color(1.0, 0.75, 0.4), 0.45 * f)
 			draw_circle(p, 1.8, Color(1.0, 0.85, 0.5))
+
+	# ---- modèle 4 : les habitants réunis autour d'un feu sous la Lanterne, quelques échoppes dans
+	# les coins ; tout est éclairé par la Lanterne qui vacille. Ce sont les vrais dessins du jeu.
+	var camp: Node2D
+	var camp_props := []    # [noeud, x relatif, y relatif, échelle, regard]
+	const PropScript = preload("res://scripts/prop.gd")
+	func _camp_setup() -> void:
+		camp = Node2D.new()
+		add_child(camp)
+		# (type, x en fraction de largeur, décalage du sol, échelle, regard)
+		var cast := [["scriptorium", 0.425, -0.01, 1.0, 1.0], ["smith", 0.5, 0.0, 1.1, 1.0], ["tailor", 0.585, 0.01, 1.1, 1.0],
+			["elder", 0.79, 0.01, 1.1, -1.0], ["merchant", 0.885, -0.01, 1.05, 1.0]]
+		for c in cast:
+			var pr := Node2D.new()
+			pr.set_script(PropScript)
+			pr.kind = c[0]
+			camp.add_child(pr)
+			pr.remove_from_group("sleepy")
+			camp_props.append([pr, c[1], c[2], c[3], c[4]])
+		camp_fire = Node2D.new()
+		camp_fire.draw.connect(_draw_fire)
+		camp.add_child(camp_fire)
+	func _campfire(tt: float) -> void:
+		if camp == null:
+			_camp_setup()
+		var w := size.x
+		var h := size.y
+		var k := h / 720.0
+		var ground := h * 0.84
+		var fire := Vector2(w * 0.7, ground)
+		# la Lanterne vacille : la lumière arrive par vagues
+		var flux := (0.86 + 0.08 * sin(tt * 2.1) + 0.06 * sin(tt * 7.7) * sin(tt * 3.1)) if Settings.menu_anim else 1.0
+		# sol : un tertre de roche éclairé
+		var mound := PackedVector2Array()
+		for i in 25:
+			var u := i / 24.0
+			mound.append(Vector2(w * 0.3 + u * w * 0.72, ground + 6.0 - sin(u * PI) * 10.0 + sin(u * 17.0) * 2.0))
+		mound.append(Vector2(w * 1.02, h))
+		mound.append(Vector2(w * 0.3, h))
+		var cols := PackedColorArray()
+		for q in mound:
+			cols.append(shade(Color(0.24, 0.19, 0.16), q, 0.0))
+		draw_polygon(mound, cols)
+		DU.glow(self, fire + Vector2(0, 6), 260.0 * k, Color(1.0, 0.6, 0.25), 0.22 * flux)
+		# habitants (vrais dessins du jeu), éclairés selon la distance à la lumière
+		for c in camp_props:
+			var pr: Node2D = c[0]
+			pr.position = Vector2(w * c[1], ground + h * c[2])
+			pr.scale = Vector2(c[3] * c[4], c[3]) * k
+			var l := maxf(lit(pr.position + Vector2(0, -40)), 1.0 - smoothstep(0.0, w * 0.22, pr.position.distance_to(fire)))
+			var v := lerpf(0.18, 1.1, l) * flux
+			pr.modulate = Color(v, v * 0.9, v * 0.76)
+			pr.z_index = 1
+		camp_fire.queue_redraw()
+
+	var camp_fire: Node2D
+	func _draw_fire() -> void:
+		var f := camp_fire
+		var tt := t if Settings.menu_anim else 0.0
+		var k := size.y / 720.0
+		var fire := Vector2(size.x * 0.7, size.y * 0.84)
+		var flux := (0.86 + 0.08 * sin(tt * 2.1) + 0.06 * sin(tt * 7.7) * sin(tt * 3.1)) if Settings.menu_anim else 1.0
+		for i in 7:
+			var a := PI + i * PI / 6.0
+			DU.ball(f, fire + Vector2(cos(a) * 26.0, 4.0 + absf(sin(a)) * 3.0) * k, 6.0 * k, shade(Color(0.42, 0.38, 0.36), fire))
+		for side in [-1.0, 1.0]:
+			f.draw_line(fire + Vector2(-20 * side, 6) * k, fire + Vector2(14 * side, -6) * k, Color(0.3, 0.18, 0.1), 6.0 * k)
+		var fh := (34.0 + 6.0 * sin(tt * 11.0) + 4.0 * sin(tt * 17.0)) * k
+		DU.glow(f, fire + Vector2(0, -16) * k, 60.0 * k, Color(1.0, 0.65, 0.25), 0.6 * flux)
+		for j in 3:
+			var sw := sin(tt * (6.0 + j * 2.0) + j) * 4.0 * k
+			var ww := (16.0 - j * 4.0) * k
+			var hh := fh * (1.0 - j * 0.25)
+			var col: Color = [Color(1.0, 0.45, 0.12), Color(1.0, 0.7, 0.2), Color(1.0, 0.95, 0.7)][j]
+			f.draw_colored_polygon(PackedVector2Array([fire + Vector2(-ww, -2 * k), fire + Vector2(-ww * 0.4, -hh * 0.55), fire + Vector2(sw, -hh), fire + Vector2(ww * 0.4, -hh * 0.55), fire + Vector2(ww, -2 * k)]), col)
+		for i in 12:
+			var u := fposmod(tt * (0.35 + (i % 4) * 0.08) + i * 0.17, 1.0)
+			var p := fire + Vector2(sin(i * 2.3 + tt * 2.0) * 14.0 * (0.3 + u), -20.0 - u * 140.0) * k
+			f.draw_circle(p, (1.8 * (1.0 - u) + 0.4) * k, Color(1.0, 0.7, 0.3, 0.9 * (1.0 - u)))
 
 	# ---- modèle 3 : le Sanctuaire en vue isométrique, simplifié en volumes (sans rien dévoiler) :
 	# un îlot de roche suspendu dans le noir, quelques bâtisses, une tour d'où pend une corde
