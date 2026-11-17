@@ -1,6 +1,6 @@
 # Lanterne des Profondeurs
 
-<p align="center"><img src="art/icon_1024.png" width="160" alt="Logo : une lanterne médiévale"></p>
+<p align="center"><img src="docs/banner.jpg" width="900" alt="Le héros sous la Lanterne, entouré des gardiens des profondeurs"></p>
 
 [English](README.md) · **Français** · [Español](README.es.md) · [Deutsch](README.de.md)
 
@@ -10,12 +10,38 @@ Tout est dessiné en code : le jeu ne contient aucune image.
 
 **Jouer dans le navigateur : https://flyinnrabbit.github.io/lanterne-des-profondeurs/**
 
-<p align="center"><img src="docs/screenshots/title.jpg" width="820" alt="Écran-titre"></p>
+## Bande-annonce
+
+<p align="center"><a href="docs/video/trailer_fr.mp4"><img src="docs/video/preview.gif" width="820" alt="Aperçu de la bande-annonce : cliquer pour la regarder"></a></p>
+
+<p align="center"><b><a href="docs/video/trailer_fr.mp4">▶ Regarder la bande-annonce (80 s)</a></b> · <a href="docs/booklet/booklet_fr.pdf">Livret (PDF, 10 pages)</a></p>
+
+## Le but
+
+Autrefois, la Lanterne des Profondeurs éclairait chaque palier jusqu'au fond du monde. Sa flamme s'est
+éteinte. Depuis le **Sanctuaire**, prends l'ascenseur et descends palier après palier, vaincs le gardien
+de chacun et **rallume la Lanterne**, puis remonte vivant. Chaque chute te ramène au Sanctuaire : ton
+ombre garde les éclats perdus là où tu es tombé, et l'ascenseur se souvient de ta profondeur.
+
+<p align="center"><img src="docs/screenshots/surface.jpg" width="820" alt="La lumière touche enfin la surface"></p>
+
+## En bref
+
+- **9 biomes** ; les niveaux sont générés à chaque descente, avec grottes, strates sur trois étages et treuils
+- **10 boss** : 6 gardiens de palier et 4 boss finaux, chacun avec une phase 2 et sa musique
+- **Combat** : combos en 3 coups, tourbillon chargé, combo aérien, pogo, attaque plongée, estoc en ruée, parade (parfaite = coup critique), lame d'âme, ultime
+- **5 armes** améliorées chez la forgeronne (les Griffes Jumelles se portent aux deux mains), **20 emblèmes**
+- **Le Sanctuaire** : marchand, arsenal, forgeronne, cartographe, tailleuse (53 cosmétiques), ancien et quatre fêtes dans l'année
+- **4 difficultés** et un mode une seule vie, malédictions, **Descente du jour** avec classement en ligne, **Défi des boss**
+- Français, anglais, espagnol et allemand ; clavier et manette Xbox ; navigateur, Windows, macOS, Linux et Steam Deck ; mises à jour automatiques
+- Tout est dessiné en code ; musique et sons originaux
 
 ## Captures d'écran
 
 | | |
 |---|---|
+| ![Le Sanctuaire et ses habitants](docs/screenshots/sanctuary.jpg) | ![L'ascenseur descend vers le palier suivant](docs/screenshots/lift_descent.jpg) |
+| ![Parade parfaite à l'Ossuaire, en Cauchemar](docs/screenshots/nightmare_parry.jpg) | ![La Lanterne rallumée](docs/screenshots/lantern_rekindled.jpg) |
 | ![Les Jardins Fongiques](docs/screenshots/fungal_gardens.jpg) | ![La Forge Ardente](docs/screenshots/blazing_forge.jpg) |
 | ![Les Mines de Cristal](docs/screenshots/crystal_mines.jpg) | ![L'Abîme Gelé](docs/screenshots/frozen_abyss.jpg) |
 | ![La Bibliothèque Silencieuse](docs/screenshots/silent_library.jpg) | ![La Ruche Bourdonnante](docs/screenshots/humming_hive.jpg) |
@@ -35,7 +61,7 @@ Tout est dessiné en code : le jeu ne contient aucune image.
 |---|---|---|
 | ![Lancement](docs/screenshots/loading_launch.jpg) | ![Entrée dans une boutique](docs/screenshots/loading_shop.jpg) | ![L'ascenseur](docs/screenshots/loading_lift.jpg) |
 
-*Les captures montrent l'interface en anglais ; le jeu est en français, anglais, espagnol et allemand.*
+*Les captures montrent l'interface en anglais ou en français ; le jeu est en français, anglais, espagnol et allemand.*
 
 ## Télécharger et jouer
 
@@ -164,7 +190,9 @@ cosmétiques sont gardés, car ils sont communs à toutes les parties.
 | Difficile | -25 % / -20 % | +25 % de vitesse, plus agressifs, +35 % de vie, +35 % d'ennemis ; élites : de 25 % à 65 % | 1 |
 | Cauchemar | -40 % / -35 % | +40 % de vitesse, très agressifs, +60 % de vie, +60 % d'ennemis ; élites : de 42 % à 85 % | **2** |
 
-Les boss sont eux aussi plus rapides et plus résistants selon la difficulté.
+Les boss sont eux aussi plus rapides et plus résistants selon la difficulté, mais leurs préparations ne
+descendent jamais sous 0,25 s : même en Cauchemar, chaque attaque se lit et s'esquive. Un boss n'a jamais
+plus de 3 sbires invoqués en vie à la fois, et n'essaie pas d'invoquer quand son essaim est complet.
 
 **Éclats** : chaque ennemi en donne 10 % de plus par palier (palier 6 : +50 %), le double pour une élite,
 et le boss en donne 60 + 20 × palier. En Facile, où les ennemis sont moins nombreux et sans élites, ils en
@@ -290,7 +318,7 @@ mobile, couloirs de lames.
 | Arme | Prix | Style | Niveau 2 (forgeronne) |
 |---|---|---|---|
 | Aiguille du Veilleur | — | équilibrée | le coup final lance une courte lame d'air |
-| Griffes Jumelles | 180 | très rapides (+30 % de dégâts sur la durée), portée courte, un peu moins d'âme par coup | saignée : un ennemi touché perd encore 1 vie une seconde plus tard |
+| Griffes Jumelles | 180 | une griffe à chaque main : chaque attaque frappe deux fois (0,5 dégât par griffe, 1 par griffe sur un coup puissant), très rapides, portée courte, moitié moins d'âme par griffe | saignée : un ennemi touché perd encore 1 vie une seconde plus tard |
 | Fouet de Ronces | 150 | très longue portée devant et vers le haut, un peu plus lent | attire les petits ennemis vers soi |
 | Marteau d'Enclume | 220 | lent, +1 dégât, gros recul, étourdit | le coup final envoie une onde de choc des deux côtés (elle franchit les marches) |
 | Étoiles de Lune (shurikens) | 260 | à distance ; coup final = 3 étoiles, tourbillon = 8 en cercle, estoc = une grande étoile perçante | elles reviennent comme un boomerang et touchent à nouveau |

@@ -1,6 +1,6 @@
 # Lanterne des Profondeurs (Lantern of the Depths)
 
-<p align="center"><img src="art/icon_1024.png" width="160" alt="Logo: a medieval lantern"></p>
+<p align="center"><img src="docs/banner.jpg" width="900" alt="The hero beneath the Lantern, surrounded by the guardians of the depths"></p>
 
 **English** · [Français](README.fr.md) · [Español](README.es.md) · [Deutsch](README.de.md)
 
@@ -10,12 +10,38 @@ Everything is drawn in code — there is not a single image asset in the game.
 
 **Play in your browser: https://flyinnrabbit.github.io/lanterne-des-profondeurs/**
 
-<p align="center"><img src="docs/screenshots/title.jpg" width="820" alt="Title screen"></p>
+## Trailer
+
+<p align="center"><a href="docs/video/trailer_en.mp4"><img src="docs/video/preview.gif" width="820" alt="Trailer preview: click to watch"></a></p>
+
+<p align="center"><b><a href="docs/video/trailer_en.mp4">▶ Watch the trailer (80 s)</a></b> · <a href="docs/booklet/booklet_en.pdf">Booklet (PDF, 10 pages)</a></p>
+
+## The goal
+
+The Lantern of the Depths once lit every tier down to the bottom of the world. Its flame has gone out.
+From the **Sanctuary**, take the lift down tier after tier, defeat the guardian of each tier, and
+**rekindle the Lantern**, then climb back alive. Every fall sends you back to the Sanctuary: your shade
+keeps the shards you dropped where you fell, and the lift remembers how deep you went.
+
+<p align="center"><img src="docs/screenshots/surface.jpg" width="820" alt="The light finally reaches the surface"></p>
+
+## At a glance
+
+- **9 biomes**; levels are generated anew on every descent, with grottos, three-storey strata and winches
+- **10 bosses**: 6 tier guardians and 4 final bosses, each with a phase 2 and its own music
+- **Combat**: 3-hit combos, charged whirl, air combo, pogo, plunge attack, dash thrust, parry (a perfect parry makes your next hit critical), soul blade, ultimate
+- **5 weapons** upgraded by the smith (the Twin Claws are worn on both hands), **20 charms**
+- **The Sanctuary**: merchant, arsenal, smith, cartographer, seamstress (53 cosmetics), elder and four yearly festivals
+- **4 difficulties** plus a one-life mode, curses, a **Daily Descent** with an online leaderboard, and a **Boss Rush**
+- English, French, Spanish and German; keyboard and Xbox controller; browser, Windows, macOS, Linux and Steam Deck; automatic updates
+- Everything drawn in code; original music and sounds
 
 ## Screenshots
 
 | | |
 |---|---|
+| ![The Sanctuary and its inhabitants](docs/screenshots/sanctuary.jpg) | ![The lift going down to the next tier](docs/screenshots/lift_descent.jpg) |
+| ![A perfect parry in the Ossuary, on Nightmare](docs/screenshots/nightmare_parry.jpg) | ![The Lantern rekindled](docs/screenshots/lantern_rekindled.jpg) |
 | ![The Fungal Gardens](docs/screenshots/fungal_gardens.jpg) | ![The Blazing Forge](docs/screenshots/blazing_forge.jpg) |
 | ![The Crystal Mines](docs/screenshots/crystal_mines.jpg) | ![The Frozen Abyss](docs/screenshots/frozen_abyss.jpg) |
 | ![The Silent Library](docs/screenshots/silent_library.jpg) | ![The Humming Hive](docs/screenshots/humming_hive.jpg) |
@@ -161,7 +187,9 @@ kept, since they are shared by all slots.
 | Hard | -25% / -20% | +25% speed, more aggressive, +35% health, +35% enemies; elites: 25% up to 65% | 1 |
 | Nightmare | -40% / -35% | +40% speed, very aggressive, +60% health, +60% enemies; elites: 42% up to 85% | **2** |
 
-Bosses are also faster and tougher depending on the difficulty.
+Bosses are also faster and tougher depending on the difficulty, but their wind-ups never drop below
+0.25 s: even on Nightmare, every attack can be read and dodged. A boss never has more than 3 summoned
+minions alive at once, and does not try to summon while its swarm is full.
 
 **Shards**: each enemy gives 10% more per tier (tier 6: +50%), elites give double, and the boss pays
 60 + 20 × tier. On Easy, where enemies are fewer and there are no elites, enemies give 40% more and the
@@ -289,7 +317,7 @@ platform, blade corridors.
 | Weapon | Price | Style | Level 2 (smith) |
 |---|---|---|---|
 | Watcher's Needle | — | balanced | the finisher throws a short air blade |
-| Twin Claws | 180 | very fast (+30% damage over time), short reach, a little less soul per hit | bleeding: an enemy hit loses 1 more health a second later |
+| Twin Claws | 180 | one claw on each hand: every attack strikes twice (0.5 damage per claw, 1 per claw on a power hit), very fast, short reach, half the soul per claw | bleeding: an enemy hit loses 1 more health a second later |
 | Bramble Whip | 150 | very long reach ahead and upwards, a little slower | pulls small enemies towards you |
 | Anvil Hammer | 220 | slow, +1 damage, big knockback, stuns | the finisher sends a shockwave both ways |
 | Moon Stars (shurikens) | 260 | ranged; finisher = 3 stars, whirlwind = 8 in a circle, thrust = a large piercing star | they return like a boomerang and hit again |

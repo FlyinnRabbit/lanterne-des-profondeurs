@@ -1,6 +1,6 @@
 # Lanterne des Profondeurs (Linterna de las Profundidades)
 
-<p align="center"><img src="art/icon_1024.png" width="160" alt="Logotipo: una linterna medieval"></p>
+<p align="center"><img src="docs/banner.jpg" width="900" alt="El héroe bajo la Linterna, rodeado de los guardianes de las profundidades"></p>
 
 [English](README.md) · [Français](README.fr.md) · **Español** · [Deutsch](README.de.md)
 
@@ -10,12 +10,38 @@ Todo está dibujado con código: el juego no contiene ni una sola imagen.
 
 **Jugar en el navegador: https://flyinnrabbit.github.io/lanterne-des-profondeurs/**
 
-<p align="center"><img src="docs/screenshots/title.jpg" width="820" alt="Pantalla de título"></p>
+## Tráiler
+
+<p align="center"><a href="docs/video/trailer_es.mp4"><img src="docs/video/preview.gif" width="820" alt="Vista previa del tráiler: haz clic para verlo"></a></p>
+
+<p align="center"><b><a href="docs/video/trailer_es.mp4">▶ Ver el tráiler (80 s)</a></b> · <a href="docs/booklet/booklet_es.pdf">Folleto (PDF, 10 páginas)</a></p>
+
+## El objetivo
+
+Antaño, la Linterna de las Profundidades iluminaba cada nivel hasta el fondo del mundo. Su llama se ha
+apagado. Desde el **Santuario**, toma el ascensor y desciende nivel tras nivel, vence al guardián de cada
+uno y **reaviva la Linterna**, y luego vuelve con vida. Cada caída te devuelve al Santuario: tu sombra
+guarda las esquirlas perdidas donde caíste, y el ascensor recuerda hasta dónde bajaste.
+
+<p align="center"><img src="docs/screenshots/surface.jpg" width="820" alt="La luz llega por fin a la superficie"></p>
+
+## En resumen
+
+- **9 biomas**; los niveles se generan en cada descenso, con grutas, estratos de tres pisos y tornos
+- **10 jefes**: 6 guardianes de nivel y 4 jefes finales, cada uno con una fase 2 y su música
+- **Combate**: combos de 3 golpes, torbellino cargado, combo aéreo, pogo, ataque en picado, estocada en carrera, parada (la perfecta hace crítico el siguiente golpe), hoja de alma, definitiva
+- **5 armas** mejoradas por la herrera (las Garras Gemelas se llevan en las dos manos), **20 emblemas**
+- **El Santuario**: mercader, arsenal, herrera, cartógrafo, sastra (53 cosméticos), anciano y cuatro fiestas al año
+- **4 dificultades** y un modo de una sola vida, maldiciones, **Descenso del día** con clasificación en línea, **Desafío de jefes**
+- Español, inglés, francés y alemán; teclado y mando Xbox; navegador, Windows, macOS, Linux y Steam Deck; actualizaciones automáticas
+- Todo está dibujado con código; música y sonidos originales
 
 ## Capturas de pantalla
 
 | | |
 |---|---|
+| ![El Santuario y sus habitantes](docs/screenshots/sanctuary.jpg) | ![El ascensor baja al siguiente nivel](docs/screenshots/lift_descent.jpg) |
+| ![Parada perfecta en el Osario, en Pesadilla](docs/screenshots/nightmare_parry.jpg) | ![La Linterna reavivada](docs/screenshots/lantern_rekindled.jpg) |
 | ![Los Jardines Fúngicos](docs/screenshots/fungal_gardens.jpg) | ![La Forja Ardiente](docs/screenshots/blazing_forge.jpg) |
 | ![Las Minas de Cristal](docs/screenshots/crystal_mines.jpg) | ![El Abismo Helado](docs/screenshots/frozen_abyss.jpg) |
 | ![La Biblioteca Silenciosa](docs/screenshots/silent_library.jpg) | ![La Colmena Zumbante](docs/screenshots/humming_hive.jpg) |
@@ -35,7 +61,7 @@ Todo está dibujado con código: el juego no contiene ni una sola imagen.
 |---|---|---|
 | ![Inicio](docs/screenshots/loading_launch.jpg) | ![Entrada en una tienda](docs/screenshots/loading_shop.jpg) | ![El ascensor](docs/screenshots/loading_lift.jpg) |
 
-*Las capturas muestran la interfaz en inglés; el juego está en español, inglés, francés y alemán.*
+*Las capturas muestran la interfaz en inglés o en francés; el juego está en español, inglés, francés y alemán.*
 
 ## Descargar y jugar
 
@@ -163,7 +189,9 @@ cosméticos se conservan, porque son comunes a todas las partidas.
 | Difícil | -25 % / -20 % | +25 % de velocidad, más agresivos, +35 % de vida, +35 % de enemigos; élites: del 25 % al 65 % | 1 |
 | Pesadilla | -40 % / -35 % | +40 % de velocidad, muy agresivos, +60 % de vida, +60 % de enemigos; élites: del 42 % al 85 % | **2** |
 
-Los jefes también son más rápidos y resistentes según la dificultad.
+Los jefes también son más rápidos y resistentes según la dificultad, pero sus preparaciones nunca bajan
+de 0,25 s: incluso en Pesadilla, cada ataque se puede leer y esquivar. Un jefe nunca tiene más de 3 esbirros
+invocados vivos a la vez, y no intenta invocar cuando su enjambre está completo.
 
 **Esquirlas**: cada enemigo da un 10 % más por nivel (nivel 6: +50 %), el doble una élite, y el jefe da
 60 + 20 × nivel. En Fácil, donde hay menos enemigos y ninguna élite, dan un 40 % más y el jefe un 10 % más:
@@ -289,7 +317,7 @@ pasillos de cuchillas.
 | Arma | Precio | Estilo | Nivel 2 (herrera) |
 |---|---|---|---|
 | Aguja del Vigía | — | equilibrada | el golpe final lanza una corta hoja de aire |
-| Garras Gemelas | 180 | muy rápidas (+30 % de daño en el tiempo), alcance corto, algo menos de alma por golpe | sangrado: un enemigo golpeado pierde 1 de vida más un segundo después |
+| Garras Gemelas | 180 | una garra en cada mano: cada ataque golpea dos veces (0,5 de daño por garra, 1 por garra en un golpe potente), muy rápidas, alcance corto, la mitad de alma por garra | sangrado: un enemigo golpeado pierde 1 de vida más un segundo después |
 | Látigo de Zarzas | 150 | alcance muy largo hacia delante y hacia arriba, algo más lento | atrae a los enemigos pequeños |
 | Martillo de Yunque | 220 | lento, +1 de daño, gran retroceso, aturde | el golpe final lanza una onda expansiva a ambos lados (sube los escalones) |
 | Estrellas de Luna (shurikens) | 260 | a distancia; golpe final = 3 estrellas, torbellino = 8 en círculo, estocada = una gran estrella perforante | vuelven como un bumerán y golpean de nuevo |

@@ -1,6 +1,6 @@
 # Lanterne des Profondeurs (Laterne der Tiefe)
 
-<p align="center"><img src="art/icon_1024.png" width="160" alt="Logo: eine mittelalterliche Laterne"></p>
+<p align="center"><img src="docs/banner.jpg" width="900" alt="Der Held unter der Laterne, umgeben von den Wächtern der Tiefe"></p>
 
 [English](README.md) · [Français](README.fr.md) · [Español](README.es.md) · **Deutsch**
 
@@ -10,12 +10,38 @@ Alles wird per Code gezeichnet: Das Spiel enthält kein einziges Bild.
 
 **Im Browser spielen: https://flyinnrabbit.github.io/lanterne-des-profondeurs/**
 
-<p align="center"><img src="docs/screenshots/title.jpg" width="820" alt="Titelbildschirm"></p>
+## Trailer
+
+<p align="center"><a href="docs/video/trailer_de.mp4"><img src="docs/video/preview.gif" width="820" alt="Trailer-Vorschau: zum Ansehen klicken"></a></p>
+
+<p align="center"><b><a href="docs/video/trailer_de.mp4">▶ Trailer ansehen (80 s)</a></b> · <a href="docs/booklet/booklet_de.pdf">Booklet (PDF, 10 Seiten)</a></p>
+
+## Das Ziel
+
+Einst erleuchtete die Laterne der Tiefe jede Ebene bis zum Grund der Welt. Ihre Flamme ist erloschen.
+Vom **Heiligtum** aus fährst du mit dem Aufzug Ebene für Ebene hinab, besiegst den Wächter jeder Ebene,
+**entfachst die Laterne neu** und kehrst lebend zurück. Jeder Sturz bringt dich ins Heiligtum zurück: Dein
+Schatten bewahrt die verlorenen Splitter dort, wo du gefallen bist, und der Aufzug merkt sich deine Tiefe.
+
+<p align="center"><img src="docs/screenshots/surface.jpg" width="820" alt="Das Licht erreicht endlich die Oberfläche"></p>
+
+## Auf einen Blick
+
+- **9 Biome**; die Ebenen werden bei jedem Abstieg neu erzeugt, mit Grotten, dreistöckigen Schichten und Seilwinden
+- **10 Bosse**: 6 Ebenen-Wächter und 4 Endbosse, jeder mit Phase 2 und eigener Musik
+- **Kampf**: 3er-Kombos, aufgeladener Wirbel, Luftkombo, Pogo, Sturzangriff, Ausfall im Sprint, Parade (eine perfekte macht den nächsten Treffer kritisch), Seelenklinge, Ultimate
+- **5 Waffen**, von der Schmiedin verbessert (die Zwillingsklauen trägst du an beiden Händen), **20 Embleme**
+- **Das Heiligtum**: Händler, Arsenal, Schmiedin, Kartograf, Schneiderin (53 kosmetische Objekte), Ältester und vier Feste im Jahr
+- **4 Schwierigkeitsgrade** plus ein Ein-Leben-Modus, Flüche, **Abstieg des Tages** mit Online-Rangliste, **Boss-Herausforderung**
+- Deutsch, Englisch, Französisch und Spanisch; Tastatur und Xbox-Controller; Browser, Windows, macOS, Linux und Steam Deck; automatische Updates
+- Alles ist in Code gezeichnet; eigene Musik und Klänge
 
 ## Screenshots
 
 | | |
 |---|---|
+| ![Das Heiligtum und seine Bewohner](docs/screenshots/sanctuary.jpg) | ![Der Aufzug fährt zur nächsten Ebene hinab](docs/screenshots/lift_descent.jpg) |
+| ![Perfekte Parade im Beinhaus, auf Albtraum](docs/screenshots/nightmare_parry.jpg) | ![Die Laterne, neu entfacht](docs/screenshots/lantern_rekindled.jpg) |
 | ![Die Pilzgärten](docs/screenshots/fungal_gardens.jpg) | ![Die Glühende Schmiede](docs/screenshots/blazing_forge.jpg) |
 | ![Die Kristallminen](docs/screenshots/crystal_mines.jpg) | ![Der Eisige Abgrund](docs/screenshots/frozen_abyss.jpg) |
 | ![Die Stille Bibliothek](docs/screenshots/silent_library.jpg) | ![Der Summende Stock](docs/screenshots/humming_hive.jpg) |
@@ -163,7 +189,9 @@ Kosmetik bleiben erhalten, da sie für alle Spielstände gelten.
 | Schwer | -25 % / -20 % | +25 % Tempo, aggressiver, +35 % Leben, +35 % Gegner; Eliten: 25 % bis 65 % | 1 |
 | Albtraum | -40 % / -35 % | +40 % Tempo, sehr aggressiv, +60 % Leben, +60 % Gegner; Eliten: 42 % bis 85 % | **2** |
 
-Auch die Bosse werden je nach Schwierigkeit schneller und zäher.
+Auch die Bosse werden je nach Schwierigkeit schneller und zäher, doch ihre Ausholbewegungen dauern nie
+weniger als 0,25 s: Selbst auf Albtraum lässt sich jeder Angriff lesen und ausweichen. Ein Boss hat nie mehr
+als 3 beschworene Diener gleichzeitig am Leben und beschwört nicht, solange sein Schwarm vollständig ist.
 
 **Splitter**: Jeder Gegner gibt pro Ebene 10 % mehr (Ebene 6: +50 %), eine Elite das Doppelte, und der Boss
 60 + 20 × Ebene. In Leicht, mit weniger Gegnern und ohne Eliten, geben Gegner 40 % mehr und der Boss 10 %
@@ -289,7 +317,7 @@ beweglicher Plattform, Klingengänge.
 | Waffe | Preis | Stil | Stufe 2 (Schmiedin) |
 |---|---|---|---|
 | Nadel des Wächters | — | ausgewogen | der Abschlussschlag schleudert eine kurze Luftklinge |
-| Zwillingsklauen | 180 | sehr schnell (+30 % Schaden über Zeit), kurze Reichweite, etwas weniger Seele pro Treffer | Blutung: ein getroffener Gegner verliert eine Sekunde später noch 1 Leben |
+| Zwillingsklauen | 180 | eine Klaue an jeder Hand: Jeder Angriff trifft zweimal (0,5 Schaden pro Klaue, 1 pro Klaue bei einem starken Schlag), sehr schnell, kurze Reichweite, halb so viel Seele pro Klaue | Blutung: ein getroffener Gegner verliert eine Sekunde später noch 1 Leben |
 | Dornenpeitsche | 150 | sehr große Reichweite nach vorn und oben, etwas langsamer | zieht kleine Gegner heran |
 | Ambosshammer | 220 | langsam, +1 Schaden, starker Rückstoß, betäubt | der Abschlussschlag sendet zu beiden Seiten eine Schockwelle (steigt Stufen hinauf) |
 | Mondsterne (Shuriken) | 260 | Fernkampf; Abschluss = 3 Sterne, Wirbel = 8 im Kreis, Ausfall = ein großer durchbohrender Stern | kehren wie ein Bumerang zurück und treffen erneut |
