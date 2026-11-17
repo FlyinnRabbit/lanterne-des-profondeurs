@@ -153,8 +153,17 @@ func _ready() -> void:
 func eq(id: int) -> bool:
 	return GameState.has_charm(id)
 
+# niveau de l'emblème porté (0 s'il n'est pas équipé, sinon 1 à 3)
+func cl(id: int) -> int:
+	return GameState.charm_level(id) if GameState.has_charm(id) else 0
+
+# valeur selon le niveau de l'emblème : v[0] au niveau 1, v[1] au niveau 2, v[2] au niveau 3
+func clv(id: int, v: Array, off = 0):
+	var l := cl(id)
+	return off if l == 0 else v[l - 1]
+
 func run_speed() -> float:
-	return RUN_SPEED * (1.12 if eq(C.SWIFT_CLOAK) else 1.0) * (0.5 if web_t > 0.0 else 1.0) * (0.0 if grab_t > 0.0 else 1.0)
+	return RUN_SPEED * float(clv(C.SWIFT_CLOAK, [1.12, 1.18, 1.24], 1.0)) * (0.5 if web_t > 0.0 else 1.0) * (0.0 if grab_t > 0.0 else 1.0)
 
 # Toile de tisseuse : englué, on court deux fois moins vite et on saute moins haut. La ruée arrache la toile.
 var web_t := 0.0
@@ -172,43 +181,45 @@ func ensnare(secs: float) -> void:
 	web_t = maxf(web_t, secs)
 
 func dash_cooldown() -> float:
-	return DASH_COOLDOWN * (0.5 if eq(C.SWIFT_CLOAK) else 1.0)
+	return DASH_COOLDOWN * float(clv(C.SWIFT_CLOAK, [0.5, 0.42, 0.35], 1.0))
 
 func parry_window() -> float:
-	return 0.35 if eq(C.MIRROR) else PARRY_WINDOW
+	return float(clv(C.MIRROR, [0.35, 0.42, 0.5], PARRY_WINDOW))
 
 func focus_time() -> float:
 	var quick := eq(C.QUICK_FOCUS)
 	var rest := crouching and eq(C.SHADOW_REST)
 	var m := 1.0
+	var mq: float = clv(C.QUICK_FOCUS, [0.55, 0.47, 0.4], 1.0)
+	var mr: float = clv(C.SHADOW_REST, [0.667, 0.57, 0.5], 1.0)
 	if quick and rest:
-		m = 0.55 * 0.9          # les deux : le meilleur bonus + un petit supplément
+		m = minf(mq, mr) * 0.9          # les deux : le meilleur bonus + un petit supplément
 	elif quick:
-		m = 0.55
+		m = mq
 	elif rest:
-		m = 0.667
+		m = mr
 	return maxf(FOCUS_TIME * m, 0.4)
 
 func soul_per_hit() -> int:
 	# armes très rapides (griffes) : moins d'âme par coup, pour garder le même rythme de soins
-	return roundi((SOUL_PER_HIT + (6 if eq(C.GREED) else 0)) * float(GameState.d("soul")) * float(weapon().get("soul", 1.0)))
+	return roundi((SOUL_PER_HIT + int(clv(C.GREED, [6, 8, 10]))) * float(GameState.d("soul")) * float(weapon().get("soul", 1.0)))
 
 # âme d'une attaque complète, sans arrondi (les griffes la partagent entre leurs deux coups)
 func _soul_per_attack() -> float:
-	return (SOUL_PER_HIT + (6 if eq(C.GREED) else 0)) * float(GameState.d("soul")) * float(weapon().get("soul", 1.0))
+	return (SOUL_PER_HIT + int(clv(C.GREED, [6, 8, 10]))) * float(GameState.d("soul")) * float(weapon().get("soul", 1.0))
 
 func ult_per_hit() -> int:
-	return roundi((ULT_PER_HIT + (4 if eq(C.GREED) else 0)) * float(GameState.d("ult")))
+	return roundi((ULT_PER_HIT + int(clv(C.GREED, [4, 5, 6]))) * float(GameState.d("ult")))
 
 func nail_damage() -> int:
 	return 2 if eq(C.BRUTE) else 1   # Force Brute : +1 dégât (le double au départ, plus en profondeur)
 
 func reach() -> float:
-	return 1.4 if eq(C.LONG_NAIL) else 1.0
+	return float(clv(C.LONG_NAIL, [1.4, 1.55, 1.7], 1.0))
 
 # À appeler quand l'équipement change
 func apply_equipment() -> void:
-	max_hp = 5 + (2 if eq(C.GLASS_HEART) else 0) + GameState.max_hp_bonus()
+	max_hp = 5 + int(clv(C.GLASS_HEART, [2, 3, 4])) + GameState.max_hp_bonus()
 	hp = mini(hp, max_hp)
 
 # arme équipée, avec les bonus de niveau (3 à 5) déjà appliqués
@@ -273,7 +284,7 @@ func _physics_process(delta: float) -> void:
 	parry_cd = maxf(parry_cd - delta, 0.0)
 	parry_flash = maxf(parry_flash - delta, 0.0)
 	combat_t += delta
-	if crouching and eq(C.SHADOW_REST) and soul < FOCUS_COST and combat_t >= 3.0 and not _enemy_near(320.0):
+	if crouching and eq(C.SHADOW_REST) and soul < int(clv(C.SHADOW_REST, [FOCUS_COST, 50, 66])) and combat_t >= 3.0 and not _enemy_near(320.0):
 		rest_acc += delta * 5.0
 		if rest_acc >= 1.0:
 			rest_acc -= 1.0
@@ -568,7 +579,7 @@ func _start_attack(kind: String, adir: Vector2) -> void:
 	var wpn := weapon()
 	attack_kind = kind
 	attack_dir = adir
-	attack_cd = ATTACK_COOLDOWN * (1.3 if kind == "finisher" else 1.0) * float(wpn["cd"]) * (1.2 if eq(C.BRUTE) else 1.0)
+	attack_cd = ATTACK_COOLDOWN * (1.3 if kind == "finisher" else 1.0) * float(wpn["cd"]) * float(clv(C.BRUTE, [1.2, 1.12, 1.05], 1.0))
 	attack_t = ATTACK_TIME * (1.4 if kind in ["finisher", "air_spin"] else 1.0)
 	attack_hit.clear()
 	attack_crit = _take_crit()
@@ -664,7 +675,7 @@ func hit_damage() -> int:
 	var d := nail_damage() + int(weapon()["dmg"])
 	match attack_kind:
 		"plunge":
-			d += 1 + (1 if eq(C.ANVIL_FALL) else 0)
+			d += 1 + int(clv(C.ANVIL_FALL, [1, 1, 2]))
 		"finisher", "thrust", "air_spin":
 			d += 1
 		"spin":
@@ -841,9 +852,9 @@ func _pogo() -> void:
 	dash_cd = 0.0
 	squash = Vector2(0.8, 1.2)
 	if eq(C.REBOUND):
-		# Lame Rebond : rebond 25 % plus haut et un peu d'âme
-		velocity.y = POGO_VELOCITY * 1.25
-		soul = mini(soul + 6, SOUL_MAX)
+		# Lame Rebond : rebond plus haut et un peu d'âme (selon le niveau)
+		velocity.y = POGO_VELOCITY * float(clv(C.REBOUND, [1.25, 1.35, 1.45], 1.0))
+		soul = mini(soul + int(clv(C.REBOUND, [6, 9, 12])), SOUL_MAX)
 
 func _check_hazards() -> void:
 	if dead:
@@ -897,7 +908,7 @@ func _on_parry(from_pos: Vector2, source) -> void:
 			if ed == 0.0:
 				ed = float(facing)
 			main.spawn_projectile(global_position + Vector2(ed * 20, -4), Vector2(ed * 620.0, 0),
-				{"kind": "soulblade", "hostile": false, "radius": 14.0, "life": 1.1, "pierce": true, "damage": 3})
+				{"kind": "soulblade", "hostile": false, "radius": 14.0, "life": 1.1, "pierce": true, "damage": int(clv(C.ECHO, [3, 4, 5]))})
 	parry_t = 0.0
 	parry_cd = 0.12
 	parry_flash = 0.25
@@ -913,7 +924,7 @@ func _on_parry(from_pos: Vector2, source) -> void:
 		source.parried(d)
 	# Parade Tranchante : l'attaquant (pas un projectile ni un piège) prend 2 dégâts
 	if eq(C.RIPOSTE) and source and is_instance_valid(source) and source.is_in_group("enemies") and source.has_method("take_hit") and not source.dead:
-		source.take_hit(2, d)
+		source.take_hit(int(clv(C.RIPOSTE, [2, 3, 4])), d)
 		main.spawn_burst(global_position + d * 22.0, Color(1.0, 0.85, 0.5), 10, 160.0)
 	velocity.x = -signf(d.x) * 200.0
 	recoil_t = 0.1
@@ -1155,6 +1166,7 @@ func _plunge_hits() -> void:
 			if eq(C.METEOR):
 				crit_ready = true
 				crit_t = CRIT_TIME
+				soul = mini(soul + int(clv(C.METEOR, [0, 10, 20])), SOUL_MAX)
 			soul = mini(soul + soul_per_hit(), SOUL_MAX)
 			# rebond sur l'ennemi touché
 			plunging = false
@@ -1173,7 +1185,7 @@ func _plunge_land() -> void:
 	var feet := global_position + Vector2(0, SIZE.y / 2.0)
 	main.spawn_burst(feet, Color(0.85, 0.9, 1.0), 26, 260.0, 300.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if is_instance_valid(e) and e.global_position.distance_to(feet) < (142.0 if eq(C.ANVIL_FALL) else 95.0):
+		if is_instance_valid(e) and e.global_position.distance_to(feet) < float(clv(C.ANVIL_FALL, [142.0, 165.0, 190.0], 95.0)):
 			if attack_crit:
 				last_crit_t = 0.2
 			e.take_hit(hit_damage(), (e.global_position - feet).normalized())
@@ -1187,7 +1199,7 @@ func _last_breath() -> bool:
 	if not eq(C.LAST_BREATH) or last_breath_used:
 		return false
 	last_breath_used = true
-	hp = 1
+	hp = mini(int(clv(C.LAST_BREATH, [1, 2, 3], 1)), max_hp)
 	invuln_t = maxf(invuln_t, 1.6)
 	main.spawn_burst(global_position, Color(1.0, 0.45, 0.45), 40, 300.0)
 	main.shake(14)
@@ -1204,7 +1216,7 @@ func _phantom_dash() -> void:
 			if not e.is_boss and main.wall_between(global_position, e.global_position):
 				continue
 			dash_hit[e] = true
-			e.take_hit(1, Vector2(facing, 0))
+			e.take_hit(int(clv(C.PHANTOM_DASH, [1, 2, 3])), Vector2(facing, 0))
 			main.spawn_burst(e.global_position, Color(0.75, 0.65, 1.0), 8, 140.0)
 
 # Coup d'une griffe : demi-dégâts. Les demi-points s'accumulent sur l'ennemi
@@ -1222,7 +1234,7 @@ func bleed_chance() -> float:
 	if GameState.weapon() == "griffes" and GameState.weapon_level() >= 2:
 		ch += BLEED_CLAWS
 	if eq(C.BLOOD_FANG):
-		ch += BLEED_FANG
+		ch += float(clv(C.BLOOD_FANG, [BLEED_FANG, BLEED_FANG + 0.1, BLEED_FANG + 0.2]))
 	return ch
 
 func _bleed(e) -> void:
@@ -1262,7 +1274,7 @@ func take_damage(amount: int, from_x: float) -> void:
 	velocity = Vector2(d * 380.0, -380.0)
 	main.on_player_hurt()
 	if eq(C.THORNS):
-		main.thorns_burst(global_position)
+		main.thorns_burst(global_position, int(clv(C.THORNS, [3, 4, 5])))
 	if hp <= 0 and _last_breath():
 		return
 	if hp <= 0:

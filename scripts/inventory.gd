@@ -222,9 +222,10 @@ func _show_desc(id: int) -> void:
 	focused_id = id
 	if GameState.owns(id):
 		var c: Dictionary = GameState.charm(id)
-		desc_name.text = tr(c["name"]) + (tr("  (équipé)") if GameState.has_charm(id) else "")
+		var lvl: int = GameState.charm_level(id)
+		desc_name.text = tr(c["name"]) + ((tr("  niv. %d") % lvl) if lvl >= 2 else "") + (tr("  (équipé)") if GameState.has_charm(id) else "")
 		desc_cost.text = tr("Coût : %d encoches" if c["cost"] > 1 else "Coût : %d encoche") % c["cost"]
-		desc_text.text = c["desc"]
+		desc_text.text = tr(c["desc"]) + ("\n" + tr(c.get("up", "")) if c.has("up") else "")
 	else:
 		desc_name.text = "???"
 		desc_cost.text = ""

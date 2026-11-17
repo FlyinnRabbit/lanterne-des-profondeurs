@@ -403,10 +403,10 @@ func _spawn_everything() -> void:
 						challenge_start.lit = true
 				"G":
 					challenge_goal = _make_prop("flag", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.75, 0.35), 2.0)
-				"F", "J", "I":
+				"F", "J", "I", "]":
 					# habitants du Sanctuaire : arrivent au fil des paliers terminés
-					var npc: String = {"F": "smith", "J": "cartographer", "I": "elder"}[row[x]]
-					var need: int = {"smith": 1, "cartographer": 2, "elder": 3}[npc]
+					var npc: String = {"F": "smith", "J": "cartographer", "I": "elder", "]": "jeweler"}[row[x]]
+					var need: int = {"smith": 1, "cartographer": 2, "elder": 3, "jeweler": 2}[npc]
 					if GameState.record >= need:
 						var np2 = _make_prop(npc, Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.55), 2.0)
 						interactables.append([np2, npc])
@@ -903,7 +903,7 @@ func _process(delta: float) -> void:
 	for it in interactables:
 		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
 			var verbs := {"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur",
-				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "cartographer": "parler au cartographe", "elder": "écouter l'ancien",
+				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "jeweler": "parler au joaillier", "cartographer": "parler au cartographe", "elder": "écouter l'ancien",
 				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau", "winch": "se faire hisser",
 				"scriptorium": "consulter les registres"}
 			if it[1] == "altar" and altar_state != "":
@@ -913,7 +913,7 @@ func _process(delta: float) -> void:
 			interact_hint = tr("{up|1} : %s") % tr(verbs[it[1]])
 			if Input.is_action_just_pressed("up") and player.is_on_floor() and not get_tree().paused:
 				# écran d'entrée animé : battants de bois qui s'ouvrent sur la boutique
-				var shop_names := {"merchant": ["shop", "Marchand"], "arsenal": ["arsenal", "Arsenal"], "smith": ["smith", "Forgeronne"],
+				var shop_names := {"merchant": ["shop", "Marchand"], "arsenal": ["arsenal", "Arsenal"], "smith": ["smith", "Forgeronne"], "jeweler": ["jeweler", "Joaillier"],
 					"cartographer": ["cartographer", "Cartographe"], "elder": ["elder", "Ancien"], "tailor": ["tailor", "Tailleuse"],
 					"scriptorium": ["scriptorium", "Scriptorium"]}
 				if shop_names.has(it[1]):
@@ -924,7 +924,7 @@ func _process(delta: float) -> void:
 					hub_ui.open_arsenal()
 				elif it[1] == "altar":
 					_start_altar(it[0])
-				elif it[1] in ["smith", "cartographer", "elder"]:
+				elif it[1] in ["smith", "cartographer", "elder", "jeweler"]:
 					hub_ui.open_npc(it[1])
 				elif it[1] == "tailor":
 					hub_ui.open_wardrobe()
@@ -942,7 +942,7 @@ func _process(delta: float) -> void:
 					# Nœud de Grimpeur : la première remontée de chaque treuil rend 33 d'âme
 					if fast and not wn.has_meta("soul_given"):
 						wn.set_meta("soul_given", true)
-						player.soul = mini(player.soul + 33, player.SOUL_MAX)
+						player.soul = mini(player.soul + int(player.clv(player.C.CLIMBER, [33, 45, 60])), player.SOUL_MAX)
 					Audio.sfx("door", 0.0, -6.0)
 				else:
 					hub_ui.open_elevator()
@@ -1015,7 +1015,7 @@ func _process(delta: float) -> void:
 		var prop = pk[0]
 		if is_instance_valid(prop) and pp.distance_to(prop.position) < 34:
 			if pk[1] == "geo":
-				var amount := roundi((40 + 15 * GameState.palier) * GameState.geo_mult() * (1.6 if player.eq(player.C.PLUNDERER) else 1.0))
+				var amount := roundi((40 + 15 * GameState.palier) * GameState.geo_mult() * float(player.clv(player.C.PLUNDERER, [1.6, 1.9, 2.2], 1.0)))
 				player.geo += amount
 				GameState.j_add("geo_in", amount)
 				GameState.j_add("chests")
@@ -1269,7 +1269,7 @@ func on_enemy_killed(e, geo: int) -> void:
 		player.soul = mini(player.soul + 6, player.SOUL_MAX)
 	# Récolte d'Âme : chaque ennemi vaincu rend 8 d'âme
 	if player.eq(player.C.SOUL_HARVEST) and not e.is_boss:
-		player.soul = mini(player.soul + 8, player.SOUL_MAX)
+		player.soul = mini(player.soul + int(player.clv(player.C.SOUL_HARVEST, [8, 12, 16])), player.SOUL_MAX)
 	Achievements.stat("kills")
 	Achievements.on_kill(e.elite and not e.is_boss)
 	if player.plunge_kill_t > 0.0:
@@ -1460,11 +1460,11 @@ func on_damage_dealt(e, dmg: int) -> void:
 	hud.add_damage(dmg, n, kind, e.hp <= 0)
 
 # Coquille Épineuse : riposte quand le joueur est touché
-func thorns_burst(pos: Vector2) -> void:
+func thorns_burst(pos: Vector2, dmg: int = 3) -> void:
 	spawn_burst(pos, Color(0.6, 0.85, 0.5), 24, 300.0, 0.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if is_instance_valid(e) and e.get_rect().get_center().distance_to(pos) < 110.0:
-			e.take_hit(3, (e.get_rect().get_center() - pos).normalized())
+			e.take_hit(dmg, (e.get_rect().get_center() - pos).normalized())
 
 # opts : {"kind": "spore"/"rock"/"wave"/"acid"/"ember", "gravity": float, "radius": float, "life": float}
 func spawn_projectile(pos: Vector2, vel: Vector2, opts: Dictionary = {}) -> void:

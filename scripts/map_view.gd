@@ -194,11 +194,11 @@ static func draw_cells(ci: CanvasItem, m, origin: Vector2, c: float, r: Rect2i) 
 # Nom affiché dans la légende pour chaque type de repère.
 const LEGEND := {
 	"player": "Vous", "bench": "Banc", "exit": "Sortie", "shrine": "Lanterne", "boss": "Boss", "shade": "Ombre",
-	"charm": "Emblème", "notch": "Encoche", "geo": "Coffre", "merchant": "Marchand", "smith": "Forgeronne",
+	"charm": "Emblème", "notch": "Encoche", "geo": "Coffre", "merchant": "Marchand", "smith": "Forgeronne", "jeweler": "Joaillier",
 	"cartographer": "Cartographe", "elder": "Ancien", "arsenal": "Arsenal", "elevator": "Ascenseur",
 	"altar": "Autel d'élites", "challenge": "Défi chronométré", "flag": "Arrivée du défi", "tailor": "Tailleuse", "gift": "Cadeau",
 }
-const LEGEND_ORDER := ["player", "exit", "bench", "shrine", "boss", "shade", "merchant", "tailor", "gift", "smith", "cartographer", "elder",
+const LEGEND_ORDER := ["player", "exit", "bench", "shrine", "boss", "shade", "merchant", "tailor", "gift", "smith", "jeweler", "cartographer", "elder",
 	"arsenal", "elevator", "geo", "charm", "notch", "altar", "challenge", "flag"]
 
 # Petit pictogramme à l'encre pour un repère de la carte (s = demi-taille).
@@ -239,8 +239,8 @@ static func draw_icon(ci: CanvasItem, kind: String, p: Vector2, s: float) -> voi
 		"gift":
 			ci.draw_rect(Rect2(p + Vector2(-s, -s * 0.7), Vector2(s * 2.0, s * 1.5)), Color(0.75, 0.15, 0.12))
 			ci.draw_line(p + Vector2(0, -s * 0.7), p + Vector2(0, s * 0.8), gold, maxf(1.0, s * 0.35))
-		"merchant", "smith", "cartographer", "elder", "tailor":
-			var col: Color = {"tailor": Color(0.7, 0.4, 0.6), "merchant": Color(0.75, 0.5, 0.1), "smith": Color(0.7, 0.25, 0.15), "cartographer": Color(0.2, 0.45, 0.55), "elder": Color(0.45, 0.3, 0.6)}[kind]
+		"merchant", "smith", "jeweler", "cartographer", "elder", "tailor":
+			var col: Color = {"tailor": Color(0.7, 0.4, 0.6), "merchant": Color(0.75, 0.5, 0.1), "smith": Color(0.7, 0.25, 0.15), "jeweler": Color(0.3, 0.55, 0.75), "cartographer": Color(0.2, 0.45, 0.55), "elder": Color(0.45, 0.3, 0.6)}[kind]
 			ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-s, s), p + Vector2(0, -s * 0.5), p + Vector2(s, s)]), col)
 			ci.draw_circle(p + Vector2(0, -s * 0.8), maxf(1.5, s * 0.55), col)
 			ci.draw_arc(p + Vector2(0, -s * 0.8), maxf(1.5, s * 0.55), 0.0, TAU, 10, ink, 1.0)

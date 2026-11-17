@@ -232,7 +232,7 @@ func _check_pass() -> void:
 	elif signf(dx) == -pass_side and absf(dx) > 90.0:
 		if p.hp >= pass_hp and not p.dead and p.eq(Ch.LIGHT_STEP) and not pass_rewarded:
 			pass_rewarded = true
-			p.geo += 5
+			p.geo += int(p.clv(Ch.LIGHT_STEP, [5, 8, 12], 5))
 			main.spawn_burst(p.global_position, Color(0.7, 1.0, 0.6), 10, 140.0)
 			Audio.sfx("pickup", 0.1, -6.0)
 		pass_side = 0.0

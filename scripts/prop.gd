@@ -202,6 +202,48 @@ func _draw() -> void:
 				DU.ball(self, Vector2(-10 + i * 10, -24), 3.5 + (sin(t * 4.0 + i) if not lit else 0.0), ec)
 			if not lit:
 				DU.ball(self, Vector2(0, -24), 26.0, Color(1.0, 0.3, 0.25, 0.08 + 0.05 * sin(t * 2.0)))
+		"jeweler":
+			# Joaillier : phasme élégant à la loupe vissée sur l'œil, derrière sa vitrine
+			# d'emblèmes et de pierres, sous une petite lampe
+			var bob := sin(t * 1.3) * 1.0
+			var wood := Color(0.32, 0.22, 0.16)
+			var bug := Color(0.42, 0.55, 0.38)
+			# comptoir et vitrine
+			DU.box(self, Rect2(-34, -30, 68, 30), wood)
+			DU.box(self, Rect2(-36, -33, 72, 4), wood.lightened(0.15))
+			draw_rect(Rect2(-30, -52, 60, 19), Color(0.7, 0.85, 0.95, 0.18))
+			draw_rect(Rect2(-30, -52, 60, 19), Color(0.85, 0.75, 0.45), false, 1.5)
+			draw_line(Vector2(-26, -50), Vector2(-14, -36), Color(1, 1, 1, 0.35), 1.2)
+			# emblèmes et gemmes exposés
+			var gems := [Color(0.9, 0.3, 0.38), Color(0.5, 0.85, 1.0), Color(0.75, 1.0, 0.55), Color(1.0, 0.8, 0.35), Color(0.8, 0.6, 1.0)]
+			for k in 5:
+				var gp := Vector2(-22 + k * 11, -42)
+				var tw := 0.5 + 0.5 * sin(t * 3.0 + k * 1.7)
+				DU.flat(self, DU.diamond(gp, Vector2(3.5, 5)), gems[k])
+				DU.glow(self, gp, 6.0, gems[k], 0.25 * tw)
+				if tw > 0.9:
+					draw_line(gp + Vector2(-3, -4), gp + Vector2(3, 4), Color(1, 1, 1, 0.6), 0.8)
+			# lampe suspendue
+			draw_line(Vector2(0, -110), Vector2(0, -92), Color(0.4, 0.38, 0.35), 1.2)
+			DU.flat(self, PackedVector2Array([Vector2(-8, -92), Vector2(8, -92), Vector2(4, -86), Vector2(-4, -86)]), Color(0.75, 0.6, 0.3))
+			DU.glow(self, Vector2(0, -84), 30.0, Color(1.0, 0.9, 0.6), 0.35)
+			# le joaillier, derrière le comptoir : corps fin, longs bras, loupe
+			var hb := Vector2(20, -76 + bob)
+			draw_line(Vector2(20, -33), hb + Vector2(0, 10), bug.darkened(0.2), 5.0)
+			draw_line(hb + Vector2(-2, 14), Vector2(4, -40), bug, 2.0)
+			draw_line(Vector2(4, -40), Vector2(-6, -44 + bob * 0.5), bug, 1.6)
+			draw_line(hb + Vector2(2, 14), Vector2(30, -44), bug, 2.0)
+			DU.ball(self, hb, 7.0, bug)
+			draw_line(hb + Vector2(-2, -6), hb + Vector2(-8, -18), bug.darkened(0.3), 1.0)
+			draw_line(hb + Vector2(2, -6), hb + Vector2(5, -19), bug.darkened(0.3), 1.0)
+			# loupe d'horloger
+			draw_circle(hb + Vector2(-4, -1), 4.2, Color(0.75, 0.6, 0.3))
+			draw_circle(hb + Vector2(-4, -1), 3.0, Color(0.75, 0.9, 1.0, 0.85))
+			draw_circle(hb + Vector2(-5, -2), 1.0, Color(1, 1, 1, 0.8))
+			draw_circle(hb + Vector2(3, -1), 1.3, Color(0.1, 0.1, 0.08))
+			# nœud papillon
+			DU.flat(self, PackedVector2Array([hb + Vector2(-4, 8), hb + Vector2(0, 10), hb + Vector2(-4, 12)]), Color(0.6, 0.2, 0.3))
+			DU.flat(self, PackedVector2Array([hb + Vector2(4, 8), hb + Vector2(0, 10), hb + Vector2(4, 12)]), Color(0.6, 0.2, 0.3))
 		"smith":
 			# Forgeronne : scarabée trapu au tablier de cuir, lunettes sur le front,
 			# devant sa forge de pierres maçonnées, son enclume et son râtelier

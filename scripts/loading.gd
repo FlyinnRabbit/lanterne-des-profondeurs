@@ -338,6 +338,11 @@ func _emblem(v: Control, c: Vector2, id: String, a: float) -> void:
 			v.draw_colored_polygon(PackedVector2Array([c + Vector2(-28, -4), c + Vector2(22, -4), c + Vector2(30, -12), c + Vector2(30, 2), c + Vector2(14, 6), c + Vector2(10, 18), c + Vector2(18, 24), c + Vector2(-18, 24), c + Vector2(-10, 18), c + Vector2(-14, 6), c + Vector2(-28, 2)]), g)
 			v.draw_line(c + Vector2(-6, -34), c + Vector2(14, -12), d.lightened(0.3), 4.0)
 			v.draw_rect(Rect2(c + Vector2(-16, -40), Vector2(16, 10)), g)
+		"jeweler":    # loupe et pierre taillée
+			DU.flat(v, PackedVector2Array([c + Vector2(-20, -6), c + Vector2(-10, -18), c + Vector2(10, -18), c + Vector2(20, -6), c + Vector2(0, 20)]), Color(0.6, 0.85, 1.0, a))
+			v.draw_polyline(PackedVector2Array([c + Vector2(-20, -6), c + Vector2(20, -6)]), Color(1, 1, 1, 0.7 * a), 1.5)
+			v.draw_arc(c + Vector2(22, 18), 12.0, 0.0, TAU, 24, g, 3.0)
+			v.draw_line(c + Vector2(30, 27), c + Vector2(42, 40), g, 4.0)
 		"scriptorium":    # livre ouvert et plume
 			v.draw_colored_polygon(PackedVector2Array([c + Vector2(-30, -4), c + Vector2(0, -12), c + Vector2(30, -4), c + Vector2(30, 18), c + Vector2(0, 10), c + Vector2(-30, 18)]), Color(0.9, 0.84, 0.66, a))
 			v.draw_line(c + Vector2(0, -12), c + Vector2(0, 10), d, 2.0)

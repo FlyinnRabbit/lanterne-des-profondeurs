@@ -546,6 +546,32 @@ func open_npc(kind: String) -> void:
 				b.mouse_entered.connect(func(): npc_text.text = wname + " — " + up_desc)
 				if first == null and not b.disabled:
 					first = b
+		"jeweler":
+			npc_name.text = "Le joaillier"
+			npc_text.text = tr("« Montre-moi les emblèmes que tu portes : je peux les renforcer. Niveau 2 après le palier 2, niveau 3 après le palier 4. »")
+			var worn: Array = GameState.prog.get("equipped", [])
+			if worn.is_empty():
+				npc_text.text = tr("Tu ne portes aucun emblème : équipe-les d'abord sur un banc.")
+			for cid in worn:
+				var c: Dictionary = GameState.charm(int(cid))
+				var cname: String = tr(c["name"])
+				var clv: int = GameState.charm_level(int(cid))
+				var cb: Button
+				var cdesc: String = tr(c["desc"]) + "\n" + tr(c.get("up", ""))
+				if clv >= 3:
+					cb = _npc_button(tr("%s — niveau %d (max) ✓") % [cname, clv], func(): pass)
+					cb.disabled = true
+				else:
+					var cneed: int = int(GameState.CHARM_NEED[clv + 1])
+					if GameState.record < cneed:
+						cb = _npc_button(tr("%s niv. %d → %d — termine le palier %d") % [cname, clv, clv + 1, cneed], func(): pass)
+						cb.disabled = true
+					else:
+						cb = _npc_button(tr("%s niv. %d → %d — %d éclats") % [cname, clv, clv + 1, GameState.charm_up_price(int(cid), clv + 1)], _smith_charm.bind(int(cid)))
+				cb.focus_entered.connect(func(): npc_text.text = cname + " — " + cdesc)
+				cb.mouse_entered.connect(func(): npc_text.text = cname + " — " + cdesc)
+				if first == null and not cb.disabled:
+					first = cb
 		"cartographer":
 			npc_name.text = "Le cartographe"
 			if GameState.prog.get("map_full", false):
@@ -573,9 +599,19 @@ func _smith_upgrade(id: String) -> void:
 		return
 	Audio.sfx("pickup", 0.0, 3.0)
 	Controls.rumble(0.4, 0.2, 0.15)
-	open_npc("smith")
+	open_npc("smith_w")
 	npc_text.text = tr("%s améliorée : niveau %d !") % [tr(Weapons.W[id]["name"]), GameState.weapon_level(id)]
 
+
+func _smith_charm(id: int) -> void:
+	var err: String = GameState.upgrade_charm(id, main.player)
+	if err != "":
+		npc_text.text = tr(err)
+		return
+	Audio.sfx("pickup", 0.0, 3.0)
+	Controls.rumble(0.4, 0.2, 0.15)
+	open_npc("jeweler")
+	npc_text.text = tr("%s renforcé : niveau %d !") % [tr(GameState.charm(id)["name"]), GameState.charm_level(id)]
 
 func _buy_map() -> void:
 	if main.player.geo < CARTO_PRICE:

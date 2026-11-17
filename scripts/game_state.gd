@@ -718,6 +718,39 @@ func charm_count() -> int:
 func charm(id: int) -> Dictionary:
 	return Charms.CHARMS[id]
 
+# Niveaux d'emblème (1 à 3), renforcés chez la forgeronne : niv. 2 après le palier 2, niv. 3 après le palier 4
+const CHARM_NEED := {2: 2, 3: 4}
+func charm_level(id: int) -> int:
+	return int((prog.get("charm_lv", {}) as Dictionary).get(str(id), 1))
+
+func charm_up_price(id: int, to_lv: int) -> int:
+	var base := 120 + 40 * int(charm(id)["cost"])
+	return base if to_lv == 2 else base * 2
+
+func upgrade_charm(id: int, player) -> String:
+	var to_lv := charm_level(id) + 1
+	if to_lv > 3:
+		return "Déjà au niveau maximum."
+	if not owns(id):
+		return "Tu ne possèdes pas cet emblème."
+	var need := int(CHARM_NEED[to_lv])
+	if record < need:
+		return tr("Termine d'abord le palier %d.") % need
+	var price := charm_up_price(id, to_lv)
+	if player.geo < price:
+		return tr("Pas assez d'éclats (%d nécessaires).") % price
+	player.geo -= price
+	j_add("geo_out", price)
+	prog["geo"] = player.geo
+	var lv: Dictionary = prog.get("charm_lv", {})
+	lv[str(id)] = to_lv
+	prog["charm_lv"] = lv
+	snapshot = prog.duplicate(true)
+	save_game()
+	if player.has_method("apply_equipment"):
+		player.apply_equipment()
+	return ""
+
 func owns(id: int) -> bool:
 	return prog["owned"].has(id)
 
