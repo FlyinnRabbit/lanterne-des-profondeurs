@@ -203,11 +203,9 @@ func _draw() -> void:
 			if not lit:
 				DU.ball(self, Vector2(0, -24), 26.0, Color(1.0, 0.3, 0.25, 0.08 + 0.05 * sin(t * 2.0)))
 		"jeweler":
-			# Joaillier : phasme élégant à la loupe vissée sur l'œil, derrière sa vitrine
-			# d'emblèmes et de pierres, sous une petite lampe
+			# Joaillier : un pharaon momifié derrière sa vitrine d'emblèmes et de pierres
 			var bob := sin(t * 1.3) * 1.0
 			var wood := Color(0.32, 0.22, 0.16)
-			var bug := Color(0.42, 0.55, 0.38)
 			# comptoir et vitrine
 			DU.box(self, Rect2(-34, -30, 68, 30), wood)
 			DU.box(self, Rect2(-36, -33, 72, 4), wood.lightened(0.15))
@@ -227,23 +225,50 @@ func _draw() -> void:
 			DU.box(self, Rect2(-34, -40, 6, 7), Color(0.75, 0.6, 0.3))
 			draw_circle(Vector2(-31, -43), 2.0 + sin(t * 7.0) * 0.4, Color(1.0, 0.85, 0.45))
 			DU.glow(self, Vector2(-31, -43), 26.0, Color(1.0, 0.9, 0.6), 0.35)
-			# le joaillier, derrière le comptoir : corps fin, longs bras, loupe
-			var hb := Vector2(20, -76 + bob)
-			draw_line(Vector2(20, -33), hb + Vector2(0, 10), bug.darkened(0.2), 5.0)
-			draw_line(hb + Vector2(-2, 14), Vector2(4, -40), bug, 2.0)
-			draw_line(Vector2(4, -40), Vector2(-6, -44 + bob * 0.5), bug, 1.6)
-			draw_line(hb + Vector2(2, 14), Vector2(30, -44), bug, 2.0)
-			DU.ball(self, hb, 7.0, bug)
-			draw_line(hb + Vector2(-2, -6), hb + Vector2(-8, -18), bug.darkened(0.3), 1.0)
-			draw_line(hb + Vector2(2, -6), hb + Vector2(5, -19), bug.darkened(0.3), 1.0)
-			# loupe d'horloger
-			draw_circle(hb + Vector2(-4, -1), 4.2, Color(0.75, 0.6, 0.3))
-			draw_circle(hb + Vector2(-4, -1), 3.0, Color(0.75, 0.9, 1.0, 0.85))
-			draw_circle(hb + Vector2(-5, -2), 1.0, Color(1, 1, 1, 0.8))
-			draw_circle(hb + Vector2(3, -1), 1.3, Color(0.1, 0.1, 0.08))
-			# nœud papillon
-			DU.flat(self, PackedVector2Array([hb + Vector2(-4, 8), hb + Vector2(0, 10), hb + Vector2(-4, 12)]), Color(0.6, 0.2, 0.3))
-			DU.flat(self, PackedVector2Array([hb + Vector2(4, 8), hb + Vector2(0, 10), hb + Vector2(4, 12)]), Color(0.6, 0.2, 0.3))
+			# le joaillier : un pharaon momifié, derrière son comptoir. Bandelettes, némès rayé
+			# bleu et or, large collier d'or, yeux qui luisent ; il tient une gemme à la lumière.
+			var linen := Color(0.86, 0.8, 0.66)
+			var gold := Color(0.95, 0.75, 0.3)
+			var lapis := Color(0.2, 0.32, 0.62)
+			var hb := Vector2(18, -78 + bob)
+			# torse bandé (derrière le comptoir)
+			DU.poly(self, PackedVector2Array([hb + Vector2(-10, 12), hb + Vector2(10, 12), hb + Vector2(12, 46), hb + Vector2(-12, 46)]), linen)
+			for k in 5:
+				var yy := 16.0 + k * 6.0
+				draw_line(hb + Vector2(-11, yy), hb + Vector2(11, yy + 3.0 - (k % 2) * 5.0), linen.darkened(0.25), 1.0)
+			# collier ousekh
+			for k in 3:
+				draw_arc(hb + Vector2(0, 10), 9.0 + k * 2.5, 0.25, PI - 0.25, 12, [gold, lapis, gold][k], 2.2)
+			# bras bandés : l'un levé tenant une gemme, l'autre posé sur le comptoir
+			var gem_p := hb + Vector2(-22, 6 + sin(t * 1.5) * 2.0)
+			draw_line(hb + Vector2(-8, 16), hb + Vector2(-16, 22), linen.darkened(0.08), 4.5)
+			draw_line(hb + Vector2(-16, 22), gem_p + Vector2(2, 4), linen.darkened(0.08), 4.0)
+			DU.flat(self, DU.diamond(gem_p, Vector2(3.5, 5.0)), Color(0.5, 0.85, 1.0))
+			DU.glow(self, gem_p, 10.0, Color(0.5, 0.85, 1.0), 0.4 + 0.2 * sin(t * 3.0))
+			draw_line(hb + Vector2(9, 16), hb + Vector2(16, 40), linen.darkened(0.08), 4.5)
+			# tête : visage bandé, némès rayé qui retombe sur les épaules
+			var nem := PackedVector2Array([hb + Vector2(-9, -8), hb + Vector2(9, -8), hb + Vector2(14, 12), hb + Vector2(8, 12), hb + Vector2(6, 2), hb + Vector2(-6, 2), hb + Vector2(-8, 12), hb + Vector2(-14, 12)])
+			DU.flat(self, nem, gold)
+			for k in 4:
+				var yy := -4.0 + k * 4.0
+				draw_line(hb + Vector2(-10 - k, yy), hb + Vector2(-7, yy), lapis, 1.6)
+				draw_line(hb + Vector2(7, yy), hb + Vector2(10 + k, yy), lapis, 1.6)
+			DU.ball(self, hb, 7.0, linen)
+			for k in 3:
+				draw_line(hb + Vector2(-6, -3 + k * 3), hb + Vector2(6, -1 + k * 3 - (k % 2) * 3), linen.darkened(0.3), 0.9)
+			# bandeau d'or et uræus
+			DU.flat(self, PackedVector2Array([hb + Vector2(-8, -8), hb + Vector2(8, -8), hb + Vector2(7, -5), hb + Vector2(-7, -5)]), gold.lightened(0.1))
+			draw_line(hb + Vector2(0, -8), hb + Vector2(0, -13), gold, 2.0)
+			draw_circle(hb + Vector2(0, -13), 1.6, gold)
+			# yeux qui luisent dans les bandelettes
+			var eg := 0.6 + 0.4 * sin(t * 2.0)
+			for s2 in [-1.0, 1.0]:
+				draw_circle(hb + Vector2(s2 * 2.8 - 1.0, -1.0), 1.3, Color(0.4, 1.0, 0.85, eg))
+				DU.glow(self, hb + Vector2(s2 * 2.8 - 1.0, -1.0), 5.0, Color(0.4, 1.0, 0.85), 0.4 * eg)
+			# barbe postiche
+			DU.flat(self, PackedVector2Array([hb + Vector2(-2, 6), hb + Vector2(2, 6), hb + Vector2(1.5, 13), hb + Vector2(-1.5, 13)]), lapis)
+			# bandelette qui pend
+			draw_line(hb + Vector2(10, 30), hb + Vector2(14 + sin(t * 2.0) * 2.0, 44), linen.darkened(0.15), 2.0)
 		"smith":
 			# Forgeronne : scarabée trapu au tablier de cuir, lunettes sur le front,
 			# devant sa forge de pierres maçonnées, son enclume et son râtelier
