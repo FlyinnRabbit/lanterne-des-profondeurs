@@ -722,7 +722,55 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 		var p: Vector2i = item_spots[items]
 		if g[p.y][p.x] == ".":
 			put(p.x, p.y, "N")
+	if not rush:
+		_ground_traps(depth)
 	var out := []
 	for row in g:
 		out.append("".join(PackedStringArray(row)))
 	return out
+
+# Pièges au sol propres au biome : herse de pics partout, champignon à gaz (Jardins, Ruche),
+# geyser de flammes (Forge) ou de glace (Abysses Gelés). Posés avec parcimonie et jamais
+# près d'un autre danger (pas de piège sur piège), ni près du départ, de la sortie, d'un banc
+# ou de l'arène du boss.
+const HAZARDS := "^ZUVkqvyCXK"
+const KEEP_CLEAR := "PEBOHLSGR*N$"
+func _ground_traps(depth: int) -> void:
+	var pool := {"k": 1.0}
+	match biome_id:
+		"jardins", "ruche": pool = {"q": 1.6, "k": 0.6}
+		"forge": pool = {"v": 1.6, "k": 0.6}
+		"glace": pool = {"y": 1.6, "k": 0.6}
+	var want := clampi(1 + depth / 2, 1, 4)
+	var boss_x := -1000
+	for y in H:
+		var bx: int = g[y].find("K")
+		if bx >= 0:
+			boss_x = bx
+	var cands := []
+	for y in range(CEIL + 3, H - 1):
+		for x in range(6, W - 6):
+			# case libre, sol plein sous elle et sous ses voisines, trois cases d'air au-dessus
+			if g[y][x] != "." or g[y + 1][x] != "#" or g[y + 1][x - 1] != "#" or g[y + 1][x + 1] != "#":
+				continue
+			if g[y - 1][x] != "." or g[y - 2][x] != "." or g[y][x - 1] != "." or g[y][x + 1] != ".":
+				continue
+			if absi(x - boss_x) < 34:
+				continue
+			cands.append(Vector2i(x, y))
+	cands = _shuffled(cands)
+	var placed := 0
+	for c in cands:
+		if placed >= want:
+			break
+		if _near(c, HAZARDS, 9, 5) or _near(c, KEEP_CLEAR, 6, 4):
+			continue
+		put(c.x, c.y, _pick(pool))
+		placed += 1
+
+func _near(c: Vector2i, chars: String, rx: int, ry: int) -> bool:
+	for y in range(maxi(c.y - ry, 0), mini(c.y + ry + 1, H)):
+		for x in range(maxi(c.x - rx, 0), mini(c.x + rx + 1, W)):
+			if chars.contains(String(g[y][x])):
+				return true
+	return false

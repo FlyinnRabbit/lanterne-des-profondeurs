@@ -436,6 +436,9 @@ func _spawn_everything() -> void:
 					while x + dr + 1 < row.length() - 1 and row[x + dr + 1] != "#":
 						dr += 1
 					_make_trap("dart", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), {"dir": 1.0 if dr >= dl else -1.0})
+				"k", "q", "v", "y":
+					var tk: String = {"k": "spikes", "q": "gas", "v": "geyser", "y": "geyser"}[row[x]]
+					_make_trap(tk, Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), {"element": "ice" if row[x] == "y" else "fire"})
 				"U":
 					var fy := y + 1
 					while fy < map_size.y - 1 and not solid.has(Vector2i(x, fy)):
