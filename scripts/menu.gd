@@ -732,8 +732,7 @@ void fragment() {
 		camp = Node2D.new()
 		add_child(camp)
 		# (type, x en fraction de largeur, décalage du sol, échelle, regard)
-		var cast := [["scriptorium", 0.425, -0.01, 1.0, 1.0], ["smith", 0.5, 0.0, 1.1, 1.0], ["tailor", 0.585, 0.01, 1.1, 1.0],
-			["elder", 0.79, 0.01, 1.1, -1.0], ["merchant", 0.885, -0.01, 1.05, 1.0]]
+		var cast := [["tailor", 0.6, 0.01, 1.15, 1.0], ["elder", 0.77, 0.01, 1.15, -1.0]]
 		for c in cast:
 			var pr := Node2D.new()
 			pr.set_script(PropScript)
@@ -741,9 +740,6 @@ void fragment() {
 			camp.add_child(pr)
 			pr.remove_from_group("sleepy")
 			camp_props.append([pr, c[1], c[2], c[3], c[4]])
-		camp_fire = Node2D.new()
-		camp_fire.draw.connect(_draw_fire)
-		camp.add_child(camp_fire)
 	func _campfire(tt: float) -> void:
 		if camp == null:
 			_camp_setup()
@@ -765,7 +761,6 @@ void fragment() {
 		for q in mound:
 			cols.append(shade(Color(0.24, 0.19, 0.16), q, 0.0))
 		draw_polygon(mound, cols)
-		DU.glow(self, fire + Vector2(0, 6), 260.0 * k, Color(1.0, 0.6, 0.25), 0.22 * flux)
 		# habitants (vrais dessins du jeu), éclairés selon la distance à la lumière
 		for c in camp_props:
 			var pr: Node2D = c[0]
@@ -775,7 +770,6 @@ void fragment() {
 			var v := lerpf(0.18, 1.1, l) * flux
 			pr.modulate = Color(v, v * 0.9, v * 0.76)
 			pr.z_index = 1
-		camp_fire.queue_redraw()
 
 	var camp_fire: Node2D
 	func _draw_fire() -> void:
