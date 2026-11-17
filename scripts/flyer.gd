@@ -8,6 +8,8 @@ var dive_cd := 2.0     # élite : piqué sur le joueur
 var dive_t := 0.0
 var dive_windup := 0.0
 var dive_dir := Vector2.ZERO
+var path_t := 0.0        # recalcul du chemin quand un mur le sépare du joueur
+var waypoint := Vector2.INF
 
 func _ready() -> void:
 	size = Vector2(26, 24)
@@ -31,7 +33,21 @@ func _physics_process(delta: float) -> void:
 	if p and not p.dead and p.global_position.distance_to(global_position) < 330.0 * aggro():
 		target = p.global_position + Vector2(0, -6)
 		speed = CHASE_SPEED * spd()
-		if elite:
+		# un mur entre lui et le héros : il fait le tour au lieu de foncer dans la roche
+		var blocked: bool = main.wall_between_wide(global_position, target, 10.0)
+		if blocked:
+			path_t -= delta
+			if path_t <= 0.0 or waypoint == Vector2.INF or global_position.distance_to(waypoint) < 12.0:
+				path_t = 0.3
+				waypoint = main.fly_waypoint(global_position, target)
+			if waypoint != Vector2.INF:
+				target = waypoint
+			else:
+				target = home + Vector2(sin(anim_t * 0.8) * 40.0, sin(anim_t * 1.7) * 16.0)
+				speed = 60.0
+		else:
+			waypoint = Vector2.INF
+		if elite and not blocked:
 			dive_cd -= delta
 			if dive_cd <= 0.0 and dive_windup <= 0.0 and dive_t <= 0.0:
 				dive_windup = 0.4

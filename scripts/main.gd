@@ -1002,6 +1002,58 @@ func is_solid_at(p: Vector2) -> bool:
 			return true
 	return false
 
+# Chemin pour les ennemis volants : parcours en largeur sur la grille des cases, limité à
+# un rayon autour d'eux. Renvoie le point de passage le plus éloigné du chemin encore visible
+# en ligne droite (pour contourner les murs sans zigzaguer), ou Vector2.INF si aucun chemin.
+func fly_waypoint(from: Vector2, to: Vector2, radius: int = 16) -> Vector2:
+	var s := Vector2i(floori(from.x / TILE), floori(from.y / TILE))
+	var g := Vector2i(floori(to.x / TILE), floori(to.y / TILE))
+	if s == g:
+		return to
+	var prev := {s: s}
+	var queue: Array[Vector2i] = [s]
+	var head := 0
+	var found := false
+	var dirs := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+	while head < queue.size():
+		var c: Vector2i = queue[head]
+		head += 1
+		if c == g:
+			found = true
+			break
+		for d in dirs:
+			var n: Vector2i = c + d
+			if prev.has(n) or absi(n.x - s.x) > radius or absi(n.y - s.y) > radius:
+				continue
+			if solid.has(n) and n != g:
+				continue
+			if is_solid_at((Vector2(n) + Vector2(0.5, 0.5)) * TILE) and n != g:
+				continue          # grille d'arène fermée
+			prev[n] = c
+			queue.append(n)
+	if not found:
+		return Vector2.INF
+	var path: Array[Vector2i] = []
+	var c2 := g
+	while c2 != s:
+		path.push_front(c2)
+		c2 = prev[c2]
+	# le plus loin possible sur le chemin tant qu'on le voit sans obstacle
+	var best := (Vector2(path[0]) + Vector2(0.5, 0.5)) * TILE
+	for i in range(1, mini(path.size(), 10)):
+		var q := (Vector2(path[i]) + Vector2(0.5, 0.5)) * TILE
+		if path[i] == g:
+			q = to
+		if wall_between_wide(from, q, 10.0):
+			break
+		best = q
+	return best
+
+# comme wall_between, mais vérifie aussi deux lignes décalées (largeur du corps)
+func wall_between_wide(a: Vector2, b: Vector2, half: float) -> bool:
+	var n := (b - a).normalized().orthogonal() * half
+	return wall_between(a, b) or wall_between(a + n, b + n) or wall_between(a - n, b - n)
+
 # Y a-t-il de la roche entre deux points ? (on ignore les extrémités : les corps touchent le sol)
 func wall_between(a: Vector2, b: Vector2) -> bool:
 	var d := b - a
