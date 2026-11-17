@@ -79,6 +79,7 @@ func _run() -> void:
 	gs.show_title = false
 	gs.difficulty = 1
 	var only_bosses: bool = OS.get_cmdline_user_args().size() > 1 and OS.get_cmdline_user_args()[1] == "bosses"
+	var only_new: bool = OS.get_cmdline_user_args().size() > 1 and OS.get_cmdline_user_args()[1] == "new"
 	# --- héros et ennemis ordinaires, au Sanctuaire (sol invisible mais solide)
 	gs.mode = "hub"
 	change_scene_to_file("res://main.tscn")
@@ -99,8 +100,10 @@ func _run() -> void:
 	pl.hp = 9999
 	var spot: Vector2 = pl.global_position
 	var mobs := {"crawler": main.CrawlerScript, "flyer": main.FlyerScript, "spitter": main.SpitterScript, "hopper": main.HopperScript,
-		"guard": main.GuardScript, "bomber": main.BomberScript, "weaver": main.WeaverScript, "lancer": main.LancerScript, "wraith": main.WraithScript}
-	for id in ([] if only_bosses else mobs.keys()):
+		"guard": main.GuardScript, "bomber": main.BomberScript, "weaver": main.WeaverScript, "lancer": main.LancerScript, "wraith": main.WraithScript,
+		"monkey": main.MonkeyScript, "mimic": main.MimicScript, "moth": main.MothScript, "mole": main.MoleScript}
+	var ids: Array = ["monkey", "mimic", "moth", "mole"] if only_new else ([] if only_bosses else mobs.keys())
+	for id in ids:
 		for elite in [false, true]:
 			if elite and not id in ["crawler", "flyer", "spitter", "hopper", "guard"]:
 				continue
@@ -116,6 +119,17 @@ func _run() -> void:
 			if not is_instance_valid(e):
 				continue
 			e.set_physics_process(false)
+			# portraits : la mimique réveillée, la taupe sortie de terre
+			if id == "mimic":
+				e.state = "hop"
+			elif id == "mole":
+				e.state = "exposed"
+			elif id == "moth":
+				e.display = true      # n'assombrit plus l'écran pendant la photo
+				main.moth_dim = 0.0
+				if main.dark_rect:
+					main.dark_rect.visible = false
+			e.queue_redraw()
 			# la poussière d'apparition retombe ; projectiles effacés
 			for pr in get_nodes_in_group("projectiles"):
 				pr.queue_free()
@@ -136,6 +150,9 @@ func _run() -> void:
 			await _snap(main, e, "mob_%s%s" % [id, "_elite" if elite else ""], 4.0, Vector2(0, -12))
 			e.queue_free()
 			await _f(2)
+	if only_new:
+		quit()
+		return
 	# --- boss, chacun dans son arène
 	for id in ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre", "cerbere", "centaure", "oeil"]:
 		var pal := 1
