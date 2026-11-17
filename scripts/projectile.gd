@@ -32,6 +32,8 @@ func _ready() -> void:
 		life = minf(life, 3.0)
 
 func get_rect() -> Rect2:
+	if kind == "webpatch":
+		return Rect2(global_position - Vector2(22, 10), Vector2(44, 12))
 	if kind == "wave":
 		return Rect2(global_position - Vector2(12, 34), Vector2(24, 36))
 	return Rect2(global_position - Vector2(radius, radius), Vector2(radius, radius) * 2.0)
@@ -72,7 +74,11 @@ func _physics_process(delta: float) -> void:
 			else:
 				pop()
 				return
+	elif kind == "webpatch":
+		pass
 	elif main.is_solid_at(global_position) and not returning:
+		if kind == "web" and hostile:
+			_web_patch()
 		if boomerang:
 			returning = true
 			_hit.clear()
@@ -83,9 +89,19 @@ func _physics_process(delta: float) -> void:
 	if hostile:
 		var p = main.player
 		if not p.dead and p.dash_t <= 0.0 and r.intersects(p.get_rect()):
-			var parried: bool = p.receive_hit(global_position, self)
-			if not parried:
-				pop()
+			if kind == "webpatch":
+				p.ensnare(0.4)           # la toile au sol colle tant qu'on marche dessus
+			elif kind == "web":
+				# boule de toile : englue au lieu de blesser (une parade la renvoie)
+				if p.parry_t > 0.0:
+					p.receive_hit(global_position, self)
+				else:
+					p.ensnare(2.2)
+					pop()
+			else:
+				var parried: bool = p.receive_hit(global_position, self)
+				if not parried:
+					pop()
 	else:
 		for e in get_tree().get_nodes_in_group("enemies"):
 			if is_instance_valid(e) and not e.dead and not _hit.has(e) and r.intersects(e.get_rect()):
@@ -132,6 +148,15 @@ func parried(_dir: Vector2) -> void:
 	gravity = 0.0
 	vel = -vel * 1.6
 
+# la toile qui touche le sol y reste un moment, en nappe collante
+func _web_patch() -> void:
+	var y := global_position.y
+	for i in 3:
+		if main.is_solid_at(Vector2(global_position.x, y + 4.0)):
+			break
+		y += 8.0
+	main.spawn_projectile(Vector2(global_position.x, floorf((y + 4.0) / main.TILE) * main.TILE), Vector2.ZERO, {"kind": "webpatch", "life": 5.0, "radius": 22.0})
+
 func pop() -> void:
 	var c := Color(0.75, 0.9, 1.0) if not hostile else _color()
 	main.spawn_burst(global_position, c, 8, 120.0, 0.0)
@@ -146,6 +171,7 @@ func _color() -> Color:
 		"soulblade": return Color(0.85, 0.95, 1.0)
 		"shuriken": return Color(0.8, 0.85, 0.95)
 		"dart": return Color(1.0, 0.55, 0.3)
+		"web", "webpatch": return Color(0.9, 0.9, 0.97)
 		"slashwave": return Color(0.85, 0.92, 1.0)
 	return Color(0.85, 0.45, 0.95)
 
@@ -166,6 +192,25 @@ func _draw() -> void:
 	if crit and kind == "soulblade":
 		c = Color(1.0, 0.75, 0.35)
 	match kind:
+		"web":
+			# boule de toile : pelote de fils qui tourne, brins qui traînent
+			_tail(Color(0.95, 0.95, 1.0), radius * 0.5, 24.0)
+			for k in 6:
+				var a := k * PI / 3.0 + t * 4.0
+				draw_line(Vector2.from_angle(a) * radius, Vector2.from_angle(a + PI * 0.8) * radius, Color(0.95, 0.95, 1.0, 0.85), 1.2)
+			draw_arc(Vector2.ZERO, radius * 0.7, 0.0, TAU, 12, Color(0.95, 0.95, 1.0, 0.7), 1.0)
+			return
+		"webpatch":
+			# nappe de toile au sol, qui s'estompe à la fin
+			var fa := clampf(life / 1.0, 0.0, 1.0)
+			var wc := Color(0.92, 0.92, 0.98, 0.55 * fa)
+			for k in 7:
+				var x := -22.0 + k * 7.3
+				draw_line(Vector2(x, 0), Vector2(x + 6.0, -7.0 - (k % 2) * 4.0), wc, 1.0)
+				draw_line(Vector2(x + 6.0, -7.0 - (k % 2) * 4.0), Vector2(x + 12.0, 0), wc, 1.0)
+			draw_line(Vector2(-24, -1), Vector2(24, -1), wc, 1.2)
+			draw_line(Vector2(-18, -5), Vector2(18, -5), Color(wc, wc.a * 0.6), 0.8)
+			return
 		"rock":
 			# rocher qui tourne, arêtes, poussière derrière
 			_tail(Color(0.6, 0.55, 0.5), radius * 0.6, 22.0)

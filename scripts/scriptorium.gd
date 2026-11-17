@@ -33,7 +33,7 @@ const MOB_DESC := {
 	"hopper": "Bondit vers toi par grands sauts.",
 	"guard": "Avance derrière son bouclier et bloque les coups de face.",
 	"bomber": "Roule vers toi, s'allume… et explose.",
-	"weaver": "Guette au plafond et se laisse tomber au bout de son fil.",
+	"weaver": "Crache une toile qui englue (la ruée l'arrache), tombe sur sa proie puis remonte à son fil.",
 	"lancer": "Se met en garde et lance une longue estocade.",
 	"wraith": "Disparaît et réapparaît près de toi."}
 const MOB_TIPS := {

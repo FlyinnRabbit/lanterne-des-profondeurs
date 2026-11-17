@@ -154,7 +154,16 @@ func eq(id: int) -> bool:
 	return GameState.has_charm(id)
 
 func run_speed() -> float:
-	return RUN_SPEED * (1.12 if eq(C.SWIFT_CLOAK) else 1.0)
+	return RUN_SPEED * (1.12 if eq(C.SWIFT_CLOAK) else 1.0) * (0.5 if web_t > 0.0 else 1.0)
+
+# Toile de tisseuse : englué, on court deux fois moins vite et on saute moins haut. La ruée arrache la toile.
+var web_t := 0.0
+func ensnare(secs: float) -> void:
+	if dead or sitting:
+		return
+	if web_t <= 0.0:
+		Audio.sfx("whip", 0.1, -8.0)
+	web_t = maxf(web_t, secs)
 
 func dash_cooldown() -> float:
 	return DASH_COOLDOWN * (0.5 if eq(C.SWIFT_CLOAK) else 1.0)
@@ -222,7 +231,7 @@ func _physics_process(delta: float) -> void:
 	anim_t += delta
 	for t in ["coyote_t", "buffer_t", "dash_t", "dash_cd", "attack_cd", "attack_t", "invuln_t", "knock_t", "recoil_t",
 			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t", "plunge_cd", "plunge_kill_t",
-			"bench_lock_t"]:
+			"bench_lock_t", "web_t"]:
 		set(t, maxf(get(t) - delta, 0.0))
 	if attack_t > 0.0 or thrust_t > 0.0 or ult_charge_t > 0.0:
 		bench_lock_t = BENCH_LOCK
@@ -368,6 +377,9 @@ func _physics_process(delta: float) -> void:
 			facing = int(dir)
 		dash_t = DASH_TIME
 		dash_hit.clear()
+		if web_t > 0.0:
+			web_t = 0.0
+			main.spawn_burst(global_position, Color(0.9, 0.9, 0.95), 10, 140.0)
 		GameState.j_add("dashes")
 		dash_cd = dash_cooldown()
 		Audio.sfx("dash")
@@ -427,7 +439,7 @@ func _physics_process(delta: float) -> void:
 	# Saut
 	velocity.y = minf(velocity.y + GRAVITY * delta, FALL_MAX)
 	if buffer_t > 0.0 and coyote_t > 0.0 and knock_t <= 0.0:
-		velocity.y = JUMP_VELOCITY
+		velocity.y = JUMP_VELOCITY * (0.8 if web_t > 0.0 else 1.0)
 		Audio.sfx("jump", 0.1, -4.0)
 		GameState.j_add("jumps")
 		buffer_t = 0.0
@@ -1170,6 +1182,11 @@ func sit(pos: Vector2, heal: bool = true) -> void:
 
 # ---------------------------------------------------------------- dessin
 func _draw() -> void:
+	if web_t > 0.0:
+		var wa := minf(web_t, 1.0)
+		for k in 5:
+			var a := k * 1.3 + 0.4
+			draw_line(Vector2(cos(a) * 12.0, -14 + sin(a) * 14.0), Vector2(cos(a + 2.2) * 11.0, -14 + sin(a + 2.2) * 12.0), Color(0.92, 0.92, 0.98, 0.55 * wa), 1.0)
 	var moving := absf(velocity.x) > 10.0 and is_on_floor()
 	var bob := sin(anim_t * 16.0) * 1.5 if moving else sin(anim_t * 2.5) * 0.6
 	var sway := sin(anim_t * 16.0) * 3.0 if moving else sin(anim_t * 2.0) * 1.0
