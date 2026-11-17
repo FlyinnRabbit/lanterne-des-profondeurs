@@ -2,6 +2,8 @@
 # Lancer : python3 tools/translations.py  -> génère scripts/translations.gd
 import json, os
 T = {
+"Croc Sanglant": ("Blood Fang", "Colmillo Sangriento", "Blutzahn"),
+"+30 % de chances de faire saigner à chaque coup, avec toutes les armes (1 dégât une seconde plus tard). Avec les Griffes niv. 2 : 50 %.": ("+30% chance to cause bleeding with every hit, with any weapon (1 damage a second later). With Twin Claws lv. 2: 50%.", "+30 % de probabilidad de hacer sangrar con cada golpe, con cualquier arma (1 de daño un segundo después). Con las Garras Gemelas niv. 2: 50 %.", "+30 % Chance auf Blutung bei jedem Treffer, mit jeder Waffe (1 Schaden eine Sekunde später). Mit den Zwillingsklauen St. 2: 50 %."),
 "Nouveau record : +%d éclats !": ("New record: +%d shards!", "¡Nuevo récord: +%d esquirlas!", "Neuer Rekord: +%d Splitter!"),
 "Première victoire : +1 encoche d'emblème !": ("First victory: +1 charm notch!", "Primera victoria: ¡+1 muesca de emblema!", "Erster Sieg: +1 Emblemkerbe!"),
 " — 1re victoire : +1 encoche": (" — first win: +1 notch", " — 1.ª victoria: +1 muesca", " — erster Sieg: +1 Kerbe"),
@@ -326,8 +328,8 @@ T = {
 "Trop agité pour se reposer…": ("Too restless to rest…", "Demasiado agitado para descansar…", "Zu unruhig, um zu rasten…"),
 "se faire hisser": ("get hoisted up", "subir con el torno", "hochziehen lassen"),
 "Griffes Jumelles": ("Twin Claws", "Garras Gemelas", "Zwillingsklauen"),
-"Une griffe à chaque main, très rapides mais courtes : chaque attaque frappe deux fois (0,5 dégât par griffe, 1 sur un coup puissant).": ("One claw on each hand, very fast but short: every attack strikes twice (0.5 damage per claw, 1 on a power hit).", "Una garra en cada mano, muy rápidas pero cortas: cada ataque golpea dos veces (0,5 de daño por garra, 1 en un golpe potente).", "Eine Klaue an jeder Hand, sehr schnell, aber kurz: Jeder Angriff trifft zweimal (0,5 Schaden pro Klaue, 1 bei einem starken Schlag)."),
-"Niv. 2 : les griffes font saigner : un ennemi touché perd encore 1 vie une seconde plus tard.": ("Lv. 2: the claws cause bleeding: an enemy hit loses 1 more health a second later.", "Niv. 2: las garras hacen sangrar: un enemigo golpeado pierde 1 de vida más un segundo después.", "St. 2: Die Klauen lassen bluten: Ein getroffener Gegner verliert eine Sekunde später noch 1 Leben."),
+"Une griffe à chaque main, très rapides mais courtes : chaque attaque frappe deux fois (0,5 dégât par griffe, 0,75 sur un coup puissant).": ("One claw on each hand, very fast but short: every attack strikes twice (0.5 damage per claw, 0.75 on a power hit).", "Una garra en cada mano, muy rápidas pero cortas: cada ataque golpea dos veces (0,5 de daño por garra, 0,75 en un golpe potente).", "Eine Klaue an jeder Hand, sehr schnell, aber kurz: Jeder Angriff trifft zweimal (0,5 Schaden pro Klaue, 0,75 bei einem starken Schlag)."),
+"Niv. 2 : chaque coup de griffe a 20 % de chances de faire saigner (1 dégât une seconde plus tard). Le Croc Sanglant ajoute 30 %.": ("Lv. 2: each claw strike has a 20% chance to cause bleeding (1 damage a second later). The Blood Fang adds 30%.", "Niv. 2: cada golpe de garra tiene un 20 % de probabilidad de hacer sangrar (1 de daño un segundo después). El Colmillo Sangriento añade un 30 %.", "St. 2: Jeder Klauenhieb hat 20 % Chance, Blutung auszulösen (1 Schaden eine Sekunde später). Der Blutzahn fügt 30 % hinzu."),
 "Lame Rebond": ("Rebound Blade", "Hoja de Rebote", "Prallklinge"),
 "Rebondir sur un ennemi (coup vers le bas, piqué) te propulse 25 % plus haut et rend 6 d'âme.": ("Bouncing off an enemy (down strike, dive) sends you 25% higher and restores 6 soul.", "Rebotar en un enemigo (golpe hacia abajo, picado) te impulsa un 25 % más alto y devuelve 6 de alma.", "Abprallen von einem Gegner (Schlag nach unten, Sturzangriff) katapultiert dich 25 % höher und gibt 6 Seele zurück."),
 "Enclume Tombante": ("Falling Anvil", "Yunque Caído", "Fallender Amboss"),

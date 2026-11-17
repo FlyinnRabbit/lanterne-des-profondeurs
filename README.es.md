@@ -30,7 +30,7 @@ guarda las esquirlas perdidas donde caíste, y el ascensor recuerda hasta dónde
 - **9 biomas**; los niveles se generan en cada descenso, con grutas, estratos de tres pisos y tornos
 - **10 jefes**: 6 guardianes de nivel y 4 jefes finales, cada uno con una fase 2 y su música
 - **Combate**: combos de 3 golpes, torbellino cargado, combo aéreo, pogo, ataque en picado, estocada en carrera, parada (la perfecta hace crítico el siguiente golpe), hoja de alma, definitiva
-- **5 armas** mejoradas por la herrera (las Garras Gemelas se llevan en las dos manos), **20 emblemas**
+- **5 armas** mejoradas por la herrera (las Garras Gemelas se llevan en las dos manos), **21 emblemas**
 - **El Santuario**: mercader, arsenal, herrera, cartógrafo, sastra (53 cosméticos), anciano y cuatro fiestas al año
 - **4 dificultades** y un modo de una sola vida, maldiciones, **Descenso del día** con clasificación en línea, **Desafío de jefes**
 - Español, inglés, francés y alemán; teclado y mando Xbox; navegador, Windows, macOS, Linux y Steam Deck; actualizaciones automáticas
@@ -317,7 +317,7 @@ pasillos de cuchillas.
 | Arma | Precio | Estilo | Nivel 2 (herrera) |
 |---|---|---|---|
 | Aguja del Vigía | — | equilibrada | el golpe final lanza una corta hoja de aire |
-| Garras Gemelas | 180 | una garra en cada mano: cada ataque golpea dos veces (0,5 de daño por garra, 1 por garra en un golpe potente), muy rápidas, alcance corto, la mitad de alma por garra | sangrado: un enemigo golpeado pierde 1 de vida más un segundo después |
+| Garras Gemelas | 180 | una garra en cada mano: cada ataque golpea dos veces (0,5 de daño por garra, 0,75 por garra en un golpe potente), muy rápidas, alcance corto, la mitad de alma por garra | sangrado: cada golpe de garra tiene un 20 % de probabilidad (50 % con el Colmillo Sangriento) de quitar 1 de vida más un segundo después |
 | Látigo de Zarzas | 150 | alcance muy largo hacia delante y hacia arriba, algo más lento | atrae a los enemigos pequeños |
 | Martillo de Yunque | 220 | lento, +1 de daño, gran retroceso, aturde | el golpe final lanza una onda expansiva a ambos lados (sube los escalones) |
 | Estrellas de Luna (shurikens) | 260 | a distancia; golpe final = 3 estrellas, torbellino = 8 en círculo, estocada = una gran estrella perforante | vuelven como un bumerán y golpean de nuevo |
@@ -352,6 +352,7 @@ Tab abre el inventario (el juego se pausa): objetos, esquirlas, estadísticas y 
 | Olfato del Saqueador | 1 | cofres de las grutas y escondites: +60 % de esquirlas |
 | Nudo de Escalador | 1 | tornos el doble de rápidos; la primera subida de cada torno devuelve 33 de alma |
 | Último Aliento | 3 | un golpe fatal te deja con 1 máscara, una vez por zona |
+| Colmillo Sangriento | 2 | +30 % de probabilidad de hacer sangrar con cada golpe, con cualquier arma (1 de daño un segundo después); 50 % con las Garras Gemelas niv. 2 |
 
 Los efectos se definen en `scripts/charms.gd` y se aplican en `scripts/player.gd`.
 

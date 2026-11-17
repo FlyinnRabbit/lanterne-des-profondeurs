@@ -30,7 +30,7 @@ ombre garde les éclats perdus là où tu es tombé, et l'ascenseur se souvient 
 - **9 biomes** ; les niveaux sont générés à chaque descente, avec grottes, strates sur trois étages et treuils
 - **10 boss** : 6 gardiens de palier et 4 boss finaux, chacun avec une phase 2 et sa musique
 - **Combat** : combos en 3 coups, tourbillon chargé, combo aérien, pogo, attaque plongée, estoc en ruée, parade (parfaite = coup critique), lame d'âme, ultime
-- **5 armes** améliorées chez la forgeronne (les Griffes Jumelles se portent aux deux mains), **20 emblèmes**
+- **5 armes** améliorées chez la forgeronne (les Griffes Jumelles se portent aux deux mains), **21 emblèmes**
 - **Le Sanctuaire** : marchand, arsenal, forgeronne, cartographe, tailleuse (53 cosmétiques), ancien et quatre fêtes dans l'année
 - **4 difficultés** et un mode une seule vie, malédictions, **Descente du jour** avec classement en ligne, **Défi des boss**
 - Français, anglais, espagnol et allemand ; clavier et manette Xbox ; navigateur, Windows, macOS, Linux et Steam Deck ; mises à jour automatiques
@@ -318,7 +318,7 @@ mobile, couloirs de lames.
 | Arme | Prix | Style | Niveau 2 (forgeronne) |
 |---|---|---|---|
 | Aiguille du Veilleur | — | équilibrée | le coup final lance une courte lame d'air |
-| Griffes Jumelles | 180 | une griffe à chaque main : chaque attaque frappe deux fois (0,5 dégât par griffe, 1 par griffe sur un coup puissant), très rapides, portée courte, moitié moins d'âme par griffe | saignée : un ennemi touché perd encore 1 vie une seconde plus tard |
+| Griffes Jumelles | 180 | une griffe à chaque main : chaque attaque frappe deux fois (0,5 dégât par griffe, 0,75 par griffe sur un coup puissant), très rapides, portée courte, moitié moins d'âme par griffe | saignée : chaque coup de griffe a 20 % de chances (50 % avec le Croc Sanglant) de faire perdre 1 vie de plus une seconde plus tard |
 | Fouet de Ronces | 150 | très longue portée devant et vers le haut, un peu plus lent | attire les petits ennemis vers soi |
 | Marteau d'Enclume | 220 | lent, +1 dégât, gros recul, étourdit | le coup final envoie une onde de choc des deux côtés (elle franchit les marches) |
 | Étoiles de Lune (shurikens) | 260 | à distance ; coup final = 3 étoiles, tourbillon = 8 en cercle, estoc = une grande étoile perçante | elles reviennent comme un boomerang et touchent à nouveau |
@@ -353,6 +353,7 @@ en trouve (anneaux dorés) ou on en achète d'autres. On ne change d'équipement
 | Flair du Pilleur | 1 | coffres des grottes et cachettes : +60 % d'éclats |
 | Nœud de Grimpeur | 1 | treuils deux fois plus rapides ; la première remontée de chaque treuil rend 33 d'âme |
 | Dernier Souffle | 3 | un coup fatal te laisse à 1 masque, une fois par niveau |
+| Croc Sanglant | 2 | +30 % de chances de faire saigner à chaque coup, avec toutes les armes (1 dégât une seconde plus tard) ; 50 % avec les Griffes niv. 2 |
 
 Les effets sont définis dans `scripts/charms.gd` et appliqués dans `scripts/player.gd`.
 

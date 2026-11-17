@@ -677,13 +677,17 @@ func _do_attack_hits() -> void:
 			var split := claw_split and attack_kind == claw_kind
 			var second := split and claw_hand == 1
 			if split:
+				# coup puissant des griffes : 0,75 par griffe (1,5 au total) au lieu de 1 ;
 				# la deuxième griffe ne repousse presque pas : sinon l'ennemi, repoussé 8 fois par
 				# seconde, ne pouvait plus jamais attaquer (blocage permanent)
-				_claw_hit(e, hit_damage() * 0.5, kv * (0.25 if second else 1.0))
+				var per: float = 0.375 if attack_kind in ["finisher", "thrust", "air_spin", "spin", "plunge"] else 0.5
+				_claw_hit(e, hit_damage() * per, kv * (0.25 if second else 1.0))
 			else:
 				e.take_hit(hit_damage(), kv)
-			# griffes niv. 2 : saignée, 1 dégât une seconde plus tard (pas de cumul sur le même ennemi)
-			if GameState.weapon() == "griffes" and GameState.weapon_level() >= 2 and is_instance_valid(e) and not e.dead and not e.has_meta("bleeding"):
+			# saignée : 1 dégât une seconde plus tard (pas de cumul sur le même ennemi), avec une chance
+			# par coup : 20 % avec les Griffes niv. 2, +30 % avec le Croc Sanglant (toutes armes)
+			var bc := bleed_chance()
+			if bc > 0.0 and is_instance_valid(e) and not e.dead and not e.has_meta("bleeding") and randf() < bc:
 				_bleed(e)
 			if float(wpn["stagger"]) > 0.0 and is_instance_valid(e) and not e.is_boss:
 				e.stun_t = maxf(e.stun_t, float(wpn["stagger"]))
@@ -991,6 +995,16 @@ func _claw_hit(e, amount: float, kv: Vector2) -> void:
 	var whole := int(floor(tot + 0.001))
 	e.set_meta("claw_frac", tot - whole)
 	e.take_hit(whole, kv)
+
+const BLEED_CLAWS := 0.2
+const BLEED_FANG := 0.3
+func bleed_chance() -> float:
+	var ch := 0.0
+	if GameState.weapon() == "griffes" and GameState.weapon_level() >= 2:
+		ch += BLEED_CLAWS
+	if eq(C.BLOOD_FANG):
+		ch += BLEED_FANG
+	return ch
 
 func _bleed(e) -> void:
 	e.set_meta("bleeding", true)

@@ -231,6 +231,21 @@ static func glyph(ci: CanvasItem, c: Vector2, s: float, id: int, col: Color, t :
 			var fh := 1.0 + 0.15 * sin(t * 9.0)
 			DU.glow(ci, P.call(0, -13), 6.0 * s, hi, 0.5)
 			DU.flat(ci, PackedVector2Array([P.call(0, -13 - 6 * fh), P.call(3, -11), P.call(0, -9), P.call(-3, -11)]), hi)
+		20:  # Croc Sanglant : gencive, croc recourbé et goutte de sang qui perle à la pointe
+			var ivory := Color(0.94, 0.9, 0.8)
+			DU.poly(ci, DU.ellipse(P.call(-1, -11), Vector2(10, 4) * s, 16), Color(0.55, 0.12, 0.18))
+			var fang := PackedVector2Array([P.call(6, -10), P.call(6, -4), P.call(4, 2), P.call(0, 7), P.call(-5, 10),
+				P.call(-3, 5), P.call(-3, 0), P.call(-4, -5), P.call(-6, -10)])
+			DU.poly(ci, fang, ivory)
+			ci.draw_polyline(PackedVector2Array([P.call(-4, -8), P.call(-2, -3), P.call(-2, 2), P.call(-3, 6)]), Color(1, 1, 1, 0.75), 1.1 * s)
+			ci.draw_polyline(PackedVector2Array([P.call(3, -8), P.call(3, -2), P.call(1, 3)]), ivory.darkened(0.25), 1.0 * s)
+			# la goutte glisse du bout du croc puis tombe
+			var dp := fposmod(t * 0.6, 1.0)
+			var dc: Vector2 = P.call(-5, 11 + dp * 4)
+			DU.glow(ci, dc, 6.0 * s, hi, 0.45)
+			DU.flat(ci, PackedVector2Array([dc + Vector2(0, -3.5) * s, dc + Vector2(2.4, 0.5) * s, dc + Vector2(0, 2.8) * s, dc + Vector2(-2.4, 0.5) * s]), Color(0.85, 0.1, 0.18))
+			ci.draw_circle(dc + Vector2(-0.7, -0.2) * s, 0.8 * s, Color(1, 0.8, 0.8, 0.8))
+			ci.draw_line(P.call(-5, 9), dc + Vector2(0, -2) * s, Color(0.75, 0.08, 0.15), 1.2 * s)
 		_:
 			ci.draw_colored_polygon(DU.diamond(c, Vector2(8, 11) * s), hi)
 

@@ -30,7 +30,7 @@ Schatten bewahrt die verlorenen Splitter dort, wo du gefallen bist, und der Aufz
 - **9 Biome**; die Ebenen werden bei jedem Abstieg neu erzeugt, mit Grotten, dreistöckigen Schichten und Seilwinden
 - **10 Bosse**: 6 Ebenen-Wächter und 4 Endbosse, jeder mit Phase 2 und eigener Musik
 - **Kampf**: 3er-Kombos, aufgeladener Wirbel, Luftkombo, Pogo, Sturzangriff, Ausfall im Sprint, Parade (eine perfekte macht den nächsten Treffer kritisch), Seelenklinge, Ultimate
-- **5 Waffen**, von der Schmiedin verbessert (die Zwillingsklauen trägst du an beiden Händen), **20 Embleme**
+- **5 Waffen**, von der Schmiedin verbessert (die Zwillingsklauen trägst du an beiden Händen), **21 Embleme**
 - **Das Heiligtum**: Händler, Arsenal, Schmiedin, Kartograf, Schneiderin (53 kosmetische Objekte), Ältester und vier Feste im Jahr
 - **4 Schwierigkeitsgrade** plus ein Ein-Leben-Modus, Flüche, **Abstieg des Tages** mit Online-Rangliste, **Boss-Herausforderung**
 - Deutsch, Englisch, Französisch und Spanisch; Tastatur und Xbox-Controller; Browser, Windows, macOS, Linux und Steam Deck; automatische Updates
@@ -317,7 +317,7 @@ beweglicher Plattform, Klingengänge.
 | Waffe | Preis | Stil | Stufe 2 (Schmiedin) |
 |---|---|---|---|
 | Nadel des Wächters | — | ausgewogen | der Abschlussschlag schleudert eine kurze Luftklinge |
-| Zwillingsklauen | 180 | eine Klaue an jeder Hand: Jeder Angriff trifft zweimal (0,5 Schaden pro Klaue, 1 pro Klaue bei einem starken Schlag), sehr schnell, kurze Reichweite, halb so viel Seele pro Klaue | Blutung: ein getroffener Gegner verliert eine Sekunde später noch 1 Leben |
+| Zwillingsklauen | 180 | eine Klaue an jeder Hand: Jeder Angriff trifft zweimal (0,5 Schaden pro Klaue, 0,75 pro Klaue bei einem starken Schlag), sehr schnell, kurze Reichweite, halb so viel Seele pro Klaue | Blutung: Jeder Klauenhieb hat 20 % Chance (50 % mit dem Blutzahn), dass der Gegner eine Sekunde später noch 1 Leben verliert |
 | Dornenpeitsche | 150 | sehr große Reichweite nach vorn und oben, etwas langsamer | zieht kleine Gegner heran |
 | Ambosshammer | 220 | langsam, +1 Schaden, starker Rückstoß, betäubt | der Abschlussschlag sendet zu beiden Seiten eine Schockwelle (steigt Stufen hinauf) |
 | Mondsterne (Shuriken) | 260 | Fernkampf; Abschluss = 3 Sterne, Wirbel = 8 im Kreis, Ausfall = ein großer durchbohrender Stern | kehren wie ein Bumerang zurück und treffen erneut |
@@ -352,6 +352,7 @@ weitere finden (goldene Ringe) oder kaufen. Die Ausrüstung lässt sich nur **au
 | Spürnase des Plünderers | 1 | Grottentruhen und Verstecke: +60 % Splitter |
 | Kletterknoten | 1 | Seilwinden doppelt so schnell; die erste Fahrt mit jeder Winde gibt 33 Seele |
 | Letzter Atemzug | 3 | ein tödlicher Treffer lässt dich mit 1 Maske überleben, einmal pro Zone |
+| Blutzahn | 2 | +30 % Chance auf Blutung bei jedem Treffer, mit jeder Waffe (1 Schaden eine Sekunde später); 50 % mit den Zwillingsklauen St. 2 |
 
 Die Wirkungen sind in `scripts/charms.gd` definiert und werden in `scripts/player.gd` angewendet.
 

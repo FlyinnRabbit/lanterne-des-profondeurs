@@ -21,6 +21,7 @@ const SOUL_HARVEST := 16
 const PLUNDERER := 17
 const CLIMBER := 18
 const LAST_BREATH := 19
+const BLOOD_FANG := 20
 
 const CHARMS := [
 	{"name": "Aiguille Longue", "cost": 2, "color": Color(0.75, 0.85, 1.0),
@@ -63,4 +64,6 @@ const CHARMS := [
 		"desc": "Les treuils hissent deux fois plus vite ; la première remontée de chaque treuil rend 33 d'âme."},
 	{"name": "Dernier Souffle", "cost": 3, "color": Color(1.0, 0.45, 0.45),
 		"desc": "Un coup fatal te laisse à 1 masque au lieu de te vaincre, une fois par niveau."},
+	{"name": "Croc Sanglant", "cost": 2, "color": Color(0.9, 0.3, 0.38),
+		"desc": "+30 % de chances de faire saigner à chaque coup, avec toutes les armes (1 dégât une seconde plus tard). Avec les Griffes niv. 2 : 50 %."},
 ]

@@ -30,7 +30,7 @@ keeps the shards you dropped where you fell, and the lift remembers how deep you
 - **9 biomes**; levels are generated anew on every descent, with grottos, three-storey strata and winches
 - **10 bosses**: 6 tier guardians and 4 final bosses, each with a phase 2 and its own music
 - **Combat**: 3-hit combos, charged whirl, air combo, pogo, plunge attack, dash thrust, parry (a perfect parry makes your next hit critical), soul blade, ultimate
-- **5 weapons** upgraded by the smith (the Twin Claws are worn on both hands), **20 charms**
+- **5 weapons** upgraded by the smith (the Twin Claws are worn on both hands), **21 charms**
 - **The Sanctuary**: merchant, arsenal, smith, cartographer, seamstress (53 cosmetics), elder and four yearly festivals
 - **4 difficulties** plus a one-life mode, curses, a **Daily Descent** with an online leaderboard, and a **Boss Rush**
 - English, French, Spanish and German; keyboard and Xbox controller; browser, Windows, macOS, Linux and Steam Deck; automatic updates
@@ -317,7 +317,7 @@ platform, blade corridors.
 | Weapon | Price | Style | Level 2 (smith) |
 |---|---|---|---|
 | Watcher's Needle | — | balanced | the finisher throws a short air blade |
-| Twin Claws | 180 | one claw on each hand: every attack strikes twice (0.5 damage per claw, 1 per claw on a power hit), very fast, short reach, half the soul per claw | bleeding: an enemy hit loses 1 more health a second later |
+| Twin Claws | 180 | one claw on each hand: every attack strikes twice (0.5 damage per claw, 0.75 per claw on a power hit), very fast, short reach, half the soul per claw | bleeding: each claw strike has a 20% chance (50% with the Blood Fang) to make the enemy lose 1 more health a second later |
 | Bramble Whip | 150 | very long reach ahead and upwards, a little slower | pulls small enemies towards you |
 | Anvil Hammer | 220 | slow, +1 damage, big knockback, stuns | the finisher sends a shockwave both ways |
 | Moon Stars (shurikens) | 260 | ranged; finisher = 3 stars, whirlwind = 8 in a circle, thrust = a large piercing star | they return like a boomerang and hit again |
@@ -352,6 +352,7 @@ to find in the levels. Each charm costs notches; you start with 3, and more can 
 | Plunderer's Nose | 1 | grotto chests and hidden caches give 60% more shards |
 | Climber's Knot | 1 | winches hoist twice as fast; the first ride up each winch restores 33 soul |
 | Last Breath | 3 | a fatal blow leaves you at 1 mask instead, once per level |
+| Blood Fang | 2 | +30% chance to cause bleeding with every hit, with any weapon (1 damage a second later); 50% with Twin Claws lv. 2 |
 
 Effects are defined in `scripts/charms.gd` and applied in `scripts/player.gd`.
 
