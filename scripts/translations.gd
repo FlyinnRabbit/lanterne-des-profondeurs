@@ -1,6 +1,7 @@
 # Fichier généré par tools/translations.py — ne pas modifier à la main.
 const T := {
 	"en": {
+		"Nouveau record : +%d éclats !": "New record: +%d shards!",
 		"Première victoire : +1 encoche d'emblème !": "First victory: +1 charm notch!",
 		" — 1re victoire : +1 encoche": " — first win: +1 notch",
 		"Version %s": "Version %s",
@@ -630,6 +631,7 @@ const T := {
 		"Clavier :": "Keyboard:",
 	},
 	"es": {
+		"Nouveau record : +%d éclats !": "¡Nuevo récord: +%d esquirlas!",
 		"Première victoire : +1 encoche d'emblème !": "Primera victoria: ¡+1 muesca de emblema!",
 		" — 1re victoire : +1 encoche": " — 1.ª victoria: +1 muesca",
 		"Version %s": "Versión %s",
@@ -1259,6 +1261,7 @@ const T := {
 		"Clavier :": "Teclado:",
 	},
 	"de": {
+		"Nouveau record : +%d éclats !": "Neuer Rekord: +%d Splitter!",
 		"Première victoire : +1 encoche d'emblème !": "Erster Sieg: +1 Emblemkerbe!",
 		" — 1re victoire : +1 encoche": " — erster Sieg: +1 Kerbe",
 		"Version %s": "Version %s",

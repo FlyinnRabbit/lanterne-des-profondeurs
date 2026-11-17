@@ -204,7 +204,7 @@ Depuis l'ascenseur, on peut aussi :
 - jouer la **Descente du jour** (même niveau pour tout le monde, meilleur temps), avec un **classement en
   ligne** par difficulté : ton temps est envoyé à la fin avec le pseudo que tu choisis (Ascenseur →
   « Classement du jour »), et tu vois le top 10 et ton rang. L'envoi se coupe sur le même écran ;
-- relever le **Défi des boss** (boss à la chaîne, chronométré) une fois le palier 6 terminé : +300 éclats à chaque fois, et une encoche d'emblème à la première victoire.
+- relever le **Défi des boss** (boss à la chaîne, chronométré) une fois le palier 6 terminé : +600 éclats à chaque fois, +200 de plus en battant ton meilleur temps, et une encoche d'emblème à la première victoire.
 
 Il y a 29 **succès**, consultables depuis l'écran-titre ou le menu pause.
 

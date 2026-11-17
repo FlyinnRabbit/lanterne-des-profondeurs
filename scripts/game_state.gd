@@ -176,7 +176,8 @@ const CURSES := {
 	"dark": {"name": "Obscurité", "desc": "La lumière se réduit autour de toi. Éclats +50 %.", "geo": 1.5},
 	"fragile": {"name": "Fragilité", "desc": "Impossible de se soigner avec l'âme. Éclats +60 %.", "geo": 1.6},
 }
-const RUSH_REWARD := 300
+const RUSH_REWARD := 600
+const RUSH_RECORD_BONUS := 200    # en battant son meilleur temps
 const RUSH_ORDER := ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre", "cerbere", "centaure", "oeil"]
 var curse := ""
 var daily := false
@@ -309,12 +310,13 @@ func go_next_level(player) -> void:
 		if rush_i >= RUSH_ORDER.size():
 			var t := float(Achievements.run.get("time", 0.0))
 			var best := float(Achievements.counters.get("rush_best", 0.0))
+			var record_beaten := best > 0.0 and t < best      # (le premier temps n'est pas un record battu)
 			if best <= 0.0 or t < best:
 				Achievements.counters["rush_best"] = t
 				Achievements.save()
 			Achievements.unlock("rush")
 			_end_special()
-			prog["geo"] = int(prog.get("geo", 0)) + RUSH_REWARD     # récompense gardée
+			prog["geo"] = int(prog.get("geo", 0)) + RUSH_REWARD + (RUSH_RECORD_BONUS if record_beaten else 0)     # récompense gardée
 			# première victoire dans cette partie : une encoche d'emblème en plus
 			var first: bool = not bool(prog.get("rush_cleared", false))
 			if first:
@@ -322,6 +324,8 @@ func go_next_level(player) -> void:
 				prog["notches"] = int(prog["notches"]) + 1
 			snapshot = prog.duplicate(true)
 			pending_message = tr("Défi des boss terminé en %d:%02d !") % [int(t) / 60, int(t) % 60] + "  " + tr("+%d éclats") % RUSH_REWARD + "\n" + tr("Meilleur temps : %d:%02d") % [int(Achievements.counters["rush_best"]) / 60, int(Achievements.counters["rush_best"]) % 60]
+			if record_beaten:
+				pending_message += "\n" + tr("Nouveau record : +%d éclats !") % RUSH_RECORD_BONUS
 			if first:
 				pending_message += "\n" + tr("Première victoire : +1 encoche d'emblème !")
 			save_game()

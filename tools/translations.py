@@ -2,6 +2,7 @@
 # Lancer : python3 tools/translations.py  -> génère scripts/translations.gd
 import json, os
 T = {
+"Nouveau record : +%d éclats !": ("New record: +%d shards!", "¡Nuevo récord: +%d esquirlas!", "Neuer Rekord: +%d Splitter!"),
 "Première victoire : +1 encoche d'emblème !": ("First victory: +1 charm notch!", "Primera victoria: ¡+1 muesca de emblema!", "Erster Sieg: +1 Emblemkerbe!"),
 " — 1re victoire : +1 encoche": (" — first win: +1 notch", " — 1.ª victoria: +1 muesca", " — erster Sieg: +1 Kerbe"),
 "Version %s": ("Version %s", "Versión %s", "Version %s"),
