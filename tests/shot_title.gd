@@ -11,6 +11,8 @@ func _run() -> void:
 	var st = root.get_node("Settings")
 	var args := OS.get_cmdline_user_args()
 	var lang: String = args[0] if args.size() > 0 else "fr"
+	if args.size() > 1:
+		st.title_scene = int(args[1])
 	st.set_value("language", ["", "fr", "en", "es", "de"].find(lang))
 	# une partie sauvegardée pour avoir « Continuer »
 	gs.new_game(true, 2, 2, false)
@@ -25,7 +27,7 @@ func _run() -> void:
 	await _f(12)
 	root.get_viewport().get_texture().get_image().save_png("/tmp/menu/title_intro_%s.png" % lang)
 	await _f(70)
-	root.get_viewport().get_texture().get_image().save_png("/tmp/menu/title_%s.png" % lang)
+	root.get_viewport().get_texture().get_image().save_png("/tmp/menu/title_%s_%d.png" % [lang, st.title_scene])
 	for k in 2:
 		var ev := InputEventKey.new()
 		ev.keycode = KEY_DOWN

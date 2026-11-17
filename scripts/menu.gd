@@ -182,10 +182,22 @@ func _build_title(root: Control) -> void:
 	foot.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	foot.offset_left = 70
 	foot.offset_right = 600
-	foot.offset_top = -78
+	foot.offset_top = -110
 	foot.offset_bottom = -18
 	foot.alignment = BoxContainer.ALIGNMENT_END
 	wrap.add_child(foot)
+	# l'option « écran titre animé », aussi réglable directement ici
+	anim_item = _item("", func():
+		Settings.set_value("menu_anim", not Settings.menu_anim)
+		if option_widgets.has("menu_anim"):
+			option_widgets["menu_anim"].set_pressed_no_signal(Settings.menu_anim)
+		_refresh_anim_item())
+	anim_item.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	anim_item.add_theme_font_size_override("font_size", 14)
+	anim_item.add_theme_color_override("font_color", Color(0.55, 0.58, 0.68))
+	foot.add_child(anim_item)
+	_refresh_anim_item()
+	Settings.changed.connect(_refresh_anim_item)
 	upd_button = _item("", _on_update_pressed)
 	upd_button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	upd_button.add_theme_font_size_override("font_size", 15)
@@ -200,6 +212,11 @@ func _build_title(root: Control) -> void:
 	title_items.append(foot)
 	Updater.changed.connect(_refresh_update)
 	_refresh_update()
+
+var anim_item: Button
+func _refresh_anim_item() -> void:
+	if anim_item:
+		anim_item.text = tr("Animations de l'écran titre : %s") % (tr("oui") if Settings.menu_anim else tr("non"))
 
 # Entrée du menu titre : du texte seul, un losange doré devant l'entrée choisie qui glisse un peu
 var title_items := []
@@ -573,6 +590,7 @@ shader_type canvas_item;
 uniform vec2 rect_size = vec2(1280.0, 720.0);
 uniform vec2 lamp = vec2(870.0, 300.0);
 uniform float breath = 1.0;
+uniform float reveal = 1.0;
 void fragment() {
 	vec2 p = UV * rect_size;
 	float h = rect_size.y;
@@ -581,7 +599,7 @@ void fragment() {
 	vec2 d = (p - (lamp + vec2(0.0, h * 0.40))) / vec2(h * 0.62, h * 0.46);
 	float cone = 1.0 - smoothstep(0.30, 1.0, length(d));
 	float light = clamp(max(cone * 0.92, halo * 0.75) * breath, 0.0, 1.0);
-	float a = 1.0 - light;
+	float a = 1.0 - light * reveal;
 	// colonne de gauche : nuit profonde pour lire le menu
 	float col = smoothstep(rect_size.x * 0.52, rect_size.x * 0.22, p.x);
 	a = max(a, col * 0.96);
@@ -591,6 +609,7 @@ void fragment() {
 }
 """
 	var t := 0.0
+	var breath := 1.0
 	var veil: ColorRect
 	var mat: ShaderMaterial
 	func _ready() -> void:
@@ -613,7 +632,9 @@ void fragment() {
 		var anim: bool = Settings.menu_anim
 		mat.set_shader_parameter("rect_size", size)
 		mat.set_shader_parameter("lamp", _lamp())
-		mat.set_shader_parameter("breath", (0.96 + 0.04 * sin(t * 1.7) + 0.02 * sin(t * 6.1)) if anim else 1.0)
+		breath = (0.96 + 0.04 * sin(t * 1.7) + 0.02 * sin(t * 6.1)) if anim else 1.0
+		mat.set_shader_parameter("breath", breath)
+		mat.set_shader_parameter("reveal", 1.0 if int(Settings.title_scene) == 0 else 0.0)
 		queue_redraw()
 	func _draw() -> void:
 		var anim: bool = Settings.menu_anim
@@ -625,6 +646,9 @@ void fragment() {
 		var flick := (0.92 + 0.08 * sin(tt * 17.0) * sin(tt * 7.3)) if anim else 1.0
 		var GLOW := Color(1.0, 0.72, 0.36)
 		var BRASS := Color(0.72, 0.58, 0.32)
+		match int(Settings.title_scene):
+			1: _village_troglo(tt)
+			2: _village_hameau(tt)
 		# rayons qui descendent
 		for i in 9:
 			var ang := PI / 2.0 + (i - 4) * 0.2 + sin(tt * 0.5 + i) * 0.03
@@ -655,6 +679,167 @@ void fragment() {
 			var s := fposmod(tt * (0.06 + fposmod(i * 0.137, 0.05)) + i * 0.31, 1.0)
 			var p := c + Vector2(sin(i * 3.1 + tt * 0.8) * (30.0 + i * 9.0), 30.0 - s * size.y * 0.55)
 			draw_circle(p, 1.6 * (1.0 - s) + 0.4, Color(1.0, 0.7, 0.3, (1.0 - s) * 0.8))
+
+	# ---- éclairage d'un point par la Lanterne (même forme que le voile)
+	func lit(p: Vector2) -> float:
+		var c := _lamp()
+		var h := size.y
+		var halo := 1.0 - smoothstep(0.0, h * 0.42, p.distance_to(c))
+		var d := (p - (c + Vector2(0, h * 0.40))) / Vector2(h * 0.62, h * 0.46)
+		var cone := 1.0 - smoothstep(0.30, 1.0, d.length())
+		var col := smoothstep(size.x * 0.52, size.x * 0.22, p.x)
+		return clampf(maxf(cone * 0.95, halo * 0.8) * breath, 0.0, 1.0) * (1.0 - col * 0.9)
+	func shade(col: Color, p: Vector2, amb := 0.08) -> Color:
+		var night := Color(0.02, 0.018, 0.03)
+		var l := maxf(lit(p), amb)
+		var warm := col.lerp(Color(1.0, 0.75, 0.45), 0.12 * l)
+		return night.lerp(warm, l)
+	func spoly(pts: PackedVector2Array, col: Color) -> void:
+		var cc := Vector2.ZERO
+		for q in pts:
+			cc += q
+		draw_colored_polygon(pts, shade(col, cc / pts.size()))
+	func srect(r: Rect2, col: Color) -> void:
+		draw_rect(r, shade(col, r.get_center()))
+	func window(r: Rect2, tt: float, k: int) -> void:
+		var fl := 0.85 + 0.15 * sin(tt * (3.0 + k % 3) + k * 1.7)
+		DU.glow(self, r.get_center(), r.size.x * 1.8, Color(1.0, 0.7, 0.35), 0.35 * fl)
+		draw_rect(r, Color(1.0, 0.78, 0.42).lerp(Color(1.0, 0.9, 0.6), 0.3 * fl))
+		draw_line(r.position + Vector2(r.size.x / 2.0, 0), r.position + Vector2(r.size.x / 2.0, r.size.y), Color(0.25, 0.15, 0.08), 1.2)
+		draw_line(r.position + Vector2(0, r.size.y / 2.0), r.position + Vector2(r.size.x, r.size.y / 2.0), Color(0.25, 0.15, 0.08), 1.2)
+	func garland(a: Vector2, b: Vector2, sag: float, tt: float, k: int) -> void:
+		var pts := PackedVector2Array()
+		for i in 13:
+			var u := i / 12.0
+			pts.append(a.lerp(b, u) + Vector2(0, sin(u * PI) * sag))
+		draw_polyline(pts, Color(0.12, 0.09, 0.07), 1.2)
+		for i in range(1, 12, 2):
+			var p := pts[i] + Vector2(0, 3)
+			var f := 0.7 + 0.3 * sin(tt * 2.5 + i + k)
+			DU.glow(self, p, 7.0, Color(1.0, 0.75, 0.4), 0.45 * f)
+			draw_circle(p, 1.8, Color(1.0, 0.85, 0.5))
+
+	# ---- modèle 1 : village troglodyte creusé dans la paroi, fenêtres allumées, guirlandes
+	func _village_troglo(tt: float) -> void:
+		var w := size.x
+		var h := size.y
+		var x0 := w * 0.36
+		var rock := Color(0.24, 0.19, 0.16)
+		# paroi du fond, irrégulière
+		var wx := w * 0.2
+		var wall := PackedVector2Array([Vector2(wx, h)])
+		for i in 15:
+			var u := i / 14.0
+			wall.append(Vector2(wx + u * (w - wx), h * 0.5 + sin(u * 11.0) * 22.0 + sin(u * 31.0) * 8.0 - sin(u * PI) * 40.0))
+		wall.append(Vector2(w, h))
+		spoly(wall, rock.darkened(0.25))
+		# trois rangées de maisons creusées, en gradins
+		var rows := [[h * 0.66, 0.85], [h * 0.78, 0.95], [h * 0.9, 1.05]]
+		var k := 0
+		for ri in rows.size():
+			var gy: float = rows[ri][0]
+			var sc: float = rows[ri][1]
+			# corniche de la rangée
+			spoly(PackedVector2Array([Vector2(x0 + 20 - ri * 30, gy), Vector2(w, gy), Vector2(w, gy + 10), Vector2(x0 + 10 - ri * 30, gy + 10)]), rock.lightened(0.12))
+			var x := x0 + 60.0 + ri * 40.0 - ri * 30.0
+			while x < w - 40.0:
+				var hw := (54.0 + float((k * 37) % 30)) * sc
+				var hh := (62.0 + float((k * 53) % 26)) * sc
+				var r := Rect2(x, gy - hh, hw, hh)
+				srect(r, rock.lightened(0.05 + 0.04 * (k % 3)))
+				# linteau et porte en arc
+				srect(Rect2(r.position + Vector2(-4, -6), Vector2(hw + 8, 8)), rock.lightened(0.2))
+				var door := Rect2(x + hw * 0.18, gy - hh * 0.55, hw * 0.28, hh * 0.55)
+				srect(door, Color(0.1, 0.07, 0.06))
+				draw_arc(door.position + Vector2(door.size.x / 2.0, 0), door.size.x / 2.0, PI, TAU, 10, shade(rock.lightened(0.25), door.get_center()), 2.0)
+				if k % 4 != 3:
+					window(Rect2(x + hw * 0.6, gy - hh * 0.72, hw * 0.24, hh * 0.24), tt, k)
+				else:
+					srect(Rect2(x + hw * 0.6, gy - hh * 0.72, hw * 0.24, hh * 0.24), Color(0.08, 0.06, 0.06))
+				# petite cheminée qui fume
+				if k % 3 == 1:
+					var cx := x + hw * 0.78
+					srect(Rect2(cx, gy - hh - 16, 9, 12), rock.lightened(0.1))
+					for j in 4:
+						var u := fposmod(tt * 0.25 + j * 0.25 + k * 0.1, 1.0)
+						draw_circle(Vector2(cx + 4 + sin(u * 6.0 + k) * 6.0, gy - hh - 18 - u * 60.0), 4.0 + u * 7.0, Color(0.55, 0.5, 0.48, 0.18 * (1.0 - u) * maxf(lit(Vector2(cx, gy - hh)), 0.3)))
+				x += hw + 26.0 + float((k * 29) % 22)
+				k += 1
+			# escalier vers la rangée suivante
+			if ri < 2:
+				var sx := x0 + 30.0 + ri * 140.0
+				for st in 6:
+					srect(Rect2(sx + st * 9.0, gy + 10 + st * (h * 0.12 / 6.0), 12, 5), rock.lightened(0.15))
+		# guirlandes entre les maisons
+		garland(Vector2(x0 + 70, h * 0.6), Vector2(w * 0.95, h * 0.58), 26.0, tt, 1)
+		garland(Vector2(x0 + 40, h * 0.73), Vector2(w * 0.9, h * 0.71), 20.0, tt, 2)
+		# brume au sol
+		for i in 3:
+			var y := h * (0.86 + i * 0.05)
+			DU.vgrad(self, Rect2(x0 - 100, y, w - x0 + 100, 40), Color(0.6, 0.45, 0.3, 0.0), Color(0.6, 0.45, 0.3, 0.06 * maxf(lit(Vector2(w * 0.7, y)), 0.2)))
+
+	# ---- modèle 2 : hameau de bois sur pilotis accroché aux corniches, ponts de corde et lanternes
+	func _village_hameau(tt: float) -> void:
+		var w := size.x
+		var h := size.y
+		var x0 := w * 0.38
+		var rock := Color(0.2, 0.17, 0.16)
+		var wood := Color(0.42, 0.28, 0.17)
+		# silhouette de stalagmites au loin
+		for i in 9:
+			var bx := x0 + i * (w - x0) / 8.0
+			var th := 140.0 + float((i * 61) % 90)
+			spoly(PackedVector2Array([Vector2(bx - 40, h), Vector2(bx, h - th - h * 0.25), Vector2(bx + 40, h)]), rock.darkened(0.4))
+		# corniches rocheuses à plusieurs hauteurs
+		var ledges := [[x0 + 30.0, w * 0.6, h * 0.7], [w * 0.62, w * 0.86, h * 0.62], [w * 0.8, w, h * 0.78], [x0 - 20.0, w, h * 0.92]]
+		for L in ledges:
+			var a: float = L[0]
+			var b: float = L[1]
+			var y: float = L[2]
+			spoly(PackedVector2Array([Vector2(a, y), Vector2(b, y), Vector2(b - 10, y + 22), Vector2((a + b) / 2.0, y + 46), Vector2(a + 14, y + 20)]), rock)
+			draw_line(Vector2(a, y), Vector2(b, y), shade(Color(0.55, 0.45, 0.25), Vector2((a + b) / 2.0, y)), 2.0)
+		# maisons de bois sur pilotis, toits pointus
+		var houses := [[x0 + 70.0, h * 0.7, 1.0], [x0 + 190.0, h * 0.7, 0.85], [w * 0.66, h * 0.62, 0.95], [w * 0.88, h * 0.78, 1.05], [w * 0.52, h * 0.92, 1.1], [w * 0.74, h * 0.92, 0.9]]
+		var k := 0
+		for H in houses:
+			var hx: float = H[0]
+			var gy: float = H[1]
+			var sc: float = H[2]
+			var hw := 70.0 * sc
+			var hh := 52.0 * sc
+			var by := gy - 14.0 * sc
+			for px in [6.0, hw - 10.0]:
+				srect(Rect2(hx + px, by, 4, gy - by + 4), wood.darkened(0.3))
+			srect(Rect2(hx, by - hh, hw, hh), wood)
+			for j in int(hh / 8.0):
+				draw_line(Vector2(hx, by - hh + j * 8.0), Vector2(hx + hw, by - hh + j * 8.0), shade(wood.darkened(0.25), Vector2(hx + hw / 2.0, by - hh / 2.0)), 1.0)
+			spoly(PackedVector2Array([Vector2(hx - 8, by - hh), Vector2(hx + hw / 2.0, by - hh - 34.0 * sc), Vector2(hx + hw + 8, by - hh)]), Color(0.3, 0.2, 0.22))
+			srect(Rect2(hx + hw * 0.12, by - hh * 0.62, hw * 0.22, hh * 0.62), Color(0.12, 0.08, 0.06))
+			window(Rect2(hx + hw * 0.55, by - hh * 0.7, hw * 0.24, hh * 0.3), tt, k)
+			# cheminée et fumée
+			var cx := hx + hw * 0.72
+			srect(Rect2(cx, by - hh - 30.0 * sc, 8, 20), Color(0.3, 0.26, 0.24))
+			for j in 4:
+				var u := fposmod(tt * 0.22 + j * 0.25 + k * 0.17, 1.0)
+				draw_circle(Vector2(cx + 4 + sin(u * 5.0 + k) * 7.0, by - hh - 34.0 * sc - u * 70.0), 4.0 + u * 8.0, Color(0.55, 0.5, 0.48, 0.18 * (1.0 - u) * maxf(lit(Vector2(cx, by - hh)), 0.3)))
+			k += 1
+		# ponts de corde entre les corniches, avec leurs lanternes
+		for B in [[Vector2(w * 0.6, h * 0.7), Vector2(w * 0.62, h * 0.62)], [Vector2(w * 0.86, h * 0.62), Vector2(w * 0.8, h * 0.78)]]:
+			var a2: Vector2 = B[0]
+			var b2: Vector2 = B[1]
+			var pts := PackedVector2Array()
+			for i in 11:
+				var u := i / 10.0
+				pts.append(a2.lerp(b2, u) + Vector2(0, sin(u * PI) * 16.0))
+			for i in 10:
+				draw_line(pts[i] + Vector2(0, 2), pts[i + 1] + Vector2(0, 2), shade(wood.darkened(0.2), pts[i]), 3.0)
+			draw_polyline(pts, shade(Color(0.5, 0.42, 0.3), a2), 1.0)
+		garland(Vector2(x0 + 40, h * 0.56), Vector2(w * 0.97, h * 0.5), 34.0, tt, 3)
+		# lucioles
+		for i in 12:
+			var p := Vector2(x0 + fposmod(i * 97.0 + tt * 12.0 * (1 + i % 3), w - x0), h * 0.55 + fposmod(i * 53.0, h * 0.4) + sin(tt * 1.5 + i) * 10.0)
+			var a3 := 0.5 + 0.5 * sin(tt * 3.0 + i * 2.0)
+			DU.glow(self, p, 6.0, Color(0.9, 1.0, 0.6), 0.4 * a3)
 
 func _centered_panel(root: Control) -> PanelContainer:
 	var center := CenterContainer.new()

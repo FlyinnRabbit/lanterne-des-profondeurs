@@ -1,6 +1,8 @@
 # Fichier généré par tools/translations.py — ne pas modifier à la main.
 const T := {
 	"en": {
+		"Animations de l'écran titre : %s": "Title screen animations: %s",
+		"non": "no",
 		"Écran titre animé": "Animated title screen",
 		"%s vaincus": "%s defeated",
 		"%s · temps de jeu : %s": "%s · play time: %s",
@@ -746,6 +748,8 @@ const T := {
 		"Clavier :": "Keyboard:",
 	},
 	"es": {
+		"Animations de l'écran titre : %s": "Animaciones de la pantalla de título: %s",
+		"non": "no",
 		"Écran titre animé": "Pantalla de título animada",
 		"%s vaincus": "%s derrotados",
 		"%s · temps de jeu : %s": "%s · tiempo de juego: %s",
@@ -1491,6 +1495,8 @@ const T := {
 		"Clavier :": "Teclado:",
 	},
 	"de": {
+		"Animations de l'écran titre : %s": "Animationen des Titelbildschirms: %s",
+		"non": "nein",
 		"Écran titre animé": "Animierter Titelbildschirm",
 		"%s vaincus": "%s besiegt",
 		"%s · temps de jeu : %s": "%s · Spielzeit: %s",

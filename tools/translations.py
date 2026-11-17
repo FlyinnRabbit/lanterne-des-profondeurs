@@ -2,6 +2,8 @@
 # Lancer : python3 tools/translations.py  -> génère scripts/translations.gd
 import json, os
 T = {
+"Animations de l'écran titre : %s": ("Title screen animations: %s", "Animaciones de la pantalla de título: %s", "Animationen des Titelbildschirms: %s"),
+"non": ("no", "no", "nein"),
 "Écran titre animé": ("Animated title screen", "Pantalla de título animada", "Animierter Titelbildschirm"),
 "%s vaincus": ("%s defeated", "%s derrotados", "%s besiegt"),
 "%s · temps de jeu : %s": ("%s · play time: %s", "%s · tiempo de juego: %s", "%s · Spielzeit: %s"),
