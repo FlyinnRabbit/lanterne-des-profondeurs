@@ -77,7 +77,15 @@ static func draw_paper(ci: CanvasItem, r: Rect2, seed_v: int, alpha: float = 1.0
 	for q in pts:
 		var k := clampf((q - c).length() / (r.size.length() * 0.5), 0.0, 1.0)
 		cols.append(Color(PAPER.lerp(Color(0.45, 0.32, 0.18), k * k), alpha))
-	ci.draw_polygon(pts, cols)
+	# en éventail depuis le centre : un seul grand polygone échouait parfois à se trianguler
+	# (le papier disparaissait, la carte paraissait translucide)
+	var cc := Color(PAPER, alpha)
+	for i in n:
+		var i2 := (i + 1) % n
+		var tri := PackedVector2Array([c, pts[i], pts[i2]])
+		if absf((pts[i] - c).cross(pts[i2] - c)) < 0.01:
+			continue
+		ci.draw_polygon(tri, PackedColorArray([cc, cols[i], cols[i2]]))
 	var edge := pts.duplicate()
 	edge.append(pts[0])
 	ci.draw_polyline(edge, Color(0.2, 0.11, 0.05, 0.22), 14.0)
@@ -115,7 +123,7 @@ func _draw_map() -> void:
 	var mid := pr.position.x + psz.x / 2.0
 	var piv := pr.get_center()
 	view.draw_set_transform(piv - piv.rotated(-0.025), -0.025)
-	draw_paper(view, pr, int(main.level.get("seed", 0)), 0.78)
+	draw_paper(view, pr, int(main.level.get("seed", 0)), 0.97)
 	var title := tr("Carte") + " — " + tr(main.level["name"])
 	view.draw_string(font, Vector2(pr.position.x, pr.position.y + 38), title, HORIZONTAL_ALIGNMENT_CENTER, psz.x, 24, INK)
 	view.draw_line(Vector2(mid - 150, pr.position.y + 47), Vector2(mid + 150, pr.position.y + 47), Color(INK, 0.6), 1.5)
