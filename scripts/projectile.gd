@@ -174,6 +174,8 @@ func _color() -> Color:
 		"web", "webpatch": return Color(0.9, 0.9, 0.97)
 		"page": return Color(0.95, 0.88, 0.7)
 		"drop": return Color(0.62, 1.0, 0.3)
+		"fruit": return Color(0.95, 0.55, 0.2)
+		"ghostscythe": return Color(0.6, 0.95, 0.85)
 		"slashwave": return Color(0.85, 0.92, 1.0)
 	return Color(0.85, 0.45, 0.95)
 
@@ -194,6 +196,25 @@ func _draw() -> void:
 	if crit and kind == "soulblade":
 		c = Color(1.0, 0.75, 0.35)
 	match kind:
+		"ghostscythe":
+			# lame fantôme de la faux : croissant translucide qui tournoie
+			var rot := t * 14.0
+			DU.glow(self, Vector2.ZERO, radius * 2.2, c, 0.35)
+			for k in 2:
+				var a0 := rot + k * PI
+				draw_arc(Vector2.ZERO, radius, a0, a0 + 2.2, 14, Color(c, 0.55), 6.0)
+				draw_arc(Vector2.ZERO, radius + 1.0, a0, a0 + 2.2, 14, Color(1, 1, 1, 0.85), 1.6)
+			draw_line(Vector2.from_angle(rot) * -radius * 0.6, Vector2.from_angle(rot) * radius * 0.6, Color(0.3, 0.25, 0.25, 0.6), 2.0)
+			return
+		"fruit":
+			# fruit dur qui tournoie, tige et feuille
+			var rot := t * 9.0
+			DU.ball(self, Vector2.ZERO, radius, c)
+			draw_circle(Vector2(-radius * 0.35, -radius * 0.35), radius * 0.3, Color(1, 0.9, 0.7, 0.6))
+			var st := Vector2.from_angle(rot) * radius
+			draw_line(st * 0.8, st * 1.25, Color(0.35, 0.22, 0.12), 1.6)
+			DU.flat(self, PackedVector2Array([st * 1.1, st * 1.1 + Vector2.from_angle(rot + 0.6) * 6.0, st * 1.1 + Vector2.from_angle(rot + 1.2) * 3.0]), Color(0.4, 0.75, 0.3))
+			return
 		"drop":
 			# goutte d'acide en chute : larme étirée par la vitesse, reflet, gouttelettes derrière
 			var st := clampf(vel.y / 500.0, 0.0, 1.0)

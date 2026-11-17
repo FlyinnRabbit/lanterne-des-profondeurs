@@ -290,6 +290,17 @@ static func draw_weapon(ci: CanvasItem, c: Vector2, r: float, id: String, t := 0
 			ci.draw_line(P.call(-9, 11), P.call(5, -3), Color(0.3, 0.2, 0.12), 3.6 * s)
 			ci.draw_line(P.call(-9, 11), P.call(5, -3), Color(0.58, 0.42, 0.27), 1.4 * s)
 			DU.poly(ci, PackedVector2Array([P.call(0, -12), P.call(12, 0), P.call(7, 5), P.call(-5, -7)]), Color(0.6, 0.62, 0.7))
+		"faux":
+			ci.draw_line(P.call(-10, 12), P.call(6, -10), Color(0.28, 0.22, 0.2), 3.0 * s)
+			var blade := PackedVector2Array([P.call(6, -10), P.call(-4, -14), P.call(-12, -9), P.call(-14, -2), P.call(-9, -8), P.call(-2, -11), P.call(5, -8)])
+			DU.flat(ci, blade, Color(0.78, 0.95, 0.9))
+			ci.draw_polyline(PackedVector2Array([P.call(6, -10), P.call(-4, -14), P.call(-12, -9), P.call(-14, -2)]), Color(1, 1, 1, 0.8), 1.0 * s)
+			DU.glow(ci, P.call(-5, -8), 10.0 * s, Color(0.6, 0.95, 0.85), 0.3)
+		"baton":
+			ci.draw_line(P.call(-12, 12), P.call(12, -12), Color(0.12, 0.05, 0.04), 5.0 * s)
+			ci.draw_line(P.call(-12, 12), P.call(12, -12), Color(0.55, 0.16, 0.12), 3.4 * s)
+			for e in [[-12.0, 12.0, 1.0], [12.0, -12.0, -1.0]]:
+				ci.draw_line(P.call(e[0], e[1]), P.call(e[0] + 5.0 * e[2], e[1] - 5.0 * e[2]), Color(1.0, 0.8, 0.35), 4.4 * s)
 		"shuriken":
 			for i in 4:
 				var a := i * PI / 2.0 + t

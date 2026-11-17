@@ -55,6 +55,10 @@ const BossEye = preload("res://scripts/boss_eye.gd")
 const EndingScript = preload("res://scripts/ending.gd")
 const BomberScript = preload("res://scripts/bomber.gd")
 const WeaverScript = preload("res://scripts/weaver.gd")
+const MonkeyScript = preload("res://scripts/monkey.gd")
+const MimicScript = preload("res://scripts/mimic.gd")
+const MothScript = preload("res://scripts/moth.gd")
+const MoleScript = preload("res://scripts/mole.gd")
 const LancerScript = preload("res://scripts/lancer.gd")
 const WraithScript = preload("res://scripts/wraith.gd")
 
@@ -499,6 +503,17 @@ func _spawn_everything() -> void:
 					enemy_spawns.append([LancerScript, _cell_feet(x, y, 40), null, _roll_elite(x, y)])
 				"w":
 					enemy_spawns.append([WeaverScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
+				"n":
+					enemy_spawns.append([MonkeyScript, _cell_feet(x, y, 24), null, _roll_elite(x, y)])
+				"&":
+					enemy_spawns.append([MimicScript, _cell_feet(x, y, 22), null, _roll_elite(x, y)])
+				"p":
+					enemy_spawns.append([MoleScript, _cell_feet(x, y, 24), null, _roll_elite(x, y)])
+				"e":
+					# mites : arrivent par deux ou trois
+					var nm := 2 + int(fposmod(float(x * 7 + y * 3), 2.0))
+					for k in nm:
+						enemy_spawns.append([MothScript, Vector2(x * TILE + 16 + (k - 1) * 22, y * TILE + 16 + (k % 2) * 14), null, _roll_elite(x + k, y)])
 				"r":
 					enemy_spawns.append([WraithScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
 				"K", "Q":
@@ -730,11 +745,12 @@ uniform vec2 center = vec2(0.5);
 uniform float radius = 150.0;
 uniform float soft = 110.0;
 uniform vec2 screen = vec2(1280.0, 720.0);
+uniform float strength = 1.0;
 void fragment() {
 	vec2 p = SCREEN_UV * screen;
 	float d = distance(p, center);
 	float a = smoothstep(radius, radius + soft, d);
-	COLOR = vec4(0.0, 0.0, 0.02, a * 0.94);
+	COLOR = vec4(0.0, 0.0, 0.02, a * 0.94 * strength);
 }
 """
 const VIGNETTE_SHADER := """
@@ -795,6 +811,23 @@ func _make_darkness() -> void:
 	dark_rect.material = mat
 	cl.add_child(dark_rect)
 
+# Mites-éteignoirs : plus elles tournent près du héros, plus la lumière se resserre
+var moth_dim := 0.0
+func _update_moths(delta: float) -> void:
+	var target := 0.0
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.get_script() == MothScript:
+			target += e.dim()
+	target = minf(target, 0.8)
+	moth_dim = move_toward(moth_dim, target, delta * (1.2 if target > moth_dim else 0.6))
+	if GameState.curse == "dark" and GameState.mode == "descent":
+		return
+	if moth_dim > 0.01 and dark_rect == null:
+		_make_darkness()
+	if dark_rect:
+		dark_rect.visible = moth_dim > 0.01
+		(dark_rect.material as ShaderMaterial).set_shader_parameter("strength", moth_dim)
+
 func _update_darkness() -> void:
 	if dark_rect == null or player == null:
 		return
@@ -803,7 +836,8 @@ func _update_darkness() -> void:
 	var sp: Vector2 = player.get_global_transform_with_canvas().origin + Vector2(0, -10) * camera.zoom.x
 	mat.set_shader_parameter("center", sp)
 	mat.set_shader_parameter("screen", vp)
-	mat.set_shader_parameter("radius", 120.0 * camera.zoom.x)
+	var cursed: bool = GameState.curse == "dark" and GameState.mode == "descent"
+	mat.set_shader_parameter("radius", (120.0 if cursed else 150.0 - 40.0 * moth_dim) * camera.zoom.x)
 	mat.set_shader_parameter("soft", 90.0 * camera.zoom.x)
 
 var clock := 0.0   # temps de jeu (suit la vitesse du jeu et la pause)
@@ -828,6 +862,7 @@ func _update_sleep() -> void:
 func _process(delta: float) -> void:
 	if not get_tree().paused:
 		clock += delta
+	_update_moths(delta)
 	_update_darkness()
 	_reveal_t -= delta
 	_update_rooms(delta)
@@ -1220,6 +1255,9 @@ func on_enemy_killed(e, geo: int) -> void:
 		if e.elite:
 			GameState.j_add("elites")
 		GameState.j_mob_kill(String(e.get_script().resource_path.get_file()).get_basename(), e.elite, String(level.get("name", "")))
+	# Faux niv. 2 : chaque ennemi fauché rend 6 d'âme
+	if GameState.weapon() == "faux" and GameState.weapon_level() >= 2 and not e.is_boss:
+		player.soul = mini(player.soul + 6, player.SOUL_MAX)
 	# Récolte d'Âme : chaque ennemi vaincu rend 8 d'âme
 	if player.eq(player.C.SOUL_HARVEST) and not e.is_boss:
 		player.soul = mini(player.soul + 8, player.SOUL_MAX)
@@ -1387,7 +1425,7 @@ func ultimate_blast(pos: Vector2) -> void:
 
 # Journal des dégâts infligés (coin de l'écran)
 const ENEMY_NAMES := {"crawler.gd": "Rampant", "flyer.gd": "Volant", "spitter.gd": "Cracheur", "hopper.gd": "Sauteur",
-	"guard.gd": "Garde", "bomber.gd": "Bulbe", "weaver.gd": "Tisseuse", "lancer.gd": "Lancier", "wraith.gd": "Spectre",
+	"guard.gd": "Garde", "bomber.gd": "Bulbe", "weaver.gd": "Tisseuse", "monkey.gd": "Singe", "mimic.gd": "Mimique", "moth.gd": "Mite", "mole.gd": "Taupe", "lancer.gd": "Lancier", "wraith.gd": "Spectre",
 	"dummy.gd": "Mannequin", "shade.gd": "Ombre"}
 func on_damage_dealt(e, dmg: int) -> void:
 	if player and e.get_script() != DummyScript:

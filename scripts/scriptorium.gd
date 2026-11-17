@@ -23,9 +23,10 @@ var _close_rect := Rect2()
 const PAGES := ["Statistiques de la partie", "Records", "Bestiaire", "Gardiens", "Emblèmes"]
 const PAGE_SUBS := ["tout depuis la création de ta sauvegarde", "tes meilleurs exploits", "les créatures vaincues", "les boss vaincus", "ta collection"]
 
-const MOBS := ["crawler", "flyer", "spitter", "hopper", "guard", "bomber", "weaver", "lancer", "wraith"]
+const MOBS := ["crawler", "flyer", "spitter", "hopper", "guard", "bomber", "weaver", "lancer", "wraith", "monkey", "mimic", "moth", "mole"]
 const MOB_NAMES := {"crawler": "Rampant", "flyer": "Volant", "spitter": "Cracheur", "hopper": "Sauteur", "guard": "Garde",
-	"bomber": "Bulbe", "weaver": "Tisseuse", "lancer": "Lancier", "wraith": "Spectre"}
+	"bomber": "Bulbe", "weaver": "Tisseuse", "lancer": "Lancier", "wraith": "Spectre",
+	"monkey": "Singe", "mimic": "Mimique", "moth": "Mite", "mole": "Taupe"}
 const MOB_DESC := {
 	"crawler": "Patrouille au sol ; quand il te voit, il se ramasse puis charge tête baissée.",
 	"flyer": "Tourne en l'air puis plonge droit sur toi.",
@@ -35,7 +36,11 @@ const MOB_DESC := {
 	"bomber": "Roule vers toi, s'allume… et explose.",
 	"weaver": "Crache une toile qui englue (la ruée l'arrache), tombe sur sa proie puis remonte à son fil.",
 	"lancer": "Se met en garde et lance une longue estocade.",
-	"wraith": "Disparaît et réapparaît près de toi."}
+	"wraith": "Disparaît et réapparaît près de toi.",
+	"monkey": "Bondit partout, lance des fruits durs et te vole des éclats avant de s'enfuir.",
+	"mimic": "Se fait passer pour une cachette au trésor, puis mord et sautille vers toi.",
+	"moth": "Attirée par ta lanterne : en tournant autour de toi, elle assombrit tout.",
+	"mole": "Creuse sous le sol jusqu'à toi, puis jaillit sous tes pieds."}
 const MOB_TIPS := {
 	"crawler": "Un rebond sur sa carapace l'arrête net.",
 	"flyer": "Recule au moment du piqué, puis frappe vers le haut.",
@@ -45,7 +50,11 @@ const MOB_TIPS := {
 	"bomber": "Éloigne-toi dès qu'il clignote : son explosion blesse aussi ses voisins.",
 	"weaver": "Ne t'attarde pas sous les plafonds, puis frappe vers le haut.",
 	"lancer": "Pare son estocade : il reste étourdi un long moment.",
-	"wraith": "Il ne fait mal que lorsqu'il est bien visible."}
+	"wraith": "Il ne fait mal que lorsqu'il est bien visible.",
+	"monkey": "Frappe-le avant qu'il ne file : il rend tout ce qu'il a volé.",
+	"mimic": "Son couvercle tressaille parfois : une vraie cachette ne bouge jamais.",
+	"moth": "Fragile : un coup suffit. Vise-la quand elle s'arrête avant de foncer.",
+	"mole": "Écarte-toi quand le sol se fissure, puis frappe-la pendant qu'elle est sortie."}
 
 const BOSSES := ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre", "cerbere", "centaure", "oeil"]
 const BOSS_NAMES := {"gardien": "Le Gardien du Puits", "abbesse": "L'Abbesse Engloutie", "reine": "La Reine Essaim",
@@ -170,7 +179,7 @@ func _grid_count() -> int:
 	return [0, 0, MOBS.size(), BOSSES.size(), GameState.charm_count()][page]
 
 func _grid_cols() -> int:
-	return [1, 1, 3, 5, 7][page]
+	return [1, 1, 4, 5, 7][page]
 
 # ---------------------------------------------------------------- portraits (vrais ennemis figés)
 func _clear_portraits() -> void:
@@ -234,8 +243,8 @@ func _place_portraits() -> void:
 		if page == 2:
 			if pt[1] >= 0:
 				var cell := _cell_rect(pt[1])
-				n.position = cell.position + Vector2(cell.size.x / 2.0, 52)
-				n.scale = Vector2(1.7, 1.7)
+				n.position = cell.position + Vector2(cell.size.x / 2.0, 42)
+				n.scale = Vector2(1.3, 1.3)
 			else:
 				n.position = Vector2(1000 + (-40 if pt[1] == -1 and portraits.size() > MOBS.size() + 1 else 0) + (50 if pt[1] == -2 else 0), 200)
 				n.scale = Vector2(2.6, 2.6) if pt[1] == -1 else Vector2(2.0, 2.0)
@@ -402,7 +411,7 @@ func _draw_records(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> 
 func _cell_rect(i: int) -> Rect2:
 	match page:
 		2:
-			return Rect2(424 + (i % 3) * 150, 108 + (i / 3) * 160, 142, 150)
+			return Rect2(420 + (i % 4) * 114, 108 + (i / 4) * 120, 110, 114)
 		3:
 			return Rect2(420 + (i % 5) * 92, 112 + (i / 5) * 156, 88, 148)
 		4:
@@ -427,8 +436,8 @@ func _draw_bestiary(c: Control, f: Font, ink: Color, red: Color, soft: Color) ->
 		_sel_frame(c, r, i == sel)
 		var d := _mob_data(MOBS[i])
 		var k := int(d.get("k", 0))
-		c.draw_string(f, r.position + Vector2(0, 116), tr(MOB_NAMES[MOBS[i]]) if k > 0 else "???", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 15, ink)
-		c.draw_string(f, r.position + Vector2(0, 136), (tr("%s vaincus") % fmt_n(k)) if k > 0 else tr("jamais vaincu"), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 12, soft)
+		c.draw_string(f, r.position + Vector2(0, 86), tr(MOB_NAMES[MOBS[i]]) if k > 0 else "???", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 14, ink)
+		c.draw_string(f, r.position + Vector2(0, 104), (tr("%s vaincus") % fmt_n(k)) if k > 0 else tr("jamais vaincu"), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 11, soft)
 	# fiche
 	var id: String = MOBS[sel]
 	var d2 := _mob_data(id)

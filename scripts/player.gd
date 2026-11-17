@@ -560,7 +560,14 @@ func _start_attack(kind: String, adir: Vector2) -> void:
 		"fouet": Audio.sfx("whip", 0.1, -3.0)
 		"marteau": Audio.sfx("hammer", 0.08, -2.0)
 		"shuriken": Audio.sfx("star", 0.15, -4.0)
+		"faux": Audio.sfx("whip", 0.12, -1.0)
+		"baton": Audio.sfx("hammer", 0.2, -9.0)
 		_: Audio.sfx("slash", 0.12, -2.0 if kind == "slash" else 1.0)
+	# bâton : accroupi, l'attaque est un saut à la perche
+	if GameState.weapon() == "baton" and kind == "low" and is_on_floor():
+		velocity.y = JUMP_VELOCITY * 0.95
+		_set_crouch(false)
+		main.spawn_burst(global_position + Vector2(facing * 26.0, SIZE.y / 2.0), Color(0.8, 0.7, 0.5), 8, 140.0)
 	if attack_crit:
 		Audio.sfx("crit", 0.05, -1.0)
 	if wpn["ranged"]:
@@ -570,6 +577,14 @@ func _start_attack(kind: String, adir: Vector2) -> void:
 			"aiguille":
 				main.spawn_projectile(global_position + Vector2(facing * 30, -4), Vector2(facing * 560.0, 0),
 					{"kind": "slashwave", "hostile": false, "radius": 12.0, "life": 0.32, "pierce": true, "damage": nail_damage(), "crit": false})
+			"faux":
+				main.spawn_projectile(global_position + Vector2(facing * 20, -6), Vector2(facing * 420.0, 0),
+					{"kind": "ghostscythe", "hostile": false, "radius": 16.0, "life": 1.4, "pierce": true, "boomerang": true, "damage": nail_damage(), "crit": false})
+			"baton":
+				var feet2 := global_position + Vector2(facing * 70.0, SIZE.y / 2.0 - 4.0)
+				if is_on_floor() and not main.is_solid_at(feet2 + Vector2(0, -12)):
+					main.spawn_projectile(feet2, Vector2(facing * 420.0, 0), {"kind": "wave", "hostile": false, "damage": nail_damage() + 1, "life": 0.6})
+				main.shake(7)
 			"marteau":
 				var feet := global_position + Vector2(0, SIZE.y / 2.0 - 4.0)
 				for d in [-1.0, 1.0]:
@@ -647,6 +662,15 @@ func attack_rect() -> Rect2:
 	if attack_kind == "spin":
 		var rs := SPIN_REACH * reach() * maxf(1.0, float(wpn["w"]) * 0.6)
 		return Rect2(p - Vector2(rs, rs * 0.8), Vector2(rs * 2.0, rs * 1.6))
+	# faux : le coup final est un tourbillon tout autour du héros
+	if attack_kind == "finisher" and GameState.weapon() == "faux":
+		var rf := 74.0 * reach()
+		return Rect2(p - Vector2(rf, rf * 0.85), Vector2(rf * 2.0, rf * 1.6))
+	# bâton niv. 2 : frappe géante, plus large et plus haute
+	if attack_kind == "finisher" and GameState.weapon() == "baton" and GameState.weapon_level() >= 2:
+		var gw := 150.0 * reach()
+		var gx := p.x if facing > 0 else p.x - gw
+		return Rect2(Vector2(gx, p.y - 70.0), Vector2(gw, 94.0))
 	if attack_kind == "air_spin":
 		var ra := 62.0 * reach()
 		return Rect2(p - Vector2(ra, ra), Vector2(ra * 2.0, ra * 2.0))
@@ -917,8 +941,130 @@ func _smear(piv: Vector2, rad: float, a0: float, a1: float, thick: float, col: C
 		draw_polygon(q, cols)
 	draw_polyline(outer, Color(1, 1, 1, 0.7 * k) if pale else Color(col.lightened(0.35), 0.8 * k), 1.4 if pale else 1.0)
 
+# ---------------------------------------------------------------- faux et bâton
+const SCYTHE_HAFT := Color(0.28, 0.22, 0.2)
+const SCYTHE_BLADE := Color(0.78, 0.95, 0.9)
+const STAFF_RED := Color(0.55, 0.16, 0.12)
+const STAFF_GOLD := Color(1.0, 0.8, 0.35)
+
+# lame de faux : croissant effilé, du talon (root) dans la direction d, courbé du côté n
+func _scythe_blade(root: Vector2, d: Vector2, n: Vector2, size: float, col: Color) -> void:
+	var outer := PackedVector2Array()
+	var inner := PackedVector2Array()
+	for i in 9:
+		var u := i / 8.0
+		var curve := sin(u * PI * 0.5)
+		outer.append(root + d * (u * size) + n * (curve * size * 0.55 - u * u * size * 0.15) + n * 3.0 * (1.0 - u))
+		inner.append(root + d * (u * size * 0.92) + n * (curve * size * 0.38 - u * u * size * 0.1))
+	# en quadrilatères : un croissant concave d'un seul tenant se triangule mal
+	for i in 8:
+		var q := PackedVector2Array([outer[i], outer[i + 1], inner[i + 1], inner[i]])
+		if absf((q[1] - q[0]).cross(q[3] - q[0])) + absf((q[2] - q[1]).cross(q[3] - q[1])) < 0.5:
+			continue
+		draw_colored_polygon(q, col)
+	draw_line(root, root + n * 3.0, col.darkened(0.3), 3.0)
+	draw_polyline(outer, Color(1, 1, 1, 0.8), 1.2)
+
+# bâton : tige rouge laquée, embouts dorés cerclés
+func _staff(a: Vector2, b: Vector2, w: float) -> void:
+	var d := (b - a).normalized()
+	draw_line(a, b, Color(0.12, 0.05, 0.04), w + 1.6)
+	draw_line(a, b, STAFF_RED, w)
+	draw_line(a + d.orthogonal() * w * 0.25, b + d.orthogonal() * w * 0.25, STAFF_RED.lightened(0.3), maxf(w * 0.3, 0.8))
+	var cap := minf(9.0, (b - a).length() * 0.18)
+	for e in [[a, d], [b, -d]]:
+		var p0: Vector2 = e[0]
+		var dd: Vector2 = e[1]
+		draw_line(p0, p0 + dd * cap, STAFF_GOLD, w + 1.0)
+		draw_line(p0 + dd * (cap + 1.5), p0 + dd * (cap + 3.0), STAFF_GOLD.darkened(0.15), w + 0.6)
+		draw_circle(p0, (w + 1.0) * 0.5, STAFF_GOLD.lightened(0.2))
+
+func _draw_scythe_attack(r: Rect2, c: Vector2) -> void:
+	var fin := attack_kind == "finisher"
+	var k := clampf(attack_t / (ATTACK_TIME * (1.4 if fin else 1.0)), 0.0, 1.0)
+	var col := Color(1.0, 0.6, 0.25) if attack_crit else (Color(0.85, 1.0, 0.95) if fin else Color(0.55, 0.95, 0.85))
+	var prog := 1.0 - k
+	var ease := 1.0 - pow(1.0 - prog, 3.0)
+	if fin:
+		# tourbillon : la faux fait un tour complet, traînée en anneau
+		var rot := ease * TAU * float(facing)
+		var rad: float = r.size.x * 0.45
+		_smear(Vector2(0, -6), rad, -PI / 2.0, -PI / 2.0 + rot, 16.0, col, k, false)
+		_smear(Vector2(0, -6), rad - 12.0, -PI / 2.0, -PI / 2.0 + rot * 0.85, 7.0, Color(1, 1, 1), k * 0.6)
+		var wd := Vector2.from_angle(-PI / 2.0 + rot)
+		draw_line(Vector2(0, -6) - wd * 10.0, Vector2(0, -6) + wd * (rad - 6.0), SCYTHE_HAFT, 3.0)
+		_scythe_blade(Vector2(0, -6) + wd * (rad - 6.0), wd.orthogonal() * float(facing), -wd, 34.0, SCYTHE_BLADE)
+		DU.glow(self, Vector2(0, -6), rad * (1.1 - k * 0.3), col, 0.22 * k)
+		return
+	# fauchage : grand arc de haut en bas devant soi (ou vertical pour les coups haut/bas)
+	var ang := attack_dir.angle()
+	var piv := Vector2(0, -6)
+	var rad2: float = (46.0 if attack_dir.y == 0.0 else 40.0) * reach()
+	var sweep: float = 1.7 * (float(facing) if attack_dir.y != 0.0 else 1.0)
+	var a0 := ang - sweep
+	var a_now := lerpf(a0, ang + sweep * 0.8, minf(ease * 1.15, 1.0))
+	_smear(piv, rad2, a0, a_now, 18.0, col, k, false)
+	_smear(piv, rad2 - 10.0, a0 + 0.2 * signf(sweep), a_now, 6.0, Color(1, 1, 1), k * 0.5)
+	var wd2 := Vector2.from_angle(a_now)
+	draw_line(piv - wd2 * 8.0, piv + wd2 * rad2, SCYTHE_HAFT, 3.0)
+	_scythe_blade(piv + wd2 * rad2, wd2.orthogonal() * signf(sweep), -wd2, 32.0, SCYTHE_BLADE)
+
+func _draw_staff_attack(r: Rect2, c: Vector2) -> void:
+	var fin := attack_kind == "finisher"
+	var k := clampf(attack_t / (ATTACK_TIME * (1.4 if fin else 1.0)), 0.0, 1.0)
+	var prog := 1.0 - k
+	var col := Color(1.0, 0.6, 0.25) if attack_crit else STAFF_GOLD
+	if fin and GameState.weapon_level() >= 2:
+		# frappe géante : le bâton grandit et s'abat devant soi
+		var e := 1.0 - pow(1.0 - minf(prog * 1.6, 1.0), 3.0)
+		var a := lerpf(-PI / 2.0 - 0.3, 0.05, e)
+		var dirv := Vector2(cos(a) * facing, sin(a))
+		var length: float = r.size.x * 0.95
+		_smear(Vector2(0, -6), length * 0.9, (-PI / 2.0 - 0.3) if facing > 0 else (-PI / 2.0 + 0.3), dirv.angle(), 22.0, col, k * 0.8)
+		_staff(Vector2(0, -6) - dirv * 8.0, Vector2(0, -6) + dirv * length, 6.0)
+		if e >= 1.0:
+			DU.glow(self, Vector2(facing * length * 0.8, SIZE.y / 2.0), 40.0, col, 0.5 * k)
+		return
+	if fin:
+		# finisher : moulinet au-dessus de la tête qui s'abat
+		var a0 := -PI * 0.9
+		var a1 := 0.15
+		var e2 := 1.0 - pow(1.0 - prog, 3.0)
+		var a_now := lerpf(a0, a1, e2)
+		var dv := Vector2(cos(a_now) * facing, sin(a_now))
+		var L: float = r.size.x * 0.9
+		_smear(Vector2(0, -6), L * 0.85, a0 if facing > 0 else PI - a0, dv.angle(), 16.0, col, k)
+		_staff(Vector2(0, -6) - dv * 10.0, Vector2(0, -6) + dv * L, 4.5)
+		return
+	# estoc : le bâton jaillit jusqu'au bout de la zone, puis revient
+	var ext := sin(minf(prog * 1.3, 1.0) * PI * 0.5) * (1.0 - maxf(prog - 0.7, 0.0) / 0.3 * 0.6)
+	var tip: Vector2
+	if attack_dir.y != 0.0:
+		var vlen: float = r.size.y
+		tip = Vector2(0, attack_dir.y * vlen * ext + (-SIZE.y * 0.3 if attack_dir.y < 0 else SIZE.y * 0.3))
+	else:
+		var hl: float = r.size.x
+		tip = Vector2(facing * (SIZE.x / 2.0 + hl * ext), c.y)
+	var back := -tip.normalized() * 14.0
+	_staff(back, tip, 4.0)
+	for i in 3:
+		var u := 0.25 + i * 0.25
+		draw_line(tip * u + tip.orthogonal().normalized() * (4.0 - i * 3.0), tip * (u - 0.18) + tip.orthogonal().normalized() * (4.0 - i * 3.0), Color(col, 0.5 * k), 1.5)
+	DU.glow(self, tip, 10.0, col, 0.35 * k)
+
 func _draw_held(wid: String, bob: float) -> void:
 	match wid:
+		"faux":
+			# faux portée dans le dos : manche en diagonale, lame au-dessus de l'épaule
+			var a := Vector2(-12, 10 + bob)
+			var b := Vector2(-2, -30 + bob)
+			draw_line(a, b, SCYTHE_HAFT, 2.8)
+			draw_line(a, b, SCYTHE_HAFT.lightened(0.25), 1.0)
+			draw_line(b + Vector2(-2, 1), b + Vector2(2, -1), Color(0.6, 0.6, 0.65), 2.4)
+			_scythe_blade(b, Vector2(1, 0.15).normalized(), Vector2(0, 1), 24.0, SCYTHE_BLADE)
+		"baton":
+			# bâton en travers du dos
+			_staff(Vector2(-13, 10 + bob), Vector2(9, -30 + bob), 2.8)
 		"griffes":
 			# une griffe à chaque main : trois lames courbes sur un gantelet, violet pâle.
 			# Main arrière d'abord (plus sombre, lames vers l'arrière), puis main avant.
@@ -1323,6 +1469,12 @@ func _draw() -> void:
 					for i in range(2, 12, 2):
 						draw_line(pts[i], pts[i] + Vector2(-facing * 4.0, -5.0), Color(vine.darkened(0.3), k2), 1.5)   # épines
 					draw_circle(pts[12], 5.0, Color(0.85, 1.0, 0.65, k2))
+					return
+				if GameState.weapon() == "faux":
+					_draw_scythe_attack(r, c)
+					return
+				if GameState.weapon() == "baton":
+					_draw_staff_attack(r, c)
 					return
 				var fin := attack_kind == "finisher"
 				var k := clampf(attack_t / (ATTACK_TIME * (1.4 if fin else 1.0)), 0.0, 1.0)

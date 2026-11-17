@@ -5,7 +5,7 @@
 #  knock  : recul infligé (×)                stagger : étourdit brièvement l'ennemi
 #  ranged : l'arme se lance (projectiles) au lieu de frapper au corps à corps
 
-const ORDER := ["aiguille", "griffes", "fouet", "marteau", "shuriken"]
+const ORDER := ["aiguille", "griffes", "fouet", "marteau", "shuriken", "faux", "baton"]
 
 const W := {
 	"aiguille": {"name": "Aiguille du Veilleur", "price": 0, "color": Color(0.85, 0.9, 1.0),
@@ -23,6 +23,12 @@ const W := {
 	"shuriken": {"name": "Étoiles de Lune", "price": 260, "color": Color(0.75, 0.85, 1.0),
 		"desc": "Shurikens lancés à distance. Coup final : 3 étoiles ; tourbillon : 8 étoiles en cercle (une salve ne touche qu'une fois le même ennemi) ; estoc : grande étoile perçante. Pas de rebond.",
 		"w": 1.0, "h": 1.0, "v": 1.0, "cd": 1.3, "dmg": 0, "knock": 0.6, "stagger": 0.0, "ranged": true},
+	"faux": {"name": "Faux du Glaneur", "price": 240, "color": Color(0.6, 0.95, 0.85),
+		"desc": "Grand arc en demi-lune devant et au-dessus de toi, qui fauche plusieurs ennemis à la fois. Plus lente. Le coup final devient un tourbillon tout autour de toi.",
+		"w": 1.25, "h": 1.5, "v": 1.25, "cd": 1.35, "dmg": 0, "knock": 0.9, "stagger": 0.0, "ranged": false},
+	"baton": {"name": "Bâton Cerclé d'Or", "price": 230, "color": Color(1.0, 0.8, 0.35),
+		"desc": "Long et rapide : un estoc fin qui porte loin devant et en hauteur. Accroupi, l'attaque devient un saut à la perche qui te propulse en l'air.",
+		"w": 1.7, "h": 0.6, "v": 1.5, "cd": 0.95, "dmg": 0, "knock": 1.1, "stagger": 0.0, "ranged": false},
 }
 
 # Améliorations (niveau 2), vendues par la forgeronne une fois le palier 1 terminé
@@ -32,6 +38,8 @@ const UP := {
 	"fouet": {"price": 240, "desc": "Niv. 2 : le fouet attire vers toi les petits ennemis touchés."},
 	"marteau": {"price": 260, "desc": "Niv. 2 : le coup final fait jaillir une onde de choc des deux côtés."},
 	"shuriken": {"price": 280, "desc": "Niv. 2 : les étoiles reviennent comme un boomerang et touchent à nouveau."},
+	"faux": {"price": 260, "desc": "Niv. 2 : chaque ennemi fauché rend de l'âme, et le tourbillon lance une lame fantôme qui revient vers toi."},
+	"baton": {"price": 270, "desc": "Niv. 2 : le coup final s'abat en frappe géante et fait courir une onde au sol devant toi."},
 }
 
 static func get_w(id: String) -> Dictionary:
