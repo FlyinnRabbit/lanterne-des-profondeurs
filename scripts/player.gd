@@ -769,9 +769,14 @@ func attack_rect() -> Rect2:
 		return Rect2(Vector2(tx, p.y - 16), Vector2(tw, 26))
 	if attack_dir == Vector2.UP:
 		var hu := 62.0 * reach() * float(wpn["v"])
+		if wid() == "fouet":
+			hu = _whip_reach_v(-1.0, hu)
 		return Rect2(p + Vector2(-32, -SIZE.y / 2.0 + 4 - hu), Vector2(64, hu))
 	if attack_dir == Vector2.DOWN:
-		return Rect2(p + Vector2(-32, SIZE.y / 2.0 - 6), Vector2(64, 62.0 * reach() * float(wpn["v"])))
+		var hd := 62.0 * reach() * float(wpn["v"])
+		if wid() == "fouet":
+			hd = _whip_reach_v(1.0, hd)
+		return Rect2(p + Vector2(-32, SIZE.y / 2.0 - 6), Vector2(64, hd))
 	var w := 70.0 * reach() * (1.3 if attack_kind == "finisher" else 1.0) * float(wpn["w"])
 	var hgt := 54.0 * (1.25 if attack_kind == "finisher" else 1.0) * float(wpn["h"])
 	if attack_kind == "air_rise":
@@ -787,6 +792,17 @@ func attack_rect() -> Rect2:
 		w = maxf(d, 24.0)
 	var x := p.x + SIZE.x / 2.0 - 4.0 if facing > 0 else p.x - SIZE.x / 2.0 - w + 4.0
 	return Rect2(Vector2(x, p.y - hgt * 0.55), Vector2(w, hgt))
+
+# fouet vertical : un peu plus court qu'à l'horizontale, et la liane s'arrête au plafond ou au sol
+func _whip_reach_v(dir: float, full: float) -> float:
+	var maxd := full * 0.8
+	var y0 := global_position.y + dir * (SIZE.y / 2.0 - 4.0)
+	var d := 0.0
+	while d < maxd:
+		if main.is_solid_at(Vector2(global_position.x, y0 + dir * d)):
+			break
+		d += 6.0
+	return maxf(minf(d, maxd), 14.0)
 
 func _hit_breakables(r: Rect2) -> void:
 	for b in get_tree().get_nodes_in_group("breakables"):
@@ -1593,8 +1609,6 @@ func _draw() -> void:
 					for i in range(2, 12, 2):
 						draw_line(vpts[i], vpts[i] + Vector2(-5.0 if i % 4 == 0 else 5.0, 4.0 if up else -4.0), Color(vine2.darkened(0.3), k3), 1.5)
 					draw_circle(vpts[12], 5.0, Color(0.85, 1.0, 0.65, k3))
-					# petite traînée en arc au bout, pour la lisibilité du coup
-					_smear(Vector2(0, ey * 0.85), 18.0, (PI * 1.2 if up else PI * 0.2), (PI * 1.8 if up else PI * 0.8), 6.0, Color(0.6, 0.85, 0.45), k3, false)
 					return
 				if wid() == "faux":
 					_draw_scythe_attack(r, c)
