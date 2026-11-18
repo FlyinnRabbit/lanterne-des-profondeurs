@@ -1576,6 +1576,26 @@ func _draw() -> void:
 						draw_line(pts[i], pts[i] + Vector2(-facing * 4.0, -5.0), Color(vine.darkened(0.3), k2), 1.5)   # épines
 					draw_circle(pts[12], 5.0, Color(0.85, 1.0, 0.65, k2))
 					return
+				if wid() == "fouet":
+					# fouet vers le haut ou le bas : la liane fouette verticalement jusqu'au bout de la zone
+					var k3 := clampf(attack_t / ATTACK_TIME, 0.0, 1.0)
+					var up := attack_dir.y < 0.0
+					var s0 := Vector2(facing * 6.0, -8.0 if up else 4.0)
+					var ey: float = (r.position.y if up else r.end.y) - global_position.y
+					var lash := 1.0 - pow(k3, 2.0)
+					var vpts := PackedVector2Array()
+					for i in 13:
+						var u := i / 12.0
+						var wave := sin(u * 9.0 + anim_t * 40.0) * 7.0 * (1.0 - u)
+						vpts.append(Vector2(s0.x * (1.0 - u) + wave, lerpf(s0.y, lerpf(s0.y, ey, lash), u)))
+					var vine2 := Color(1.0, 0.6, 0.25, k3) if attack_crit else Color(0.6, 0.85, 0.45, k3)
+					draw_polyline(vpts, vine2, 4.0)
+					for i in range(2, 12, 2):
+						draw_line(vpts[i], vpts[i] + Vector2(-5.0 if i % 4 == 0 else 5.0, 4.0 if up else -4.0), Color(vine2.darkened(0.3), k3), 1.5)
+					draw_circle(vpts[12], 5.0, Color(0.85, 1.0, 0.65, k3))
+					# petite traînée en arc au bout, pour la lisibilité du coup
+					_smear(Vector2(0, ey * 0.85), 18.0, (PI * 1.2 if up else PI * 0.2), (PI * 1.8 if up else PI * 0.8), 6.0, Color(0.6, 0.85, 0.45), k3, false)
+					return
 				if wid() == "faux":
 					_draw_scythe_attack(r, c)
 					return
