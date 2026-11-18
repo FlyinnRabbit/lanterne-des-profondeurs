@@ -784,7 +784,7 @@ void fragment() {
 			var l := maxf(lit(pr.position + Vector2(0, -40)), 1.0 - smoothstep(0.0, w * 0.22, pr.position.distance_to(fire)))
 			var v := lerpf(0.18, 1.1, l) * flux
 			pr.modulate = Color(v, v * 0.9, v * 0.76)
-			pr.z_index = 1
+			pr.z_index = 0   # pas au-dessus des fenêtres du menu (choix de difficulté…)
 			if pr.get_script() == null:
 				pr.queue_redraw()
 
