@@ -274,6 +274,7 @@ func reach() -> float:
 var air_dash2_used := false
 var air_jump_used := false
 var veil_cd := 0.0
+var hazard_cd := 0.0    # après une chute dans les pics : pas de second coup avant de s'être remis
 var bark_used := 0
 var sap_kills := 0
 
@@ -354,7 +355,7 @@ func _physics_process(delta: float) -> void:
 	anim_t += delta
 	for t in ["coyote_t", "buffer_t", "dash_t", "dash_cd", "attack_cd", "attack_t", "invuln_t", "knock_t", "recoil_t",
 			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t", "plunge_cd", "plunge_kill_t",
-			"bench_lock_t", "web_t", "grab_t", "veil_cd"]:
+			"bench_lock_t", "web_t", "grab_t", "veil_cd", "hazard_cd"]:
 		set(t, maxf(get(t) - delta, 0.0))
 	if knock.length() > 10.0:
 		# duel : recul infligé par l'adversaire
@@ -670,8 +671,16 @@ func _update_safe_spot() -> void:
 	var feet_y := global_position.y + SIZE.y / 2.0 + 4.0
 	var l := Vector2(global_position.x - SIZE.x, feet_y)
 	var r := Vector2(global_position.x + SIZE.x, feet_y)
-	if main.is_solid_at(l) and main.is_solid_at(r):
+	if main.is_solid_at(l) and main.is_solid_at(r) and not _near_spikes(global_position, 24.0):
 		last_safe = global_position
+
+# le héros posé en pos serait-il dans (ou tout près de) des pics ?
+func _near_spikes(pos: Vector2, margin: float) -> bool:
+	var rr := Rect2(pos - SIZE / 2.0, SIZE).grow(margin)
+	for s in main.spikes:
+		if rr.intersects(s):
+			return true
+	return false
 
 # Utilise le coup critique s'il est prêt
 func _take_crit() -> bool:
@@ -1000,10 +1009,11 @@ func _check_hazards() -> void:
 	if dead:
 		return
 	var r := get_rect().grow(-3)
-	for s in main.spikes:
-		if r.intersects(s):
-			_hazard_respawn()
-			return
+	if hazard_cd <= 0.0:
+		for s in main.spikes:
+			if r.intersects(s):
+				_hazard_respawn()
+				return
 	# Esquive : pendant la ruée on traverse ennemis et projectiles
 	if dash_t > 0.0:
 		return
@@ -1459,10 +1469,23 @@ func _hazard_respawn() -> void:
 	if hp <= 0 and not _last_breath():
 		_die()
 		return
-	global_position = last_safe
+	# repli : si le dernier point sûr touche des pics, retour au départ du niveau (ou au dernier banc)
+	var spot := last_safe
+	if _near_spikes(spot, 6.0):
+		spot = main.respawn_pos
+	global_position = spot
 	velocity = Vector2.ZERO
 	invuln_t = INVULN_TIME
 	knock_t = 0.3
+	hazard_cd = 1.0
+	# la ruée, l'estoc ou le piqué en cours s'arrêtent : avant, une Ruée lancée juste avant la chute
+	# continuait après la réapparition et ramenait le héros dans les pics, plusieurs fois de suite
+	dash_t = 0.0
+	post_dash_t = 0.0
+	thrust_t = 0.0
+	attack_t = 0.0
+	recoil_t = 0.0
+	plunging = false
 
 func _die() -> void:
 	if GameState.mode == "duel":
