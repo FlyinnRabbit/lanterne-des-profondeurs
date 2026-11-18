@@ -18,6 +18,9 @@ var stage: Node2D          # portraits des créatures et des boss
 var portraits := []        # [noeud, id, est_grand]
 var _menu_rects := []
 var _cell_rects := []
+# Emblèmes : liste déroulante (5 rangées de 7 visibles)
+const CHARM_ROWS := 5
+var charm_row0 := 0
 var _close_rect := Rect2()
 
 const PAGES := ["Statistiques de la partie", "Records", "Bestiaire", "Gardiens", "Emblèmes"]
@@ -115,6 +118,7 @@ func open() -> void:
 	page = 0
 	focus_grid = false
 	sel = 0
+	charm_row0 = 0
 	get_tree().paused = true
 	Audio.sfx("door", 0.05, -6.0)
 	_build_portraits()
@@ -422,7 +426,7 @@ func _cell_rect(i: int) -> Rect2:
 		3:
 			return Rect2(420 + (i % 5) * 92, 112 + (i / 5) * 156, 88, 148)
 		4:
-			return Rect2(420 + (i % 7) * 76, 112 + (i / 7) * 104, 72, 98)
+			return Rect2(420 + (i % 7) * 76, 112 + (i / 7 - charm_row0) * 104, 72, 98)
 	return Rect2()
 
 func _sel_frame(c: Control, r: Rect2, on: bool) -> void:
@@ -530,6 +534,9 @@ func _draw_charms(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> v
 		_cell_rects.append(r)
 		_sel_frame(c, r, i == sel)
 		var cc := r.position + Vector2(r.size.x / 2.0, 34)
+		if i / 7 < charm_row0 or i / 7 >= charm_row0 + CHARM_ROWS:
+			_cell_rects[i] = Rect2()      # hors de la zone visible (liste déroulante)
+			continue
 		if GameState.owns(i):
 			CharmIcon.draw(c, cc, 25.0, i, GameState.charm(i)["color"], GameState.has_charm(i), t)
 			var nm := _wrap(tr(GameState.charm(i)["name"]), r.size.x, 11)
@@ -540,6 +547,12 @@ func _draw_charms(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> v
 			c.draw_arc(cc, 24.0, 0.0, TAU, 32, Color(0.6, 0.5, 0.36), 1.5)
 			c.draw_string(f, cc + Vector2(-8, 9), "?", HORIZONTAL_ALIGNMENT_CENTER, 16, 24, Color(0.55, 0.46, 0.33))
 			c.draw_string(f, r.position + Vector2(0, 76), "???", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 11, soft)
+	# flèches de défilement
+	var rows := ceili(n / 7.0)
+	if charm_row0 > 0:
+		c.draw_string(f, Vector2(420, 96), "▲", HORIZONTAL_ALIGNMENT_RIGHT, 7 * 76 - 4, 16, red)
+	if charm_row0 + CHARM_ROWS < rows:
+		c.draw_string(f, Vector2(420, 112 + CHARM_ROWS * 104 + 6), "▼", HORIZONTAL_ALIGNMENT_RIGHT, 7 * 76 - 4, 16, red)
 	# fiche
 	var x := 960.0
 	var w := 210.0
@@ -604,6 +617,7 @@ func _set_page(p: int) -> void:
 		return
 	page = p
 	sel = 0
+	charm_row0 = 0
 	Audio.sfx("door", 0.2, -12.0)
 	_build_portraits()
 
@@ -612,6 +626,13 @@ func _set_sel(i: int) -> void:
 	if i == sel:
 		return
 	sel = i
+	if page == 4:
+		# la sélection reste dans la zone visible
+		var row := sel / 7
+		if row < charm_row0:
+			charm_row0 = row
+		elif row >= charm_row0 + CHARM_ROWS:
+			charm_row0 = row - CHARM_ROWS + 1
 	if page in [2, 3]:
 		_build_portraits()
 
@@ -704,6 +725,11 @@ func _on_gui_input(event: InputEvent) -> void:
 		return
 	var p: Vector2 = (event.position - _off()) / _k()
 	var click: bool = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+	# molette : fait défiler la liste des emblèmes
+	if page == 4 and event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		var maxr := maxi(ceili(_grid_count() / 7.0) - CHARM_ROWS, 0)
+		charm_row0 = clampi(charm_row0 + (1 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1), 0, maxr)
+		return
 	if event is InputEventMouseMotion or click:
 		for i in _menu_rects.size():
 			if _menu_rects[i].has_point(p) and click:

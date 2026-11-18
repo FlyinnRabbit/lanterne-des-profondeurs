@@ -167,7 +167,7 @@ func _draw() -> void:
 	# petite lanterne au sommet du flacon
 	DU.box(self, Rect2(c + Vector2(-6, -r - 12), Vector2(12, 6)), brass)
 	draw_arc(c + Vector2(0, -r - 13), 4.0, PI, TAU, 8, brass, 1.6)
-	if p.soul >= p.FOCUS_COST and p.hp < p.max_hp:
+	if p.soul >= p.focus_cost() and p.hp < p.max_hp:
 		draw_arc(c, r + 10, 0, TAU, 48, Color(soul_c, 0.25 + 0.2 * sin(t * 5.0)), 2.0)
 	# Masques de vie : petits masques peints, qui se fissurent quand ils se vident
 	for i in p.max_hp:

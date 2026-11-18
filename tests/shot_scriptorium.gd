@@ -15,7 +15,7 @@ func _run() -> void:
 	gs.mode = "hub"
 	gs.record = 5
 	gs.unlocked = 6
-	gs.prog["owned"] = [0, 2, 4, 5, 7, 9, 11, 13, 14, 16, 17, 18, 19, 20]
+	gs.prog["owned"] = [0, 2, 4, 5, 7, 9, 11, 13, 14, 16, 17, 18, 19, 20, 21, 23, 25, 28, 30, 33, 36, 38, 40, 41]
 	gs.prog["equipped"] = [7, 19]
 	gs.journal = {"c": {"kills": 1284, "elites": 97, "bosses": 11, "damage": 6930, "crits": 412, "parries": 305, "perfect": 88,
 		"heals": 140, "spells": 63, "ults": 21, "hurt": 389, "deaths": 14, "jumps": 8512, "dashes": 2931, "pogos": 604,
@@ -46,7 +46,7 @@ func _run() -> void:
 		if p == 3:
 			sc._set_sel(7)
 		if p == 4:
-			sc._set_sel(19)
+			sc._set_sel(40)
 		sc.focus_grid = p >= 2
 		await _f(8)
 		root.get_viewport().get_texture().get_image().save_png("/tmp/journal/scr_page%d_%s.png" % [p, lang])

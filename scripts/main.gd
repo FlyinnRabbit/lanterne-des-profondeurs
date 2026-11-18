@@ -1406,6 +1406,11 @@ func spawn_fx(kind: String, pos: Vector2, color := Color(1, 1, 1), dir := Vector
 func on_enemy_killed(e, geo: int) -> void:
 	# l'ombre rend exactement les éclats perdus ; les autres ennemis suivent le barème
 	var gained: int = geo if e.get_script() == ShadeScript else GameState.kill_geo(geo)
+	# Bourse du Marchand : plus d'éclats sur les ennemis
+	if e.get_script() != ShadeScript and player.eq(player.C.MERCHANT_PURSE):
+		gained = roundi(gained * float(player.clv(player.C.MERCHANT_PURSE, [1.2, 1.3, 1.4], 1.0)))
+	if e.get_script() != DummyScript and e.get_script() != ShadeScript and not e.is_boss:
+		player.on_kill_charms()
 	player.geo += gained
 	if e.get_script() != DummyScript and e.get_script() != ShadeScript and not e.is_boss:
 		GameState.j_add("geo_in", gained)
@@ -1561,7 +1566,13 @@ func ultimate_blast(pos: Vector2, caster = null) -> void:
 	var ring := Node2D.new()
 	ring.set_script(RingScript)
 	var ul: Dictionary = GameState.cos.look("ult")
-	ring.radius = ULT_RADIUS
+	# Onde Tonnerre : rayon plus grand (et +1 dégât au niv. 3)
+	var urad := ULT_RADIUS
+	var udmg := ULT_DAMAGE
+	if caster and is_instance_valid(caster) and caster.has_method("clv"):
+		urad *= float(caster.clv(caster.C.THUNDER_WAVE, [1.3, 1.45, 1.6], 1.0))
+		udmg += 1 if caster.cl(caster.C.THUNDER_WAVE) >= 3 else 0
+	ring.radius = urad
 	ring.position = pos
 	ring.style = GameState.cos.eq("ult")
 	ring.c1 = ul["c"]
@@ -1576,10 +1587,10 @@ func ultimate_blast(pos: Vector2, caster = null) -> void:
 			continue
 		var c: Vector2 = e.get_rect().get_center()
 		var ex: float = e.size.x if "size" in e else 20.0
-		if c.distance_to(pos) <= ULT_RADIUS + ex / 2.0:
-			e.take_hit(ULT_DAMAGE, (c - pos).normalized())
+		if c.distance_to(pos) <= urad + ex / 2.0:
+			e.take_hit(udmg, (c - pos).normalized())
 	for pr in get_tree().get_nodes_in_group("projectiles"):
-		if is_instance_valid(pr) and pr.hostile and pr.global_position.distance_to(pos) <= ULT_RADIUS:
+		if is_instance_valid(pr) and pr.hostile and pr.global_position.distance_to(pos) <= urad:
 			pr.pop()
 
 # Journal des dégâts infligés (coin de l'écran)

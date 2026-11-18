@@ -29,22 +29,23 @@ class CharmSlot extends Button:
 	var charm_id := 0
 	func _draw() -> void:
 		var owned: bool = GameState.owns(charm_id)
-		var c := Vector2(size.x / 2.0, size.y / 2.0 - 8.0)
+		# 42 emblèmes : petites cases, icône et encoches à l'échelle de la case
+		var r := size.y * 0.29
+		var c := Vector2(size.x / 2.0, size.y / 2.0 - r * 0.3)
 		if owned:
 			var col: Color = GameState.charm(charm_id)["color"]
 			var eq: bool = GameState.has_charm(charm_id)
-			CharmIcon.draw(self, c, 22.0, charm_id, col, eq, Time.get_ticks_msec() / 1000.0)
+			CharmIcon.draw(self, c, r, charm_id, col, eq, Time.get_ticks_msec() / 1000.0)
 			if eq:
-				draw_arc(c, 25.0, 0.0, TAU, 32, Color(1.0, 0.9, 0.6), 2.0)
+				draw_arc(c, r + 3.0, 0.0, TAU, 32, Color(1.0, 0.9, 0.6), 2.0)
 			# coût en petites encoches
 			var cost: int = GameState.charm(charm_id)["cost"]
 			for i in cost:
-				var np := Vector2(size.x / 2.0 - (cost - 1) * 6.0 + i * 12.0, size.y - 12.0)
-				draw_circle(np, 4.2, Color(0.25, 0.2, 0.1))
-				draw_circle(np, 3.2, Color(1.0, 0.88, 0.55))
-				draw_circle(np + Vector2(-1, -1), 1.0, Color(1, 1, 0.9))
+				var np := Vector2(size.x / 2.0 - (cost - 1) * 4.5 + i * 9.0, size.y - 7.0)
+				draw_circle(np, 3.4, Color(0.25, 0.2, 0.1))
+				draw_circle(np, 2.6, Color(1.0, 0.88, 0.55))
 		else:
-			CharmIcon.draw_locked(self, c, 22.0)
+			CharmIcon.draw_locked(self, c, r)
 
 # ---------------------------------------------------------------- barre d'encoches
 class NotchBar extends Control:
@@ -105,10 +106,21 @@ func _ready() -> void:
 	el.add_theme_color_override("font_color", Color(0.55, 0.62, 0.78))
 	left.add_child(el)
 	var grid := GridContainer.new()
-	grid.columns = 7    # 21 emblèmes : 3 rangées de 7 (5 rangées débordaient de l'écran)
+	grid.columns = 7    # 42 emblèmes : 6 rangées de 7 dans une liste déroulante (3 rangées visibles)
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
-	left.add_child(grid)
+	var gscroll := ScrollContainer.new()
+	gscroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	gscroll.follow_focus = true
+	gscroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
+	gscroll.custom_minimum_size = Vector2(7 * 88 + 16, 3 * 84 - 4)
+	gscroll.add_child(grid)
+	left.add_child(gscroll)
+	var hint := Label.new()
+	hint.text = "▼ Fais défiler pour voir tous les emblèmes"
+	hint.add_theme_font_size_override("font_size", 14)
+	hint.add_theme_color_override("font_color", Color(0.55, 0.62, 0.78))
+	left.add_child(hint)
 	for id in GameState.charm_count():
 		var b := CharmSlot.new()
 		b.charm_id = id

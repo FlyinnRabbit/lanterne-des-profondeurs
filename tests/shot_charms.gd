@@ -15,8 +15,8 @@ func _run() -> void:
 	var gs = root.get_node("GameState")
 	gs.show_title = false
 	gs.mode = "hub"
-	gs.prog["owned"] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-	gs.prog["equipped"] = [0, 6, 8]
+	gs.prog["owned"] = range(42)
+	gs.prog["equipped"] = [0, 6, 23]
 	gs.prog["notches"] = 6
 	change_scene_to_file("res://main.tscn")
 	await process_frame

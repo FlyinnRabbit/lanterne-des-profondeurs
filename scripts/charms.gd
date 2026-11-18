@@ -22,6 +22,27 @@ const PLUNDERER := 17
 const CLIMBER := 18
 const LAST_BREATH := 19
 const BLOOD_FANG := 20
+const SOUL_FLAME := 21
+const FRUGAL_LAMP := 22
+const MOTH_WING := 23
+const TWIN_SHADOW := 24
+const STONE_SKIN := 25
+const MERCHANT_PURSE := 26
+const SAP_CHALICE := 27
+const STORM_HEART := 28
+const THUNDER_WAVE := 29
+const BARK_SOLES := 30
+const PENDULUM := 31
+const HUNTER_FANG := 32
+const FROST_BITE := 33
+const HAWK_EYE := 34
+const OBSIDIAN_TIP := 35
+const SOUL_VEIL := 36
+const WOUNDED_RAGE := 37
+const COMET := 38
+const BLESSED_SAP := 39
+const BLADE_DANCE := 40
+const BENCH_PRAYER := 41
 
 const CHARMS := [
 	{"name": "Aiguille Longue", "cost": 2, "color": Color(0.75, 0.85, 1.0),
@@ -87,4 +108,67 @@ const CHARMS := [
 	{"name": "Croc Sanglant", "cost": 2, "color": Color(0.9, 0.3, 0.38),
 		"desc": "+30 % de chances de faire saigner à chaque coup, avec toutes les armes (1 dégât une seconde plus tard). Avec les Griffes niv. 2 : 50 %.",
 		"up": "Niv. 2 / 3 : +40 % / +50 % de chances de saignée."},
+	{"name": "Âme Ardente", "cost": 2, "color": Color(0.55, 0.85, 1.0),
+		"desc": "La lame d'âme (sort) inflige 1 dégât de plus.",
+		"up": "Niv. 2 / 3 : +2 dégâts ; au niv. 3 le sort ne coûte plus que 28 d'âme."},
+	{"name": "Lanterne Frugale", "cost": 1, "color": Color(1.0, 0.85, 0.5),
+		"desc": "Le soin ne coûte que 27 d'âme au lieu de 33.",
+		"up": "Niv. 2 / 3 : le soin coûte 24 / 20 d'âme."},
+	{"name": "Aile de Phalène", "cost": 3, "color": Color(0.85, 0.8, 0.65),
+		"desc": "Permet un second saut en l'air, un peu moins haut que le premier.",
+		"up": "Niv. 2 / 3 : le second saut est plus haut (90 % / 100 %)."},
+	{"name": "Ombre Jumelle", "cost": 2, "color": Color(0.5, 0.45, 0.75),
+		"desc": "Deux Ruées en l'air au lieu d'une avant de toucher le sol.",
+		"up": "Niv. 2 / 3 : la Ruée porte 10 % / 20 % plus loin."},
+	{"name": "Peau de Pierre", "cost": 2, "color": Color(0.65, 0.65, 0.6),
+		"desc": "Après un coup reçu, l'invulnérabilité dure 40 % plus longtemps.",
+		"up": "Niv. 2 / 3 : +60 % / +80 % d'invulnérabilité."},
+	{"name": "Bourse du Marchand", "cost": 1, "color": Color(0.95, 0.75, 0.3),
+		"desc": "Les ennemis vaincus lâchent 20 % d'éclats en plus.",
+		"up": "Niv. 2 / 3 : +30 % / +40 % d'éclats."},
+	{"name": "Calice de Sève", "cost": 3, "color": Color(0.7, 0.9, 0.4),
+		"desc": "Tous les 15 ennemis vaincus, rend un masque.",
+		"up": "Niv. 2 / 3 : un masque tous les 12 / 10 ennemis vaincus."},
+	{"name": "Cœur d'Orage", "cost": 2, "color": Color(0.6, 0.75, 1.0),
+		"desc": "L'ultime se charge 25 % plus vite (coups et parades).",
+		"up": "Niv. 2 / 3 : l'ultime se charge 35 % / 45 % plus vite."},
+	{"name": "Onde Tonnerre", "cost": 2, "color": Color(0.8, 0.85, 1.0),
+		"desc": "L'onde de l'ultime est 30 % plus large.",
+		"up": "Niv. 2 / 3 : +45 % / +60 % de rayon ; +1 dégât au niv. 3."},
+	{"name": "Semelles d'Écorce", "cost": 1, "color": Color(0.6, 0.45, 0.3),
+		"desc": "Le premier coup de piège de chaque niveau est ignoré.",
+		"up": "Niv. 2 / 3 : les 2 / 3 premiers coups de piège sont ignorés."},
+	{"name": "Pendule", "cost": 1, "color": Color(0.85, 0.95, 0.8),
+		"desc": "Une parade réussie recharge aussitôt la Ruée et rend 5 d'âme de plus.",
+		"up": "Niv. 2 / 3 : 8 / 12 d'âme de plus par parade."},
+	{"name": "Croc du Chasseur", "cost": 2, "color": Color(0.9, 0.55, 0.45),
+		"desc": "+1 dégât contre les ennemis sous 40 % de leur vie.",
+		"up": "Niv. 2 / 3 : sous 50 % / 60 % de leur vie."},
+	{"name": "Givre Mordant", "cost": 2, "color": Color(0.7, 0.92, 1.0),
+		"desc": "15 % de chances par coup de geler brièvement l'ennemi (0,6 s, pas les boss).",
+		"up": "Niv. 2 / 3 : 20 % / 25 % de chances."},
+	{"name": "Œil du Faucon", "cost": 2, "color": Color(1.0, 0.9, 0.45),
+		"desc": "+8 % de chances de coup critique.",
+		"up": "Niv. 2 / 3 : +12 % / +16 % de chances de critique."},
+	{"name": "Pointe d'Obsidienne", "cost": 2, "color": Color(0.55, 0.4, 0.6),
+		"desc": "Les coups critiques infligent ×2 au lieu de ×1,5.",
+		"up": "Niv. 2 / 3 : critiques ×2,25 / ×2,5."},
+	{"name": "Voile d'Âme", "cost": 3, "color": Color(0.75, 0.85, 0.95),
+		"desc": "Avec 33 d'âme, un coup reçu est absorbé par l'âme au lieu des masques (une fois toutes les 8 s).",
+		"up": "Niv. 2 / 3 : une fois toutes les 6 / 5 s, pour 28 / 22 d'âme."},
+	{"name": "Rage du Blessé", "cost": 2, "color": Color(0.95, 0.35, 0.3),
+		"desc": "À 1 masque, +1 dégât à tous les coups.",
+		"up": "Niv. 2 / 3 : actif à 2 / 3 masques ou moins."},
+	{"name": "Comète", "cost": 1, "color": Color(0.9, 0.9, 1.0),
+		"desc": "Le coup chargé (tourbillon) se prépare 40 % plus vite.",
+		"up": "Niv. 2 / 3 : 50 % / 60 % plus vite."},
+	{"name": "Sève Bénie", "cost": 2, "color": Color(0.55, 0.95, 0.6),
+		"desc": "Chaque soin a 25 % de chances de rendre un masque de plus.",
+		"up": "Niv. 2 / 3 : 35 % / 50 % de chances."},
+	{"name": "Danse des Lames", "cost": 2, "color": Color(0.95, 0.75, 0.85),
+		"desc": "Le coup final du combo inflige +1 dégât et rend 4 d'âme.",
+		"up": "Niv. 2 / 3 : rend 6 / 8 d'âme ; +2 dégâts au niv. 3."},
+	{"name": "Prière du Banc", "cost": 1, "color": Color(0.95, 0.9, 0.7),
+		"desc": "S'asseoir sur un banc remplit l'âme jusqu'à 33.",
+		"up": "Niv. 2 / 3 : jusqu'à 66 / 99 d'âme."},
 ]

@@ -201,7 +201,7 @@ func parried(d: Vector2) -> void:
 
 # niveau de l'emblème porté (0 s'il n'est pas équipé, sinon 1 à 3)
 func cl(id: int) -> int:
-	return GameState.charm_level(id) if GameState.has_charm(id) else 0
+	return GameState.charm_level(id) if eq(id) else 0
 
 # valeur selon le niveau de l'emblème : v[0] au niveau 1, v[1] au niveau 2, v[2] au niveau 3
 func clv(id: int, v: Array, off = 0):
@@ -255,13 +255,55 @@ func _soul_per_attack() -> float:
 	return (SOUL_PER_HIT + int(clv(C.GREED, [6, 8, 10]))) * float(GameState.d("soul")) * float(weapon().get("soul", 1.0))
 
 func ult_per_hit() -> int:
-	return roundi((ULT_PER_HIT + int(clv(C.GREED, [4, 5, 6]))) * float(GameState.d("ult")))
+	return roundi((ULT_PER_HIT + int(clv(C.GREED, [4, 5, 6]))) * float(GameState.d("ult")) * ult_mult())
+
+func ult_mult() -> float:
+	return float(clv(C.STORM_HEART, [1.25, 1.35, 1.45], 1.0))
 
 func nail_damage() -> int:
-	return 2 if eq(C.BRUTE) else 1   # Force Brute : +1 dégât (le double au départ, plus en profondeur)
+	var d := 2 if eq(C.BRUTE) else 1
+	# Rage du Blessé : +1 dégât quand il reste peu de masques
+	if eq(C.WOUNDED_RAGE) and hp <= int(clv(C.WOUNDED_RAGE, [1, 2, 3])):
+		d += 1
+	return d   # Force Brute : +1 dégât (le double au départ, plus en profondeur)
 
 func reach() -> float:
 	return float(clv(C.LONG_NAIL, [1.4, 1.55, 1.7], 1.0))
+
+# ---- nouveaux emblèmes (21 à 41)
+var air_dash2_used := false
+var air_jump_used := false
+var veil_cd := 0.0
+var bark_used := 0
+var sap_kills := 0
+
+func focus_cost() -> int:
+	return int(clv(C.FRUGAL_LAMP, [27, 24, 20], FOCUS_COST))
+
+func spell_cost() -> int:
+	return 28 if cl(C.SOUL_FLAME) >= 3 else SPELL_COST
+
+func charge_time() -> float:
+	return CHARGE_TIME * float(clv(C.COMET, [0.6, 0.5, 0.4], 1.0))
+
+# bonus de dégâts propre à l'ennemi touché (Croc du Chasseur)
+func foe_bonus(e) -> int:
+	if eq(C.HUNTER_FANG) and "hp_max" in e and int(e.hp_max) > 0:
+		if float(e.hp) < float(e.hp_max) * float(clv(C.HUNTER_FANG, [0.4, 0.5, 0.6])):
+			return 1
+	return 0
+
+# Calice de Sève : appelé à chaque ennemi vaincu (hors boss)
+func on_kill_charms() -> void:
+	if not eq(C.SAP_CHALICE):
+		return
+	sap_kills += 1
+	if sap_kills >= int(clv(C.SAP_CHALICE, [15, 12, 10])):
+		sap_kills = 0
+		if hp < max_hp:
+			hp += 1
+			main.spawn_burst(global_position, Color(0.7, 0.9, 0.4), 18, 170.0, -100.0)
+			Audio.sfx("heal", 0.0, -4.0)
 
 # À appeler quand l'équipement change
 func apply_equipment() -> void:
@@ -312,7 +354,7 @@ func _physics_process(delta: float) -> void:
 	anim_t += delta
 	for t in ["coyote_t", "buffer_t", "dash_t", "dash_cd", "attack_cd", "attack_t", "invuln_t", "knock_t", "recoil_t",
 			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t", "plunge_cd", "plunge_kill_t",
-			"bench_lock_t", "web_t", "grab_t"]:
+			"bench_lock_t", "web_t", "grab_t", "veil_cd"]:
 		set(t, maxf(get(t) - delta, 0.0))
 	if knock.length() > 10.0:
 		# duel : recul infligé par l'adversaire
@@ -409,6 +451,8 @@ func _physics_process(delta: float) -> void:
 	if on_floor:
 		coyote_t = COYOTE
 		air_dash_used = false
+		air_dash2_used = false
+		air_jump_used = false
 		air_i = -1
 		plunge_used = false
 		rise_used = false
@@ -418,15 +462,19 @@ func _physics_process(delta: float) -> void:
 		_update_safe_spot()
 
 	# Concentration (soin) : maintenir L au sol avec 33 d'âme
-	if _ip("focus") and on_floor and soul >= FOCUS_COST and hp < max_hp and knock_t <= 0.0 and not (GameState.curse == "fragile" and GameState.mode == "descent"):
+	if _ip("focus") and on_floor and soul >= focus_cost() and hp < max_hp and knock_t <= 0.0 and not (GameState.curse == "fragile" and GameState.mode == "descent"):
 		focus_t += delta
 		_set_crouch(crouch_latch if Settings.crouch_toggle else _ip("down"))
 		velocity.x = 0.0
 		velocity.y = minf(velocity.y + GRAVITY * delta, FALL_MAX)
 		if focus_t >= focus_time():
 			focus_t = 0.0
-			soul -= FOCUS_COST
+			soul -= focus_cost()
 			hp += 1
+			# Sève Bénie : chance de rendre un masque de plus
+			if eq(C.BLESSED_SAP) and hp < max_hp and randf() < float(clv(C.BLESSED_SAP, [0.25, 0.35, 0.5])):
+				hp += 1
+				main.spawn_burst(global_position, Color(0.55, 0.95, 0.6), 16, 180.0, -120.0)
 			GameState.j_add("heals")
 			Audio.sfx("heal", 0.0)
 			main.spawn_burst(global_position, Color(1, 1, 1), 20, 160.0, -100.0)
@@ -458,10 +506,10 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Ruée
-	if can_dash and _ijp("dash") and dash_cd <= 0.0 and (on_floor or not air_dash_used) and knock_t <= 0.0:
+	if can_dash and _ijp("dash") and dash_cd <= 0.0 and (on_floor or not air_dash_used or (eq(C.TWIN_SHADOW) and not air_dash2_used)) and knock_t <= 0.0:
 		if dir != 0.0:
 			facing = int(dir)
-		dash_t = DASH_TIME
+		dash_t = DASH_TIME * float(clv(C.TWIN_SHADOW, [1.0, 1.1, 1.2], 1.0))
 		dash_hit.clear()
 		if web_t > 0.0 or grab_t > 0.0:
 			web_t = 0.0
@@ -472,6 +520,8 @@ func _physics_process(delta: float) -> void:
 		Audio.sfx("dash")
 		crouch_latch = false      # la ruée relève le héros (mode bascule compris)
 		if not on_floor:
+			if air_dash_used:
+				air_dash2_used = true     # Ombre Jumelle : seconde Ruée en l'air
 			air_dash_used = true
 		squash = Vector2(1.3, 0.8)
 		main.spawn_burst(global_position, Color(0.2, 0.2, 0.3, 0.8), 10, 120.0, 0.0)
@@ -532,6 +582,14 @@ func _physics_process(delta: float) -> void:
 		buffer_t = 0.0
 		coyote_t = 0.0
 		squash = Vector2(0.7, 1.3)
+	elif buffer_t > 0.0 and not on_floor and eq(C.MOTH_WING) and not air_jump_used and knock_t <= 0.0 and grab_t <= 0.0 and web_t <= 0.0:
+		# Aile de Phalène : second saut en l'air
+		air_jump_used = true
+		velocity.y = JUMP_VELOCITY * float(clv(C.MOTH_WING, [0.75, 0.9, 1.0], 1.0))
+		Audio.sfx("jump", 0.1, -2.0)
+		buffer_t = 0.0
+		squash = Vector2(0.75, 1.25)
+		main.spawn_burst(global_position + Vector2(0, SIZE.y / 2.0), Color(0.9, 0.85, 0.7, 0.8), 10, 130.0, 60.0)
 	if _ijr("jump") and velocity.y < 0.0:
 		velocity.y *= JUMP_CUT
 
@@ -564,11 +622,11 @@ func _physics_process(delta: float) -> void:
 	if _ip("attack") and attack_t <= 0.0 and knock_t <= 0.0:
 		var before := charge_t
 		charge_t += delta
-		if before < CHARGE_TIME and charge_t >= CHARGE_TIME:
+		if before < charge_time() and charge_t >= charge_time():
 			main.spawn_burst(global_position, Color(1.0, 0.95, 0.75), 10, 120.0, -100.0)
 			Audio.sfx("pickup", 0.0, -8.0)
 	if _ijr("attack"):
-		if charge_t >= CHARGE_TIME and knock_t <= 0.0:
+		if charge_t >= charge_time() and knock_t <= 0.0:
 			_start_attack("spin", Vector2(facing, 0))
 			attack_t = SPIN_TIME
 			main.shake(6)
@@ -577,13 +635,13 @@ func _physics_process(delta: float) -> void:
 		_do_attack_hits()
 
 	# Sort d'âme : lame d'âme qui traverse les ennemis (coûte 33 d'âme)
-	if _ijp("spell") and soul >= SPELL_COST and spell_cd <= 0.0 and knock_t <= 0.0:
-		soul -= SPELL_COST
+	if _ijp("spell") and soul >= spell_cost() and spell_cd <= 0.0 and knock_t <= 0.0:
+		soul -= spell_cost()
 		spell_cd = 0.45
 		GameState.j_add("spells")
 		bench_lock_t = BENCH_LOCK
 		var crit := _take_crit()
-		var sdmg := 3 + (1 if eq(C.BRUTE) else 0)
+		var sdmg := 3 + (1 if eq(C.BRUTE) else 0) + int(clv(C.SOUL_FLAME, [1, 2, 2]))
 		main.spawn_projectile(global_position + Vector2(facing * 20, -4), Vector2(facing * 620.0, 0),
 			{"kind": "soulblade", "hostile": false, "radius": 14.0, "life": 1.1, "pierce": true,
 			"damage": crit_damage(sdmg) if crit else sdmg, "crit": crit})
@@ -622,7 +680,7 @@ func _take_crit() -> bool:
 		main.spawn_burst(global_position + Vector2(facing * 18, -4), Color(1.0, 0.8, 0.35), 14, 220.0, 0.0)
 		return true
 	# chance de critique de l'arme (niveaux 3 à 5 selon l'arme)
-	var cc := float(weapon().get("crit", 0.0))
+	var cc := float(weapon().get("crit", 0.0)) + float(clv(C.HAWK_EYE, [0.08, 0.12, 0.16], 0.0))
 	if cc > 0.0 and randf() < cc:
 		main.spawn_burst(global_position + Vector2(facing * 18, -4), Color(1.0, 0.8, 0.35), 8, 160.0, 0.0)
 		return true
@@ -731,13 +789,15 @@ func hit_damage() -> int:
 			d += 1 + int(clv(C.ANVIL_FALL, [1, 1, 2]))
 		"finisher", "thrust", "air_spin":
 			d += 1
+			if attack_kind == "finisher":
+				d += int(clv(C.BLADE_DANCE, [1, 1, 2]))
 		"spin":
 			d = d * 2 + 1
 	return crit_damage(d) if attack_crit else d
 
 # Critique : ×1,5 arrondi au-dessus, et toujours au moins +1
 func crit_damage(d: int) -> int:
-	return maxi(d + 1, ceili(d * CRIT_MULT))
+	return maxi(d + 1, ceili(d * float(clv(C.OBSIDIAN_TIP, [2.0, 2.25, 2.5], CRIT_MULT))))
 
 func attack_rect() -> Rect2:
 	var p := global_position
@@ -847,9 +907,16 @@ func _do_attack_hits() -> void:
 				# la deuxième griffe ne repousse presque pas : sinon l'ennemi, repoussé 8 fois par
 				# seconde, ne pouvait plus jamais attaquer (blocage permanent)
 				var per: float = 0.5 if attack_kind in ["finisher", "thrust", "air_spin", "spin", "plunge"] else 0.6
-				_claw_hit(e, hit_damage() * per, kv * (0.25 if second else 1.0))
+				_claw_hit(e, (hit_damage() + foe_bonus(e)) * per, kv * (0.25 if second else 1.0))
 			else:
-				e.take_hit(hit_damage(), kv)
+				e.take_hit(hit_damage() + foe_bonus(e), kv)
+			# Givre Mordant : chance de geler brièvement l'ennemi
+			if eq(C.FROST_BITE) and is_instance_valid(e) and not e.dead and not e.is_boss and randf() < float(clv(C.FROST_BITE, [0.15, 0.2, 0.25])):
+				e.stun_t = maxf(e.stun_t, 0.6)
+				main.spawn_burst(e.global_position, Color(0.7, 0.92, 1.0), 12, 120.0, 0.0)
+			# Danse des Lames : le coup final rend de l'âme
+			if attack_kind == "finisher" and eq(C.BLADE_DANCE) and not second:
+				soul = mini(soul + int(clv(C.BLADE_DANCE, [4, 6, 8])), SOUL_MAX)
 			# estoc repoussant : projette l'ennemi au loin (pas les boss), une fois toutes les 2 s
 			if attack_kind == "thrust" and thrust_push and is_instance_valid(e) and not e.dead and not e.is_boss:
 				e.knock = Vector2(facing, -0.35).normalized() * THRUST_PUSH_FORCE * float(e.knock_resist)
@@ -920,6 +987,8 @@ func _pogo() -> void:
 	GameState.j_add("pogos")
 	velocity.y = POGO_VELOCITY
 	air_dash_used = false
+	air_dash2_used = false
+	air_jump_used = false
 	dash_cd = 0.0
 	squash = Vector2(0.8, 1.2)
 	if eq(C.REBOUND):
@@ -958,6 +1027,23 @@ func receive_hit(from_pos: Vector2, source) -> bool:
 		return true
 	if invuln_t > 0.0 or ult_charge_t > 0.0 or sitting:
 		return false
+	# Semelles d'Écorce : les premiers coups de piège du niveau sont ignorés
+	if eq(C.BARK_SOLES) and _from_trap(source) and bark_used < int(clv(C.BARK_SOLES, [1, 2, 3])):
+		bark_used += 1
+		invuln_t = 0.8
+		main.spawn_burst(global_position, Color(0.6, 0.45, 0.3), 14, 150.0)
+		Audio.sfx("parry", 0.1, -6.0)
+		return false
+	# Voile d'Âme : l'âme absorbe le coup
+	var vcost := int(clv(C.SOUL_VEIL, [33, 28, 22], 33))
+	if eq(C.SOUL_VEIL) and veil_cd <= 0.0 and soul >= vcost:
+		soul -= vcost
+		veil_cd = float(clv(C.SOUL_VEIL, [8.0, 6.0, 5.0], 8.0))
+		invuln_t = INVULN_TIME * 0.6
+		main.spawn_burst(global_position, Color(0.75, 0.85, 0.95), 24, 200.0)
+		main.shake(6)
+		Audio.sfx("parry", 0.05, -2.0)
+		return false
 	take_damage(int(GameState.d("dmg")), from_pos.x)
 	return false
 
@@ -987,7 +1073,13 @@ func _on_parry(from_pos: Vector2, source) -> void:
 	parry_flash = 0.25
 	invuln_t = maxf(invuln_t, 0.4)
 	if not _from_trap(source):
-		ult = mini(ult + roundi(ULT_PER_PARRY * float(GameState.d("ult"))), ULT_MAX)
+		ult = mini(ult + roundi(ULT_PER_PARRY * float(GameState.d("ult")) * ult_mult()), ULT_MAX)
+		# Pendule : la parade recharge la Ruée et rend de l'âme
+		if eq(C.PENDULUM):
+			dash_cd = 0.0
+			air_dash_used = false
+			air_dash2_used = false
+			soul = mini(soul + int(clv(C.PENDULUM, [5, 8, 12])), SOUL_MAX)
 		soul = mini(soul + soul_per_hit(), SOUL_MAX)
 		combat_t = 0.0
 	var d := (from_pos - global_position).normalized()
@@ -1342,7 +1434,7 @@ func take_damage(amount: int, from_x: float) -> void:
 	if dead:
 		return
 	hp -= amount
-	invuln_t = INVULN_TIME
+	invuln_t = INVULN_TIME * float(clv(C.STONE_SKIN, [1.4, 1.6, 1.8], 1.0))
 	GameState.j_add("hurt")
 	GameState.j_perfect(false)
 	knock_t = 0.22
@@ -1454,6 +1546,9 @@ func sit(pos: Vector2, heal: bool = true) -> void:
 	velocity = Vector2.ZERO
 	if heal:
 		hp = max_hp
+	# Prière du Banc : s'asseoir remplit l'âme
+	if eq(C.BENCH_PRAYER):
+		soul = maxi(soul, int(clv(C.BENCH_PRAYER, [33, 66, 99])))
 
 # ---------------------------------------------------------------- dessin
 func _draw() -> void:
@@ -1533,7 +1628,7 @@ func _draw() -> void:
 	# Arc de l'attaque
 	# Coup chargé prêt : l'aiguille scintille
 	if charge_t > 0.2 and attack_t <= 0.0:
-		var ck := clampf(charge_t / CHARGE_TIME, 0.0, 1.0)
+		var ck := clampf(charge_t / charge_time(), 0.0, 1.0)
 		var cc := Color(1.0, 0.9, 0.6, 0.15 + 0.35 * ck) if ck >= 1.0 else Color(0.8, 0.9, 1.0, 0.1 + 0.25 * ck)
 		draw_arc(Vector2(0, -4), 18.0 + 10.0 * ck, 0.0, TAU * ck, 24, cc, 3.0)
 		if ck >= 1.0:
