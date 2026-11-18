@@ -570,6 +570,8 @@ func open_npc(kind: String) -> void:
 			first.disabled = pads.is_empty()
 			if first.disabled:
 				first = null
+		"smith":
+			npc_name.text = "La forgeronne"
 			npc_text.text = tr("« Choisis une arme : je la forge un niveau plus haut. Le niveau 2 lui donne son effet spécial, les suivants renforcent ce qu'elle fait de mieux. Plus tu descends, plus je peux forger. »")
 			for id in Weapons.ORDER:
 				if not GameState.owns_weapon(id):
