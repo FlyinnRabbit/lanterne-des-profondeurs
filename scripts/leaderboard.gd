@@ -80,11 +80,14 @@ func _parse(ok: bool, code: int, text: String) -> Dictionary:
 	return d if d is Dictionary else {"error": "bad_json"}
 
 # Envoie un temps (fin de Descente du jour) ; cb(réponse) avec top 10 et rang.
-func submit(seed: int, diff: int, time: float, cb: Callable = Callable()) -> void:
+func submit(seed: int, diff: int, time: float, cb: Callable = Callable(), ghost: String = "") -> void:
 	if not enabled():
 		return
-	var body := JSON.stringify({"seed": seed, "diff": diff, "time": snappedf(time, 0.01), "player_id": player_id(),
-		"name": player_name(), "version": VersionScript.VERSION})
+	var payload := {"seed": seed, "diff": diff, "time": snappedf(time, 0.01), "player_id": player_id(),
+		"name": player_name(), "version": VersionScript.VERSION}
+	if ghost != "":
+		payload["ghost"] = ghost
+	var body := JSON.stringify(payload)
 	var done := func(d: Dictionary):
 		if not d.has("error"):
 			last = d
@@ -94,6 +97,13 @@ func submit(seed: int, diff: int, time: float, cb: Callable = Callable()) -> voi
 		_http(endpoint + "/score", HTTPClient.METHOD_POST, body, func(ok: bool, code: int, text: String):
 			done.call(_parse(ok, code, text))),
 		func(): done.call({"error": "offline"}))
+
+# Fantôme du premier du classement (jour ou semaine) ; cb({name, time, data}) ou {none}/{error}.
+func fetch_ghost(seed: int, diff: int, cb: Callable) -> void:
+	_with_endpoint(func():
+		_http(endpoint + "/ghost?seed=%d&diff=%d" % [seed, diff], HTTPClient.METHOD_GET, "", func(ok: bool, code: int, text: String):
+			cb.call(_parse(ok, code, text))),
+		func(): cb.call({"error": "offline"}))
 
 # Lit le classement d'un jour et d'une difficulté.
 func fetch_top(seed: int, diff: int, cb: Callable) -> void:

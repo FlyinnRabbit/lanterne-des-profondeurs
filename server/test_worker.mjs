@@ -1,7 +1,7 @@
 // Test local du Worker : `node test_worker.mjs` (D1 simulée avec node:sqlite).
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
-import worker, { seedOk, cleanName } from "./worker.js";
+import worker, { seedOk, cleanName, isoWeek } from "./worker.js";
 
 const db = new DatabaseSync(":memory:");
 db.exec(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
@@ -55,5 +55,23 @@ j = await r.json();
 check(r.status === 200 && j.top.length === 2 && j.me.rank === 2 && j.top[1].you === true, "GET /top avec le rang du joueur");
 check(r.headers.get("Access-Control-Allow-Origin") === "*", "CORS ouvert (version web)");
 check(seedOk(today) && !seedOk(20200101), "graines acceptées : hier/aujourd'hui/demain");
+// semaine et défi des boss
+const week = isoWeek(new Date());
+[s, j] = await post({ seed: week, diff: 1, player_id: A, name: "Tom", time: 600, ghost: '{"v":1}' }, "8.8.8.8");
+check(s === 200 && j.me.rank === 1, "défi de la semaine enregistré");
+[s] = await post({ seed: 202001, diff: 1, player_id: A, name: "Tom", time: 600 }, "8.8.8.8");
+check(s === 400, "semaine passée refusée");
+[s, j] = await post({ seed: 1, diff: 1, player_id: B, name: "Pote", time: 900 }, "8.8.8.9");
+check(s === 200 && j.total === 1, "défi des boss enregistré (graine 1)");
+let g = await (await worker.fetch(new Request(`https://x/ghost?seed=${week}&diff=1`), env)).json();
+check(g.name === "Tom" && g.data === '{"v":1}', "fantôme du premier renvoyé");
+[s] = await post({ seed: week, diff: 1, player_id: B, name: "Pote", time: 700, ghost: '{"v":2}' }, "8.8.8.10");
+g = await (await worker.fetch(new Request(`https://x/ghost?seed=${week}&diff=1`), env)).json();
+check(g.name === "Tom", "le fantôme reste celui du premier");
+[s] = await post({ seed: week, diff: 1, player_id: B, name: "Pote", time: 500, ghost: '{"v":3}' }, "8.8.8.10");
+g = await (await worker.fetch(new Request(`https://x/ghost?seed=${week}&diff=1`), env)).json();
+check(g.name === "Pote" && g.data === '{"v":3}', "nouveau premier : son fantôme le remplace");
+g = await (await worker.fetch(new Request(`https://x/ghost?seed=${today}&diff=0`), env)).json();
+check(g.none === true, "pas de fantôme : réponse vide");
 console.log(fails ? `ÉCHEC (${fails})` : "RÉSULTAT : OK");
 process.exit(fails ? 1 : 0);

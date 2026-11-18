@@ -219,7 +219,16 @@ func open_elevator() -> void:
 		dl += "  — " + tr("meilleur : %d:%02d") % [int(dbest) / 60, int(dbest) % 60]
 	var db := _lift_button(dl, _daily)
 	db.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
-	var cb := _lift_button(tr("Classement du jour (en ligne)"), _show_board)
+	# défi de la semaine : malédiction et arme imposées
+	var ws := GameState.week_seed()
+	var wr := GameState.weekly_rules(ws)
+	var wbest := float(Achievements.counters.get("weekly_%d" % ws, 0.0))
+	var wl := tr("Défi de la semaine (palier %d) — %s, arme imposée : %s") % [int(wr["palier"]), tr(GameState.CURSES[wr["curse"]]["name"]), tr(Weapons.W[wr["weapon"]]["name"])]
+	if wbest > 0.0:
+		wl += "  — " + tr("meilleur : %d:%02d") % [int(wbest) / 60, int(wbest) % 60]
+	var wb := _lift_button(wl, _weekly)
+	wb.add_theme_color_override("font_color", Color(0.85, 0.8, 1.0))
+	var cb := _lift_button(tr("Classements en ligne (jour, semaine, Défi des boss)"), _boards_menu)
 	cb.add_theme_color_override("font_color", Color(0.75, 0.95, 0.85))
 	if GameState.record >= 6:
 		var rbest := float(Achievements.counters.get("rush_best", 0.0))
@@ -243,10 +252,29 @@ static func _fmt_time(t: float) -> String:
 	var cs := int(round(t * 100.0))
 	return "%d:%02d.%02d" % [cs / 6000, (cs / 100) % 60, cs % 100]
 
-func _show_board() -> void:
+func _boards_menu() -> void:
+	_clear(lift_list)
+	lift_info.text = tr("Classements en ligne — %s") % GameState.diff_name()
+	var a := _lift_button(tr("Classement du jour"), _show_board.bind("daily"))
+	_lift_button(tr("Classement de la semaine"), _show_board.bind("weekly"))
+	_lift_button(tr("Classement du Défi des boss"), _show_board.bind("rush"))
+	_lift_button(tr("Retour"), open_elevator)
+	a.grab_focus()
+
+var _board_kind := "daily"
+func _show_board(kind: String = "daily") -> void:
+	_board_kind = kind
 	_clear(lift_list)
 	var seed := GameState.today_seed()
-	lift_info.text = tr("Classement du jour — %s — même niveau pour tous, meilleur temps de chacun.") % GameState.diff_name()
+	match kind:
+		"weekly":
+			seed = GameState.week_seed()
+			lift_info.text = tr("Classement de la semaine — %s — mêmes niveaux et mêmes règles pour tous jusqu'à dimanche.") % GameState.diff_name()
+		"rush":
+			seed = GameState.RUSH_BOARD_SEED
+			lift_info.text = tr("Classement du Défi des boss — %s — tous les boss à la suite, meilleur temps de chacun.") % GameState.diff_name()
+		_:
+			lift_info.text = tr("Classement du jour — %s — même niveau pour tous, meilleur temps de chacun.") % GameState.diff_name()
 	# pseudo
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
@@ -269,12 +297,18 @@ func _show_board() -> void:
 	on.button_pressed = bool(Settings.board_online)
 	on.toggled.connect(func(v: bool): Settings.set_value("board_online", v))
 	lift_list.add_child(on)
+	if kind != "rush":
+		var gh := CheckButton.new()
+		gh.text = tr("Courir contre le fantôme du premier")
+		gh.button_pressed = bool(Settings.ghost_on)
+		gh.toggled.connect(func(v: bool): Settings.set_value("ghost_on", v))
+		lift_list.add_child(gh)
 	_board_status = _label(tr("Chargement du classement…"), 16, Color(0.65, 0.7, 0.82))
 	lift_list.add_child(_board_status)
 	_board_rows = VBoxContainer.new()
 	_board_rows.add_theme_constant_override("separation", 2)
 	lift_list.add_child(_board_rows)
-	var back := _lift_button(tr("Retour"), open_elevator)
+	var back := _lift_button(tr("Retour"), _boards_menu)
 	back.grab_focus()
 	var rows_ref := _board_rows
 	GameState.board.fetch_top(seed, GameState.difficulty, func(d: Dictionary):
@@ -288,9 +322,10 @@ func _fill_board(d: Dictionary) -> void:
 		return
 	var top: Array = d.get("top", [])
 	if top.is_empty():
-		_board_status.text = tr("Personne n'a encore terminé la descente d'aujourd'hui dans cette difficulté.")
+		_board_status.text = {"weekly": tr("Personne n'a encore réussi le défi de cette semaine dans cette difficulté."),
+			"rush": tr("Personne n'a encore terminé le Défi des boss dans cette difficulté.")}.get(_board_kind, tr("Personne n'a encore terminé la descente d'aujourd'hui dans cette difficulté."))
 		return
-	_board_status.text = tr("%d joueurs aujourd'hui") % int(d.get("total", top.size()))
+	_board_status.text = {"weekly": tr("%d joueurs cette semaine"), "rush": tr("%d joueurs au total")}.get(_board_kind, tr("%d joueurs aujourd'hui")) % int(d.get("total", top.size()))
 	var you_shown := false
 	for e in top:
 		var you: bool = bool(e.get("you", false))
@@ -361,6 +396,10 @@ func _descend(p: int, curse_id := "") -> void:
 func _daily() -> void:
 	var pl = main.player
 	_ride(3, func(): GameState.start_daily(pl))
+
+func _weekly() -> void:
+	var pl = main.player
+	_ride(GameState.WEEKLY_PALIER, func(): GameState.start_weekly(pl))
 
 func _rush() -> void:
 	var pl = main.player

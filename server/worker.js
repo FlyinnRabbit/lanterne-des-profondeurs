@@ -1,6 +1,8 @@
-// Classement de la Descente du jour — Lanterne des Profondeurs
-//   POST /score  {seed, diff, player_id, name, time, version}  → enregistre le meilleur temps du joueur
-//   GET  /top?seed=AAAAMMJJ&diff=1&player_id=…                   → top 10 + rang du joueur
+// Classements — Lanterne des Profondeurs
+//   Graines : AAAAMMJJ (Descente du jour), AAAASS (Défi de la semaine, semaine ISO), 1 (Défi des boss)
+//   POST /score  {seed, diff, player_id, name, time, version, ghost?} → meilleur temps du joueur (+ son fantôme)
+//   GET  /top?seed=…&diff=1&player_id=…                               → top 10 + rang du joueur
+//   GET  /ghost?seed=…&diff=1                                         → fantôme du premier
 // Données dans D1 (binding DB). Réponses JSON, ouvertes au navigateur (version web du jeu).
 
 const CORS = {
@@ -14,7 +16,27 @@ function json(data, status = 200) {
 }
 
 // Graine du jour (AAAAMMJJ) acceptée : hier, aujourd'hui ou demain en UTC (fuseaux horaires des joueurs).
+// Semaine ISO (AAAASS) d'une date
+export function isoWeek(t) {
+  const d = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const y0 = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return d.getUTCFullYear() * 100 + Math.ceil(((d - y0) / 86400000 + 1) / 7);
+}
+
+export const RUSH_SEED = 1;
+export function kindOf(seed) {
+  if (seed === RUSH_SEED) return "rush";
+  if (seed >= 100000 && seed <= 999999) return "weekly";
+  return "daily";
+}
+
 export function seedOk(seed, now = new Date()) {
+  if (seed === RUSH_SEED) return true;
+  if (kindOf(seed) === "weekly") {
+    return [-7, 0, 7].some((d) => isoWeek(new Date(now.getTime() + d * 86400000)) === seed);
+  }
   const ok = [];
   for (const d of [-1, 0, 1]) {
     const t = new Date(now.getTime() + d * 86400000);
@@ -63,6 +85,14 @@ export default {
         if (!seedOk(seed) || !(diff >= 0 && diff <= 3)) return json({ error: "bad_request" }, 400);
         return json(await top(env, seed, diff, String(url.searchParams.get("player_id") || "").slice(0, 64)));
       }
+      if (url.pathname === "/ghost" && request.method === "GET") {
+        const seed = parseInt(url.searchParams.get("seed") || "0", 10);
+        const diff = parseInt(url.searchParams.get("diff") || "1", 10);
+        if (!seedOk(seed) || !(diff >= 0 && diff <= 3)) return json({ error: "bad_request" }, 400);
+        const g = await env.DB.prepare("SELECT s.name, s.time, g.data FROM scores s JOIN ghosts g ON g.seed = s.seed AND g.diff = s.diff AND g.player_id = s.player_id " +
+          "WHERE s.seed = ? AND s.diff = ? ORDER BY s.time ASC, s.updated ASC LIMIT 1").bind(seed, diff).first();
+        return json(g ? { name: g.name, time: g.time, data: g.data } : { none: true });
+      }
       if (url.pathname === "/score" && request.method === "POST") {
         const b = await request.json().catch(() => null);
         if (!b) return json({ error: "bad_json" }, 400);
@@ -74,7 +104,8 @@ export default {
         if (!seedOk(seed) || !(diff >= 0 && diff <= 3)) return json({ error: "bad_seed" }, 400);
         if (!/^[a-f0-9]{16,64}$/.test(pid)) return json({ error: "bad_player" }, 400);
         if (!name) return json({ error: "bad_name" }, 400);
-        if (!Number.isFinite(time) || time < Number(env.MIN_TIME || 45) || time > 7200) return json({ error: "bad_time" }, 400);
+        const minT = kindOf(seed) === "rush" ? Number(env.MIN_RUSH_TIME || 60) : Number(env.MIN_TIME || 45);
+        if (!Number.isFinite(time) || time < minT || time > 7200) return json({ error: "bad_time" }, 400);
         // limite d'envois par adresse et par jour
         const ip = request.headers.get("CF-Connecting-IP") || "?";
         const ipHash = await sha(ip + ":" + seed);
@@ -88,6 +119,15 @@ export default {
           "ON CONFLICT(seed, diff, player_id) DO UPDATE SET name = excluded.name, version = excluded.version, " +
           "time = MIN(scores.time, excluded.time), updated = CASE WHEN excluded.time < scores.time THEN excluded.updated ELSE scores.updated END"
         ).bind(seed, diff, pid, name, Math.round(time * 100) / 100, String(b.version || "").slice(0, 16), Math.floor(Date.now() / 1000)).run();
+        // fantôme : gardé seulement s'il correspond au meilleur temps enregistré du joueur
+        const ghost = typeof b.ghost === "string" ? b.ghost : "";
+        if (ghost && kindOf(seed) !== "rush" && ghost.length <= 400000) {
+          const best = await env.DB.prepare("SELECT time FROM scores WHERE seed = ? AND diff = ? AND player_id = ?").bind(seed, diff, pid).first();
+          if (best && Math.abs(best.time - Math.round(time * 100) / 100) < 0.005) {
+            await env.DB.prepare("INSERT INTO ghosts (seed, diff, player_id, data) VALUES (?, ?, ?, ?) ON CONFLICT(seed, diff, player_id) DO UPDATE SET data = excluded.data")
+              .bind(seed, diff, pid, ghost).run();
+          }
+        }
         return json(await top(env, seed, diff, pid));
       }
       if (url.pathname === "/" || url.pathname === "/health") return json({ ok: true, service: "lanterne-classement" });

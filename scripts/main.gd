@@ -877,6 +877,7 @@ func _process(delta: float) -> void:
 	_reveal_t -= delta
 	_update_rooms(delta)
 	_enemy_spikes(delta)
+	_ghost_tick(delta)
 	if GameState.mode in ["descent", "rush"] and not get_tree().paused:
 		Achievements.run["time"] = float(Achievements.run.get("time", 0.0)) + delta
 	if not get_tree().paused:
@@ -1110,6 +1111,29 @@ func _enemy_spikes(delta: float) -> void:
 				e.hurt_by_trap(2, Vector2(0, -1))
 				spawn_burst(Vector2(e.global_position.x, sp.position.y), Color(0.85, 0.85, 0.9), 6, 120.0)
 				break
+
+# ---------------------------------------------------------------- fantôme (jour, semaine)
+# Le parcours du héros est noté 10 fois par seconde, niveau par niveau ; s'il existe un
+# fantôme du premier du classement, une silhouette translucide rejoue son parcours en même temps.
+const GhostScript = preload("res://scripts/ghost.gd")
+var _ghost_t := 0.0
+var _ghost_node = null
+func _ghost_tick(delta: float) -> void:
+	if not GameState.daily or GameState.mode != "descent" or player == null or get_tree().paused:
+		return
+	var key := str(GameState.step)
+	_ghost_t += delta
+	var rec: PackedStringArray = GameState.ghost_rec.get(key, PackedStringArray())
+	var want := int(_ghost_t * 10.0) + 1
+	while rec.size() < want and rec.size() < 12000:
+		rec.append("%d,%d,%d" % [roundi(player.global_position.x), roundi(player.global_position.y), 1 if player.facing > 0 else 0])
+	GameState.ghost_rec[key] = rec
+	if _ghost_node == null and GameState.ghost_play.has(key):
+		_ghost_node = GhostScript.new()
+		_ghost_node.setup(String(GameState.ghost_play[key]), GameState.ghost_name)
+		add_child(_ghost_node)
+	if _ghost_node:
+		_ghost_node.at(_ghost_t)
 
 # Pluie de gravats (Mines de Cristal) : poussière qui tombe d'abord du plafond au-dessus de x,
 # puis quelques pierres, décalées dans le temps.

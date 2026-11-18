@@ -185,7 +185,13 @@ const RUSH_REWARD := 600
 const RUSH_RECORD_BONUS := 200    # en battant son meilleur temps
 const RUSH_ORDER := ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre", "cerbere", "centaure", "oeil"]
 var curse := ""
-var daily := false
+var daily := false          # Descente du jour ou Défi de la semaine (même déroulé, butin non conservé)
+var weekly := false         # Défi de la semaine
+const RUSH_BOARD_SEED := 1  # classement en ligne du Défi des boss
+# Fantôme : parcours enregistré (10 images/s, par niveau) et fantôme du premier à rejouer
+var ghost_rec := {}
+var ghost_play := {}
+var ghost_name := ""
 var saved_seed := 0
 var rush_i := 0
 
@@ -213,9 +219,60 @@ func start_daily(player) -> void:
 	saved_seed = run_seed
 	run_seed = today_seed()
 	daily = true
+	weekly = false
 	curse = ""
 	_cache.clear()
+	_prepare_ghost(run_seed)
 	_start(3)
+
+# Semaine ISO (AAAASS), la même pour tout le monde du lundi au dimanche
+static func week_seed() -> int:
+	var unix := int(Time.get_unix_time_from_system())
+	var days := unix / 86400
+	var wd := ((days + 3) % 7) + 1                      # 1 = lundi … 7 = dimanche
+	var thu := days + 4 - wd                            # jeudi de la même semaine
+	var d := Time.get_date_dict_from_unix_time(thu * 86400)
+	var jan1 := int(Time.get_unix_time_from_datetime_dict({"year": d["year"], "month": 1, "day": 1, "hour": 0, "minute": 0, "second": 0})) / 86400
+	return int(d["year"]) * 100 + (thu - jan1) / 7 + 1
+
+# Règles de la semaine : une malédiction et une arme imposées, tirées de la semaine
+const WEEKLY_CURSES := ["haste", "dark", "fragile"]
+const WEEKLY_PALIER := 4
+static func weekly_rules(ws: int) -> Dictionary:
+	var w: Array = WeaponsData.ORDER
+	return {"curse": WEEKLY_CURSES[ws % WEEKLY_CURSES.size()], "weapon": w[(ws / 3) % w.size()], "palier": WEEKLY_PALIER}
+
+func start_weekly(player) -> void:
+	if player:
+		prog["geo"] = player.geo
+	saved_seed = run_seed
+	run_seed = week_seed()
+	var r := weekly_rules(run_seed)
+	daily = true
+	weekly = true
+	curse = String(r["curse"])
+	_cache.clear()
+	_prepare_ghost(run_seed)
+	_start(int(r["palier"]))
+
+func _prepare_ghost(seed: int) -> void:
+	ghost_rec = {}
+	ghost_play = {}
+	ghost_name = ""
+	if not bool(Settings.ghost_on):
+		return
+	board.fetch_ghost(seed, difficulty, func(d: Dictionary):
+		if d.has("data") and run_seed == seed and daily:
+			var g = JSON.parse_string(String(d["data"]))
+			if g is Dictionary and g.has("steps"):
+				ghost_play = g["steps"]
+				ghost_name = String(d.get("name", "")))
+
+func ghost_json() -> String:
+	var steps := {}
+	for k in ghost_rec:
+		steps[k] = ";".join(ghost_rec[k])
+	return JSON.stringify({"v": 1, "steps": steps})
 
 func start_rush(player) -> void:
 	if player:
@@ -236,6 +293,8 @@ func _end_special() -> void:
 	if daily:
 		run_seed = saved_seed
 		daily = false
+		weekly = false
+		ghost_play = {}
 		_cache.clear()
 	prog = snapshot.duplicate(true)
 	curse = ""
@@ -320,6 +379,12 @@ func go_next_level(player) -> void:
 				Achievements.counters["rush_best"] = t
 				Achievements.save()
 			Achievements.unlock("rush")
+			# classement en ligne du Défi des boss (tous temps confondus)
+			board.submit(RUSH_BOARD_SEED, difficulty, t, func(d: Dictionary):
+				if d.has("me") and d["me"] is Dictionary:
+					var sc = get_tree().current_scene
+					if sc and sc.has_method("show_message"):
+						sc.show_message(tr("Classement du Défi des boss : %d sur %d") % [int(d["me"]["rank"]), int(d.get("total", 0))], 4.0))
 			_end_special()
 			prog["geo"] = int(prog.get("geo", 0)) + RUSH_REWARD + (RUSH_RECORD_BONUS if record_beaten else 0)     # récompense gardée
 			# première victoire dans cette partie : une encoche d'emblème en plus
@@ -338,7 +403,8 @@ func go_next_level(player) -> void:
 		return
 	if mode == "descent" and daily and step >= STEPS_PER_PALIER:
 		var t2 := float(Achievements.run.get("time", 0.0))
-		var dkey := "daily_%d" % run_seed
+		var was_weekly := weekly
+		var dkey := ("weekly_%d" if weekly else "daily_%d") % run_seed
 		var best2 := float(Achievements.counters.get(dkey, 0.0))
 		if best2 <= 0.0 or t2 < best2:
 			Achievements.counters[dkey] = t2
@@ -346,13 +412,17 @@ func go_next_level(player) -> void:
 		Achievements.unlock("daily")
 		# classement en ligne : le rang s'affiche au Sanctuaire dès que le serveur répond
 		var dseed := run_seed
+		var gj := ghost_json()
 		board.submit(dseed, difficulty, t2, func(d: Dictionary):
 			if d.has("me") and d["me"] is Dictionary:
 				var sc = get_tree().current_scene
 				if sc and sc.has_method("show_message"):
-					sc.show_message(tr("Classement du jour : %d sur %d") % [int(d["me"]["rank"]), int(d.get("total", 0))], 4.0))
+					sc.show_message((tr("Classement de la semaine : %d sur %d") if was_weekly else tr("Classement du jour : %d sur %d")) % [int(d["me"]["rank"]), int(d.get("total", 0))], 4.0), gj)
 		_end_special()
-		pending_message = tr("Descente du jour réussie en %d:%02d !") % [int(t2) / 60, int(t2) % 60] + "\n" + tr("Meilleur temps du jour : %d:%02d") % [int(Achievements.counters[dkey]) / 60, int(Achievements.counters[dkey]) % 60] + "\n" + Achievements.run_summary()
+		if was_weekly:
+			pending_message = tr("Défi de la semaine réussi en %d:%02d !") % [int(t2) / 60, int(t2) % 60] + "\n" + tr("Meilleur temps de la semaine : %d:%02d") % [int(Achievements.counters[dkey]) / 60, int(Achievements.counters[dkey]) % 60] + "\n" + Achievements.run_summary()
+		else:
+			pending_message = tr("Descente du jour réussie en %d:%02d !") % [int(t2) / 60, int(t2) % 60] + "\n" + tr("Meilleur temps du jour : %d:%02d") % [int(Achievements.counters[dkey]) / 60, int(Achievements.counters[dkey]) % 60] + "\n" + Achievements.run_summary()
 		save_game()
 		_reload(true)
 		return
@@ -411,7 +481,7 @@ func die_in_descent(geo_now: int = -1, pos: Vector2 = Vector2.ZERO) -> void:
 		_one_life_over()
 		return
 	if mode == "rush" or daily:
-		var what := tr("Défi des boss échoué (boss %d / %d).") % [rush_i + 1, RUSH_ORDER.size()] if mode == "rush" else tr("Descente du jour échouée.")
+		var what := tr("Défi des boss échoué (boss %d / %d).") % [rush_i + 1, RUSH_ORDER.size()] if mode == "rush" else (tr("Défi de la semaine échoué.") if weekly else tr("Descente du jour échouée."))
 		_end_special()
 		pending_message = what + "\n" + Achievements.run_summary()
 		save_game()
@@ -653,6 +723,8 @@ var trial_weapon := ""   # arme essayée à l'arsenal (au Sanctuaire seulement, 
 func weapon() -> String:
 	if trial_weapon != "" and mode == "hub":
 		return trial_weapon
+	if weekly and mode == "descent":
+		return String(weekly_rules(run_seed)["weapon"])
 	return str(prog.get("weapon", "aiguille"))
 
 func owns_weapon(id: String) -> bool:
