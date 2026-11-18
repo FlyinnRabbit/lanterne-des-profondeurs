@@ -41,7 +41,19 @@ const FINALS := ["ombre", "cerbere", "centaure", "oeil"]
 func final_boss_for(p: int) -> String:
 	var r := RandomNumberGenerator.new()
 	r.seed = run_seed * 977 + int(p / 7) * 31
-	return FINALS[r.randi_range(0, FINALS.size() - 1)]
+	var pick: String = FINALS[r.randi_range(0, FINALS.size() - 1)]
+	# défis partagés (jour, semaine, rush) : même boss pour tout le monde
+	if daily or mode != "descent":
+		return pick
+	# boss déjà tiré pour ce palier dans cette partie : il ne change plus
+	var drawn: Dictionary = prog.get("finals_drawn", {})
+	if drawn.has(str(p)):
+		return String(drawn[str(p)])
+	# sinon, priorité à un boss final jamais vaincu (les 4 en 4 combats au plus)
+	var unbeaten: Array = FINALS.filter(func(fid): return not Achievements.counters.get("final_" + fid, false))
+	if not unbeaten.is_empty() and not unbeaten.has(pick):
+		pick = unbeaten[r.randi_range(0, unbeaten.size() - 1)]
+	return pick
 
 func boss_for(p: int) -> String:
 	if p % 7 == 0:
@@ -118,7 +130,8 @@ func scaled(key: String) -> float:
 		base *= 1.25 if key == "speed" else 1.15
 	match key:
 		"hp", "boss_hp":
-			return base * (1.0 + 0.18 * p)
+			# plafond à ×4,6 (atteint au palier 21) : plus profond, ce sont les élites qui gardent le défi
+			return base * minf(1.0 + 0.18 * p, 4.6)
 		"speed":
 			return base * minf(1.0 + 0.05 * p, 1.5)
 		"aggro":
@@ -331,6 +344,10 @@ func current_level() -> Dictionary:
 		if is_boss_level():
 			boss = "K"
 			boss_id = boss_for(palier)
+			if palier % 7 == 0 and mode == "descent" and not daily:
+				var drawn: Dictionary = prog.get("finals_drawn", {})
+				drawn[str(palier)] = boss_id
+				prog["finals_drawn"] = drawn
 		var gen := LevelGen.new()
 		var seed_value := run_seed * 31 + palier * 7919 + step * 104729
 		var diff: Dictionary = DIFFS[difficulty].duplicate()
