@@ -861,6 +861,7 @@ T = {
 "Premier à %d manches": ("First to %d rounds", "Gana quien llegue a %d rondas", "Wer zuerst %d Runden gewinnt"),
 "Combattez !": ("Fight!", "¡Luchad!", "Kämpft!"),
 "Quitter le duel": ("Leave the duel", "Salir del duelo", "Duell verlassen"),
+"Arène des Ombres au Sanctuaire (duel à deux)": ("Shadow Arena in the Sanctuary (two-player duel)", "Arena de las Sombras en el Santuario (duelo a dos)", "Schattenarena im Heiligtum (Duell zu zweit)"),
 }
 LANGS = ["en", "es", "de"]
 def gd(s):

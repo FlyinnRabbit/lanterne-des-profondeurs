@@ -860,6 +860,7 @@ const T := {
 		"Premier à %d manches": "First to %d rounds",
 		"Combattez !": "Fight!",
 		"Quitter le duel": "Leave the duel",
+		"Arène des Ombres au Sanctuaire (duel à deux)": "Shadow Arena in the Sanctuary (two-player duel)",
 	},
 	"es": {
 		"Animations de l'écran titre : %s": "Animaciones de la pantalla de título: %s",
@@ -1721,6 +1722,7 @@ const T := {
 		"Premier à %d manches": "Gana quien llegue a %d rondas",
 		"Combattez !": "¡Luchad!",
 		"Quitter le duel": "Salir del duelo",
+		"Arène des Ombres au Sanctuaire (duel à deux)": "Arena de las Sombras en el Santuario (duelo a dos)",
 	},
 	"de": {
 		"Animations de l'écran titre : %s": "Animationen des Titelbildschirms: %s",
@@ -2582,5 +2584,6 @@ const T := {
 		"Premier à %d manches": "Wer zuerst %d Runden gewinnt",
 		"Combattez !": "Kämpft!",
 		"Quitter le duel": "Duell verlassen",
+		"Arène des Ombres au Sanctuaire (duel à deux)": "Schattenarena im Heiligtum (Duell zu zweit)",
 	},
 }

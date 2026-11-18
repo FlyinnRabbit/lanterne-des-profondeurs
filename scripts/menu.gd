@@ -1282,6 +1282,7 @@ func _build_options(root: Control) -> void:
 	_check_row(g, "Dégâts infligés (coin de l'écran)", "damage_numbers")
 	_check_row(g, "Mini-carte", "minimap")
 	_check_row(g, "Annonces d'attaque ennemies (!)", "telegraphs")
+	_check_row(g, "Arène des Ombres au Sanctuaire (duel à deux)", "arena_mode")
 	if not OS.has_feature("web"):
 		_check_row(g, "Mises à jour automatiques", "auto_update")
 	_section(g, "Accessibilité")
@@ -1388,6 +1389,8 @@ func _on_slider(value: float, key: String, sl: HSlider) -> void:
 
 func _on_check(on: bool, key: String) -> void:
 	Settings.set_value(key, on)
+	if key == "arena_mode" and main and main.has_method("refresh_arena"):
+		main.refresh_arena()
 
 func _on_options_defaults() -> void:
 	Settings.reset_defaults()

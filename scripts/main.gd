@@ -406,8 +406,9 @@ func _spawn_everything() -> void:
 					enemy_spawns.append([DummyScript, _cell_feet(x, y, 44), null, false])
 				"{":
 					# Arène des Ombres : bannière aux lames croisées, entrée du duel local
-					var ap = _make_prop("arena", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.6, 0.45), 1.6)
-					interactables.append([ap, "arena"])
+					# (seulement si l'option « Arène des Ombres » est activée)
+					arena_spot = Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE)
+					refresh_arena.call_deferred()
 				"j":
 					# le Scriptorium de Maître Plume (Sanctuaire, sur sa plateforme)
 					var scp = _make_prop("scriptorium", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(0.85, 0.7, 0.55), 1.3)
@@ -1147,6 +1148,21 @@ func _enemy_spikes(delta: float) -> void:
 # ---------------------------------------------------------------- duel local (Arène des Ombres)
 # Deux joueurs, chacun son arme (niveau 2, sans emblèmes), 9 masques ; le premier à 3 manches gagne.
 const DUEL_HP := 9
+var arena_spot := Vector2.INF
+var arena_prop = null
+# montre ou cache la bannière de l'arène selon l'option (sans recharger le Sanctuaire)
+func refresh_arena() -> void:
+	if arena_spot == Vector2.INF:
+		return
+	if Settings.arena_mode and arena_prop == null:
+		arena_prop = _make_prop("arena", arena_spot, Color(1.0, 0.6, 0.45), 1.6)
+		interactables.append([arena_prop, "arena"])
+	elif not Settings.arena_mode and arena_prop != null:
+		for it in interactables.duplicate():
+			if it[0] == arena_prop:
+				interactables.erase(it)
+		arena_prop.queue_free()
+		arena_prop = null
 var duel_players: Array = []
 var duel_spawns: Array = []
 var duel_freeze := 0.0
