@@ -13,6 +13,7 @@ var shop_status: Label
 var lift_list: VBoxContainer
 var lift_info: Label
 var npc_panel: PanelContainer
+var npc_scroll: ScrollContainer
 var npc_name: Label
 var npc_text: Label
 var npc_buttons: VBoxContainer
@@ -545,7 +546,12 @@ func _build_npc(root: Control) -> void:
 	v.add_child(npc_text)
 	npc_buttons = VBoxContainer.new()
 	npc_buttons.add_theme_constant_override("separation", 6)
-	v.add_child(npc_buttons)
+	# défilement si la liste est longue (joaillier avec beaucoup d'emblèmes)
+	npc_scroll = ScrollContainer.new()
+	npc_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	npc_scroll.follow_focus = true
+	npc_scroll.add_child(npc_buttons)
+	v.add_child(npc_scroll)
 
 func _npc_button(text: String, cb: Callable) -> Button:
 	var b: Button = main.menu._button(text, cb)
@@ -599,13 +605,22 @@ func open_npc(kind: String) -> void:
 					first = b
 		"jeweler":
 			npc_name.text = "Le joaillier"
-			npc_text.text = tr("« Montre-moi les emblèmes que tu portes : je peux les renforcer. Niveau 2 après le palier 2, niveau 3 après le palier 4. »")
+			npc_text.text = tr("« Montre-moi tes emblèmes : je peux les renforcer, même ceux que tu ne portes pas. Niveau 2 après le palier 2, niveau 3 après le palier 4. »")
+			# tous les emblèmes possédés, ceux portés en premier
 			var worn: Array = GameState.prog.get("equipped", [])
-			if worn.is_empty():
-				npc_text.text = tr("Tu ne portes aucun emblème : équipe-les d'abord sur un banc.")
+			var owned: Array = []
 			for cid in worn:
+				owned.append(int(cid))
+			for cid in GameState.prog.get("owned", []):
+				if not owned.has(int(cid)):
+					owned.append(int(cid))
+			if owned.is_empty():
+				npc_text.text = tr("Tu n'as encore aucun emblème : trouve-les en descente.")
+			for cid in owned:
 				var c: Dictionary = GameState.charm(int(cid))
 				var cname: String = tr(c["name"])
+				if worn.has(cid) or worn.has(float(cid)):
+					cname = tr("%s (porté)") % cname
 				var clv: int = GameState.charm_level(int(cid))
 				var cb: Button
 				var cdesc: String = tr(c["desc"]) + "\n" + tr(c.get("up", ""))
@@ -637,6 +652,8 @@ func open_npc(kind: String) -> void:
 				lines.append(tr(ELDER_LINES[i]))
 			npc_text.text = "\n\n".join(lines.slice(maxi(lines.size() - 3, 0)))
 	var close := _npc_button("Fermer", close_all)
+	npc_scroll.custom_minimum_size.y = minf(npc_buttons.get_child_count() * 46.0, 420.0)
+	npc_scroll.scroll_vertical = 0
 	if first == null:
 		first = close
 	first.grab_focus()
