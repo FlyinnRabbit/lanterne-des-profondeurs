@@ -19,10 +19,17 @@ func _ready() -> void:
 	floor_snap_length = 6.0
 	anim_t = randf() * 3.0
 	hop_cd = randf_range(0.3, 1.0)
-	if not display:
-		var bid := String(main.pal.get("id", ""))
-		tint = {"desert": Color(0.95, 0.7, 0.3), "antique": Color(0.55, 0.75, 0.95), "forge": Color(1.0, 0.5, 0.3),
-			"glace": Color(0.6, 0.85, 1.0), "ossuaire": Color(0.8, 0.85, 0.7)}.get(bid, Color(0.45, 0.85, 0.4))
+	if main and main.pal:
+		tint = biome_tint(main.pal)
+
+# Couleur du slime d'après la palette du biome : la teinte d'accent (mousses, cristaux, braises…)
+# mêlée à la lumière du biome, rendue assez vive et claire pour se détacher du décor.
+static func biome_tint(pal: Dictionary) -> Color:
+	var acc: Color = pal.get("moss", Color(0.45, 0.85, 0.4))
+	var lit: Color = pal.get("light", Color(1, 1, 1))
+	var c := acc.lerp(lit, 0.25)
+	c = Color.from_hsv(c.h, clampf(c.s * 1.25, 0.45, 0.85), clampf(maxf(c.v, 0.75), 0.75, 0.95))
+	return c
 
 func _physics_process(delta: float) -> void:
 	anim_t += delta
