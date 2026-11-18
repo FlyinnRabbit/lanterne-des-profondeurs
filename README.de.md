@@ -27,15 +27,16 @@ Schatten bewahrt die verlorenen Splitter dort, wo du gefallen bist, und der Aufz
 
 ## Auf einen Blick
 
-- **12 Biome**; die Ebenen werden bei jedem Abstieg neu erzeugt, mit Grotten, dreistöckigen Schichten und Seilwinden
-- **10 Bosse**: 6 Ebenen-Wächter und 4 Endbosse, jeder mit Phase 2 und eigener Musik
-- **Kampf**: 3er-Kombos, aufgeladener Wirbel, Luftkombo, Pogo, Sturzangriff, Ausfall im Sprint, Parade (eine perfekte macht den nächsten Treffer kritisch), Seelenklinge, Ultimate
-- **5 Waffen**, von der Schmiedin verbessert (die Zwillingsklauen trägst du an beiden Händen), **21 Embleme**
-- **Das Heiligtum**: Händler, Arsenal, Schmiedin, Kartograf, Schneiderin (53 kosmetische Objekte), Ältester und vier Feste im Jahr
-- **4 Schwierigkeitsgrade** plus ein Ein-Leben-Modus, Flüche, **Abstieg des Tages** mit Online-Rangliste, **Boss-Herausforderung**
-- Deutsch, Englisch, Französisch und Spanisch; Tastatur und Xbox-Controller; Browser, Windows, macOS, Linux und Steam Deck; automatische Updates
-- Das **Skriptorium** hält alles fest: Statistik, Rekorde, Bestiarium, Wächter und Embleme
-- Alles ist in Code gezeichnet; eigene Musik und Klänge
+- **12 Biome**; die Zonen werden bei jedem Abstieg neu erzeugt, mit Grotten, dreistöckigen Schichten, Seilwinden und Fallen, die zu jedem Biom passen
+- **10 Bosse**: 6 Ebenenwächter und 4 Endbosse, jeder mit einer Phase 2 und eigener Musik
+- **16 Gegnerarten**, vom Kriecher über den Mimik bis zum diebischen Affen und dem Goblin
+- **Kampf**: 3-Schlag-Kombos, aufgeladener Wirbel, Luftkombo, Pogo, Sturzangriff, Sprintstoß, Parade (perfekt = kritischer Treffer), Seelenklinge, Ultimative
+- **7 Waffen**, von der Schmiedin bis Stufe 5 geschmiedet, **42 Embleme**, vom Juwelier bis Stufe 3 verstärkt
+- **Das Heiligtum**: Händler, Arsenal, Schmiedin, Juwelier, Kartograf, Schneiderin (59 Kosmetikartikel), Ältester, das Skriptorium und vier Feste im Jahr
+- **4 Schwierigkeitsgrade** plus ein Ein-Leben-Modus, Flüche, **Tagesabstieg** und **Wochenherausforderung** mit Online-Bestenlisten und dem Geist des Ersten, **Boss-Ansturm** mit eigener Bestenliste
+- Ein **lokales Duell** für zwei Spieler: die Schattenarena
+- Deutsch, Französisch, Englisch und Spanisch; Tastatur und Xbox-/PlayStation-Controller; Browser, Windows, macOS, Linux und Steam Deck; automatische Updates
+- Alles in Code gezeichnet; eigene Musik und Sounds
 
 ## Screenshots
 
@@ -201,43 +202,51 @@ zusätzlichen Gegner und Eliten.
 
 ## Das Heiligtum und die endlosen Ebenen
 
-Nach dem Tutorial erreichst du das **Heiligtum der Laterne**, das Herz des Spiels:
-- **Bank**: rasten, Leben wiederherstellen, Embleme wechseln. In der Tiefe heilt jede Bank nur einmal pro
-  Zone (du kannst dich erneut setzen, um den Wiedereinstiegspunkt zu setzen und Embleme zu wechseln),
-  und nicht direkt nach einem Kampf (1,5 s).
-- **Händler**: tauscht Splitter gegen **Lebensmasken** (+1 maximales Leben, bis zu 4), Emblem-**Kerben**
-  und die **Embleme**, die du noch nicht gefunden hast. Sein alter Karren und seine Zugassel warten
-  neben ihm.
-- **Skriptorium** (oben auf seiner Plattform über dem Händler): **Meister Feder**, die Archiv-Eule, führt
-  die Register deines Spiels in einem großen Buch: Statistik, Rekorde, **Bestiarium** und besiegte
-  **Wächter** (Beschreibungen und Tipps) sowie deine **Emblemsammlung** (wo du jedes gefunden hast und
-  wie lange du es getragen hast).
-- **Arsenal**: deine Grundwaffe kaufen und ausrüsten. **Ausprobieren** leiht eine Waffe, solange du im Heiligtum bleibst.
+Nach dem Tutorial kommst du im **Heiligtum der Laterne** an, dem Herz des Spiels:
+- **Bank**: ausruhen, Leben auffüllen, Embleme wechseln. In der Tiefe heilt jede Bank nur einmal pro Zone
+  (du kannst dich erneut setzen, um deinen Rückkehrpunkt festzulegen und Embleme zu wechseln), und nicht direkt
+  nach einem Kampf (1,5 s).
+- **Händler**: tauscht Splitter gegen **Lebensmasken** (+1 maximales Leben, bis zu 4), Emblem-**Kerben** und die
+  **Embleme**, die du noch nicht gefunden hast. Sein alter Karren und seine Zugassel warten neben ihm.
+- **Skriptorium** (auf seiner Plattform über dem Händler): **Meister Feder**, die Archiv-Eule, führt die
+  Register deines Spielstands in einem großen Buch: Statistiken, Rekorde, ein **Bestiarium**, die besiegten
+  **Wächter** (mit Beschreibungen und Tipps) und deine **Emblemsammlung**.
+- **Arsenal**: deine Grundwaffe kaufen und ausrüsten. **Ausprobieren** leiht eine Waffe, solange du im
+  Heiligtum bleibst.
 - **Trainingspuppe** (rechts vom Arsenal): zeigt deinen Schaden pro Sekunde.
-- **Schneiderin** (zwischen Händler und Bank): Garderobe und Kosmetik.
-- **Aufzug**: wähle die **Ebene**, in die du hinabsteigst.
-- Mit jeder geschafften Ebene kommen **Bewohner** dazu: die **Schmiedin** (Ebene 1, schmiedet deine Waffen auf Stufe 2), der
-  **Kartograf** (Ebene 2, verkauft eine Feder, die die ganze Karte aufdeckt) und der **Älteste**
-  (Ebene 3, die Geschichte der Laterne).
+- **Schneiderin**: die Garderobe und die Kosmetik.
+- **Aufzug**: die **Ebene** wählen, in die du hinabsteigst, und die Sondermodi (siehe unten).
+- **Bewohner**, die mit jeder geschafften Ebene kommen:
+  - die **Schmiedin** (Ebene 1): schmiedet jede Waffe bis **Stufe 5**;
+  - der **Juwelier**, ein mumifizierter Pharao auf seiner Plattform (Ebene 2): verstärkt **alle deine Embleme**
+    bis **Stufe 3**;
+  - der **Kartograf** (Ebene 2): verkauft eine Feder, die die ganze Karte aufdeckt;
+  - der **Älteste** (Ebene 3): die Geschichte der Laterne.
 
-Dein Leben bleibt beim Portal zwischen den beiden Zonen einer Ebene erhalten (Leicht und Normal geben
-1 Maske zurück, Schwer und Albtraum nichts).
+Eine **Ebene = 2 erzeugte Zonen** (zwei Biome aus den 12) **und dann ein Boss**. Wer sie schafft, kehrt ins
+Heiligtum zurück und **schaltet die nächste Ebene frei**, endlos. Dein Leben bleibt am Portal zwischen den
+beiden Zonen erhalten (Leicht und Normal geben 1 Maske zurück, Schwer und Albtraum nichts).
 
-Eine **Ebene = 2 generierte Zonen** (Biome zufällig aus 9) **und dann ein Boss**. Schaffst du sie, kehrst du
-ins Heiligtum zurück und **schaltest die nächste Ebene frei**, ohne Ende. Je tiefer du steigst, desto mehr
-Leben, Tempo, Aggressivität und Eliten haben die Gegner (etwa ×1,9 Leben auf Ebene 6, ×2,6 auf Ebene 10).
+**Tiefe**: das Leben der Gegner steigt um 18 % pro Ebene und hört bei ×4,6 auf (Ebene 21). Tempo, Aggressivität,
+Anzahl und Eliten steigen bis etwa Ebene 10 bis 15. Der erlittene Schaden wächst nie mit der Tiefe.
 
-**Stirbst** du während eines Abstiegs, kehrst du ins Heiligtum zurück und verlierst die seit dem Aufbruch
-gesammelte Beute (Splitter, Embleme, Kerben); freigeschaltete Ebenen und Käufe bleiben erhalten. Dein
-**Schatten** bewahrt die verlorenen Splitter dort, wo du gefallen bist: Kehre in dieselbe Ebene zurück und
-besiege ihn, um sie zurückzuholen (ein neuer Tod ersetzt ihn).
+**Sterben** im Abstieg: zurück ins Heiligtum, und die seit dem Aufbruch gesammelte Beute (Splitter, Embleme,
+Kerben) ist verloren, aber freigeschaltete Ebenen und Käufe bleiben. Dein **Schatten** bewahrt die verlorenen
+Splitter dort, wo du gefallen bist: kehre zur selben Ebene zurück und schaffe sie, um sie zurückzuholen (ein
+neuer Tod ersetzt ihn).
 
-Vom Aufzug aus kannst du außerdem:
-- jede Ebene mit einem **Fluch** spielen (Eile, Dunkelheit, Zerbrechlichkeit) für +50 bis 60 % Splitter;
-- den **Abstieg des Tages** spielen (dieselbe Ebene für alle, Bestzeit), mit einer **Online-Rangliste** pro
-  Schwierigkeit: Deine Zeit wird am Ende mit deinem gewählten Namen gesendet (Aufzug → „Tagesrangliste"),
-  und du siehst die Top 10 und deinen Platz. Das Senden lässt sich auf demselben Bildschirm abschalten;
-- nach Ebene 6 die **Boss-Herausforderung** annehmen (Bosse nacheinander, mit Zeitmessung): jedes Mal +600 Splitter, +200 mehr bei neuer Bestzeit und beim ersten Sieg eine Emblemkerbe.
+### Die Sondermodi des Aufzugs
+- **Flüche** (Eile, Dunkelheit, Zerbrechlichkeit): jede Ebene verflucht spielen, für +50 bis 60 % Splitter.
+- **Tagesabstieg**: dieselben Zonen für alle, die beste Zeit gewinnt. Online-Bestenliste pro Schwierigkeitsgrad
+  (Top 10 und dein Rang); deine Zeit wird mit dem Namen deiner Wahl gesendet, das Senden lässt sich abschalten.
+- **Wochenherausforderung**: eine pro Woche, auf Ebene 4, mit einem Fluch und einer vorgegebenen Waffe, die
+  jede Woche wechseln, und eigener Bestenliste.
+- **Geist**: im Tagesabstieg und in der Wochenherausforderung läuft der Geist des aktuellen Ersten die Zone
+  neben dir ab (eine durchscheinende Kapuzengestalt mit Namen). Er lässt sich im Bestenlisten-Bildschirm
+  ausblenden.
+- **Boss-Ansturm** (nach Ebene 6): die Bosse nacheinander, mit Zeitmessung. +600 Splitter jedes Mal, +200 mehr
+  bei neuer Bestzeit, eine Emblem-Kerbe beim ersten Sieg, und eine Online-Bestenliste.
+- **Bestenlisten**: Tag, Woche und Boss-Ansturm, alle über den Aufzug.
 
 Es gibt 29 **Erfolge**, einsehbar über den Titelbildschirm oder das Pausenmenü.
 
@@ -282,15 +291,33 @@ Die Zonen sind keine flachen Streifen mehr:
 - **Fahrender Händler**: manchmal nahe der Bank in der Zonenmitte (Käufe zählen als Beute).
 
 ### Fallen und Plattformen
-Die Zonen haben Relief (der Boden steigt und fällt von Raum zu Raum) und abwechslungsreiche Räume:
-schwebende Inseln, Zickzack-Schächte, Doppelwege, niedrige Höhlen, brüchige Brücken, Abgründe mit
-beweglicher Plattform, Klingengänge.
-- **Pfeiltotem**: schießt auf Kopfhöhe — ducken, springen oder parieren. Nie nahe einer Boss-Arena.
-- **Pendelklinge**: Ihr tiefster Punkt geht knapp über einen geduckten Helden hinweg.
+Die Zonen haben ein Relief (der Boden steigt und fällt von Raum zu Raum) und abwechslungsreiche Räume: schwebende
+Inseln, Zickzack-Schächte, Doppelwege, niedrige Höhlen, brüchige Brücken, Abgründe mit beweglicher Plattform,
+Klingengänge.
+- **Stachelgruben**: hineinzufallen kostet eine Maske und setzt dich auf den letzten sicheren Boden zurück.
+- **Pfeiltotem**: schießt auf Kopfhöhe. Duck dich, spring oder pariere.
+- **Pendelklinge**: ihr tiefster Punkt geht knapp über den geduckten Helden hinweg.
 - **Stalaktit**: fällt, wenn du darunter hindurchgehst.
-- **Brüchige Blöcke**: geben kurz nach dem Betreten nach und bauen sich dann wieder auf.
-- **Bewegliche Plattform**: pendelt über einem Abgrund hin und her.
-- Fallen erscheinen in höchstens 50 % der Räume, und Fallenräume haben weniger Gegner.
+- **Brüchige Blöcke**: stürzen kurz nach dem Betreten ein und bilden sich dann neu.
+- **Bewegliche Plattform**: pendelt über einem Abgrund.
+- **Einstürzende Plattform** (Kristallminen): gibt unter dir in einem Schuttregen nach.
+
+**Biomfallen**, mit lesbarem Zyklus (sie warnen, bevor sie zuschlagen). Je nach Tiefe gibt es 1 bis 4 pro Zone,
+nie übereinander und nie in der Nähe des Bosses:
+
+| Falle | Biome |
+|---|---|
+| Ein- und ausfahrende Stacheln | alle |
+| Giftgaspilz | Pilzgärten, Summender Stock, Versunkener Dschungel |
+| Flammengeysir | Glühende Schmiede, Verschütteter Sand |
+| Eisgeysir | Eisiger Abgrund |
+| Kristallwelle, die über den Boden läuft | Kristallminen |
+| Wirbel fliegender Seiten | Stille Bibliothek |
+| Skeletthand, die dich packt (der Sprint befreit) | Beinhaus |
+| Dampfrohr in den Farben des Bioms | Versunkene Zitadelle, Antiker Tempel |
+| Fallender Tropfen | Die Tiefen |
+
+Fallen verletzen auch Gegner, aber nur die, die du gerade getroffen oder weggestoßen hast.
 
 ## Kampf
 
@@ -367,13 +394,34 @@ weitere finden (goldene Ringe) oder kaufen. Die Ausrüstung lässt sich nur **au
 | Kletterknoten | 1 | Seilwinden doppelt so schnell; die erste Fahrt mit jeder Winde gibt 33 Seele |
 | Letzter Atemzug | 3 | ein tödlicher Treffer lässt dich mit 1 Maske überleben, einmal pro Zone |
 | Blutzahn | 2 | +30 % Chance auf Blutung bei jedem Treffer, mit jeder Waffe (1 Schaden eine Sekunde später); 50 % mit den Zwillingsklauen St. 2 |
+| Glühende Seele | 2 | die Seelenklinge (Zauber) verursacht 1 Schaden mehr |
+| Genügsame Laterne | 1 | heilen kostet nur 27 Seele statt 33 |
+| Mottenflügel | 3 | erlaubt einen zweiten Sprung in der Luft, etwas niedriger als der erste |
+| Zwillingsschatten | 2 | zwei Sprints in der Luft statt einem vor der Landung |
+| Steinhaut | 2 | nach einem Treffer hält die Unverwundbarkeit 40 % länger |
+| Händlerbeutel | 1 | besiegte Gegner lassen 20 % mehr Splitter fallen |
+| Saftkelch | 3 | alle 15 besiegten Gegner wird eine Maske wiederhergestellt |
+| Sturmherz | 2 | die Ultimative lädt 25 % schneller (Treffer und Paraden) |
+| Donnerwelle | 2 | die Welle der Ultimativen ist 30 % breiter |
+| Rindensohlen | 1 | der erste Fallentreffer jeder Ebene wird ignoriert |
+| Pendel | 1 | eine gelungene Parade lädt den Sprint sofort auf und gibt 5 Seele mehr |
+| Jägerzahn | 2 | +1 Schaden gegen Gegner unter 40 % ihrer Lebenspunkte |
+| Beißender Frost | 2 | 15 % Chance pro Treffer, den Gegner kurz einzufrieren (0,6 s, keine Bosse) |
+| Falkenauge | 2 | +8 % Chance auf kritische Treffer |
+| Obsidianspitze | 2 | kritische Treffer verursachen ×2 statt ×1,5 |
+| Seelenschleier | 3 | mit 33 Seele wird ein Treffer von der Seele statt von den Masken absorbiert (einmal alle 8 s) |
+| Zorn des Verwundeten | 2 | bei 1 Maske +1 Schaden bei allen Treffern |
+| Komet | 1 | der aufgeladene Angriff (Wirbel) lädt 40 % schneller |
+| Gesegneter Saft | 2 | jede Heilung hat 25 % Chance, eine zusätzliche Maske wiederherzustellen |
+| Klingentanz | 2 | der Abschlussschlag der Kombo verursacht +1 Schaden und gibt 4 Seele |
+| Bankgebet | 1 | auf einer Bank sitzen füllt die Seele bis 33 |
 
-Der **Juwelier**, ein mumifizierter Pharao, der sich nach Ebene 2 im Heiligtum niederlässt, verstärkt die Embleme, die du trägst: Stufe 2 (Ebene 2 geschafft), dann Stufe 3 (Ebene 4). Jedes Emblem wird stärker (zum Beispiel Glasherz: +2, +3, dann +4 Masken).
+Der **Juwelier**, ein mumifizierter Pharao, der sich nach Ebene 2 im Heiligtum niederlässt, verstärkt **alle Embleme, die du besitzt**, ob getragen oder nicht: Stufe 2 (Ebene 2 geschafft), dann Stufe 3 (Ebene 4). Jedes Emblem wird stärker (zum Beispiel Glasherz: +2, +3, dann +4 Masken). Inventar und Skriptorium zeigen die 42 Embleme in einer scrollbaren Liste.
 
 Die Wirkungen sind in `scripts/charms.gd` definiert und werden in `scripts/player.gd` angewendet.
 
 ## Gegner
-- **Kriecher**, **Flieger**, **Spucker**: die Grundlagen — läuft, stürzt herab, spuckt Sporen.
+- **Kriecher**, **Flieger**, **Spucker**: die Grundlagen. Der Kriecher entdeckt dich und stürmt los, der Flieger umfliegt Mauern, um dich zu erreichen, der Spucker schießt Sporen.
 - **Springer**: eine Heuschrecke, die auf dich springt.
 - **Schildwache**: blockt Schläge von vorn. Triff sie von oben, von hinten oder mit dem Ultimate.
 - **Sprengknolle**: rollt auf dich zu, leuchtet auf und explodiert (verletzt auch nahe Gegner).
@@ -409,18 +457,36 @@ halbem Leben und sein eigenes Thema. Einen Kontakt zu parieren betäubt den Boss
 | Der Geisterritter | Geisterduellant | Blitzausfälle (Dreierkombos in Phase 2), **teleportiert sich hinter dich**, Geistersäulen in Reihe, Glutsalve |
 
 ### Endbosse
-Auf Ebene 7 (und dann alle 7 Ebenen) ein Endboss, **in jedem Spiel zufällig gewählt**, jeder mit eigenem Thema:
-- **Der Schatten der Laterne**: Glutkränze, Schwung auf Kopfhöhe, Ascheregen, Lichtsäulen, Geister in Phase 2.
-- **Der Zerberus der Tiefe**: Glutatem aus drei Köpfen, Sprung mit Schockwelle, dreifacher Biss auf
-  Kopfhöhe (ducken), ein Heulen, das Flammen aufschießen lässt.
-- **Der Zentaurenschütze**: galoppiert durch die Arena, Pfeilsalven, am Boden markierter Pfeilregen,
+Auf Ebene 7 (dann alle 7 Ebenen) wartet ein **Endboss**, jeder mit eigenem Thema. Die Auslosung bevorzugt einen
+Endboss, den du **noch nie besiegt** hast: du triffst alle vier in vier Endkämpfen (spätestens Ebene 28).
+Tagesabstieg, Wochenherausforderung und Boss-Ansturm behalten für alle dieselbe Auslosung.
+- **Der Schatten der Laterne**: Glutkronen, Schwung auf Kopfhöhe, Ascheregen, Lichtsäulen, Gespenster in
+  Phase 2.
+- **Der Zerberus der Tiefe**: Glutatem aus drei Köpfen, Sprung mit Schockwelle, dreifacher Biss auf Kopfhöhe
+  (ducken), ein Heulen, das Flammen hervorbrechen lässt.
+- **Der Kentaur-Bogenschütze**: galoppiert durch die Arena, Pfeilsalven, am Boden markierter Pfeilregen,
   Lanzenstoß auf Kopfhöhe (ducken), springt über den Spieler.
-- **Das Auge von Unten**: Tentakel aus dem Boden, ein Strahl, der die Arena auf Kopfhöhe (ducken) oder
-  am Boden (springen) überstreicht, Sporenspiralen, fliegende Augen.
+- **Das Auge von unten**: Tentakel brechen aus dem Boden, ein Strahl fegt auf Kopfhöhe (ducken) oder am Boden
+  (springen) durch die Arena, Sporenspiralen, fliegende Augen.
 
-Sein Sieg löst **das Ende** aus: Die Laterne entflammt neu, das Licht steigt Ebene um Ebene bis zum Heiligtum
-und dann an die Oberfläche, und der Abspann läuft. Danach gehen die Ebenen weiter.
-Erfolg „Die vier Wächter": alle vier besiegen.
+Ein Sieg startet **das Ende**: die Laterne wird wieder entzündet, das Licht steigt Ebene um Ebene bis zum
+Heiligtum und dann an die Oberfläche, und der Abspann läuft. Danach gehen die Ebenen weiter.
+Erfolg „Die vier Wächter": besiege alle vier.
+
+## Lokales Duell: die Schattenarena
+
+Zwei Spieler kämpfen am selben Bildschirm gegeneinander. Um aus der Ferne zu spielen, nutze **Parsec**: es
+überträgt den Bildschirm und reicht den Controller des zweiten Spielers an das Spiel weiter.
+1. Schalte **Optionen → Schattenarena im Heiligtum** ein (standardmäßig aus): das Banner der Arena erscheint im
+   Heiligtum.
+2. Schließe einen zweiten Controller an. Spieler 1 spielt mit der Tastatur (oder dem ersten Controller),
+   Spieler 2 mit dem zweiten.
+3. Am Banner wählt jeder Spieler seine Waffe, dann **Kämpfen!**
+
+Regeln: gleiche Bedingungen. Keine Embleme, alle Waffen auf Stufe 2, je 9 Masken, wer zuerst **3 Runden**
+gewinnt, gewinnt. Die Parade wirkt gegen den anderen Spieler und stößt ihn zurück; ein Geschoss trifft nie
+seinen Werfer. Die Arena hat einen Boden und drei Plattformen in Sprungweite; beide Spieler starten einander
+zugewandt.
 
 ## Grafik
 
@@ -465,7 +531,7 @@ Alles wird in `user://settings.cfg` gespeichert.
 
 ## Kosmetik und Garderobe
 Die **Schneiderin** im Heiligtum (links von der Bank) öffnet die Garderobe, in der du das Aussehen des
-Helden mit animierter Vorschau änderst: **53 Kosmetikartikel** in 6 Kategorien, davon 21 saisonale.
+Helden mit animierter Vorschau änderst: **59 Kosmetikartikel** in 6 Kategorien, davon 21 saisonale.
 Alles ist rein optisch und gilt für alle Speicherplätze. Helle Umhänge sind abgedunkelt, damit sie auf
 dunklen Hintergründen nicht blenden.
 
@@ -533,17 +599,11 @@ Erhöhe `config/data_gen` in `project.godot`, wenn du Musik, Sounds oder Bilder 
 Installationen sehen dann den Download-Hinweis.
 
 ## Musik und Sounds
-Ein **eigener**, für das Spiel erzeugter Soundtrack (lizenzfrei): 29 Loops in `music/` — ein oder zwei
+Ein **eigener**, für das Spiel erzeugter Soundtrack (ohne fremdes Material): 32 Loops in `music/` — ein oder zwei
 pro Biom, die überblendet ineinander übergehen, ein Thema pro Boss, eines für das Tutorial, eines für das
 Heiligtum und eines pro Fest. Die Soundeffekte liegen in `sfx/`, mit eigenen Klängen für jede Waffe,
 für kritische Treffer und für die perfekte Parade. Lautstärken **Gesamt / Musik / Effekte** in den
 Optionen; die Musik wird leiser, wenn das Spiel pausiert.
-
-## Modding
-- Handgebaute Karten liegen in `scripts/levels.gd`: Füge `LEVELS` einen Eintrag hinzu, um eine Zone zu
-  erstellen (`#` Fels, `^` Stacheln, `c`/`f`/`s` Gegner, `B` Bank, `D` Kugel, `K` Boss …).
-- Die Werte des Helden (Tempo, Sprung, Sprint, Schaden, Rückstoß) sind die Konstanten am Anfang von
-  `scripts/player.gd`.
 
 ## Tests
 `tests/test_run.gd` durchläuft die Zonen automatisch (simulierte Eingaben, Bosse, Menüs):
@@ -556,6 +616,9 @@ Optionen; die Musik wird leiser, wenn das Spiel pausiert.
 `LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787` starten).
 
 ## Lizenz
-Code, Musik (für das Spiel erzeugt) und Soundeffekte: **MIT**-Lizenz — siehe `LICENSE`.
-Ausnahme: `sfx/lift_chains.ogg` stammt aus der Aufnahme *Chains Chiming* von freesound_community auf Pixabay (Pixabay Content License, frei nutzbar, keine Namensnennung nötig).
-Das Spiel ist von Hollow Knight (Team Cherry) inspiriert, verwendet aber weder dessen Figuren noch dessen Assets.
+Copyright (c) 2026 FlyinnRabbit. **Alle Rechte vorbehalten.** Du darfst das Spiel für den persönlichen,
+nicht kommerziellen Gebrauch herunterladen, installieren und ausführen. Es ganz oder teilweise zu ändern,
+weiterzuverbreiten, zu veröffentlichen oder zu verkaufen, ist ohne schriftliche Genehmigung nicht erlaubt.
+Vollständiger Text: `LICENSE` (auf Englisch).
+Ausnahme: `sfx/lift_chains.ogg` stammt aus der Aufnahme *Chains Chiming* von freesound_community auf Pixabay (Pixabay-Inhaltslizenz).
+Das Spiel ist von Hollow Knight (Team Cherry) inspiriert, übernimmt aber keine seiner Figuren oder Inhalte.

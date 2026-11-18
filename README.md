@@ -27,14 +27,15 @@ keeps the shards you dropped where you fell, and the lift remembers how deep you
 
 ## At a glance
 
-- **12 biomes**; levels are generated anew on every descent, with grottos, three-storey strata and winches
+- **12 biomes**; levels are generated anew on every descent, with grottos, three-storey strata, winches and traps specific to each biome
 - **10 bosses**: 6 tier guardians and 4 final bosses, each with a phase 2 and its own music
+- **16 kinds of enemies**, from the crawler to the thieving monkey, the mimic and the goblin
 - **Combat**: 3-hit combos, charged whirl, air combo, pogo, plunge attack, dash thrust, parry (a perfect parry makes your next hit critical), soul blade, ultimate
-- **5 weapons** upgraded by the smith (the Twin Claws are worn on both hands), **21 charms**
-- **The Sanctuary**: merchant, arsenal, smith, cartographer, seamstress (53 cosmetics), elder and four yearly festivals
-- **4 difficulties** plus a one-life mode, curses, a **Daily Descent** with an online leaderboard, and a **Boss Rush**
-- English, French, Spanish and German; keyboard and Xbox controller; browser, Windows, macOS, Linux and Steam Deck; automatic updates
-- The **Scriptorium** records everything: statistics, records, bestiary, guardians and charms
+- **7 weapons** forged up to level 5 by the smith, **42 charms** strengthened up to level 3 by the jeweler
+- **The Sanctuary**: merchant, arsenal, smith, jeweler, cartographer, seamstress (59 cosmetics), elder, the Scriptorium and four yearly festivals
+- **4 difficulties** plus a one-life mode, curses, a **Daily Descent** and a **Weekly Challenge** with online leaderboards and the leader's ghost, a **Boss Rush** with its own leaderboard
+- A **local duel** for two players: the Shadow Arena
+- English, French, Spanish and German; keyboard and Xbox / PlayStation controllers; browser, Windows, macOS, Linux and Steam Deck; automatic updates
 - Everything drawn in code; original music and sounds
 
 ## Screenshots
@@ -205,36 +206,43 @@ After the tutorial you arrive at **The Lantern Sanctuary**, the hub of the game:
 - **Merchant**: trades shards for **health masks** (+1 max health, up to 4), charm **notches**
   and the **charms** you have not found yet. His old cart and its pack woodlouse wait beside him.
 - **Scriptorium** (up on its platform, above the merchant): **Master Quill**, the archivist owl, keeps
-  the records of your game in a big book: game statistics, records, a **bestiary** and the **guardians**
-  defeated (with descriptions and tips), and your **charm collection** (where you found each one and
-  how long you have worn it).
+  the records of your game in a big book: statistics, records, a **bestiary**, the **guardians**
+  defeated (with descriptions and tips) and your **charm collection**.
 - **Arsenal**: buy and equip your base weapon. **Try** lends a weapon while you stay in the Sanctuary.
 - **Training dummy** (right of the arsenal): shows your damage per second.
-- **Seamstress** (between the merchant and the bench): the wardrobe and cosmetics.
-- **Elevator**: choose the **tier** to descend to.
-- **Residents** arrive as you clear tiers: the **smith** (tier 1, forges your weapons to level 2), the
-  **cartographer** (tier 2, sells a quill that reveals the whole map) and the **elder**
-  (tier 3, the story of the Lantern).
+- **Seamstress**: the wardrobe and cosmetics.
+- **Elevator**: choose the **tier** to descend to, and the special modes (below).
+- **Residents** arrive as you clear tiers:
+  - the **smith** (tier 1): forges every weapon up to **level 5**;
+  - the **jeweler**, a mummified pharaoh on his platform (tier 2): strengthens **every charm you own**
+    up to **level 3**;
+  - the **cartographer** (tier 2): sells a quill that reveals the whole map;
+  - the **elder** (tier 3): the story of the Lantern.
 
-Your health carries over through the portal between the two levels of a tier (Easy and Normal give
-back 1 mask, Hard and Nightmare nothing).
+A **tier = 2 generated levels** (two biomes drawn from the 12) **then a boss**. Clearing it brings
+you back to the Sanctuary and **unlocks the next tier**, endlessly. Your health carries over through
+the portal between the two levels (Easy and Normal give back 1 mask, Hard and Nightmare nothing).
 
-A **tier = 2 generated levels** (biomes drawn at random from 9) **then a boss**. Clearing it
-brings you back to the Sanctuary and **unlocks the next tier** — endlessly. The deeper you go,
-the more health, speed, aggression and elites the enemies have (about ×1.9 health at tier 6,
-×2.6 at tier 10).
+**Depth**: enemy health grows by 18% per tier and stops at ×4.6 (tier 21). Speed, aggression,
+numbers and elites rise until about tier 10 to 15. Damage taken never grows with depth.
 
 **Dying** during a descent: back to the Sanctuary, and the loot picked up since you left
 (shards, charms, notches) is lost, but unlocked tiers and purchases remain. Your **shade** keeps
 the lost shards where you fell: return to the same tier and defeat it to get them back
 (a new death replaces it).
 
-From the elevator you can also:
-- play any tier with a **curse** (Haste, Darkness, Frailty) for +50 to 60% shards;
-- play the **Daily descent** (same level for everyone, best time), with an **online leaderboard** per
-  difficulty: your time is sent at the end with the name you pick (Elevator → "Daily leaderboard"), and
-  you see the top 10 and your rank. Sending can be switched off on the same screen;
-- take on the **Boss rush** (bosses in a row, timed) once tier 6 is cleared: +600 shards each time, +200 more when you beat your best time, and a charm notch on your first win.
+### The elevator's special modes
+- **Curses** (Haste, Darkness, Frailty): play any tier cursed for +50 to 60% shards.
+- **Daily Descent**: the same levels for everyone, best time wins. Online leaderboard per
+  difficulty (top 10 and your rank); your time is sent with the name you choose, and sending can be
+  turned off.
+- **Weekly Challenge**: one per week, at tier 4, with a curse and an imposed weapon that change every
+  week, and its own leaderboard.
+- **Ghost**: in the Daily Descent and the Weekly Challenge, the ghost of the current #1 runs the level
+  alongside you (a translucent hooded figure with its name). It can be hidden from the leaderboard screen.
+- **Boss Rush** (after tier 6): the bosses one after another, timed. +600 shards each time, +200 more
+  when you beat your best time, a charm notch on your first win, and an online leaderboard.
+- **Leaderboards**: daily, weekly and Boss Rush, all reachable from the elevator.
 
 There are 29 **achievements**, viewable from the title screen or the pause menu.
 
@@ -282,12 +290,30 @@ Levels are no longer flat strips:
 Levels have relief (the ground rises and falls from room to room) and varied rooms: floating
 islands, zigzag shafts, double paths, low caves, fragile bridges, chasms with a moving
 platform, blade corridors.
-- **Dart totem**: shoots at head height — crouch, jump or parry.
+- **Spike pits**: falling in costs a mask and puts you back on the last safe ground.
+- **Dart totem**: shoots at head height. Crouch, jump or parry.
 - **Pendulum blade**: its lowest point passes just above a crouching hero.
 - **Stalactite**: drops when you walk under it.
 - **Fragile blocks**: collapse shortly after you land on them, then re-form.
 - **Moving platform**: goes back and forth above a chasm.
-- Traps appear in at most 50% of rooms, and trapped rooms hold fewer enemies.
+- **Collapsing platform** (Crystal Mines): gives way under you in a rain of rubble.
+
+**Biome traps**, on a cycle you can read (they warn before striking). There are 1 to 4 per level
+depending on depth, never on top of each other and never near the boss:
+
+| Trap | Biomes |
+|---|---|
+| Retracting spikes | all |
+| Poison-gas mushroom | Fungal Gardens, Humming Hive, Drowned Jungle |
+| Fire geyser | Blazing Forge, Buried Sands |
+| Ice geyser | Frozen Abyss |
+| Crystal shockwave running along the ground | Crystal Mines |
+| Whirl of flying pages | Silent Library |
+| Skeletal hand that grabs you (dash to break free) | Ossuary |
+| Steam pipe, in the colours of the biome | Sunken Citadel, Ancient Temple |
+| Falling drop | The Depths |
+
+Traps can also hurt enemies, but only those you have just hit or knocked back.
 
 ## Combat
 
@@ -367,13 +393,34 @@ to find in the levels. Each charm costs notches; you start with 3, and more can 
 | Climber's Knot | 1 | winches hoist twice as fast; the first ride up each winch restores 33 soul |
 | Last Breath | 3 | a fatal blow leaves you at 1 mask instead, once per level |
 | Blood Fang | 2 | +30% chance to cause bleeding with every hit, with any weapon (1 damage a second later); 50% with Twin Claws lv. 2 |
+| Burning Soul | 2 | the soul blade (spell) deals 1 more damage |
+| Frugal Lantern | 1 | healing costs only 27 soul instead of 33 |
+| Moth Wing | 3 | grants a second jump in the air, a little lower than the first |
+| Twin Shadow | 2 | two Dashes in the air instead of one before landing |
+| Stone Skin | 2 | after taking a hit, invulnerability lasts 40% longer |
+| Merchant's Purse | 1 | defeated enemies drop 20% more shards |
+| Sap Chalice | 3 | every 15 enemies defeated, restores one mask |
+| Storm Heart | 2 | the ultimate charges 25% faster (hits and parries) |
+| Thunder Wave | 2 | the ultimate's shockwave is 30% wider |
+| Bark Soles | 1 | the first trap hit on each level is ignored |
+| Pendulum | 1 | a successful parry instantly recharges the Dash and gives 5 more soul |
+| Hunter's Fang | 2 | +1 damage against enemies below 40% of their health |
+| Biting Frost | 2 | 15% chance per hit to briefly freeze the enemy (0.6 s, not bosses) |
+| Hawk Eye | 2 | +8% critical hit chance |
+| Obsidian Tip | 2 | critical hits deal ×2 instead of ×1.5 |
+| Soul Veil | 3 | with 33 soul, a hit taken is absorbed by your soul instead of your masks (once every 8 s) |
+| Wounded Rage | 2 | at 1 mask, +1 damage to every hit |
+| Comet | 1 | the charged attack (spin) charges 40% faster |
+| Blessed Sap | 2 | each heal has a 25% chance to restore one extra mask |
+| Blade Dance | 2 | the combo's final hit deals +1 damage and gives 4 soul |
+| Bench Prayer | 1 | sitting on a bench fills your soul up to 33 |
 
-The **jeweler**, a mummified pharaoh who settles in the Sanctuary after tier 2, strengthens the charms you wear: level 2 (tier 2 cleared) then level 3 (tier 4). Every charm grows stronger (for example Glass Heart: +2, +3 then +4 masks).
+The **jeweler**, a mummified pharaoh who settles in the Sanctuary after tier 2, strengthens **every charm you own**, worn or not: level 2 (tier 2 cleared) then level 3 (tier 4). Every charm grows stronger (for example Glass Heart: +2, +3 then +4 masks). The inventory and the Scriptorium show the 42 charms in a scrolling list.
 
 Effects are defined in `scripts/charms.gd` and applied in `scripts/player.gd`.
 
 ## Enemies
-- **Crawler**, **Flyer**, **Spitter**: the basics — walks, dives, shoots spores.
+- **Crawler**, **Flyer**, **Spitter**: the basics. The crawler spots you and lunges, the flyer goes around walls to reach you, the spitter shoots spores.
 - **Hopper**: a grasshopper that leaps at you.
 - **Shield guard**: blocks hits from the front. Strike from above, from behind, or with the ultimate.
 - **Exploding bulb**: rolls towards you, lights up and explodes (hurting nearby enemies too).
@@ -409,8 +456,9 @@ health and its own musical theme. Parrying a contact stuns the boss for a second
 | The Spectral Knight | ghost duellist | lightning thrusts (×3 combos in phase 2), **teleports behind you**, spectral pillars in a line, ember volley |
 
 ### Final bosses
-At tier 7 (then every 7 tiers), a final boss **drawn at random for each game**, each with its
-own theme:
+At tier 7 (then every 7 tiers), a **final boss**, each with its own theme. The draw favours a
+final boss you have **never beaten**: you meet all four within four final fights (tier 28 at most).
+The Daily Descent, the Weekly Challenge and the Boss Rush keep the same draw for everyone.
 - **The Shadow of the Lantern**: ember crowns, head-height sweep, ash rain, columns of light,
   wraiths in phase 2.
 - **The Cerberus of the Depths**: ember breath from three heads, pounce with a shockwave,
@@ -423,6 +471,20 @@ own theme:
 Defeating it plays **the ending**: the Lantern is relit, light climbs tier by tier up to the
 Sanctuary and then the surface, and the credits roll. After that, the tiers continue.
 Achievement "The Four Guardians": defeat all four.
+
+## Local duel: the Shadow Arena
+
+Two players fight each other on the same screen. To play remotely, use **Parsec**: it streams the
+screen and passes the second player's controller to the game.
+1. Turn on **Options → Shadow Arena in the Sanctuary** (off by default): the arena's banner appears
+   in the Sanctuary.
+2. Plug in a second controller. Player 1 plays on the keyboard (or the first controller), player 2 on
+   the second controller.
+3. At the banner, each player picks a weapon, then **Fight!**
+
+Rules: equal footing. No charms, every weapon at level 2, 9 masks each, first to win **3 rounds**.
+Parries work against the other player and push them back; projectiles never hit their thrower.
+The arena has a floor and three platforms within jumping reach; both players start facing each other.
 
 ## Graphics
 
@@ -466,7 +528,7 @@ Everything is saved in `user://settings.cfg`.
 
 ## Cosmetics and wardrobe
 The **seamstress** in the Sanctuary (left of the bench) opens the wardrobe, where you change the hero's
-look with an animated preview: **53 cosmetics** in 6 categories, 21 of them seasonal. Everything is
+look with an animated preview: **59 cosmetics** in 6 categories, 21 of them seasonal. Everything is
 purely visual and shared by all save slots. Bright cloaks are toned down so they do not glare on the
 dark backgrounds.
 
@@ -533,18 +595,12 @@ export preset). Bump `config/data_gen` in `project.godot` when adding music, sou
 older installs will then see the download notice instead.
 
 ## Music and sounds
-An **original** soundtrack generated for the game (free of any rights): 29 looping tracks in
+An **original** soundtrack generated for the game (no third-party material): 32 looping tracks in
 `music/` — one or two per biome that crossfade, a theme per boss, one for the tutorial, one for the
 Sanctuary and one per festival.
 Sound effects are in `sfx/`, with distinct sounds per weapon, for critical hits and for the
 perfect parry. **Master / music / effects** volumes are in Options; the music lowers a little
 when the game is paused.
-
-## Modding
-- Hand-made maps are in `scripts/levels.gd`: add an entry to `LEVELS` to create a level
-  (`#` rock, `^` spikes, `c`/`f`/`s` enemies, `B` bench, `D` orb, `K` boss…).
-- The hero's settings (speed, jump, dash, damage) are the constants at the top of
-  `scripts/player.gd`.
 
 ## Tests
 `tests/test_run.gd` plays through the levels automatically (simulated inputs, bosses, menus):
@@ -557,6 +613,8 @@ tests it; `node server/dev_server.mjs` runs it locally (start the game with
 `LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787`).
 
 ## License
-Code, music (generated for the game) and sound effects: **MIT** license — see `LICENSE`.
-Exception: `sfx/lift_chains.ogg` comes from the recording *Chains Chiming* by freesound_community on Pixabay (Pixabay Content License, free to use, no attribution required).
+Copyright (c) 2026 FlyinnRabbit. **All rights reserved.** You may download, install and run the game
+for personal, non-commercial use. Modifying, redistributing, publishing or selling it, in whole or in
+part, is not allowed without written permission. Full text: `LICENSE`.
+Exception: `sfx/lift_chains.ogg` comes from the recording *Chains Chiming* by freesound_community on Pixabay (Pixabay Content License).
 The game is inspired by Hollow Knight (Team Cherry) but reuses none of its characters or assets.

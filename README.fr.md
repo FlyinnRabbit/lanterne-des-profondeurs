@@ -27,14 +27,15 @@ ombre garde les éclats perdus là où tu es tombé, et l'ascenseur se souvient 
 
 ## En bref
 
-- **12 biomes** ; les niveaux sont générés à chaque descente, avec grottes, strates sur trois étages et treuils
+- **12 biomes** ; les niveaux sont générés à chaque descente, avec grottes, strates sur trois étages, treuils et pièges propres à chaque biome
 - **10 boss** : 6 gardiens de palier et 4 boss finaux, chacun avec une phase 2 et sa musique
+- **16 sortes d'ennemis**, du rampant au singe voleur, en passant par la mimique et le gobelin
 - **Combat** : combos en 3 coups, tourbillon chargé, combo aérien, pogo, attaque plongée, estoc en ruée, parade (parfaite = coup critique), lame d'âme, ultime
-- **5 armes** améliorées chez la forgeronne (les Griffes Jumelles se portent aux deux mains), **21 emblèmes**
-- **Le Sanctuaire** : marchand, arsenal, forgeronne, cartographe, tailleuse (53 cosmétiques), ancien et quatre fêtes dans l'année
-- **4 difficultés** et un mode une seule vie, malédictions, **Descente du jour** avec classement en ligne, **Défi des boss**
-- Français, anglais, espagnol et allemand ; clavier et manette Xbox ; navigateur, Windows, macOS, Linux et Steam Deck ; mises à jour automatiques
-- Le **Scriptorium** garde tout : statistiques, records, bestiaire, gardiens et emblèmes
+- **7 armes** forgées jusqu'au niveau 5 chez la forgeronne, **42 emblèmes** renforcés jusqu'au niveau 3 chez le joaillier
+- **Le Sanctuaire** : marchand, arsenal, forgeronne, joaillier, cartographe, tailleuse (59 cosmétiques), ancien, le Scriptorium et quatre fêtes dans l'année
+- **4 difficultés** et un mode une seule vie, malédictions, **Descente du jour** et **Défi de la semaine** avec classements en ligne et fantôme du premier, **Défi des boss** avec son propre classement
+- Un **duel local** à deux joueurs : l'Arène des Ombres
+- Français, anglais, espagnol et allemand ; clavier et manettes Xbox / PlayStation ; navigateur, Windows, macOS, Linux et Steam Deck ; mises à jour automatiques
 - Tout est dessiné en code ; musique et sons originaux
 
 ## Captures d'écran
@@ -202,43 +203,52 @@ Difficile et Cauchemar rapportent davantage, grâce à leurs ennemis et élites 
 
 ## Le Sanctuaire et les paliers sans fin
 
-Après le tutoriel, on arrive au **Sanctuaire de la Lanterne**, le cœur du jeu :
-- **Banc** : se reposer, récupérer sa vie, changer d'emblèmes. En descente, chaque banc ne soigne qu'une
-  fois par niveau (on peut s'y rasseoir pour le point de réapparition et les emblèmes), et pas juste après
-  un combat (1,5 s).
-- **Marchand** : échange des éclats contre des **masques de vie** (+1 vie maximale, jusqu'à 4), des
-  **encoches** d'emblèmes et les **emblèmes** pas encore trouvés. Sa vieille charrette et son cloporte de
-  trait attendent à côté de lui.
-- **Scriptorium** (en hauteur, sur sa plateforme au-dessus du marchand) : **Maître Plume**, la chouette
-  archiviste, tient les registres de ta partie dans un grand livre : statistiques, records, **bestiaire**
-  et **gardiens** vaincus (descriptions et astuces), et ta **collection d'emblèmes** (où tu as trouvé
-  chacun et combien de temps tu l'as porté).
-- **Arsenal** : acheter et équiper son arme de base. **Essayer** prête une arme tant qu'on reste au Sanctuaire.
-- **Mannequin d'entraînement** (à droite de l'arsenal) : affiche les dégâts par seconde.
-- **Tailleuse** (entre le marchand et le banc) : la garde-robe et les cosmétiques.
-- **Ascenseur** : choisir le **palier** où descendre.
-- Des **habitants** arrivent au fil des paliers : la **forgeronne** (palier 1, forge tes armes au niveau 2), le
-  **cartographe** (palier 2, vend une plume qui révèle toute la carte) et l'**ancien** (palier 3,
-  l'histoire de la Lanterne).
+Après le tutoriel, tu arrives au **Sanctuaire de la Lanterne**, le cœur du jeu :
+- **Banc** : se reposer, récupérer sa vie, changer d'emblèmes. Dans les profondeurs, chaque banc ne soigne
+  qu'une fois par niveau (on peut s'y rasseoir pour fixer son point de retour et changer d'emblèmes), et pas
+  juste après un combat (1,5 s).
+- **Marchand** : échange tes éclats contre des **masques de vie** (+1 vie max, jusqu'à 4), des **encoches**
+  d'emblème et les **emblèmes** que tu n'as pas encore trouvés. Sa vieille charrette et son cloporte de trait
+  l'attendent à côté.
+- **Scriptorium** (sur sa plateforme, au-dessus du marchand) : **Maître Plume**, le hibou archiviste, tient
+  les registres de ta partie dans un grand livre : statistiques, records, **bestiaire**, **gardiens** vaincus
+  (avec descriptions et conseils) et ta **collection d'emblèmes**.
+- **Arsenal** : acheter et équiper ton arme de base. **Essayer** prête une arme tant que tu restes au Sanctuaire.
+- **Mannequin d'entraînement** (à droite de l'arsenal) : affiche tes dégâts par seconde.
+- **Tailleuse** : la garde-robe et les cosmétiques.
+- **Ascenseur** : choisir le **palier** où descendre, et les modes spéciaux (plus bas).
+- **Habitants** qui arrivent au fil des paliers terminés :
+  - la **forgeronne** (palier 1) : forge chaque arme jusqu'au **niveau 5** ;
+  - le **joaillier**, un pharaon momifié sur sa plateforme (palier 2) : renforce **tous tes emblèmes**
+    jusqu'au **niveau 3** ;
+  - le **cartographe** (palier 2) : vend une plume qui révèle toute la carte ;
+  - l'**ancien** (palier 3) : l'histoire de la Lanterne.
 
-Ta vie est conservée au portail entre les deux niveaux d'un palier (Facile et Normal rendent 1 masque,
-Difficile et Cauchemar rien).
+Un **palier = 2 niveaux générés** (deux biomes tirés parmi les 12) **puis un boss**. Le terminer te ramène au
+Sanctuaire et **débloque le palier suivant**, sans fin. Ta vie est conservée au portail entre les deux niveaux
+(Facile et Normal rendent 1 masque, Difficile et Cauchemar rien).
 
-Un **palier = 2 niveaux générés** (biomes tirés au sort parmi 9) **puis un boss**. Le terminer ramène
-au Sanctuaire et **débloque le palier suivant**, sans fin. Plus on descend, plus les ennemis ont de vie,
-de vitesse, d'agressivité et d'élites (environ ×1,9 de vie au palier 6, ×2,6 au palier 10).
+**Profondeur** : la vie des ennemis augmente de 18 % par palier et s'arrête à ×4,6 (palier 21). Vitesse,
+agressivité, nombre et élites montent jusque vers le palier 10 à 15. Les dégâts reçus n'augmentent jamais
+avec la profondeur.
 
-**Mourir** pendant une descente : retour au Sanctuaire, et le butin ramassé depuis le départ (éclats,
-emblèmes, encoches) est perdu, mais les paliers débloqués et les achats restent. Ton **ombre** garde les
-éclats perdus là où tu es tombé : retourne au même palier et bats-la pour les récupérer (une nouvelle
-mort la remplace).
+**Mourir** en descente : retour au Sanctuaire, et le butin ramassé depuis le départ (éclats, emblèmes,
+encoches) est perdu, mais les paliers débloqués et les achats restent. Ton **ombre** garde les éclats perdus
+là où tu es tombé : retourne au même palier et termine-le pour les récupérer (une nouvelle mort la remplace).
 
-Depuis l'ascenseur, on peut aussi :
-- jouer n'importe quel palier avec une **malédiction** (Hâte, Obscurité, Fragilité) pour +50 à 60 % d'éclats ;
-- jouer la **Descente du jour** (même niveau pour tout le monde, meilleur temps), avec un **classement en
-  ligne** par difficulté : ton temps est envoyé à la fin avec le pseudo que tu choisis (Ascenseur →
-  « Classement du jour »), et tu vois le top 10 et ton rang. L'envoi se coupe sur le même écran ;
-- relever le **Défi des boss** (boss à la chaîne, chronométré) une fois le palier 6 terminé : +600 éclats à chaque fois, +200 de plus en battant ton meilleur temps, et une encoche d'emblème à la première victoire.
+### Les modes spéciaux de l'ascenseur
+- **Malédictions** (Hâte, Ténèbres, Fragilité) : jouer n'importe quel palier maudit pour +50 à 60 % d'éclats.
+- **Descente du jour** : les mêmes niveaux pour tout le monde, le meilleur temps gagne. Classement en ligne
+  par difficulté (top 10 et ton rang) ; ton temps est envoyé avec le nom de ton choix, et l'envoi peut être
+  coupé.
+- **Défi de la semaine** : un par semaine, au palier 4, avec une malédiction et une arme imposée qui changent
+  chaque semaine, et son propre classement.
+- **Fantôme** : dans la Descente du jour et le Défi de la semaine, le fantôme du premier du classement fait le
+  niveau à côté de toi (une silhouette encapuchonnée translucide, avec son nom). Il se masque depuis l'écran
+  des classements.
+- **Défi des boss** (après le palier 6) : les boss à la suite, chronométrés. +600 éclats à chaque fois, +200 de
+  plus en battant ton record, une encoche d'emblème à la première victoire, et un classement en ligne.
+- **Classements** : du jour, de la semaine et du Défi des boss, tous depuis l'ascenseur.
 
 Il y a 29 **succès**, consultables depuis l'écran-titre ou le menu pause.
 
@@ -284,14 +294,32 @@ Les niveaux ne sont plus de simples bandes à plat :
 
 ### Pièges et plateformes
 Les niveaux ont du relief (le sol monte et descend d'une salle à l'autre) et des salles variées : îles
-flottantes, puits en zigzag, doubles chemins, grottes basses, ponts fragiles, gouffres avec plateforme
+flottantes, puits en zigzag, chemins doubles, grottes basses, ponts fragiles, gouffres avec plateforme
 mobile, couloirs de lames.
-- **Totem à fléchettes** : tire à hauteur de tête — s'accroupir, sauter ou parer. Jamais près de l'arène d'un boss.
-- **Lame pendulaire** : son point le plus bas passe juste au-dessus d'un héros accroupi.
-- **Stalactite** : tombe quand on passe dessous.
-- **Blocs fragiles** : s'effondrent peu après qu'on s'y pose, puis se reforment.
+- **Fosses à pics** : y tomber coûte un masque et te remet sur le dernier sol sûr.
+- **Totem à fléchettes** : tire à hauteur de tête. Accroupis-toi, saute ou pare.
+- **Lame pendule** : son point le plus bas passe juste au-dessus du héros accroupi.
+- **Stalactite** : tombe quand tu passes dessous.
+- **Blocs fragiles** : s'effondrent peu après que tu t'y poses, puis se reforment.
 - **Plateforme mobile** : fait des allers-retours au-dessus d'un gouffre.
-- Les pièges occupent au plus 50 % des salles, et les salles piégées ont moins d'ennemis.
+- **Plateforme qui s'effondre** (Mines de Cristal) : cède sous tes pieds dans une pluie de gravats.
+
+**Pièges de biome**, sur un cycle lisible (ils préviennent avant de frapper). Il y en a 1 à 4 par niveau
+selon la profondeur, jamais les uns sur les autres et jamais près du boss :
+
+| Piège | Biomes |
+|---|---|
+| Pics qui sortent et rentrent | tous |
+| Champignon à gaz toxique | Jardins Fongiques, Ruche Bourdonnante, Jungle Noyée |
+| Geyser de flammes | Forge Ardente, Sables Enfouis |
+| Geyser de glace | Abysses Gelés |
+| Onde de cristal qui court au sol | Mines de Cristal |
+| Tourbillon de pages volantes | Bibliothèque Silencieuse |
+| Main squelettique qui t'agrippe (la ruée libère) | Ossuaire |
+| Tuyau à vapeur, aux couleurs du biome | Citadelle Engloutie, Temple Antique |
+| Goutte qui tombe | Les Profondeurs |
+
+Les pièges blessent aussi les ennemis, mais seulement ceux que tu viens de frapper ou de projeter.
 
 ## Combat
 
@@ -368,13 +396,34 @@ en trouve (anneaux dorés) ou on en achète d'autres. On ne change d'équipement
 | Nœud de Grimpeur | 1 | treuils deux fois plus rapides ; la première remontée de chaque treuil rend 33 d'âme |
 | Dernier Souffle | 3 | un coup fatal te laisse à 1 masque, une fois par niveau |
 | Croc Sanglant | 2 | +30 % de chances de faire saigner à chaque coup, avec toutes les armes (1 dégât une seconde plus tard) ; 50 % avec les Griffes niv. 2 |
+| Âme Ardente | 2 | la lame d'âme (sort) inflige 1 dégât de plus |
+| Lanterne Frugale | 1 | le soin ne coûte que 27 d'âme au lieu de 33 |
+| Aile de Phalène | 3 | permet un second saut en l'air, un peu moins haut que le premier |
+| Ombre Jumelle | 2 | deux Ruées en l'air au lieu d'une avant de toucher le sol |
+| Peau de Pierre | 2 | après un coup reçu, l'invulnérabilité dure 40 % plus longtemps |
+| Bourse du Marchand | 1 | les ennemis vaincus lâchent 20 % d'éclats en plus |
+| Calice de Sève | 3 | tous les 15 ennemis vaincus, rend un masque |
+| Cœur d'Orage | 2 | l'ultime se charge 25 % plus vite (coups et parades) |
+| Onde Tonnerre | 2 | l'onde de l'ultime est 30 % plus large |
+| Semelles d'Écorce | 1 | le premier coup de piège de chaque niveau est ignoré |
+| Pendule | 1 | une parade réussie recharge aussitôt la Ruée et rend 5 d'âme de plus |
+| Croc du Chasseur | 2 | +1 dégât contre les ennemis sous 40 % de leur vie |
+| Givre Mordant | 2 | 15 % de chances par coup de geler brièvement l'ennemi (0,6 s, pas les boss) |
+| Œil du Faucon | 2 | +8 % de chances de coup critique |
+| Pointe d'Obsidienne | 2 | les coups critiques infligent ×2 au lieu de ×1,5 |
+| Voile d'Âme | 3 | avec 33 d'âme, un coup reçu est absorbé par l'âme au lieu des masques (une fois toutes les 8 s) |
+| Rage du Blessé | 2 | à 1 masque, +1 dégât à tous les coups |
+| Comète | 1 | le coup chargé (tourbillon) se prépare 40 % plus vite |
+| Sève Bénie | 2 | chaque soin a 25 % de chances de rendre un masque de plus |
+| Danse des Lames | 2 | le coup final du combo inflige +1 dégât et rend 4 d'âme |
+| Prière du Banc | 1 | s'asseoir sur un banc remplit l'âme jusqu'à 33 |
 
-Le **joaillier**, un pharaon momifié qui s'installe au Sanctuaire après le palier 2, renforce les emblèmes que tu portes : niveau 2 (palier 2 terminé) puis niveau 3 (palier 4). Chaque emblème gagne en puissance (par exemple Cœur de Verre : +2, +3 puis +4 masques).
+Le **joaillier**, un pharaon momifié qui s'installe au Sanctuaire après le palier 2, renforce **tous les emblèmes que tu possèdes**, portés ou non : niveau 2 (palier 2 terminé) puis niveau 3 (palier 4). Chaque emblème gagne en puissance (par exemple Cœur de Verre : +2, +3 puis +4 masques). L'inventaire et le Scriptorium affichent les 42 emblèmes dans une liste déroulante.
 
 Les effets sont définis dans `scripts/charms.gd` et appliqués dans `scripts/player.gd`.
 
 ## Ennemis
-- **Rampant**, **Volant**, **Cracheur** : les bases — marche, piqués, tirs de spores.
+- **Rampant**, **Volant**, **Cracheur** : les bases. Le rampant te repère et charge, le volant contourne les murs pour t'atteindre, le cracheur tire des spores.
 - **Sauteur** : une sauterelle qui bondit sur toi.
 - **Garde au bouclier** : bloque les coups de face. Frapper par-dessus, par derrière, ou avec l'ultime.
 - **Bulbe explosif** : roule vers toi, s'allume et explose (blessant aussi les ennemis proches).
@@ -411,20 +460,36 @@ propre thème musical. Parer un contact étourdit le boss une seconde.
 | Le Chevalier Spectral | duelliste fantôme | estocs éclair (combos ×3 en phase 2), **se téléporte dans ton dos**, piliers spectraux en ligne, salve de braises |
 
 ### Boss finaux
-Au palier 7 (puis tous les 7 paliers), un boss final **tiré au sort pour chaque partie**, chacun avec
-son thème :
-- **L'Ombre de la Lanterne** : couronnes de braises, balayage à hauteur de tête, pluie de cendres,
-  colonnes de lumière, spectres en phase 2.
-- **Le Cerbère des Profondeurs** : souffle de braises des trois têtes, bond avec onde de choc, triple
-  morsure à hauteur de tête (s'accroupir), un hurlement qui fait jaillir des flammes.
-- **Le Centaure Archer** : galope d'un bout à l'autre de l'arène, salves de flèches, pluie de flèches
-  annoncée au sol, coup de lance à hauteur de tête (s'accroupir), saute par-dessus le joueur.
-- **L'Œil d'en Dessous** : tentacules qui jaillissent du sol, rayon qui balaie l'arène à hauteur de
-  tête (s'accroupir) ou au ras du sol (sauter), spirales de spores, yeux volants.
+Au palier 7 (puis tous les 7 paliers), un **boss final**, chacun avec son thème. Le tirage privilégie un boss
+final que tu n'as **jamais vaincu** : tu les rencontres tous les quatre en quatre combats finaux (palier 28
+au plus). La Descente du jour, le Défi de la semaine et le Défi des boss gardent le même tirage pour tous.
+- **L'Ombre de la Lanterne** : couronnes de braises, balayage à hauteur de tête, pluie de cendres, colonnes
+  de lumière, spectres en phase 2.
+- **Le Cerbère des Profondeurs** : souffle de braises des trois têtes, bond avec onde de choc, triple morsure
+  à hauteur de tête (accroupis-toi), hurlement qui fait jaillir des flammes.
+- **Le Centaure Archer** : galope d'un bout à l'autre de l'arène, salves de flèches, pluie de flèches marquée
+  au sol, coup de lance à hauteur de tête (accroupis-toi), saute par-dessus le joueur.
+- **L'Œil d'en Dessous** : tentacules qui jaillissent du sol, rayon qui balaie l'arène à hauteur de tête
+  (accroupis-toi) ou au ras du sol (saute), spirales de spores, yeux volants.
 
 Le vaincre lance **la fin** : la Lanterne se rallume, la lumière remonte palier par palier jusqu'au
 Sanctuaire puis à la surface, et le générique défile. Ensuite, les paliers continuent.
 Succès « Les quatre gardiens » : vaincre les quatre.
+
+## Duel local : l'Arène des Ombres
+
+Deux joueurs s'affrontent sur le même écran. Pour jouer à distance, utilise **Parsec** : il partage l'écran
+et transmet au jeu la manette du second joueur.
+1. Active **Options → Arène des Ombres au Sanctuaire** (désactivé par défaut) : la bannière de l'arène
+   apparaît au Sanctuaire.
+2. Branche une seconde manette. Le joueur 1 joue au clavier (ou avec la première manette), le joueur 2 avec
+   la seconde.
+3. À la bannière, chaque joueur choisit son arme, puis **Combattre !**
+
+Règles : à armes égales. Pas d'emblèmes, toutes les armes au niveau 2, 9 masques chacun, le premier à
+**3 manches** gagne. La parade marche contre l'autre joueur et le repousse ; un projectile ne touche jamais
+celui qui l'a lancé. L'arène a un sol et trois plateformes à portée de saut ; les deux joueurs démarrent face
+à face.
 
 ## Graphismes
 
@@ -469,7 +534,7 @@ Tout est enregistré dans `user://settings.cfg`.
 
 ## Cosmétiques et garde-robe
 La **tailleuse** du Sanctuaire (à gauche du banc) ouvre la garde-robe, où l'on change l'apparence du
-héros avec un aperçu animé : **53 cosmétiques** dans 6 catégories, dont 21 de saison. Tout est purement
+héros avec un aperçu animé : **59 cosmétiques** dans 6 catégories, dont 21 de saison. Tout est purement
 visuel et commun à tous les emplacements de sauvegarde. Les capes claires sont adoucies pour ne pas
 éblouir sur les décors sombres.
 
@@ -537,17 +602,11 @@ correctement avec un patch, celui-ci est retiré au lancement suivant. La versio
 musiques, des sons ou des images : les anciennes installations verront alors l'avis de téléchargement.
 
 ## Musique et sons
-Une bande-son **originale** générée pour le jeu (libre de tout droit) : 29 morceaux en boucle dans
+Une bande-son **originale** générée pour le jeu (sans aucun emprunt extérieur) : 32 morceaux en boucle dans
 `music/` — un ou deux par biome qui s'enchaînent en fondu, un thème par boss, un pour le tutoriel, un
 pour le Sanctuaire et un par fête. Les bruitages sont dans `sfx/`, avec des sons propres à chaque arme,
 aux coups critiques et à la parade parfaite. Volumes **général / musique / effets** dans les Options ;
 la musique baisse un peu quand le jeu est en pause.
-
-## Modding
-- Les cartes faites à la main sont dans `scripts/levels.gd` : ajouter une entrée à `LEVELS` pour créer
-  un niveau (`#` roche, `^` pics, `c`/`f`/`s` ennemis, `B` banc, `D` orbe, `K` boss…).
-- Les réglages du héros (vitesse, saut, Ruée, dégâts, recul) sont les constantes en tête de
-  `scripts/player.gd`.
 
 ## Tests
 `tests/test_run.gd` parcourt les niveaux automatiquement (entrées simulées, boss, menus) :
@@ -560,6 +619,8 @@ le teste ; `node server/dev_server.mjs` le lance en local (jeu lancé avec
 `LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787`).
 
 ## Licence
-Code, musique (générée pour le jeu) et bruitages : licence **MIT** — voir `LICENSE`.
-Exception : `sfx/lift_chains.ogg` provient de l'enregistrement *Chains Chiming* de freesound_community sur Pixabay (Pixabay Content License, utilisation libre, sans attribution requise).
-Le jeu s'inspire de Hollow Knight (Team Cherry) mais n'en réutilise ni personnages ni ressources.
+Copyright (c) 2026 FlyinnRabbit. **Tous droits réservés.** Tu peux télécharger, installer et lancer le jeu
+pour un usage personnel et non commercial. Le modifier, le redistribuer, le publier ou le vendre, en tout ou
+en partie, n'est pas autorisé sans permission écrite. Texte complet : `LICENSE` (en anglais).
+Exception : `sfx/lift_chains.ogg` provient de l'enregistrement *Chains Chiming* de freesound_community sur Pixabay (licence de contenu Pixabay).
+Le jeu s'inspire de Hollow Knight (Team Cherry) mais ne reprend aucun de ses personnages ni de ses éléments.

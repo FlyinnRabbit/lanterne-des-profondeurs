@@ -27,15 +27,16 @@ guarda las esquirlas perdidas donde caíste, y el ascensor recuerda hasta dónde
 
 ## En resumen
 
-- **12 biomas**; los niveles se generan en cada descenso, con grutas, estratos de tres pisos y tornos
-- **10 jefes**: 6 guardianes de nivel y 4 jefes finales, cada uno con una fase 2 y su música
-- **Combate**: combos de 3 golpes, torbellino cargado, combo aéreo, pogo, ataque en picado, estocada en carrera, parada (la perfecta hace crítico el siguiente golpe), hoja de alma, definitiva
-- **5 armas** mejoradas por la herrera (las Garras Gemelas se llevan en las dos manos), **21 emblemas**
-- **El Santuario**: mercader, arsenal, herrera, cartógrafo, sastra (53 cosméticos), anciano y cuatro fiestas al año
-- **4 dificultades** y un modo de una sola vida, maldiciones, **Descenso del día** con clasificación en línea, **Desafío de jefes**
-- Español, inglés, francés y alemán; teclado y mando Xbox; navegador, Windows, macOS, Linux y Steam Deck; actualizaciones automáticas
-- El **Scriptorium** lo registra todo: estadísticas, récords, bestiario, guardianes y emblemas
-- Todo está dibujado con código; música y sonidos originales
+- **12 biomas**; las zonas se generan de nuevo en cada descenso, con grutas, estratos de tres pisos, tornos y trampas propias de cada bioma
+- **10 jefes**: 6 guardianes de nivel y 4 jefes finales, cada uno con una fase 2 y su propia música
+- **16 tipos de enemigos**, del reptante al mono ladrón, pasando por el mímico y el goblin
+- **Combate**: combos de 3 golpes, torbellino cargado, combo aéreo, pogo, ataque en picado, estocada en embestida, parada (perfecta = golpe crítico), hoja de alma, definitivo
+- **7 armas** forjadas hasta el nivel 5 por la herrera, **42 emblemas** reforzados hasta el nivel 3 por el joyero
+- **El Santuario**: mercader, arsenal, herrera, joyero, cartógrafo, sastra (59 cosméticos), anciano, el Scriptorium y cuatro fiestas al año
+- **4 dificultades** más un modo de una sola vida, maldiciones, **Descenso del día** y **Desafío semanal** con clasificaciones en línea y el fantasma del primero, **Desafío de jefes** con su propia clasificación
+- Un **duelo local** para dos jugadores: la Arena de las Sombras
+- Español, francés, inglés y alemán; teclado y mandos Xbox / PlayStation; navegador, Windows, macOS, Linux y Steam Deck; actualizaciones automáticas
+- Todo dibujado en código; música y sonidos originales
 
 ## Capturas de pantalla
 
@@ -202,42 +203,49 @@ y élites adicionales.
 ## El Santuario y los niveles sin fin
 
 Tras el tutorial llegas al **Santuario de la Linterna**, el corazón del juego:
-- **Banco**: descansar, recuperar la vida, cambiar de emblemas. En el descenso, cada banco solo cura una
-  vez por zona (puedes volver a sentarte para el punto de reaparición y los emblemas), y no justo después
-  de un combate (1,5 s).
-- **Mercader**: cambia esquirlas por **máscaras de vida** (+1 vida máxima, hasta 4), **muescas** de
-  emblemas y los **emblemas** que aún no hayas encontrado. Su vieja carreta y su cochinilla de tiro
-  esperan a su lado.
-- **Scriptorium** (en lo alto, sobre su plataforma encima del mercader): el **Maestro Pluma**, la lechuza
-  archivera, lleva los registros de tu partida en un gran libro: estadísticas, récords, **bestiario** y
-  **guardianes** derrotados (descripciones y consejos), y tu **colección de emblemas** (dónde encontraste
-  cada uno y cuánto tiempo lo has llevado).
+- **Banco**: descansar, recuperar vida, cambiar de emblemas. En las profundidades, cada banco cura solo una vez
+  por zona (puedes volver a sentarte para fijar tu punto de regreso y cambiar emblemas), y no justo después de
+  un combate (1,5 s).
+- **Mercader**: cambia tus esquirlas por **máscaras de vida** (+1 vida máxima, hasta 4), **muescas** de emblema
+  y los **emblemas** que aún no has encontrado. Su vieja carreta y su cochinilla de tiro esperan a su lado.
+- **Scriptorium** (en su plataforma, encima del mercader): **Maese Pluma**, el búho archivero, lleva los
+  registros de tu partida en un gran libro: estadísticas, récords, **bestiario**, **guardianes** vencidos (con
+  descripciones y consejos) y tu **colección de emblemas**.
 - **Arsenal**: comprar y equipar tu arma base. **Probar** presta un arma mientras sigas en el Santuario.
-- **Muñeco de entrenamiento** (a la derecha del arsenal): muestra tu daño por segundo.
-- **Costurera** (entre el mercader y el banco): el guardarropa y los cosméticos.
-- **Ascensor**: elige el **nivel** al que bajar.
-- Llegan **habitantes** a medida que superas niveles: la **herrera** (nivel 1, forja tus armas al nivel 2), el
-  **cartógrafo** (nivel 2, vende una pluma que revela todo el mapa) y el **anciano** (nivel 3, la
-  historia de la Linterna).
+- **Maniquí de entrenamiento** (a la derecha del arsenal): muestra tu daño por segundo.
+- **Sastra**: el guardarropa y los cosméticos.
+- **Ascensor**: elegir el **nivel** al que bajar, y los modos especiales (más abajo).
+- **Habitantes** que llegan al superar niveles:
+  - la **herrera** (nivel 1): forja cada arma hasta el **nivel 5**;
+  - el **joyero**, un faraón momificado sobre su plataforma (nivel 2): refuerza **todos tus emblemas** hasta
+    el **nivel 3**;
+  - el **cartógrafo** (nivel 2): vende una pluma que revela todo el mapa;
+  - el **anciano** (nivel 3): la historia de la Linterna.
 
-Tu vida se conserva al cruzar el portal entre las dos zonas de un nivel (Fácil y Normal devuelven
-1 máscara, Difícil y Pesadilla nada).
+Un **nivel = 2 zonas generadas** (dos biomas sacados de los 12) **y luego un jefe**. Superarlo te devuelve al
+Santuario y **desbloquea el nivel siguiente**, sin fin. Tu vida se conserva en el portal entre las dos zonas
+(Fácil y Normal devuelven 1 máscara, Difícil y Pesadilla nada).
 
-Un **nivel = 2 zonas generadas** (biomas elegidos al azar entre 9) **y después un jefe**. Superarlo te
-devuelve al Santuario y **desbloquea el nivel siguiente**, sin fin. Cuanto más bajas, más vida,
-velocidad, agresividad y élites tienen los enemigos (unas ×1,9 de vida en el nivel 6, ×2,6 en el 10).
+**Profundidad**: la vida de los enemigos sube un 18 % por nivel y se detiene en ×4,6 (nivel 21). Velocidad,
+agresividad, número y élites suben hasta el nivel 10 a 15 más o menos. El daño recibido nunca aumenta con la
+profundidad.
 
-**Morir** durante un descenso: vuelves al Santuario y pierdes el botín recogido desde la salida
-(esquirlas, emblemas, muescas), pero los niveles desbloqueados y las compras se conservan. Tu **sombra**
-guarda las esquirlas perdidas donde caíste: vuelve al mismo nivel y derrótala para recuperarlas
-(una nueva muerte la sustituye).
+**Morir** en un descenso: vuelves al Santuario y pierdes el botín recogido desde la salida (esquirlas, emblemas,
+muescas), pero los niveles desbloqueados y las compras se quedan. Tu **sombra** guarda las esquirlas perdidas
+donde caíste: vuelve al mismo nivel y supéralo para recuperarlas (una nueva muerte la sustituye).
 
-Desde el ascensor también puedes:
-- jugar cualquier nivel con una **maldición** (Prisa, Oscuridad, Fragilidad) por +50 a 60 % de esquirlas;
-- jugar el **Descenso del día** (el mismo nivel para todos, mejor tiempo), con una **clasificación en línea**
-  por dificultad: tu tiempo se envía al final con el apodo que elijas (Ascensor → «Clasificación del día»),
-  y ves el top 10 y tu puesto. El envío se desactiva en la misma pantalla;
-- afrontar el **Desafío de jefes** (jefes seguidos, cronometrado) tras superar el nivel 6: +600 esquirlas cada vez, +200 más si mejoras tu mejor tiempo y una muesca de emblema en la primera victoria.
+### Los modos especiales del ascensor
+- **Maldiciones** (Prisa, Oscuridad, Fragilidad): juega cualquier nivel maldito por +50 a 60 % de esquirlas.
+- **Descenso del día**: las mismas zonas para todos, gana el mejor tiempo. Clasificación en línea por
+  dificultad (top 10 y tu puesto); tu tiempo se envía con el nombre que elijas, y el envío se puede desactivar.
+- **Desafío semanal**: uno por semana, en el nivel 4, con una maldición y un arma impuesta que cambian cada
+  semana, y su propia clasificación.
+- **Fantasma**: en el Descenso del día y el Desafío semanal, el fantasma del primero de la clasificación recorre
+  la zona a tu lado (una silueta encapuchada translúcida, con su nombre). Se oculta desde la pantalla de
+  clasificaciones.
+- **Desafío de jefes** (tras el nivel 6): los jefes seguidos, cronometrados. +600 esquirlas cada vez, +200 más si
+  bates tu récord, una muesca de emblema en la primera victoria, y una clasificación en línea.
+- **Clasificaciones**: del día, de la semana y del Desafío de jefes, todas desde el ascensor.
 
 Hay 29 **logros**, visibles desde la pantalla de título o el menú de pausa.
 
@@ -282,15 +290,32 @@ Los niveles ya no son simples franjas planas:
 - **Mercader ambulante**: a veces cerca del banco de mitad de zona (las compras cuentan como botín).
 
 ### Trampas y plataformas
-Las zonas tienen relieve (el suelo sube y baja de una sala a otra) y salas variadas: islas flotantes,
-pozos en zigzag, caminos dobles, cuevas bajas, puentes frágiles, abismos con plataforma móvil,
-pasillos de cuchillas.
-- **Tótem de dardos**: dispara a la altura de la cabeza — agáchate, salta o para. Nunca cerca de la arena de un jefe.
-- **Cuchilla pendular**: su punto más bajo pasa justo por encima de un héroe agachado.
+Las zonas tienen relieve (el suelo sube y baja de una sala a otra) y salas variadas: islas flotantes, pozos en
+zigzag, caminos dobles, cuevas bajas, puentes frágiles, abismos con plataforma móvil, pasillos de cuchillas.
+- **Fosos de pinchos**: caer cuesta una máscara y te devuelve al último suelo seguro.
+- **Tótem de dardos**: dispara a la altura de la cabeza. Agáchate, salta o para.
+- **Cuchilla péndulo**: su punto más bajo pasa justo por encima del héroe agachado.
 - **Estalactita**: cae cuando pasas por debajo.
 - **Bloques frágiles**: se hunden poco después de pisarlos y luego se rehacen.
 - **Plataforma móvil**: va y viene sobre un abismo.
-- Las trampas aparecen como mucho en el 50 % de las salas, y las salas con trampas tienen menos enemigos.
+- **Plataforma que se derrumba** (Minas de Cristal): cede bajo tus pies en una lluvia de cascotes.
+
+**Trampas de bioma**, con un ciclo legible (avisan antes de golpear). Hay de 1 a 4 por zona según la
+profundidad, nunca unas encima de otras y nunca cerca del jefe:
+
+| Trampa | Biomas |
+|---|---|
+| Pinchos que salen y entran | todos |
+| Hongo de gas tóxico | Jardines Fúngicos, Colmena Zumbante, Jungla Anegada |
+| Géiser de llamas | Forja Ardiente, Arenas Enterradas |
+| Géiser de hielo | Abismo Helado |
+| Onda de cristal que corre por el suelo | Minas de Cristal |
+| Remolino de páginas voladoras | Biblioteca Silenciosa |
+| Mano esquelética que te agarra (la embestida te libera) | Osario |
+| Tubería de vapor, con los colores del bioma | Ciudadela Sumergida, Templo Antiguo |
+| Gota que cae | Las Profundidades |
+
+Las trampas también hieren a los enemigos, pero solo a los que acabas de golpear o de lanzar.
 
 ## Combate
 
@@ -367,13 +392,34 @@ Tab abre el inventario (el juego se pausa): objetos, esquirlas, estadísticas y 
 | Nudo de Escalador | 1 | tornos el doble de rápidos; la primera subida de cada torno devuelve 33 de alma |
 | Último Aliento | 3 | un golpe fatal te deja con 1 máscara, una vez por zona |
 | Colmillo Sangriento | 2 | +30 % de probabilidad de hacer sangrar con cada golpe, con cualquier arma (1 de daño un segundo después); 50 % con las Garras Gemelas niv. 2 |
+| Alma Ardiente | 2 | la hoja de alma (hechizo) inflige 1 de daño más |
+| Linterna Frugal | 1 | curarse solo cuesta 27 de alma en vez de 33 |
+| Ala de Polilla | 3 | permite un segundo salto en el aire, algo más bajo que el primero |
+| Sombra Gemela | 2 | dos Embestidas en el aire en vez de una antes de tocar el suelo |
+| Piel de Piedra | 2 | tras recibir un golpe, la invulnerabilidad dura un 40 % más |
+| Bolsa del Mercader | 1 | los enemigos vencidos sueltan un 20 % más de esquirlas |
+| Cáliz de Savia | 3 | cada 15 enemigos vencidos, recupera una máscara |
+| Corazón de Tormenta | 2 | el definitivo se carga un 25 % más rápido (golpes y paradas) |
+| Onda Trueno | 2 | la onda del definitivo es un 30 % más amplia |
+| Suelas de Corteza | 1 | el primer golpe de trampa de cada nivel se ignora |
+| Péndulo | 1 | una parada exitosa recarga al instante la Embestida y da 5 de alma más |
+| Colmillo del Cazador | 2 | +1 de daño contra enemigos por debajo del 40 % de su vida |
+| Escarcha Mordaz | 2 | 15 % de probabilidad por golpe de congelar brevemente al enemigo (0,6 s, no jefes) |
+| Ojo de Halcón | 2 | +8 % de probabilidad de golpe crítico |
+| Punta de Obsidiana | 2 | los golpes críticos infligen ×2 en vez de ×1,5 |
+| Velo de Alma | 3 | con 33 de alma, un golpe recibido lo absorbe el alma en vez de las máscaras (una vez cada 8 s) |
+| Furia del Herido | 2 | con 1 máscara, +1 de daño en todos los golpes |
+| Cometa | 1 | el golpe cargado (torbellino) se prepara un 40 % más rápido |
+| Savia Bendita | 2 | cada curación tiene un 25 % de probabilidad de recuperar una máscara más |
+| Danza de Hojas | 2 | el golpe final del combo inflige +1 de daño y da 4 de alma |
+| Oración del Banco | 1 | sentarse en un banco llena el alma hasta 33 |
 
-El **joyero**, un faraón momificado que se instala en el Santuario tras el nivel 2, refuerza los emblemas que llevas: nivel 2 (nivel 2 superado) y luego nivel 3 (nivel 4). Cada emblema gana potencia (por ejemplo Corazón de Cristal: +2, +3 y luego +4 máscaras).
+El **joyero**, un faraón momificado que se instala en el Santuario tras el nivel 2, refuerza **todos los emblemas que tienes**, equipados o no: nivel 2 (nivel 2 superado) y luego nivel 3 (nivel 4). Cada emblema gana potencia (por ejemplo Corazón de Cristal: +2, +3 y luego +4 máscaras). El inventario y el Scriptorium muestran los 42 emblemas en una lista desplazable.
 
 Los efectos se definen en `scripts/charms.gd` y se aplican en `scripts/player.gd`.
 
 ## Enemigos
-- **Reptante**, **Volador**, **Escupidor**: lo básico — camina, se lanza en picado, escupe esporas.
+- **Reptante**, **Volador**, **Escupidor**: lo básico. El reptante te detecta y embiste, el volador rodea los muros para alcanzarte, el escupidor lanza esporas.
 - **Saltador**: un saltamontes que salta sobre ti.
 - **Guardia con escudo**: bloquea los golpes de frente. Golpéalo desde arriba, por detrás o con la definitiva.
 - **Bulbo explosivo**: rueda hacia ti, se enciende y explota (también hiere a los enemigos cercanos).
@@ -410,20 +456,34 @@ vida y su propio tema musical. Parar un contacto aturde al jefe un segundo.
 | El Caballero Espectral | duelista fantasma | estocadas relámpago (combos ×3 en fase 2), **se teletransporta a tu espalda**, pilares espectrales en línea, ráfaga de brasas |
 
 ### Jefes finales
-En el nivel 7 (y luego cada 7 niveles), un jefe final **elegido al azar en cada partida**, cada uno con
-su tema:
-- **La Sombra de la Linterna**: coronas de brasas, barrido a la altura de la cabeza, lluvia de ceniza,
-  columnas de luz, espectros en fase 2.
-- **El Cerbero de las Profundidades**: aliento de brasas de las tres cabezas, salto con onda expansiva,
-  triple mordisco a la altura de la cabeza (agáchate), un aullido que hace brotar llamas.
-- **El Centauro Arquero**: galopa de un lado a otro de la arena, ráfagas de flechas, lluvia de flechas
-  marcada en el suelo, lanzazo a la altura de la cabeza (agáchate), salta por encima del jugador.
-- **El Ojo de Abajo**: tentáculos que brotan del suelo, un rayo que barre la arena a la altura de la
-  cabeza (agáchate) o a ras de suelo (salta), espirales de esporas, ojos voladores.
+En el nivel 7 (y luego cada 7 niveles), un **jefe final**, cada uno con su tema. El sorteo da prioridad a un
+jefe final que **nunca has vencido**: te enfrentas a los cuatro en cuatro combates finales (nivel 28 como
+mucho). El Descenso del día, el Desafío semanal y el Desafío de jefes mantienen el mismo sorteo para todos.
+- **La Sombra de la Linterna**: coronas de brasas, barrido a la altura de la cabeza, lluvia de cenizas,
+  columnas de luz, espectros en la fase 2.
+- **El Cerbero de las Profundidades**: aliento de brasas de las tres cabezas, salto con onda expansiva, triple
+  mordisco a la altura de la cabeza (agáchate), aullido que hace brotar llamas.
+- **El Centauro Arquero**: galopa de un lado a otro de la arena, ráfagas de flechas, lluvia de flechas marcada
+  en el suelo, lanzazo a la altura de la cabeza (agáchate), salta por encima del jugador.
+- **El Ojo de Abajo**: tentáculos que brotan del suelo, un rayo que barre la arena a la altura de la cabeza
+  (agáchate) o a ras de suelo (salta), espirales de esporas, ojos voladores.
 
-Vencerlo lanza **el final**: la Linterna vuelve a encenderse, la luz sube nivel a nivel hasta el
-Santuario y luego hasta la superficie, y aparecen los créditos. Después, los niveles continúan.
-Logro «Los cuatro guardianes»: vencer a los cuatro.
+Vencerlo lanza **el final**: la Linterna vuelve a encenderse, la luz sube nivel a nivel hasta el Santuario y
+luego la superficie, y pasan los créditos. Después, los niveles continúan.
+Logro «Los cuatro guardianes»: vence a los cuatro.
+
+## Duelo local: la Arena de las Sombras
+
+Dos jugadores se enfrentan en la misma pantalla. Para jugar a distancia, usa **Parsec**: comparte la pantalla
+y pasa al juego el mando del segundo jugador.
+1. Activa **Opciones → Arena de las Sombras en el Santuario** (desactivado por defecto): el estandarte de la
+   arena aparece en el Santuario.
+2. Conecta un segundo mando. El jugador 1 juega con el teclado (o el primer mando), el jugador 2 con el segundo.
+3. En el estandarte, cada jugador elige su arma y luego **¡Luchar!**
+
+Reglas: en igualdad. Sin emblemas, todas las armas al nivel 2, 9 máscaras cada uno, gana el primero en ganar
+**3 rondas**. La parada funciona contra el otro jugador y lo empuja; un proyectil nunca golpea a quien lo
+lanzó. La arena tiene un suelo y tres plataformas al alcance de un salto; los dos jugadores empiezan cara a cara.
 
 ## Gráficos
 
@@ -468,7 +528,7 @@ Todo se guarda en `user://settings.cfg`.
 
 ## Cosméticos y guardarropa
 La **costurera** del Santuario (a la izquierda del banco) abre el guardarropa, donde cambias el aspecto
-del héroe con una vista previa animada: **53 cosméticos** en 6 categorías, 21 de ellos de temporada.
+del héroe con una vista previa animada: **59 cosméticos** en 6 categorías, 21 de ellos de temporada.
 Todo es puramente visual y común a todas las ranuras. Las capas claras están atenuadas para no
 deslumbrar sobre los fondos oscuros.
 
@@ -536,17 +596,11 @@ publicación (perfil de exportación «Patch»). Aumenta `config/data_gen` en `p
 música, sonidos o imágenes: las instalaciones antiguas verán entonces el aviso de descarga.
 
 ## Música y sonidos
-Una banda sonora **original** generada para el juego (libre de derechos): 29 pistas en bucle en
+Una banda sonora **original** generada para el juego (sin material de terceros): 32 pistas en bucle en
 `music/` — una o dos por bioma que se encadenan con fundido, un tema por jefe, uno para el tutorial,
 uno para el Santuario y uno por fiesta. Los efectos de sonido están en `sfx/`, con sonidos propios de
 cada arma, de los golpes críticos y de la parada perfecta. Volúmenes **general / música / efectos** en
 Opciones; la música baja un poco cuando el juego está en pausa.
-
-## Modding
-- Los mapas hechos a mano están en `scripts/levels.gd`: añade una entrada a `LEVELS` para crear una
-  zona (`#` roca, `^` pinchos, `c`/`f`/`s` enemigos, `B` banco, `D` orbe, `K` jefe…).
-- Los ajustes del héroe (velocidad, salto, Embestida, daño, retroceso) son las constantes al principio
-  de `scripts/player.gd`.
 
 ## Pruebas
 `tests/test_run.gd` recorre las zonas automáticamente (entradas simuladas, jefes, menús):
@@ -559,6 +613,8 @@ Opciones; la música baja un poco cuando el juego está en pausa.
 `LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787`).
 
 ## Licencia
-Código, música (generada para el juego) y efectos de sonido: licencia **MIT** — ver `LICENSE`.
-Excepción: `sfx/lift_chains.ogg` procede de la grabación *Chains Chiming* de freesound_community en Pixabay (Pixabay Content License, uso libre, sin atribución obligatoria).
-El juego se inspira en Hollow Knight (Team Cherry), pero no reutiliza ni sus personajes ni sus recursos.
+Copyright (c) 2026 FlyinnRabbit. **Todos los derechos reservados.** Puedes descargar, instalar y ejecutar el
+juego para uso personal y no comercial. Modificarlo, redistribuirlo, publicarlo o venderlo, total o
+parcialmente, no está permitido sin permiso por escrito. Texto completo: `LICENSE` (en inglés).
+Excepción: `sfx/lift_chains.ogg` procede de la grabación *Chains Chiming* de freesound_community en Pixabay (licencia de contenido de Pixabay).
+El juego se inspira en Hollow Knight (Team Cherry), pero no reutiliza ninguno de sus personajes ni recursos.
