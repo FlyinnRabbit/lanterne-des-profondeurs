@@ -558,8 +558,18 @@ func open_npc(kind: String) -> void:
 	_clear(npc_buttons)
 	var first: Button = null
 	match kind:
-		"smith":
-			npc_name.text = "La forgeronne"
+		"arena":
+			npc_name.text = "L'Arène des Ombres"
+			var pads := Input.get_connected_joypads()
+			var how := tr("Joueur 1 : clavier et manette 1. Joueur 2 : manette 2.") if pads.size() >= 2 else (tr("Joueur 1 : clavier. Joueur 2 : la manette.") if pads.size() == 1 else tr("Aucune manette détectée : branche-en une pour le joueur 2."))
+			npc_text.text = tr("Duel à deux sur ce PC (ou à distance avec Parsec). Chacun son arme, au niveau 2, sans emblèmes ; 9 masques ; premier à %d manches.") % GameState.DUEL_TARGET + "\n" + how
+			for n in [1, 2]:
+				var cur: String = String(GameState.duel_w[n - 1])
+				_npc_button(tr("Arme du joueur %d : %s  ◀ ▶") % [n, tr(Weapons.W[cur]["name"])], _duel_cycle.bind(n))
+			first = _npc_button(tr("Combattre !"), _duel_go)
+			first.disabled = pads.is_empty()
+			if first.disabled:
+				first = null
 			npc_text.text = tr("« Choisis une arme : je la forge un niveau plus haut. Le niveau 2 lui donne son effet spécial, les suivants renforcent ce qu'elle fait de mieux. Plus tu descends, plus je peux forger. »")
 			for id in Weapons.ORDER:
 				if not GameState.owns_weapon(id):
@@ -641,6 +651,19 @@ func _smith_upgrade(id: String) -> void:
 	open_npc("smith_w")
 	npc_text.text = tr("%s améliorée : niveau %d !") % [tr(Weapons.W[id]["name"]), GameState.weapon_level(id)]
 
+
+func _duel_cycle(n: int) -> void:
+	var cur: String = String(GameState.duel_w[n - 1])
+	var i := Weapons.ORDER.find(cur)
+	GameState.duel_w[n - 1] = Weapons.ORDER[(i + 1) % Weapons.ORDER.size()]
+	open_npc("arena")
+
+func _duel_go() -> void:
+	var err: String = GameState.start_duel(String(GameState.duel_w[0]), String(GameState.duel_w[1]))
+	if err != "":
+		npc_text.text = tr(err)
+		return
+	close_all()
 
 func _smith_charm(id: int) -> void:
 	var err: String = GameState.upgrade_charm(id, main.player)

@@ -1087,6 +1087,8 @@ func _build_pause(root: Control) -> void:
 		v.add_child(_button("Recommencer le tutoriel", _restart))
 	if GameState.mode == "descent":
 		v.add_child(_button("Abandonner la descente", func(): GameState.abandon_descent()))
+	elif GameState.mode == "duel":
+		v.add_child(_button("Quitter le duel", func(): GameState.end_duel(0)))
 	v.add_child(_button("Parties…", _open_slots))
 	if not OS.has_feature("web"):   # dans un navigateur, on ferme simplement l'onglet
 		v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))

@@ -172,6 +172,15 @@ func _ready() -> void:
 	hub_ui.set_script(HubUIScript)
 	hub_ui.main = self
 	add_child(hub_ui)
+	if GameState.mode == "duel":
+		hud.visible = false
+		duel_hud = Control.new()
+		duel_hud.set_script(preload("res://scripts/duel_hud.gd"))
+		duel_hud.main = self
+		duel_hud.set_anchors_preset(Control.PRESET_FULL_RECT)
+		duel_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layer.add_child(duel_hud)
+		_duel_start_round.call_deferred()
 	if GameState.is_tutorial():
 		player.can_dash = true
 		show_message(level["name"], 3.0)
@@ -346,6 +355,20 @@ func _spawn_everything() -> void:
 					GameState.carry_hp = -1
 					GameState.carry_soul = -1
 					GameState.carry_ult = -1
+					if GameState.mode == "duel":
+						_duel_setup_player(player, 1)
+				"@":
+					# duel : le second joueur
+					if GameState.mode == "duel":
+						var p2 := CharacterBody2D.new()
+						p2.set_script(PlayerScript)
+						p2.main = self
+						p2.pid = 2
+						p2.position = _cell_feet(x, y, 34)
+						add_child(p2)
+						p2.can_dash = true
+						p2.apply_equipment()
+						_duel_setup_player(p2, 2)
 				"B":
 					bench_pos = _cell_feet(x, y, 34)
 					benches.append(bench_pos)
@@ -381,6 +404,10 @@ func _spawn_everything() -> void:
 					signs.append([sp, data, false])
 				"m":
 					enemy_spawns.append([DummyScript, _cell_feet(x, y, 44), null, false])
+				"{":
+					# Arène des Ombres : bannière aux lames croisées, entrée du duel local
+					var ap = _make_prop("arena", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.6, 0.45), 1.6)
+					interactables.append([ap, "arena"])
 				"j":
 					# le Scriptorium de Maître Plume (Sanctuaire, sur sa plateforme)
 					var scp = _make_prop("scriptorium", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(0.85, 0.7, 0.55), 1.3)
@@ -893,8 +920,11 @@ func _process(delta: float) -> void:
 	if _sleep_t <= 0.0:
 		_sleep_t = 0.2
 		_update_sleep()
-	# Caméra : suit le joueur, regarde un peu devant lui
-	camera.global_position = player.global_position + Vector2(player.facing * 50.0, -40.0)
+	# Caméra : suit le joueur, regarde un peu devant lui (en duel : cadre les deux joueurs)
+	if GameState.mode == "duel":
+		_duel_tick(delta)
+	else:
+		camera.global_position = player.global_position + Vector2(player.facing * 50.0, -40.0)
 	camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * shake_amt
 	shake_amt = move_toward(shake_amt, 0.0, delta * 40.0)
 	flash = move_toward(flash, 0.0, delta * 3.0)
@@ -905,7 +935,7 @@ func _process(delta: float) -> void:
 	for it in interactables:
 		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
 			var verbs := {"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur",
-				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "jeweler": "parler au joaillier", "cartographer": "parler au cartographe", "elder": "écouter l'ancien",
+				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "jeweler": "parler au joaillier", "arena": "Arène des Ombres (duel à deux)", "cartographer": "parler au cartographe", "elder": "écouter l'ancien",
 				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau", "winch": "se faire hisser",
 				"scriptorium": "consulter les registres"}
 			if it[1] == "altar" and altar_state != "":
@@ -920,7 +950,9 @@ func _process(delta: float) -> void:
 					"scriptorium": ["scriptorium", "Scriptorium"]}
 				if shop_names.has(it[1]):
 					LoadingScript.shop(get_tree(), shop_names[it[1]][0], tr(shop_names[it[1]][1]))
-				if it[1] == "merchant":
+				if it[1] == "arena":
+					hub_ui.open_npc("arena")
+				elif it[1] == "merchant":
 					hub_ui.open_shop()
 				elif it[1] == "arsenal":
 					hub_ui.open_arsenal()
@@ -1111,6 +1143,82 @@ func _enemy_spikes(delta: float) -> void:
 				e.hurt_by_trap(2, Vector2(0, -1))
 				spawn_burst(Vector2(e.global_position.x, sp.position.y), Color(0.85, 0.85, 0.9), 6, 120.0)
 				break
+
+# ---------------------------------------------------------------- duel local (Arène des Ombres)
+# Deux joueurs, chacun son arme (niveau 2, sans emblèmes), 9 masques ; le premier à 3 manches gagne.
+const DUEL_HP := 9
+var duel_players: Array = []
+var duel_spawns: Array = []
+var duel_freeze := 0.0
+var duel_hud = null
+var _duel_over := false
+
+func _duel_setup_player(p, n: int) -> void:
+	p.duel_weapon = String(GameState.duel_w[n - 1])
+	p.can_dash = true
+	p.max_hp = DUEL_HP
+	p.hp = DUEL_HP
+	p.soul = 0
+	p.ult = 0
+	p.facing = 1 if n == 1 else -1
+	p.add_to_group("enemies")
+	if n == 2:
+		p.modulate = Color(1.0, 0.72, 0.7)
+	duel_players.append(p)
+	duel_spawns.append(p.position)
+
+func duel_other(p):
+	for q in duel_players:
+		if q != p:
+			return q
+	return null
+
+func _duel_start_round() -> void:
+	for i in duel_players.size():
+		var p = duel_players[i]
+		p.respawn(duel_spawns[i])
+		p.max_hp = DUEL_HP
+		p.hp = DUEL_HP
+		p.facing = 1 if i == 0 else -1
+		p.invuln_t = 0.0
+	duel_freeze = 2.2
+	if duel_hud:
+		duel_hud.countdown(2.2)
+
+func duel_ko(loser) -> void:
+	if _duel_over:
+		return
+	_duel_over = true
+	var w: int = 2 if loser == duel_players[0] else 1
+	GameState.duel_score[w - 1] += 1
+	spawn_burst(loser.global_position, Color(0.9, 0.85, 1.0), 30, 260.0)
+	shake(8)
+	hit_stop(0.25)
+	if duel_hud:
+		duel_hud.announce(tr("Manche pour le joueur %d !") % w)
+	await get_tree().create_timer(2.0, false).timeout
+	if int(GameState.duel_score[w - 1]) >= GameState.DUEL_TARGET:
+		GameState.end_duel(w)
+		return
+	_duel_over = false
+	_duel_start_round()
+
+func _duel_tick(delta: float) -> void:
+	if duel_players.size() < 2:
+		return
+	var a = duel_players[0]
+	var b = duel_players[1]
+	# compte à rebours : personne ne bouge
+	if duel_freeze > 0.0:
+		duel_freeze -= delta
+		for p in duel_players:
+			p.set_physics_process(duel_freeze <= 0.0)
+	# caméra : cadre les deux joueurs
+	var mid: Vector2 = (a.global_position + b.global_position) * 0.5 + Vector2(0, -40)
+	var span := maxf(absf(a.global_position.x - b.global_position.x) + 360.0, (absf(a.global_position.y - b.global_position.y) + 260.0) * 16.0 / 9.0)
+	var z := clampf(get_viewport_rect().size.x / span, 0.75, 1.4) * Settings.zoom
+	camera.zoom = camera.zoom.lerp(Vector2(z, z), clampf(delta * 3.0, 0.0, 1.0))
+	camera.global_position = mid
 
 # ---------------------------------------------------------------- fantôme (jour, semaine)
 # Le parcours du héros est noté 10 fois par seconde, niveau par niveau ; s'il existe un
@@ -1431,7 +1539,7 @@ func thrust_shock(pos: Vector2) -> void:
 	Audio.sfx("hammer", 0.08, -6.0)
 
 # Onde de choc de l'ultime : gros dégâts à tout ce qui est dans le rayon, détruit les spores.
-func ultimate_blast(pos: Vector2) -> void:
+func ultimate_blast(pos: Vector2, caster = null) -> void:
 	GameState.j_add("ults")
 	Audio.sfx("ult", 0.0)
 	var ring := Node2D.new()
@@ -1448,10 +1556,11 @@ func ultimate_blast(pos: Vector2) -> void:
 	hit_stop(0.12)
 	spawn_burst(pos, ul["c2"] if ring.style == "ult_eclipse" else ul["c"], 60, 420.0, 0.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if not is_instance_valid(e):
+		if not is_instance_valid(e) or e == caster:
 			continue
 		var c: Vector2 = e.get_rect().get_center()
-		if c.distance_to(pos) <= ULT_RADIUS + e.size.x / 2.0:
+		var ex: float = e.size.x if "size" in e else 20.0
+		if c.distance_to(pos) <= ULT_RADIUS + ex / 2.0:
 			e.take_hit(ULT_DAMAGE, (c - pos).normalized())
 	for pr in get_tree().get_nodes_in_group("projectiles"):
 		if is_instance_valid(pr) and pr.hostile and pr.global_position.distance_to(pos) <= ULT_RADIUS:
@@ -1488,7 +1597,7 @@ func on_damage_dealt(e, dmg: int) -> void:
 func thorns_burst(pos: Vector2, dmg: int = 3) -> void:
 	spawn_burst(pos, Color(0.6, 0.85, 0.5), 24, 300.0, 0.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if is_instance_valid(e) and e.get_rect().get_center().distance_to(pos) < 110.0:
+		if is_instance_valid(e) and not e in duel_players and e.get_rect().get_center().distance_to(pos) < 110.0:
 			e.take_hit(dmg, (e.get_rect().get_center() - pos).normalized())
 
 # opts : {"kind": "spore"/"rock"/"wave"/"acid"/"ember", "gravity": float, "radius": float, "life": float}

@@ -845,6 +845,22 @@ T = {
 "Personne n'a encore terminé le Défi des boss dans cette difficulté.": ("Nobody has finished the Boss Rush on this difficulty yet.", "Nadie ha terminado aún el Desafío de jefes en esta dificultad.", "Noch niemand hat die Bossherausforderung auf diesem Schwierigkeitsgrad beendet."),
 "%d joueurs cette semaine": ("%d players this week", "%d jugadores esta semana", "%d Spieler diese Woche"),
 "%d joueurs au total": ("%d players in total", "%d jugadores en total", "%d Spieler insgesamt"),
+"Arène des Ombres (duel à deux)": ("Shadow Arena (two-player duel)", "Arena de las Sombras (duelo a dos)", "Schattenarena (Duell zu zweit)"),
+"L'Arène des Ombres": ("The Shadow Arena", "La Arena de las Sombras", "Die Schattenarena"),
+"Joueur 1 : clavier et manette 1. Joueur 2 : manette 2.": ("Player 1: keyboard and controller 1. Player 2: controller 2.", "Jugador 1: teclado y mando 1. Jugador 2: mando 2.", "Spieler 1: Tastatur und Controller 1. Spieler 2: Controller 2."),
+"Joueur 1 : clavier. Joueur 2 : la manette.": ("Player 1: keyboard. Player 2: the controller.", "Jugador 1: teclado. Jugador 2: el mando.", "Spieler 1: Tastatur. Spieler 2: der Controller."),
+"Aucune manette détectée : branche-en une pour le joueur 2.": ("No controller detected: plug one in for player 2.", "No se detecta ningún mando: conecta uno para el jugador 2.", "Kein Controller erkannt: Schließ einen für Spieler 2 an."),
+"Duel à deux sur ce PC (ou à distance avec Parsec). Chacun son arme, au niveau 2, sans emblèmes ; 9 masques ; premier à %d manches.": ("Two-player duel on this PC (or remotely with Parsec). Each picks a weapon, at level 2, no charms; 9 masks; first to %d rounds.", "Duelo a dos en este PC (o a distancia con Parsec). Cada uno su arma, a nivel 2, sin emblemas; 9 máscaras; gana quien llegue a %d rondas.", "Duell zu zweit an diesem PC (oder aus der Ferne mit Parsec). Jeder wählt eine Waffe auf Stufe 2, ohne Embleme; 9 Masken; wer zuerst %d Runden gewinnt."),
+"Arme du joueur %d : %s  ◀ ▶": ("Player %d weapon: %s  ◀ ▶", "Arma del jugador %d: %s  ◀ ▶", "Waffe von Spieler %d: %s  ◀ ▶"),
+"Combattre !": ("Fight!", "¡Luchar!", "Kämpfen!"),
+"Branche au moins une manette pour le joueur 2.": ("Plug in at least one controller for player 2.", "Conecta al menos un mando para el jugador 2.", "Schließ mindestens einen Controller für Spieler 2 an."),
+"Le joueur %d remporte le duel %d à %d !": ("Player %d wins the duel %d to %d!", "¡El jugador %d gana el duelo %d a %d!", "Spieler %d gewinnt das Duell %d zu %d!"),
+"Duel abandonné.": ("Duel abandoned.", "Duelo abandonado.", "Duell abgebrochen."),
+"Manche pour le joueur %d !": ("Round to player %d!", "¡Ronda para el jugador %d!", "Runde für Spieler %d!"),
+"Joueur %d": ("Player %d", "Jugador %d", "Spieler %d"),
+"Premier à %d manches": ("First to %d rounds", "Gana quien llegue a %d rondas", "Wer zuerst %d Runden gewinnt"),
+"Combattez !": ("Fight!", "¡Luchad!", "Kämpft!"),
+"Quitter le duel": ("Leave the duel", "Salir del duelo", "Duell verlassen"),
 }
 LANGS = ["en", "es", "de"]
 def gd(s):

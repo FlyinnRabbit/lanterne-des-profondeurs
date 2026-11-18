@@ -314,6 +314,10 @@ func current_level() -> Dictionary:
 		return h
 	if mode == "rush":
 		return _rush_level()
+	if mode == "duel":
+		var dl: Dictionary = Levels.DUEL.duplicate()
+		dl["music"] = ["res://music/antique_temple_oublie.ogg"]
+		return dl
 	var key := "%d-%d-%d" % [run_seed, palier, step]
 	if not _cache.has(key):
 		var all := Biomes.all()
@@ -886,7 +890,76 @@ func _j(key: String) -> Dictionary:
 		journal[key] = {}
 	return journal[key]
 
+# ---------------------------------------------------------------- duel local (Arène des Ombres)
+const DUEL_TARGET := 3      # manches à gagner
+var duel_w := ["aiguille", "aiguille"]
+var duel_score := [0, 0]
+var duel_pads := [-1, -1]   # manette de chaque joueur (-1 : J1 au clavier seulement)
+var _saved_events := {}
+const DUEL_ACTIONS := ["move_left", "move_right", "up", "down", "jump", "attack", "dash", "parry", "focus", "spell", "ultimate"]
+
+# Répartit les commandes : J1 = clavier (+ manette 1 s'il y en a deux), J2 = l'autre manette.
+func duel_bind_inputs() -> bool:
+	var pads := Input.get_connected_joypads()
+	if pads.is_empty():
+		return false
+	duel_pads = [pads[0], pads[1]] if pads.size() >= 2 else [-1, pads[0]]
+	_saved_events = {}
+	for a in DUEL_ACTIONS:
+		if not InputMap.has_action(a):
+			continue
+		var evs := InputMap.action_get_events(a)
+		_saved_events[a] = evs
+		var p2: String = "p2_" + a
+		if InputMap.has_action(p2):
+			InputMap.erase_action(p2)
+		InputMap.add_action(p2, InputMap.action_get_deadzone(a))
+		InputMap.action_erase_events(a)
+		for ev in evs:
+			if ev is InputEventJoypadButton or ev is InputEventJoypadMotion:
+				if duel_pads[0] >= 0:
+					var e1: InputEvent = ev.duplicate()
+					e1.device = duel_pads[0]
+					InputMap.action_add_event(a, e1)
+				var e2: InputEvent = ev.duplicate()
+				e2.device = duel_pads[1]
+				InputMap.action_add_event(p2, e2)
+			else:
+				InputMap.action_add_event(a, ev)
+	return true
+
+func duel_unbind_inputs() -> void:
+	for a in _saved_events:
+		InputMap.action_erase_events(a)
+		for ev in _saved_events[a]:
+			InputMap.action_add_event(a, ev)
+		if InputMap.has_action("p2_" + a):
+			InputMap.erase_action("p2_" + a)
+	_saved_events = {}
+
+func start_duel(w1: String, w2: String) -> String:
+	if not duel_bind_inputs():
+		return "Branche au moins une manette pour le joueur 2."
+	duel_w = [w1, w2]
+	duel_score = [0, 0]
+	snapshot = prog.duplicate(true)
+	mode = "duel"
+	_reload(true)
+	return ""
+
+func end_duel(winner: int) -> void:
+	duel_unbind_inputs()
+	mode = "hub"
+	prog = snapshot.duplicate(true)
+	if winner > 0:
+		pending_message = tr("Le joueur %d remporte le duel %d à %d !") % [winner, duel_score[winner - 1], duel_score[2 - winner]]
+	else:
+		pending_message = tr("Duel abandonné.")
+	_reload(true)
+
 func j_add(key: String, n = 1) -> void:
+	if mode == "duel":
+		return
 	if mode == "tutorial":
 		return
 	var c := _j("c")
@@ -896,7 +969,7 @@ func j_get(key: String, def = 0):
 	return _j("c").get(key, def)
 
 func j_weapon_hit() -> void:
-	if mode == "tutorial":
+	if mode in ["tutorial", "duel"]:
 		return
 	var w := _j("w")
 	w[weapon()] = int(w.get(weapon(), 0)) + 1
@@ -918,7 +991,7 @@ func j_mob_kill(kind: String, elite: bool, biome: String) -> void:
 		(m["b"] as Array).append(biome)
 
 func j_mob_hurt(kind: String) -> void:
-	if mode == "tutorial" or kind == "":
+	if mode in ["tutorial", "duel"] or kind == "":
 		return
 	var m := _mob(kind)
 	m["hurt"] = int(m["hurt"]) + 1
@@ -952,7 +1025,7 @@ func j_charm_found(id: int, biome: String) -> void:
 
 # temps de jeu, temps passé avec chaque emblème équipé
 func j_tick(delta: float) -> void:
-	if mode == "tutorial":
+	if mode in ["tutorial", "duel"]:
 		return
 	var c := _j("c")
 	c["time"] = float(c.get("time", 0.0)) + delta

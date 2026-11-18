@@ -151,7 +151,53 @@ func _ready() -> void:
 
 # ---------------------------------------------------------------- emblèmes
 func eq(id: int) -> bool:
+	if GameState.mode == "duel":
+		return false        # duel : pas d'emblèmes, à armes égales
 	return GameState.has_charm(id)
+
+# ---------------------------------------------------------------- duel local
+# pid 2 : le second joueur, piloté par les actions « p2_… » (seconde manette).
+var pid := 0
+var duel_weapon := ""
+var is_boss := false
+var knock := Vector2.ZERO      # recul infligé par l'adversaire (estoc repoussant…)
+var knock_resist := 1.0
+var stun_t := 0.0
+func _act(a: String) -> String:
+	return ("p2_" + a) if pid == 2 else a
+func _ok(a: String) -> bool:
+	return pid != 2 or InputMap.has_action("p2_" + a)
+func _ip(a: String) -> bool:
+	return _ok(a) and Input.is_action_pressed(_act(a))
+func _ijp(a: String) -> bool:
+	return _ok(a) and Input.is_action_just_pressed(_act(a))
+func _ijr(a: String) -> bool:
+	return _ok(a) and Input.is_action_just_released(_act(a))
+func _iaxis() -> float:
+	return Input.get_axis(_act("move_left"), _act("move_right")) if _ok("move_left") else 0.0
+func wid() -> String:
+	return duel_weapon if duel_weapon != "" else GameState.weapon()
+func wlv() -> int:
+	return 2 if duel_weapon != "" else GameState.weapon_level()
+func is_harmful() -> bool:
+	return false
+# touché par l'autre joueur (ses coups passent par la même logique que contre un ennemi)
+func take_hit(dmg: int, dir: Vector2) -> void:
+	if dead or GameState.mode != "duel":
+		return
+	var from := global_position - (dir if dir != Vector2.ZERO else Vector2(-facing, 0)) * 30.0
+	var other = main.duel_other(self)
+	if parry_t > 0.0:
+		_on_parry(from, other)
+		return
+	if invuln_t > 0.0 or dash_t > 0.0:
+		return
+	take_damage(maxi(1, dmg), from.x)
+# l'autre joueur a paré notre coup : on est repoussé et sonné un instant
+func parried(d: Vector2) -> void:
+	velocity = Vector2(d.x * 420.0, -180.0)
+	knock_t = 0.45
+	attack_t = 0.0
 
 # niveau de l'emblème porté (0 s'il n'est pas équipé, sinon 1 à 3)
 func cl(id: int) -> int:
@@ -220,14 +266,16 @@ func reach() -> float:
 # À appeler quand l'équipement change
 func apply_equipment() -> void:
 	max_hp = 5 + int(clv(C.GLASS_HEART, [2, 3, 4])) + GameState.max_hp_bonus()
+	if GameState.mode == "duel":
+		max_hp = 9
 	hp = mini(hp, max_hp)
 
 # arme équipée, avec les bonus de niveau (3 à 5) déjà appliqués
 var _wcache_key := ""
 var _wcache := {}
 func weapon() -> Dictionary:
-	var id: String = GameState.weapon()
-	var lv: int = GameState.weapon_level(id)
+	var id: String = wid()
+	var lv: int = 2 if duel_weapon != "" else GameState.weapon_level(id)
 	var key := "%s:%d" % [id, lv]
 	if key != _wcache_key:
 		var w: Dictionary = Weapons.get_w(id).duplicate()
@@ -266,6 +314,11 @@ func _physics_process(delta: float) -> void:
 			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t", "plunge_cd", "plunge_kill_t",
 			"bench_lock_t", "web_t", "grab_t"]:
 		set(t, maxf(get(t) - delta, 0.0))
+	if knock.length() > 10.0:
+		# duel : recul infligé par l'adversaire
+		velocity = knock
+		knock_t = maxf(knock_t, 0.25)
+		knock = Vector2.ZERO
 	if attack_t > 0.0 or thrust_t > 0.0 or ult_charge_t > 0.0:
 		bench_lock_t = BENCH_LOCK
 	if thrust_push_cd > 0.0:
@@ -309,9 +362,9 @@ func _physics_process(delta: float) -> void:
 		# Se relever : bouger, ou n'importe quelle action. On accepte une touche simplement
 		# enfoncée (après un court délai) : un appui très bref pouvait passer inaperçu quand
 		# le jeu tournait lentement, et on restait « collé » au banc.
-		var want := absf(Input.get_axis("move_left", "move_right")) > 0.5
+		var want := absf(_iaxis()) > 0.5
 		for a in ["jump", "down", "attack", "dash", "parry"]:
-			if Input.is_action_just_pressed(a) or (sit_t > 0.25 and Input.is_action_pressed(a)):
+			if _ijp(a) or (sit_t > 0.25 and _ip(a)):
 				want = true
 		if want and sit_t > 0.12:
 			sitting = false
@@ -326,10 +379,10 @@ func _physics_process(delta: float) -> void:
 		ult_charge_t -= delta
 		velocity = Vector2.ZERO
 		if ult_charge_t <= 0.0:
-			main.ultimate_blast(global_position)
+			main.ultimate_blast(global_position, self)
 			invuln_t = maxf(invuln_t, 0.4)
 		return
-	if Input.is_action_just_pressed("ultimate") and knock_t <= 0.0:
+	if _ijp("ultimate") and knock_t <= 0.0:
 		if ult >= ULT_MAX:
 			ult = 0
 			ult_charge_t = ULT_CHARGE_TIME
@@ -341,16 +394,16 @@ func _physics_process(delta: float) -> void:
 			main.show_message("Ultime pas encore chargé", 0.9)
 
 	# Parade : courte fenêtre où un coup ou un projectile est renvoyé
-	if Input.is_action_just_pressed("parry") and parry_cd <= 0.0 and knock_t <= 0.0:
+	if _ijp("parry") and parry_cd <= 0.0 and knock_t <= 0.0:
 		parry_t = parry_window()
 		parry_cd = PARRY_COOLDOWN
 
-	var dir := Input.get_axis("move_left", "move_right")
+	var dir := _iaxis()
 	if absf(dir) < 0.3:
 		dir = 0.0
 	else:
 		dir = signf(dir)
-	if Input.is_action_just_pressed("jump"):
+	if _ijp("jump"):
 		buffer_t = JUMP_BUFFER
 	var on_floor := is_on_floor()
 	if on_floor:
@@ -365,9 +418,9 @@ func _physics_process(delta: float) -> void:
 		_update_safe_spot()
 
 	# Concentration (soin) : maintenir L au sol avec 33 d'âme
-	if Input.is_action_pressed("focus") and on_floor and soul >= FOCUS_COST and hp < max_hp and knock_t <= 0.0 and not (GameState.curse == "fragile" and GameState.mode == "descent"):
+	if _ip("focus") and on_floor and soul >= FOCUS_COST and hp < max_hp and knock_t <= 0.0 and not (GameState.curse == "fragile" and GameState.mode == "descent"):
 		focus_t += delta
-		_set_crouch(crouch_latch if Settings.crouch_toggle else Input.is_action_pressed("down"))
+		_set_crouch(crouch_latch if Settings.crouch_toggle else _ip("down"))
 		velocity.x = 0.0
 		velocity.y = minf(velocity.y + GRAVITY * delta, FALL_MAX)
 		if focus_t >= focus_time():
@@ -383,7 +436,7 @@ func _physics_process(delta: float) -> void:
 	focus_t = 0.0
 
 	# Attaque plongée : en l'air, bas + ruée = piqué vers le sol, onde de choc à l'impact
-	if not on_floor and not plunging and not plunge_used and plunge_cd <= 0.0 and Input.is_action_pressed("down") and Input.is_action_just_pressed("dash") and knock_t <= 0.0:
+	if not on_floor and not plunging and not plunge_used and plunge_cd <= 0.0 and _ip("down") and _ijp("dash") and knock_t <= 0.0:
 		plunging = true
 		plunge_used = true
 		plunge_cd = 0.6
@@ -405,7 +458,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Ruée
-	if can_dash and Input.is_action_just_pressed("dash") and dash_cd <= 0.0 and (on_floor or not air_dash_used) and knock_t <= 0.0:
+	if can_dash and _ijp("dash") and dash_cd <= 0.0 and (on_floor or not air_dash_used) and knock_t <= 0.0:
 		if dir != 0.0:
 			facing = int(dir)
 		dash_t = DASH_TIME
@@ -423,10 +476,10 @@ func _physics_process(delta: float) -> void:
 		squash = Vector2(1.3, 0.8)
 		main.spawn_burst(global_position, Color(0.2, 0.2, 0.3, 0.8), 10, 120.0, 0.0)
 	# Estoc : frapper pendant la ruée (ou juste après) = coup perçant en ligne droite
-	if Input.is_action_just_pressed("attack") and (dash_t > 0.0 or post_dash_t > 0.0) and thrust_t <= 0.0 and knock_t <= 0.0:
+	if _ijp("attack") and (dash_t > 0.0 or post_dash_t > 0.0) and thrust_t <= 0.0 and knock_t <= 0.0:
 		_start_attack("thrust", Vector2(facing, 0))
 		thrust_t = THRUST_TIME
-		thrust_push = thrust_push_cd <= 0.0 and GameState.weapon() != "shuriken"
+		thrust_push = thrust_push_cd <= 0.0 and wid() != "shuriken"
 		GameState.j_add("thrusts")
 		attack_t = THRUST_TIME
 		dash_t = 0.0
@@ -459,16 +512,16 @@ func _physics_process(delta: float) -> void:
 			facing = int(dir)
 	# Le piqué se lance en maintenant « bas » : à l'atterrissage on ne s'accroupit pas tant que la
 	# touche n'a pas été relâchée (avant : on se retrouvait accroupi, à ramper, avec un coup bas)
-	if crouch_block and not Input.is_action_pressed("down"):
+	if crouch_block and not _ip("down"):
 		crouch_block = false
 	if Settings.crouch_toggle:
-		if on_floor and Input.is_action_just_pressed("down"):
+		if on_floor and _ijp("down"):
 			crouch_latch = not crouch_latch
-		if not on_floor or Input.is_action_just_pressed("jump") or dash_t > 0.0:
+		if not on_floor or _ijp("jump") or dash_t > 0.0:
 			crouch_latch = false
 		_set_crouch(on_floor and crouch_latch and knock_t <= 0.0)
 	else:
-		_set_crouch(on_floor and Input.is_action_pressed("down") and knock_t <= 0.0 and not crouch_block)
+		_set_crouch(on_floor and _ip("down") and knock_t <= 0.0 and not crouch_block)
 
 	# Saut
 	velocity.y = minf(velocity.y + GRAVITY * delta, FALL_MAX)
@@ -479,15 +532,15 @@ func _physics_process(delta: float) -> void:
 		buffer_t = 0.0
 		coyote_t = 0.0
 		squash = Vector2(0.7, 1.3)
-	if Input.is_action_just_released("jump") and velocity.y < 0.0:
+	if _ijr("jump") and velocity.y < 0.0:
 		velocity.y *= JUMP_CUT
 
 	# Attaque : combo de 3 coups (le 3e est un coup final), coup chargé en maintenant
-	if Input.is_action_just_pressed("attack") and attack_cd <= 0.0 and knock_t <= 0.0:
+	if _ijp("attack") and attack_cd <= 0.0 and knock_t <= 0.0:
 		var adir := Vector2(facing, 0)
-		if Input.is_action_pressed("up"):
+		if _ip("up"):
 			adir = Vector2.UP
-		elif Input.is_action_pressed("down") and not on_floor:
+		elif _ip("down") and not on_floor:
 			adir = Vector2.DOWN
 		if not on_floor and adir.y == 0.0:
 			# combo aérien : entaille, entaille montante, puis vrille
@@ -508,13 +561,13 @@ func _physics_process(delta: float) -> void:
 				_start_attack("finisher" if combo_i == 2 and adir.y == 0.0 else "slash", adir)
 			combo_t = attack_cd + COMBO_SLACK
 		charge_t = 0.0
-	if Input.is_action_pressed("attack") and attack_t <= 0.0 and knock_t <= 0.0:
+	if _ip("attack") and attack_t <= 0.0 and knock_t <= 0.0:
 		var before := charge_t
 		charge_t += delta
 		if before < CHARGE_TIME and charge_t >= CHARGE_TIME:
 			main.spawn_burst(global_position, Color(1.0, 0.95, 0.75), 10, 120.0, -100.0)
 			Audio.sfx("pickup", 0.0, -8.0)
-	if Input.is_action_just_released("attack"):
+	if _ijr("attack"):
 		if charge_t >= CHARGE_TIME and knock_t <= 0.0:
 			_start_attack("spin", Vector2(facing, 0))
 			attack_t = SPIN_TIME
@@ -524,7 +577,7 @@ func _physics_process(delta: float) -> void:
 		_do_attack_hits()
 
 	# Sort d'âme : lame d'âme qui traverse les ennemis (coûte 33 d'âme)
-	if Input.is_action_just_pressed("spell") and soul >= SPELL_COST and spell_cd <= 0.0 and knock_t <= 0.0:
+	if _ijp("spell") and soul >= SPELL_COST and spell_cd <= 0.0 and knock_t <= 0.0:
 		soul -= SPELL_COST
 		spell_cd = 0.45
 		GameState.j_add("spells")
@@ -584,10 +637,10 @@ func _start_attack(kind: String, adir: Vector2) -> void:
 	attack_hit.clear()
 	attack_crit = _take_crit()
 	claw_hand = 0
-	claw_split = GameState.weapon() == "griffes"
+	claw_split = wid() == "griffes"
 	claw_kind = kind
 	claw_second = attack_cd * 0.5 if claw_split else -1.0
-	match GameState.weapon():
+	match wid():
 		"griffes": Audio.sfx("slash", 0.18, -3.0)
 		"fouet": Audio.sfx("whip", 0.1, -3.0)
 		"marteau": Audio.sfx("hammer", 0.08, -2.0)
@@ -596,7 +649,7 @@ func _start_attack(kind: String, adir: Vector2) -> void:
 		"baton": Audio.sfx("hammer", 0.2, -9.0)
 		_: Audio.sfx("slash", 0.12, -2.0 if kind == "slash" else 1.0)
 	# bâton : accroupi, l'attaque est un saut à la perche
-	if GameState.weapon() == "baton" and kind == "low" and is_on_floor():
+	if wid() == "baton" and kind == "low" and is_on_floor():
 		velocity.y = JUMP_VELOCITY * 0.95
 		_set_crouch(false)
 		main.spawn_burst(global_position + Vector2(facing * 26.0, SIZE.y / 2.0), Color(0.8, 0.7, 0.5), 8, 140.0)
@@ -604,8 +657,8 @@ func _start_attack(kind: String, adir: Vector2) -> void:
 		Audio.sfx("crit", 0.05, -1.0)
 	if wpn["ranged"]:
 		_throw_stars(kind, adir)
-	elif kind == "finisher" and GameState.weapon_level() >= 2:
-		match GameState.weapon():
+	elif kind == "finisher" and wlv() >= 2:
+		match wid():
 			"aiguille":
 				main.spawn_projectile(global_position + Vector2(facing * 30, -4), Vector2(facing * 560.0, 0),
 					{"kind": "slashwave", "hostile": false, "radius": 12.0, "life": 0.32, "pierce": true, "damage": nail_damage(), "crit": false})
@@ -659,7 +712,7 @@ func _throw_stars(kind: String, adir: Vector2) -> void:
 		first = false
 		main.spawn_projectile(global_position + d * 14.0 + Vector2(0, 6 if kind == "low" else -4), d * (560.0 if not big else 480.0),
 			{"kind": "shuriken", "hostile": false, "radius": 14.0 if big else 8.0, "life": 0.6 if not big else 0.8,
-			"pierce": big, "damage": dmg if (star_crit or not attack_crit) else _base_damage(), "crit": star_crit, "boomerang": GameState.weapon_level() >= 2, "volley": volley})
+			"pierce": big, "damage": dmg if (star_crit or not attack_crit) else _base_damage(), "crit": star_crit, "boomerang": wlv() >= 2, "volley": volley})
 	attack_crit = false
 
 # Dégâts selon le type de coup
@@ -695,11 +748,11 @@ func attack_rect() -> Rect2:
 		var rs := SPIN_REACH * reach() * maxf(1.0, float(wpn["w"]) * 0.6)
 		return Rect2(p - Vector2(rs, rs * 0.8), Vector2(rs * 2.0, rs * 1.6))
 	# faux : le coup final est un tourbillon tout autour du héros
-	if attack_kind == "finisher" and GameState.weapon() == "faux":
+	if attack_kind == "finisher" and wid() == "faux":
 		var rf := 74.0 * reach()
 		return Rect2(p - Vector2(rf, rf * 0.85), Vector2(rf * 2.0, rf * 1.6))
 	# bâton niv. 2 : frappe géante, plus large et plus haute
-	if attack_kind == "finisher" and GameState.weapon() == "baton" and GameState.weapon_level() >= 2:
+	if attack_kind == "finisher" and wid() == "baton" and wlv() >= 2:
 		var gw := 150.0 * reach()
 		var gx := p.x if facing > 0 else p.x - gw
 		return Rect2(Vector2(gx, p.y - 70.0), Vector2(gw, 94.0))
@@ -724,7 +777,7 @@ func attack_rect() -> Rect2:
 	if attack_kind == "air_rise":
 		hgt *= 1.4
 	# fouet : la liane s'arrête au premier mur (pas de coup à travers la roche)
-	if GameState.weapon() == "fouet":
+	if wid() == "fouet":
 		var step := 8.0
 		var d := 0.0
 		while d < w:
@@ -747,6 +800,8 @@ func _do_attack_hits() -> void:
 	var r := attack_rect()
 	_hit_breakables(r)
 	for e in get_tree().get_nodes_in_group("enemies"):
+		if e == self:
+			continue
 		if not is_instance_valid(e) or attack_hit.has(e):
 			continue
 		if e.get_rect().intersects(r):
@@ -794,7 +849,7 @@ func _do_attack_hits() -> void:
 			if float(wpn["stagger"]) > 0.0 and is_instance_valid(e) and not e.is_boss:
 				e.stun_t = maxf(e.stun_t, float(wpn["stagger"]))
 			# fouet niv. 2 : attire les petits ennemis
-			if GameState.weapon() == "fouet" and GameState.weapon_level() >= 2 and is_instance_valid(e) and not e.is_boss and not e.dead:
+			if wid() == "fouet" and wlv() >= 2 and is_instance_valid(e) and not e.is_boss and not e.dead:
 				# attire jusqu'à une distance de frappe (pas au contact) et étourdit brièvement :
 				# l'ennemi attiré est inoffensif le temps d'arriver
 				var pull: Vector2 = global_position - e.global_position
@@ -868,6 +923,8 @@ func _check_hazards() -> void:
 	if dash_t > 0.0:
 		return
 	for e in get_tree().get_nodes_in_group("enemies"):
+		if e == self:
+			continue
 		if is_instance_valid(e) and e.is_harmful() and r.intersects(e.get_rect()):
 			if not e.is_boss and main.wall_between(global_position, e.global_position):
 				continue      # pas de coup à travers un mur (estoc du lancier, charge…)
@@ -1046,7 +1103,7 @@ func _draw_staff_attack(r: Rect2, c: Vector2) -> void:
 	var k := clampf(attack_t / (ATTACK_TIME * (1.4 if fin else 1.0)), 0.0, 1.0)
 	var prog := 1.0 - k
 	var col := Color(1.0, 0.6, 0.25) if attack_crit else STAFF_GOLD
-	if fin and GameState.weapon_level() >= 2:
+	if fin and wlv() >= 2:
 		# frappe géante : le bâton grandit et s'abat devant soi
 		var e := 1.0 - pow(1.0 - minf(prog * 1.6, 1.0), 3.0)
 		var a := lerpf(-PI / 2.0 - 0.3, 0.05, e)
@@ -1156,6 +1213,8 @@ func _plunge_hits() -> void:
 			b.hit(3)
 	var r := _plunge_rect()
 	for e in get_tree().get_nodes_in_group("enemies"):
+		if e == self:
+			continue
 		if is_instance_valid(e) and not attack_hit.has(e) and e.get_rect().intersects(r):
 			attack_hit[e] = true
 			attack_kind = "plunge"
@@ -1185,6 +1244,8 @@ func _plunge_land() -> void:
 	var feet := global_position + Vector2(0, SIZE.y / 2.0)
 	main.spawn_burst(feet, Color(0.85, 0.9, 1.0), 26, 260.0, 300.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
+		if e == self:
+			continue
 		if is_instance_valid(e) and e.global_position.distance_to(feet) < float(clv(C.ANVIL_FALL, [142.0, 165.0, 190.0], 95.0)):
 			if attack_crit:
 				last_crit_t = 0.2
@@ -1212,6 +1273,8 @@ var dash_hit := {}
 func _phantom_dash() -> void:
 	var r := get_rect().grow(6.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
+		if e == self:
+			continue
 		if is_instance_valid(e) and not e.dead and not dash_hit.has(e) and e.get_rect().intersects(r):
 			if not e.is_boss and main.wall_between(global_position, e.global_position):
 				continue
@@ -1231,7 +1294,7 @@ const BLEED_CLAWS := 0.2
 const BLEED_FANG := 0.3
 func bleed_chance() -> float:
 	var ch := 0.0
-	if GameState.weapon() == "griffes" and GameState.weapon_level() >= 2:
+	if wid() == "griffes" and wlv() >= 2:
 		ch += BLEED_CLAWS
 	if eq(C.BLOOD_FANG):
 		ch += float(clv(C.BLOOD_FANG, [BLEED_FANG, BLEED_FANG + 0.1, BLEED_FANG + 0.2]))
@@ -1251,6 +1314,8 @@ func _from_trap(source) -> bool:
 
 func _enemy_near(r: float) -> bool:
 	for e in get_tree().get_nodes_in_group("enemies"):
+		if e == self:
+			continue
 		if is_instance_valid(e) and not e.dead and e.global_position.distance_to(global_position) < r and e.get_script() != DummyScript:
 			return true
 	return false
@@ -1292,6 +1357,12 @@ func _hazard_respawn() -> void:
 	knock_t = 0.3
 
 func _die() -> void:
+	if GameState.mode == "duel":
+		dead = true
+		hp = 0
+		velocity = Vector2.ZERO
+		main.duel_ko(self)
+		return
 	dead = true
 	hp = 0
 	velocity = Vector2.ZERO
@@ -1347,6 +1418,8 @@ func _hoist_step(delta: float) -> void:
 func _leave_bench() -> void:
 	invuln_t = maxf(invuln_t, 1.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
+		if e == self:
+			continue
 		if e.is_boss or not is_instance_valid(e):
 			continue
 		var d: Vector2 = e.global_position - global_position
@@ -1415,7 +1488,7 @@ func _draw() -> void:
 	# corps, cape, écharpe, capuche, œil et couvre-chef : selon les cosmétiques équipés
 	GameState.cos.draw_hero(self, bob, sway, anim_t, sitting, moving)
 	# Arme tenue au repos
-	var wid: String = GameState.weapon()
+	var wid: String = wid()
 	if (attack_t <= 0.0 or wid == "griffes") and not sitting:
 		_draw_held(wid, bob)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -1486,7 +1559,7 @@ func _draw() -> void:
 			_:
 				if weapon()["ranged"]:
 					return
-				if GameState.weapon() == "fouet" and attack_dir.y == 0.0:
+				if wid() == "fouet" and attack_dir.y == 0.0:
 					# fouet : liane ondulée jusqu'au bout de la zone de coup
 					# la liane va exactement de la main au bout de la zone de coup
 					var k2 := clampf(attack_t / (ATTACK_TIME * (1.4 if attack_kind == "finisher" else 1.0)), 0.0, 1.0)
@@ -1503,10 +1576,10 @@ func _draw() -> void:
 						draw_line(pts[i], pts[i] + Vector2(-facing * 4.0, -5.0), Color(vine.darkened(0.3), k2), 1.5)   # épines
 					draw_circle(pts[12], 5.0, Color(0.85, 1.0, 0.65, k2))
 					return
-				if GameState.weapon() == "faux":
+				if wid() == "faux":
 					_draw_scythe_attack(r, c)
 					return
-				if GameState.weapon() == "baton":
+				if wid() == "baton":
 					_draw_staff_attack(r, c)
 					return
 				var fin := attack_kind == "finisher"
@@ -1515,7 +1588,7 @@ func _draw() -> void:
 				var col := Color(1.0, 0.88, 0.55) if fin else wcol
 				if attack_crit:
 					col = Color(1.0, 0.6, 0.25)
-				var hammer := GameState.weapon() == "marteau"
+				var hammer := wid() == "marteau"
 				var rad := (40.0 if fin else 30.0) * (1.25 if hammer else 1.0)
 				var piv := c - attack_dir * 14.0
 				var prog := 1.0 - k
@@ -1530,7 +1603,7 @@ func _draw() -> void:
 				var a0: float = ang - sweep
 				var a_now := lerpf(a0, ang + sweep, minf(ease * 1.15, 1.0))
 				var thick := (20.0 if fin else 15.0) * (1.4 if hammer else 1.0)
-				if GameState.weapon() == "griffes":
+				if wid() == "griffes":
 					# trois griffures parallèles, une par lame, violettes (dorées sur un coup puissant)
 					var ccol := Color(1.0, 0.6, 0.25) if attack_crit else (Color(0.95, 0.6, 0.15) if fin else Color(0.42, 0.12, 0.85))
 					for j in 3:
@@ -1546,7 +1619,7 @@ func _draw() -> void:
 					draw_line(piv + wdir * 6.0, hp, Color(0.45, 0.32, 0.2), 3.4)
 					var hn := wdir.orthogonal()
 					DU.poly(self, PackedVector2Array([hp - hn * 8.0 - wdir * 4.0, hp + hn * 8.0 - wdir * 4.0, hp + hn * 8.0 + wdir * 5.0, hp - hn * 8.0 + wdir * 5.0]), Color(0.55, 0.56, 0.64))
-				elif GameState.weapon() == "griffes":
+				elif wid() == "griffes":
 					# la griffe qui frappe : gantelet au bout du bras, trois lames courbes en éventail
 					var gp := piv + wdir * (rad * 0.62)
 					var hn := wdir.orthogonal() * signf(sweep)

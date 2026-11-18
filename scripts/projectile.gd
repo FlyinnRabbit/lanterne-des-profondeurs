@@ -25,8 +25,16 @@ var colorblind := false
 var volley = null       # étoiles d'une même salve : un seul coup par ennemi (Dictionary partagé)
 var from_trap := false   # fléchette de totem : la parer ne rapporte ni âme ni ultime
 
+var shooter = null      # duel : le joueur qui a lancé ce projectile (il ne se touche pas lui-même)
 func _ready() -> void:
 	add_to_group("projectiles")
+	if not hostile and GameState.mode == "duel":
+		var best := 1e9
+		for pl in main.duel_players:
+			var d: float = pl.global_position.distance_to(global_position)
+			if d < best:
+				best = d
+				shooter = pl
 	z_index = 2
 	if kind == "wave":
 		life = minf(life, 3.0)
@@ -49,7 +57,7 @@ func _physics_process(delta: float) -> void:
 			returning = true
 			_hit.clear()
 		if returning:
-			var to: Vector2 = main.player.global_position - global_position
+			var to: Vector2 = (shooter if shooter else main.player).global_position - global_position
 			if to.length() < 22.0:
 				queue_free()
 				return
@@ -104,7 +112,7 @@ func _physics_process(delta: float) -> void:
 					pop()
 	else:
 		for e in get_tree().get_nodes_in_group("enemies"):
-			if is_instance_valid(e) and not e.dead and not _hit.has(e) and r.intersects(e.get_rect()):
+			if is_instance_valid(e) and e != shooter and not e.dead and not _hit.has(e) and r.intersects(e.get_rect()):
 				# le boss ne se touche que depuis l'intérieur de son arène
 				if e.is_boss and main.entry_gate and is_instance_valid(main.entry_gate) and not main.in_arena(main.player.global_position):
 					continue
@@ -113,7 +121,7 @@ func _physics_process(delta: float) -> void:
 				if volley != null and not returning:
 					volley[e] = true
 				if crit:
-					main.player.last_crit_t = 0.2
+					(shooter if shooter else main.player).last_crit_t = 0.2
 				var dm := damage
 				if kind == "shuriken" and e.is_boss:
 					# les boss encaissent mieux les coups à distance : 75 % des dégâts (cumulés)
@@ -126,7 +134,7 @@ func _physics_process(delta: float) -> void:
 					main.spawn_burst(global_position, Color(0.8, 0.85, 1.0), 4, 120.0)
 				_hit[e] = true
 				if kind == "shuriken":
-					var pl = main.player
+					var pl = shooter if shooter else main.player
 					pl.soul = mini(pl.soul + 3, pl.SOUL_MAX)
 					pl.ult = mini(pl.ult + 2, pl.ULT_MAX)
 					Audio.sfx("star_hit", 0.1, -3.0)
@@ -139,7 +147,8 @@ func _physics_process(delta: float) -> void:
 					pop()
 					return
 				main.shake(3)
-				main.player.ult = mini(main.player.ult + 3, main.player.ULT_MAX)
+				var own = shooter if shooter else main.player
+				own.ult = mini(own.ult + 3, own.ULT_MAX)
 	queue_redraw()
 
 func parried(_dir: Vector2) -> void:

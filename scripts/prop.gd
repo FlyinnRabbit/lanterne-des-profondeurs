@@ -202,6 +202,20 @@ func _draw() -> void:
 				DU.ball(self, Vector2(-10 + i * 10, -24), 3.5 + (sin(t * 4.0 + i) if not lit else 0.0), ec)
 			if not lit:
 				DU.ball(self, Vector2(0, -24), 26.0, Color(1.0, 0.3, 0.25, 0.08 + 0.05 * sin(t * 2.0)))
+		"arena":
+			# Arène des Ombres : poteau, bannière pourpre aux deux lames croisées
+			var sway := sin(t * 1.4) * 2.0
+			draw_line(Vector2(0, 0), Vector2(0, -78), Color(0.3, 0.22, 0.16), 4.0)
+			draw_line(Vector2(-16, -76), Vector2(16, -76), Color(0.3, 0.22, 0.16), 3.0)
+			var ban := PackedVector2Array([Vector2(-14, -74), Vector2(14, -74), Vector2(14 + sway, -34), Vector2(0 + sway, -26), Vector2(-14 + sway, -34)])
+			DU.flat(self, ban, Color(0.45, 0.14, 0.2))
+			draw_polyline(PackedVector2Array([ban[0], ban[4], ban[3], ban[2], ban[1]]), Color(0.85, 0.65, 0.3), 1.5)
+			for s2 in [-1.0, 1.0]:
+				var a0 := Vector2(-8 * s2 + sway * 0.5, -40)
+				var a1 := Vector2(8 * s2 + sway * 0.5, -64)
+				draw_line(a0, a1, Color(0.85, 0.88, 0.92), 2.2)
+				draw_line(a0 + Vector2(-3, 1) * s2, a0 + Vector2(3, -1) * s2, Color(0.85, 0.65, 0.3), 2.0)
+			DU.glow(self, Vector2(sway * 0.5, -52), 18.0, Color(1.0, 0.6, 0.45), 0.25 + 0.1 * sin(t * 2.0))
 		"jeweler":
 			# Joaillier : un pharaon momifié derrière sa vitrine d'emblèmes et de pierres
 			var bob := sin(t * 1.3) * 1.0
