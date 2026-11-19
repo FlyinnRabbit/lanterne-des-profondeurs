@@ -137,12 +137,13 @@ func _run() -> void:
 	Input.action_press("jump"); await _f(2); Input.action_release("jump")
 	await _f(6)
 	Input.action_press("dash"); await _f(1); Input.action_release("dash")
-	await _f(20)
-	pl.dash_cd = 0.0
+	await _f(30)   # la 1re ruée (0,18 s) est finie, le temps de recharge (0,75 s) ne l'est pas
+	# (pas de remise à zéro du temps de recharge : c'est justement ce qui cachait le bug)
 	var air: bool = not pl.is_on_floor()
-	Input.action_press("dash"); await _f(1); Input.action_release("dash")
-	print("ruée 2 en l'air : ", air, " dash_t ", pl.dash_t)
-	if air and pl.dash_t <= 0.0: fails.append("twin shadow")
+	var first_done: bool = pl.dash_t <= 0.0 and pl.air_dash_used and not pl.air_dash2_used
+	Input.action_press("dash"); await _f(2); Input.action_release("dash")
+	print("ruée 2 en l'air : ", air, " 1re finie ", first_done, " dash_t ", pl.dash_t, " 2e utilisée ", pl.air_dash2_used)
+	if not air or not first_done or not pl.air_dash2_used or pl.dash_t <= 0.0: fails.append("twin shadow")
 	await _f(60)
 	# icônes : chaque emblème a son propre dessin (pas le losange par défaut)
 	var src: String = FileAccess.get_file_as_string("res://scripts/charm_icon.gd")

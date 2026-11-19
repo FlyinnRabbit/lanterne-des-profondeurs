@@ -507,7 +507,10 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Ruée
-	if can_dash and _ijp("dash") and dash_cd <= 0.0 and (on_floor or not air_dash_used or (eq(C.TWIN_SHADOW) and not air_dash2_used)) and knock_t <= 0.0:
+	# Ombre Jumelle : la seconde Ruée en l'air n'attend pas le temps de recharge (0,75 s), sinon
+	# on retombait au sol avant de pouvoir la lancer ; il suffit que la première soit finie.
+	var twin_ready: bool = not on_floor and air_dash_used and not air_dash2_used and eq(C.TWIN_SHADOW) and dash_t <= 0.0
+	if can_dash and _ijp("dash") and (dash_cd <= 0.0 or twin_ready) and (on_floor or not air_dash_used or (eq(C.TWIN_SHADOW) and not air_dash2_used)) and knock_t <= 0.0:
 		if dir != 0.0:
 			facing = int(dir)
 		dash_t = DASH_TIME * float(clv(C.TWIN_SHADOW, [1.0, 1.1, 1.2], 1.0))
