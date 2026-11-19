@@ -13,13 +13,15 @@ var geo_value := 3
 var anim_t := 0.0
 var knock_resist := 1.0
 var stun_t := 0.0
-var elite := false      # version élite : plus de vie, plus rapide, attaque spéciale, lueur rouge
+var elite := false      # version élite : plus de vie, plus rapide, attaque spéciale, contour rouge qui pulse
 var is_boss := false
 var hp_max := 0          # vie de départ (pour la barre de vie)
 var show_bar := true
 var display := false     # portrait (Scriptorium) : dessiné seulement, aucune logique de jeu
 const HpBarScript = preload("res://scripts/hp_bar.gd")
 const TelegraphScript = preload("res://scripts/telegraph.gd")
+const EliteOutline = preload("res://shaders/elite_outline.gdshader")
+static var _outline_mat: ShaderMaterial
 
 # Multiplicateurs liés à la difficulté (et au statut élite)
 func spd() -> float:
@@ -45,7 +47,7 @@ func setup_body() -> void:
 		hp = maxi(1, roundi(hp * float(GameState.scaled("hp")) * (1.7 if elite else 1.0)))
 	if elite:
 		geo_value *= 2
-		add_child(main.make_light(Color(1.0, 0.3, 0.25), 0.9, 1.0))
+		_elite_outline()
 	hp_max = hp
 	var tg := Node2D.new()
 	tg.set_script(TelegraphScript)
@@ -54,6 +56,34 @@ func setup_body() -> void:
 		var bar := Node2D.new()
 		bar.set_script(HpBarScript)
 		add_child(bar)
+
+# Élite : contour rouge qui épouse la silhouette (voir shaders/elite_outline.gdshader). Le shader
+# a besoin de voir la silhouette seule : l'ennemi est placé dans un CanvasGroup (à l'origine, sans
+# décalage), qui disparaît avec lui.
+func _elite_outline() -> void:
+	call_deferred("_wrap_outline")
+
+func _wrap_outline() -> void:
+	if not is_inside_tree() or dead:
+		return
+	var host := get_parent()
+	if host is CanvasGroup:
+		return
+	if _outline_mat == null:
+		_outline_mat = ShaderMaterial.new()
+		_outline_mat.shader = EliteOutline
+	var cg := CanvasGroup.new()
+	cg.material = _outline_mat
+	cg.fit_margin = 16.0
+	cg.clear_margin = 16.0
+	cg.z_index = z_index
+	host.add_child(cg)
+	host.move_child(cg, get_index())
+	reparent(cg, true)
+	tree_exited.connect(func():
+		(func():
+			if is_instance_valid(cg) and cg.get_child_count() == 0:
+				cg.queue_free()).call_deferred())
 
 func get_rect() -> Rect2:
 	return Rect2(global_position - size / 2.0, size)
