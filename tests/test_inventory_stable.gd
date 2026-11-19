@@ -49,5 +49,12 @@ func _run() -> void:
 	inv._on_slot_hover(5)
 	print("survol avec mouvement : décrit ", inv.focused_id, " (attendu 5)")
 	if inv.focused_id != 5: ok = false
+	# le panneau tient dans la fenêtre (mise à l'échelle revérifiée chaque image)
+	await process_frame
+	await process_frame
+	var vr: Vector2 = inv.get_viewport().get_visible_rect().size
+	var bot: float = inv.panel.global_position.y + inv.panel.size.y * inv.panel.scale.y
+	print("bas du panneau %.0f / hauteur %.0f" % [bot, vr.y])
+	if bot > vr.y + 1.0: ok = false
 	print("RÉSULTAT : ", "OK" if ok else "ÉCHEC")
 	quit()

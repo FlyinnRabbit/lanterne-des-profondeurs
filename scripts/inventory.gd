@@ -420,12 +420,22 @@ func _set_page(i: int) -> void:
 		slots[maxi(focused_id, 0)].grab_focus()
 	call_deferred("_apply_scale")
 
-func _apply_scale() -> void:
+# Le panneau peut changer de taille après l'ouverture (description, page Équipement, langue) :
+# on revérifie à chaque image qu'il tient dans la fenêtre (avant, il pouvait déborder en bas).
+func _process(_d: float) -> void:
+	if visible and panel and not is_equal_approx(panel.scale.x, _fit_scale()):
+		_apply_scale()
+
+func _fit_scale() -> float:
 	var s: float = Settings.menu_scale
-	# ne jamais dépasser de l'écran, quelle que soit la taille des menus choisie
 	var vp: Vector2 = get_viewport().get_visible_rect().size
 	if panel.size.y > 0.0 and panel.size.x > 0.0:
 		s = minf(s, minf(vp.y * 0.96 / panel.size.y, vp.x * 0.96 / panel.size.x))
+	return s
+
+func _apply_scale() -> void:
+	# ne jamais dépasser de l'écran, quelle que soit la taille des menus choisie
+	var s := _fit_scale()
 	panel.pivot_offset = panel.size / 2.0
 	panel.scale = Vector2(s, s)
 
