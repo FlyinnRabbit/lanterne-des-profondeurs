@@ -33,6 +33,7 @@ var shop_kind := ""
 var palier := 1
 var going_up := false
 var on_middle := Callable()   # lift : appelé quand la cage a pris de la vitesse (lance le chargement)
+                              # shop : appelé quand les battants sont fermés (ouvre la boutique)
 var middle_done := false
 var scene_at_start: Node
 var stop_t := -1.0       # lift : instant de l'arrêt (choc)
@@ -77,13 +78,19 @@ static func launch(tree: SceneTree) -> void:
 	l.length = 2.4
 
 # En entrant dans une boutique / chez un habitant du Sanctuaire.
-static func shop(tree: SceneTree, shop_id: String, name: String) -> void:
+# open_menu : ouvre la boutique, appelé seulement quand les battants couvrent tout l'écran
+# (avant, la boutique s'ouvrait tout de suite et transparaissait sous les battants qui se fermaient).
+static func shop(tree: SceneTree, shop_id: String, name: String, open_menu: Callable = Callable()) -> void:
 	if not enabled():
+		if open_menu.is_valid():
+			open_menu.call()
 		return
 	var l = _make(tree, "shop")
 	l.shop_kind = shop_id
 	l.title = name
 	l.length = 0.78
+	l.on_middle = open_menu
+	tree.paused = true      # le monde se fige pendant que les battants se ferment
 
 # L'ascenseur. middle : lance le chargement du niveau (appelé une fois la cage en mouvement).
 static func lift(tree: SceneTree, to_palier: int, up: bool, middle: Callable) -> void:
@@ -156,6 +163,10 @@ func _process(delta: float) -> void:
 		"lift":
 			_tick_lift(delta * sp)
 		_:
+			if kind == "shop" and not middle_done and t >= 0.14:
+				middle_done = true
+				if on_middle.is_valid():
+					on_middle.call()
 			if t >= length:
 				leaving = true
 	if leaving:

@@ -597,6 +597,31 @@ func _random_charm(x: int) -> int:
 	_charms_in_level.append(id)
 	return id
 
+# Ce que fait {haut} devant un habitant ou un objet du Sanctuaire (appelé après l'écran d'entrée
+# pour les boutiques, une fois les battants fermés).
+func _do_interact(it: Array) -> void:
+	if it[1] == "arena":
+		hub_ui.open_npc("arena")
+	elif it[1] == "merchant":
+		hub_ui.open_shop()
+	elif it[1] == "arsenal":
+		hub_ui.open_arsenal()
+	elif it[1] == "altar":
+		_start_altar(it[0])
+	elif it[1] in ["smith", "cartographer", "elder", "jeweler"]:
+		hub_ui.open_npc(it[1])
+	elif it[1] == "tailor":
+		hub_ui.open_wardrobe()
+	elif it[1] == "scriptorium":
+		scriptorium.open()
+	elif it[1] == "gift":
+		_open_gift(it[0])
+	elif it[1] == "winch":
+		if player.can_grab_rope():
+			_grab_winch(it[0], player.global_position.y)
+	else:
+		hub_ui.open_elevator()
+
 # Corde des treuils : en plus du pied de corde ({haut} au sol), on s'y accroche en l'air en
 # appuyant {haut} contre la corde, et d'en haut avec {bas} au bord du puits. Sur la corde, l'aide
 # rappelle les commandes.
@@ -987,28 +1012,9 @@ func _process(delta: float) -> void:
 					"cartographer": ["cartographer", "Cartographe"], "elder": ["elder", "Ancien"], "tailor": ["tailor", "Tailleuse"],
 					"scriptorium": ["scriptorium", "Scriptorium"]}
 				if shop_names.has(it[1]):
-					LoadingScript.shop(get_tree(), shop_names[it[1]][0], tr(shop_names[it[1]][1]))
-				if it[1] == "arena":
-					hub_ui.open_npc("arena")
-				elif it[1] == "merchant":
-					hub_ui.open_shop()
-				elif it[1] == "arsenal":
-					hub_ui.open_arsenal()
-				elif it[1] == "altar":
-					_start_altar(it[0])
-				elif it[1] in ["smith", "cartographer", "elder", "jeweler"]:
-					hub_ui.open_npc(it[1])
-				elif it[1] == "tailor":
-					hub_ui.open_wardrobe()
-				elif it[1] == "scriptorium":
-					scriptorium.open()
-				elif it[1] == "gift":
-					_open_gift(it[0])
-				elif it[1] == "winch":
-					if player.can_grab_rope():
-						_grab_winch(it[0], player.global_position.y)
+					LoadingScript.shop(get_tree(), shop_names[it[1]][0], tr(shop_names[it[1]][1]), _do_interact.bind(it))
 				else:
-					hub_ui.open_elevator()
+					_do_interact(it)
 	_winch_ropes(pp)
 	# Banc le plus proche
 	for bp in benches:
