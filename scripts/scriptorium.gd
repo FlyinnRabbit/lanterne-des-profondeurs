@@ -5,6 +5,8 @@ extends CanvasLayer
 
 const DU = preload("res://scripts/draw_util.gd")
 const CharmIcon = preload("res://scripts/charm_icon.gd")
+const G = preload("res://scripts/glyphs.gd")
+const MenuTabs = preload("res://scripts/menu_tabs.gd")
 const W := 1280.0
 const H := 720.0
 
@@ -20,10 +22,16 @@ var _menu_rects := []
 var _cell_rects := []
 # Emblèmes : liste déroulante (5 rangées de 7 visibles)
 const CHARM_ROWS := 5
+# panneau de bois sombre cerclé de laiton, comme les autres menus ; le contenu des pages
+# (dessiné autrefois sur la page de droite du livre) est décalé de CONTENT sous les onglets
+const PANEL := Rect2(196, 20, 888, 682)
+const CONTENT := Vector2(-165, 50)
+const BRASS := Color(0.72, 0.58, 0.32)
 var charm_row0 := 0
 var _close_rect := Rect2()
 
 const PAGES := ["Statistiques de la partie", "Records", "Bestiaire", "Gardiens", "Emblèmes"]
+const TABS := ["Statistiques", "Records", "Bestiaire", "Gardiens", "Emblèmes"]
 const PAGE_SUBS := ["tout depuis la création de ta sauvegarde", "tes meilleurs exploits", "les créatures vaincues", "les boss vaincus", "ta collection"]
 
 const MOBS := ["crawler", "flyer", "spitter", "hopper", "guard", "bomber", "weaver", "lancer", "wraith", "monkey", "mimic", "moth", "mole", "slime", "scorpion", "goblin"]
@@ -138,7 +146,7 @@ func _process(delta: float) -> void:
 	t += delta
 	var k := _k()
 	stage.scale = Vector2(k, k)
-	stage.position = _off()
+	stage.position = _off() + CONTENT * k
 	for pt in portraits:
 		var n = pt[0]
 		if is_instance_valid(n):
@@ -225,24 +233,24 @@ func _build_portraits() -> void:
 			var id: String = MOBS[i]
 			var n = _make("res://scripts/%s.gd" % id)
 			var seen := int(_mob_data(id).get("k", 0)) > 0
-			n.modulate = Color(1, 1, 1) if seen else Color(0, 0, 0, 0.3)
+			n.modulate = Color(1, 1, 1) if seen else Color(0, 0, 0, 0.75)
 			portraits.append([n, i, false])
 		var big = _make("res://scripts/%s.gd" % MOBS[sel])
 		portraits.append([big, -1, true])
 		if int(_mob_data(MOBS[sel]).get("e", 0)) > 0:
 			var el = _make("res://scripts/%s.gd" % MOBS[sel], 0, true)
 			portraits.append([el, -2, true])
-		big.modulate = Color(1, 1, 1) if int(_mob_data(MOBS[sel]).get("k", 0)) > 0 else Color(0, 0, 0, 0.3)
+		big.modulate = Color(1, 1, 1) if int(_mob_data(MOBS[sel]).get("k", 0)) > 0 else Color(0, 0, 0, 0.75)
 	elif page == 3:
 		for i in BOSSES.size():
 			var id: String = BOSSES[i]
 			var sc := _boss_script(id)
 			var n = _make(sc[0], sc[1])
-			n.modulate = Color(1, 1, 1) if _boss_beaten(id) else Color(0, 0, 0, 0.3)
+			n.modulate = Color(1, 1, 1) if _boss_beaten(id) else Color(0, 0, 0, 0.75)
 			portraits.append([n, i, false])
 		var sc2 := _boss_script(BOSSES[sel])
 		var big = _make(sc2[0], sc2[1])
-		big.modulate = Color(1, 1, 1) if _boss_beaten(BOSSES[sel]) else Color(0, 0, 0, 0.3)
+		big.modulate = Color(1, 1, 1) if _boss_beaten(BOSSES[sel]) else Color(0, 0, 0, 0.75)
 		portraits.append([big, -1, true])
 	_place_portraits()
 
@@ -273,45 +281,64 @@ func _place_portraits() -> void:
 				n.position = Vector2(1035, 205)
 
 # ---------------------------------------------------------------- dessin
+func _box(bg: Color, border: Color, bw := 1, bottom := 3) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = border
+	sb.set_border_width_all(bw)
+	sb.border_width_bottom = bottom
+	sb.set_corner_radius_all(4)
+	return sb
+
 func _draw_book() -> void:
 	var c := canvas
-	c.draw_rect(Rect2(Vector2.ZERO, c.size), Color(0.03, 0.02, 0.02, 0.88))
-	c.draw_set_transform(_off(), 0.0, Vector2(_k(), _k()))
+	var k := _k()
+	c.draw_rect(Rect2(Vector2.ZERO, c.size), Color(0.02, 0.015, 0.015, 0.78))
+	c.draw_set_transform(_off(), 0.0, Vector2(k, k))
 	var f := ThemeDB.fallback_font
-	# couverture et pages
-	var book := Rect2(70, 40, 1140, 640)
-	c.draw_rect(book.grow(4), Color(0.55, 0.42, 0.24))
-	c.draw_rect(book, Color(0.23, 0.14, 0.08))
-	var lp := Rect2(90, 60, 300, 600)
-	var rp := Rect2(400, 60, 790, 600)
-	for pr in [lp, rp]:
-		c.draw_rect(pr, Color(0.93, 0.88, 0.76))
-		c.draw_rect(Rect2(pr.position, Vector2(pr.size.x, 6)), Color(0.86, 0.79, 0.64))
-	# ombre de la reliure
-	for i in 10:
-		c.draw_rect(Rect2(390 - i, 60, 1, 600), Color(0.3, 0.2, 0.1, 0.05 * (10 - i)))
-		c.draw_rect(Rect2(400 + i, 60, 1, 600), Color(0.3, 0.2, 0.1, 0.05 * (10 - i)))
-	var ink := Color(0.24, 0.16, 0.1)
-	var red := Color(0.48, 0.2, 0.08)
-	var soft := Color(0.45, 0.36, 0.26)
-	# page de gauche : titre et menu
-	c.draw_string(f, Vector2(116, 106), tr("Le Scriptorium"), HORIZONTAL_ALIGNMENT_LEFT, -1, 28, red)
-	c.draw_string(f, Vector2(118, 132), tr("Les registres de Maître Plume"), HORIZONTAL_ALIGNMENT_LEFT, -1, 14, soft)
+	# panneau (mêmes couleurs que les menus du Sanctuaire)
+	var panel := _box(Color(0.075, 0.058, 0.052, 0.97), BRASS, 3, 3)
+	panel.set_corner_radius_all(5)
+	panel.shadow_color = Color(0, 0, 0, 0.55)
+	panel.shadow_size = 14
+	panel.shadow_offset = Vector2(0, 5)
+	c.draw_style_box(panel, PANEL)
+	var ink := Color(0.88, 0.84, 0.76)
+	var red := Color(0.98, 0.82, 0.48)     # titres et valeurs : or
+	var soft := Color(0.62, 0.58, 0.52)
+	var cx := PANEL.position.x
+	var cw := PANEL.size.x
+	c.draw_string(f, Vector2(cx, 64), tr("Le Scriptorium"), HORIZONTAL_ALIGNMENT_CENTER, cw, 28, Color(0.95, 0.9, 0.8))
+	c.draw_string(f, Vector2(cx, 88), tr("Les registres de Maître Plume") + "  ·  " + _menu_sub(page), HORIZONTAL_ALIGNMENT_CENTER, cw, 14, soft)
+	# onglets, LB / RB de part et d'autre
 	_menu_rects.clear()
-	for i in PAGES.size():
-		var r := Rect2(108, 160 + i * 74, 264, 64)
+	var tw := 132.0
+	var gap := 6.0
+	var row_w := TABS.size() * tw + (TABS.size() - 1) * gap
+	var x0 := cx + (cw - row_w) / 2.0
+	var ty := 102.0
+	var pad = get_node_or_null("/root/Controls")
+	var use_pad: bool = pad != null and pad.using_pad
+	for side in [-1, 1]:
+		var g: Dictionary = {"pad": {"type": "button", "index": JOY_BUTTON_LEFT_SHOULDER if side < 0 else JOY_BUTTON_RIGHT_SHOULDER}} if use_pad else {"key": KEY_Q if side < 0 else KEY_E}
+		var gh := 20.0
+		var gwid := G.width(g, gh, f)
+		var gx := x0 - 14.0 - gwid if side < 0 else x0 + row_w + 14.0
+		G.draw(c, gx, ty + 17.0, gh, g, f)
+	for i in TABS.size():
+		var r := Rect2(x0 + i * (tw + gap), ty, tw, 34)
 		_menu_rects.append(r)
-		if i == page:
-			c.draw_rect(r, Color(0.64, 0.33, 0.16, 0.14))
-			c.draw_rect(r, Color(0.64, 0.33, 0.16, 0.9 if not focus_grid else 0.45), false, 2.0)
-		c.draw_string(f, r.position + Vector2(14, 28), tr(PAGES[i]), HORIZONTAL_ALIGNMENT_LEFT, 240, 19, red if i == page else ink)
-		c.draw_string(f, r.position + Vector2(14, 50), _menu_sub(i), HORIZONTAL_ALIGNMENT_LEFT, 240, 12, soft)
-	_wrap_draw(c, tr("« Ce qui n'est pas écrit est oublié. Ce qui est écrit ici ne l'est jamais. »"), Vector2(116, 590), 250, 13, soft)
+		var on := i == page
+		var sb := _box(Color(0.28, 0.2, 0.12), Color(1.0, 0.86, 0.55), 2, 3) if on else _box(Color(0.15, 0.11, 0.085), Color(0.36, 0.27, 0.18))
+		c.draw_style_box(sb, r)
+		c.draw_string(f, r.position + Vector2(0, 23), tr(TABS[i]), HORIZONTAL_ALIGNMENT_CENTER, tw, 15, Color(1.0, 0.88, 0.55) if on else Color(0.78, 0.74, 0.68))
+	c.draw_rect(Rect2(cx + 24, 146, cw - 48, 1), Color(BRASS, 0.3))
 	# fermeture
-	_close_rect = Rect2(560, 668, 160, 34)
-	c.draw_rect(_close_rect, Color(0.18, 0.11, 0.06))
-	c.draw_rect(_close_rect, Color(0.75, 0.6, 0.32), false, 1.5)
+	_close_rect = Rect2(560, 656, 160, 34)
+	c.draw_style_box(_box(Color(0.15, 0.11, 0.085), Color(0.36, 0.27, 0.18)), _close_rect)
 	c.draw_string(f, _close_rect.position + Vector2(0, 23), tr("Fermer"), HORIZONTAL_ALIGNMENT_CENTER, 160, 16, Color(0.95, 0.9, 0.8))
+	# contenu de la page
+	c.draw_set_transform(_off() + CONTENT * k, 0.0, Vector2(k, k))
 	match page:
 		0: _draw_stats(c, f, ink, red, soft)
 		1: _draw_records(c, f, ink, red, soft)
@@ -346,17 +373,16 @@ func _row(c: Control, f: Font, pos: Vector2, w: float, label: String, value: Str
 	c.draw_string(f, pos, label, HORIZONTAL_ALIGNMENT_LEFT, lw, fs, ink)
 	c.draw_string(f, pos, value, HORIZONTAL_ALIGNMENT_RIGHT, w, 15, ink)
 	for x in range(0, int(w), 6):
-		c.draw_rect(Rect2(pos.x + x, pos.y + 7, 2, 1), Color(0.4, 0.3, 0.2, 0.3))
+		c.draw_rect(Rect2(pos.x + x, pos.y + 7, 2, 1), Color(0.72, 0.58, 0.32, 0.22))
 
 func _heading(c: Control, f: Font, pos: Vector2, w: float, text: String, red: Color) -> void:
 	c.draw_string(f, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 19, red)
-	c.draw_rect(Rect2(pos.x, pos.y + 7, w, 1.5), Color(0.48, 0.24, 0.1, 0.4))
+	c.draw_rect(Rect2(pos.x, pos.y + 7, w, 1.5), Color(0.72, 0.58, 0.32, 0.45))
 
 func _draw_stats(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> void:
 	var x1 := 430.0
 	var x2 := 820.0
 	var w := 340.0
-	c.draw_string(f, Vector2(x1, 100), tr("Statistiques de la partie"), HORIZONTAL_ALIGNMENT_LEFT, -1, 24, red)
 	c.draw_string(f, Vector2(x1, 124), tr("%s · temps de jeu : %s") % [tr(GameState.DIFFS[GameState.difficulty]["name"]), fmt_time(float(_c("time", 0.0)))], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, soft)
 	_heading(c, f, Vector2(x1, 162), w, tr("Combat"), red)
 	var rows1 := [["Ennemis vaincus", fmt_n(_c("kills"))], ["dont élites", fmt_n(_c("elites"))], ["Gardiens vaincus", fmt_n(_c("bosses"))],
@@ -377,13 +403,13 @@ func _draw_stats(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> vo
 	else:
 		var ids := wh.keys()
 		ids.sort_custom(func(a, b): return int(wh[a]) > int(wh[b]))
-		for i in mini(ids.size(), 4):
+		for i in mini(ids.size(), 3):
 			var id: String = ids[i]
 			var pct := 100.0 * int(wh[id]) / float(total)
 			var y := 476.0 + i * 38.0
 			c.draw_string(f, Vector2(x1, y), "%s — %d %%" % [tr(GameState.WeaponsData.W[id]["name"]) if GameState.WeaponsData.W.has(id) else id, roundi(pct)], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, ink)
-			c.draw_rect(Rect2(x1, y + 7, w, 8), Color(0.4, 0.3, 0.2, 0.15))
-			c.draw_rect(Rect2(x1, y + 7, w * pct / 100.0, 8), Color(0.75, 0.42, 0.2))
+			c.draw_rect(Rect2(x1, y + 7, w, 8), Color(1, 1, 1, 0.07))
+			c.draw_rect(Rect2(x1, y + 7, w * pct / 100.0, 8), Color(0.85, 0.66, 0.32))
 	_heading(c, f, Vector2(x2, 162), w, tr("Mouvements"), red)
 	var rows2 := [["Sauts", fmt_n(_c("jumps"))], ["Ruées", fmt_n(_c("dashes"))], ["Rebonds", fmt_n(_c("pogos"))],
 		["Estocs (dont repoussants)", "%s (%s)" % [fmt_n(_c("thrusts")), fmt_n(_c("pushes"))]], ["Attaques plongées", fmt_n(_c("plunges"))]]
@@ -401,7 +427,6 @@ func _draw_records(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> 
 	var x := 440.0
 	var w := 700.0
 	var rec: Dictionary = GameState.journal.get("rec", {})
-	c.draw_string(f, Vector2(x, 100), tr("Records"), HORIZONTAL_ALIGNMENT_LEFT, -1, 24, red)
 	c.draw_string(f, Vector2(x, 124), tr("Tes meilleurs exploits dans cette partie."), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, soft)
 	var rush := float(Achievements.counters.get("rush_best", 0.0))
 	var rows := [
@@ -415,7 +440,7 @@ func _draw_records(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> 
 		["Meilleur temps au Défi des boss", fmt_time(rush) if rush > 0.0 else "—"]]
 	for i in rows.size():
 		var y := 176.0 + i * 50.0
-		c.draw_rect(Rect2(x, y - 26, w, 42), Color(0.64, 0.33, 0.16, 0.06 if i % 2 == 0 else 0.0))
+		c.draw_rect(Rect2(x, y - 26, w, 42), Color(1.0, 0.86, 0.55, 0.05 if i % 2 == 0 else 0.0))
 		c.draw_string(f, Vector2(x + 16, y), tr(rows[i][0]), HORIZONTAL_ALIGNMENT_LEFT, -1, 17, ink)
 		c.draw_string(f, Vector2(x, y), rows[i][1], HORIZONTAL_ALIGNMENT_RIGHT, w - 16, 20, red)
 
@@ -426,21 +451,18 @@ func _cell_rect(i: int) -> Rect2:
 		3:
 			return Rect2(420 + (i % 5) * 92, 112 + (i / 5) * 156, 88, 148)
 		4:
-			return Rect2(420 + (i % 7) * 76, 112 + (i / 7 - charm_row0) * 104, 72, 98)
+			return Rect2(420 + (i % 7) * 76, 112 + (i / 7 - charm_row0) * 96, 72, 92)
 	return Rect2()
 
+# case de grille : plaque de bois comme les boutons des menus, cerclée d'or si choisie
 func _sel_frame(c: Control, r: Rect2, on: bool) -> void:
 	if on:
-		c.draw_rect(r, Color(0.64, 0.33, 0.16, 0.14))
-		c.draw_rect(r, Color(0.64, 0.33, 0.16, 0.9 if focus_grid else 0.5), false, 2.0)
+		c.draw_style_box(_box(Color(0.28, 0.2, 0.12), Color(1.0, 0.86, 0.55), 2, 3), r)
+	else:
+		c.draw_style_box(_box(Color(0.12, 0.09, 0.07), Color(0.3, 0.23, 0.16), 1, 2), r)
 
 func _draw_bestiary(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> void:
 	_cell_rects.clear()
-	var seen := 0
-	for id in MOBS:
-		if int(_mob_data(id).get("k", 0)) > 0:
-			seen += 1
-	c.draw_string(f, Vector2(430, 96), tr("Bestiaire — %d / %d créatures") % [seen, MOBS.size()], HORIZONTAL_ALIGNMENT_LEFT, -1, 22, red)
 	for i in MOBS.size():
 		var r := _cell_rect(i)
 		_cell_rects.append(r)
@@ -455,7 +477,7 @@ func _draw_bestiary(c: Control, f: Font, ink: Color, red: Color, soft: Color) ->
 	var known := int(d2.get("k", 0)) > 0
 	var x := 890.0
 	var w := 280.0
-	c.draw_circle(Vector2(1010, 200), 90, Color(0.64, 0.33, 0.16, 0.08))
+	c.draw_circle(Vector2(1010, 200), 90, Color(1.0, 0.85, 0.5, 0.06))
 	c.draw_string(f, Vector2(x, 330), tr(MOB_NAMES[id]) if known else "???", HORIZONTAL_ALIGNMENT_CENTER, w, 22, red)
 	if not known:
 		_wrap_draw(c, tr("Maître Plume n'a encore rien écrit sur cette créature. Va la vaincre !"), Vector2(x, 362), w, 14, soft)
@@ -476,18 +498,13 @@ func _draw_bestiary(c: Control, f: Font, ink: Color, red: Color, soft: Color) ->
 func _tip(c: Control, f: Font, pos: Vector2, w: float, text: String, red: Color, ink: Color) -> void:
 	var lines := _wrap(tr("Astuce de Maître Plume : ") + text, w - 16, 13)
 	var h := 12.0 + lines.size() * 18.0
-	c.draw_rect(Rect2(pos, Vector2(w, h)), Color(0.64, 0.33, 0.16, 0.12))
-	c.draw_rect(Rect2(pos, Vector2(3, h)), Color(0.64, 0.33, 0.16))
+	c.draw_rect(Rect2(pos, Vector2(w, h)), Color(0.72, 0.58, 0.32, 0.12))
+	c.draw_rect(Rect2(pos, Vector2(3, h)), Color(0.85, 0.66, 0.32))
 	for i in lines.size():
 		c.draw_string(f, pos + Vector2(10, 20 + i * 18), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ink)
 
 func _draw_bosses(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> void:
 	_cell_rects.clear()
-	var beaten := 0
-	for id in BOSSES:
-		if _boss_beaten(id):
-			beaten += 1
-	c.draw_string(f, Vector2(430, 96), tr("Gardiens — %d / %d vaincus") % [beaten, BOSSES.size()], HORIZONTAL_ALIGNMENT_LEFT, -1, 22, red)
 	for i in BOSSES.size():
 		var r := _cell_rect(i)
 		_cell_rects.append(r)
@@ -506,13 +523,13 @@ func _draw_bosses(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> v
 		else:
 			sub = tr("à vaincre")
 		c.draw_string(f, r.position + Vector2(0, 132), sub, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 11, soft)
-	c.draw_string(f, Vector2(430, 452), tr("Les quatre derniers gardiens attendent tout au fond, au palier 7 et au-delà."), HORIZONTAL_ALIGNMENT_LEFT, 440, 12, Color(0.55, 0.22, 0.15))
+	c.draw_string(f, Vector2(430, 452), tr("Les quatre derniers gardiens attendent tout au fond, au palier 7 et au-delà."), HORIZONTAL_ALIGNMENT_LEFT, 440, 12, Color(0.92, 0.55, 0.42))
 	# fiche
 	var bid: String = BOSSES[sel]
 	var ok2 := _boss_beaten(bid)
 	var x := 900.0
 	var w := 270.0
-	c.draw_circle(Vector2(1035, 205), 100, Color(0.64, 0.33, 0.16, 0.08))
+	c.draw_circle(Vector2(1035, 205), 100, Color(1.0, 0.85, 0.5, 0.06))
 	var ny := _wrap_draw(c, tr(BOSS_NAMES[bid]) if ok2 else "???", Vector2(x, 352), w, 20, red, true)
 	if not ok2:
 		_wrap_draw(c, tr("Personne n'en est revenu pour le décrire… pour l'instant."), Vector2(x, ny + 6), w, 14, soft)
@@ -528,45 +545,44 @@ func _draw_bosses(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> v
 func _draw_charms(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> void:
 	_cell_rects.clear()
 	var n: int = GameState.charm_count()
-	c.draw_string(f, Vector2(430, 96), tr("Emblèmes — %d / %d trouvés") % [GameState.prog["owned"].size(), n], HORIZONTAL_ALIGNMENT_LEFT, -1, 22, red)
 	for i in n:
 		var r := _cell_rect(i)
 		_cell_rects.append(r)
-		_sel_frame(c, r, i == sel)
 		var cc := r.position + Vector2(r.size.x / 2.0, 34)
 		if i / 7 < charm_row0 or i / 7 >= charm_row0 + CHARM_ROWS:
 			_cell_rects[i] = Rect2()      # hors de la zone visible (liste déroulante)
 			continue
+		_sel_frame(c, r, i == sel)
 		if GameState.owns(i):
 			CharmIcon.draw(c, cc, 25.0, i, GameState.charm(i)["color"], GameState.has_charm(i), t)
 			var nm := _wrap(tr(GameState.charm(i)["name"]), r.size.x, 11)
 			for li in mini(nm.size(), 2):
 				c.draw_string(f, r.position + Vector2(0, 76 + li * 13), nm[li], HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 11, ink)
 		else:
-			c.draw_circle(cc, 24.0, Color(0.8, 0.74, 0.6))
-			c.draw_arc(cc, 24.0, 0.0, TAU, 32, Color(0.6, 0.5, 0.36), 1.5)
-			c.draw_string(f, cc + Vector2(-8, 9), "?", HORIZONTAL_ALIGNMENT_CENTER, 16, 24, Color(0.55, 0.46, 0.33))
+			c.draw_circle(cc, 24.0, Color(0.15, 0.11, 0.085))
+			c.draw_arc(cc, 24.0, 0.0, TAU, 32, Color(0.36, 0.27, 0.18), 1.5)
+			c.draw_string(f, cc + Vector2(-8, 9), "?", HORIZONTAL_ALIGNMENT_CENTER, 16, 24, Color(0.5, 0.44, 0.36))
 			c.draw_string(f, r.position + Vector2(0, 76), "???", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 11, soft)
 	# flèches de défilement
 	var rows := ceili(n / 7.0)
 	if charm_row0 > 0:
-		c.draw_string(f, Vector2(420, 96), "▲", HORIZONTAL_ALIGNMENT_RIGHT, 7 * 76 - 4, 16, red)
+		c.draw_string(f, Vector2(420, 106), "▲", HORIZONTAL_ALIGNMENT_RIGHT, 7 * 76 - 4, 16, red)
 	if charm_row0 + CHARM_ROWS < rows:
-		c.draw_string(f, Vector2(420, 112 + CHARM_ROWS * 104 + 6), "▼", HORIZONTAL_ALIGNMENT_RIGHT, 7 * 76 - 4, 16, red)
+		c.draw_string(f, Vector2(420, 112 + CHARM_ROWS * 96 + 4), "▼", HORIZONTAL_ALIGNMENT_RIGHT, 7 * 76 - 4, 16, red)
 	# fiche
 	var x := 960.0
 	var w := 210.0
 	var id := sel
 	if not GameState.owns(id):
-		c.draw_circle(Vector2(x + w / 2.0, 170), 54.0, Color(0.8, 0.74, 0.6))
-		c.draw_string(f, Vector2(x, 186), "?", HORIZONTAL_ALIGNMENT_CENTER, w, 46, Color(0.55, 0.46, 0.33))
+		c.draw_circle(Vector2(x + w / 2.0, 170), 54.0, Color(0.15, 0.11, 0.085))
+		c.draw_string(f, Vector2(x, 186), "?", HORIZONTAL_ALIGNMENT_CENTER, w, 46, Color(0.5, 0.44, 0.36))
 		_wrap_draw(c, tr("Un emblème encore caché quelque part dans les profondeurs."), Vector2(x, 260), w, 14, soft)
 		return
 	var ch: Dictionary = GameState.charm(id)
 	CharmIcon.draw(c, Vector2(x + w / 2.0, 170), 52.0, id, ch["color"], GameState.has_charm(id), t)
 	var y := _wrap_draw(c, tr(ch["name"]), Vector2(x, 252), w, 19, red, true)
 	for k in int(ch["cost"]):
-		c.draw_circle(Vector2(x + w / 2.0 - (int(ch["cost"]) - 1) * 9.0 + k * 18.0, y + 10), 6.0, Color(0.7, 0.4, 0.2))
+		c.draw_circle(Vector2(x + w / 2.0 - (int(ch["cost"]) - 1) * 9.0 + k * 18.0, y + 10), 6.0, Color(0.98, 0.82, 0.38))
 	y = _wrap_draw(c, tr(ch["desc"]), Vector2(x, y + 36), w, 13, ink)
 	var info: Dictionary = (GameState.journal.get("charms", {}) as Dictionary).get(str(id), {})
 	var lines := []
@@ -581,7 +597,7 @@ func _draw_charms(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> v
 	if GameState.has_charm(id):
 		lines.append(tr("Équipé en ce moment"))
 	if not lines.is_empty():
-		c.draw_rect(Rect2(x, y + 6, w, 1), Color(0.4, 0.3, 0.2, 0.35))
+		c.draw_rect(Rect2(x, y + 6, w, 1), Color(0.72, 0.58, 0.32, 0.35))
 		var ly := y + 26.0
 		for i in lines.size():
 			ly = _wrap_draw(c, lines[i], Vector2(x, ly), w, 12, soft) + 4.0
@@ -616,6 +632,7 @@ func _set_page(p: int) -> void:
 	if p == page:
 		return
 	page = p
+	focus_grid = _grid_count() > 0
 	sel = 0
 	charm_row0 = 0
 	Audio.sfx("door", 0.2, -12.0)
@@ -644,6 +661,10 @@ var _hold_t := 0.0
 
 func _input(event: InputEvent) -> void:
 	if visible and not (event is InputEventMouse):
+		# LB / RB (Q / E au clavier) : onglet précédent / suivant
+		var st := MenuTabs.step(event)
+		if st != 0 and _open_t <= 0.0:
+			_set_page(posmod(page + st, PAGES.size()))
 		get_viewport().set_input_as_handled()
 
 func _pressed(acts: Array) -> bool:
@@ -661,14 +682,7 @@ func _held(acts: Array) -> bool:
 func _nav_input(delta: float) -> void:
 	var b_edge := _b_edge()
 	if _pressed(["pause_menu", "ui_cancel", "inventory"]) or b_edge:
-		if focus_grid:
-			focus_grid = false
-		else:
-			close()
-		return
-	if _pressed(["jump", "ui_accept", "attack"]):
-		if not focus_grid and _grid_count() > 0:
-			focus_grid = true
+		close()
 		return
 	var d := Vector2i.ZERO
 	if _held(["up", "ui_up"]):
@@ -699,26 +713,21 @@ func _b_edge() -> bool:
 	_b_was = now
 	return edge
 
+# pages en grille : les flèches parcourent la grille ; sinon gauche / droite changent d'onglet
 func _step(d: Vector2i) -> void:
-	var grid := _grid_count() > 0
 	var cols := _grid_cols()
+	if _grid_count() == 0:
+		if d.x != 0:
+			_set_page(posmod(page + d.x, PAGES.size()))
+		return
 	if d.y != 0:
-		if focus_grid:
-			var n := sel + d.y * cols
-			if n >= 0 and n < _grid_count():
-				_set_sel(n)
-		else:
-			_set_page(posmod(page + d.y, PAGES.size()))
-	elif d.x > 0:
-		if not focus_grid and grid:
-			focus_grid = true
-		elif focus_grid and sel % cols < cols - 1 and sel + 1 < _grid_count():
-			_set_sel(sel + 1)
-	elif d.x < 0 and focus_grid:
-		if sel % cols == 0:
-			focus_grid = false
-		else:
-			_set_sel(sel - 1)
+		var n := sel + d.y * cols
+		if n >= 0 and n < _grid_count():
+			_set_sel(n)
+	elif d.x > 0 and sel % cols < cols - 1 and sel + 1 < _grid_count():
+		_set_sel(sel + 1)
+	elif d.x < 0 and sel % cols > 0:
+		_set_sel(sel - 1)
 
 func _on_gui_input(event: InputEvent) -> void:
 	if not (event is InputEventMouse):
@@ -733,11 +742,10 @@ func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion or click:
 		for i in _menu_rects.size():
 			if _menu_rects[i].has_point(p) and click:
-				focus_grid = false
 				_set_page(i)
 				return
 		for i in _cell_rects.size():
-			if _cell_rects[i].has_point(p):
+			if _cell_rects[i].has_point(p - CONTENT):
 				focus_grid = true
 				_set_sel(i)
 				return

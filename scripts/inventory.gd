@@ -4,6 +4,10 @@ extends CanvasLayer
 # Les emblèmes ne peuvent être (dés)équipés qu'assis sur un banc, comme dans l'inspiration.
 
 const DU = preload("res://scripts/draw_util.gd")
+const MenuTabs = preload("res://scripts/menu_tabs.gd")
+const Weapons = preload("res://scripts/weapons.gd")
+const C = preload("res://scripts/charms.gd")
+const PlayerScript = preload("res://scripts/player.gd")
 
 var main
 var root: Control
@@ -18,6 +22,82 @@ var items_label: Label
 var stats_label: Label
 var focused_id := -1
 var panel: PanelContainer
+var page := 0              # 0 : emblèmes (grille), 1 : équipement (emblèmes portés + jauges)
+var page_tabs := []
+var page_boxes := []
+var eq_list: VBoxContainer
+var eq_head: Label
+var gauge_box: VBoxContainer
+var weapon_title: Label
+
+# couleurs des jauges : base, niveaux de l'arme / trouvailles, emblèmes, malus
+const COL_BASE := Color(0.82, 0.62, 0.32)
+const COL_FORGE := Color(0.45, 0.85, 0.45)
+const COL_CHARM := Color(0.58, 0.62, 1.0)
+const COL_MALUS := Color(0.92, 0.32, 0.3)
+
+# ---------------------------------------------------------------- jauge : base + bonus colorés
+class Gauge extends Control:
+	var label := ""
+	var base := 0.0
+	var forge := 0.0
+	var charm := 0.0          # peut être négatif (malus d'un emblème)
+	var vmax := 1.0
+	var fmt := "%d"
+	var unit := ""
+	func _draw() -> void:
+		var font := get_theme_default_font()
+		var fs := 15
+		var lw := 170.0
+		var bw := 200.0
+		var y := size.y / 2.0
+		draw_string(font, Vector2(0, y + fs * 0.36), tr(label), HORIZONTAL_ALIGNMENT_LEFT, lw - 8.0, fs, Color(0.82, 0.85, 0.92))
+		var r := Rect2(lw, y - 7.0, bw, 14.0)
+		draw_rect(r, Color(0.08, 0.07, 0.06))
+		var k := bw / maxf(vmax, 0.001)
+		var x0 := r.position.x
+		var b := clampf(base, 0.0, vmax)
+		var bf := clampf(base + forge, 0.0, vmax)
+		var fin := clampf(base + forge + charm, 0.0, vmax)
+		draw_rect(Rect2(x0, r.position.y, b * k, r.size.y), COL_BASE)
+		if bf > b:
+			draw_rect(Rect2(x0 + b * k, r.position.y, (bf - b) * k, r.size.y), COL_FORGE)
+		if charm > 0.0 and fin > bf:
+			draw_rect(Rect2(x0 + bf * k, r.position.y, (fin - bf) * k, r.size.y), COL_CHARM)
+		elif charm < 0.0 and bf > fin:
+			# malus : la partie perdue reste visible, hachurée en rouge
+			var lost := Rect2(x0 + fin * k, r.position.y, (bf - fin) * k, r.size.y)
+			draw_rect(lost, Color(COL_MALUS, 0.35))
+			var xx := lost.position.x
+			while xx < lost.end.x:
+				draw_line(Vector2(xx, lost.end.y), Vector2(minf(xx + 5.0, lost.end.x), lost.position.y), COL_MALUS, 1.5)
+				xx += 5.0
+		draw_rect(r, Color(0.85, 0.75, 0.5, 0.6), false, 1.0)
+		# valeur : base, puis les bonus dans leur couleur
+		var x := r.end.x + 10.0
+		var parts := [[_f(base), Color(0.95, 0.93, 0.88)]]
+		if absf(forge) > 0.0001:
+			parts.append([" +" + _f(forge), COL_FORGE])
+		if absf(charm) > 0.0001:
+			parts.append([(" +" if charm > 0.0 else " −") + _f(absf(charm)), COL_CHARM if charm > 0.0 else COL_MALUS])
+		if unit != "":
+			parts.append([" " + unit, Color(0.6, 0.62, 0.7)])
+		for pt in parts:
+			draw_string(font, Vector2(x, y + fs * 0.36), pt[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, pt[1])
+			x += font.get_string_size(pt[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	func _f(v: float) -> String:
+		return fmt % v
+
+# ---------------------------------------------------------------- icône d'un emblème porté
+class CharmBadge extends Control:
+	const CharmIcon = preload("res://scripts/charm_icon.gd")
+	var charm_id := 0
+	func _process(_d: float) -> void:
+		if is_visible_in_tree():
+			queue_redraw()
+	func _draw() -> void:
+		var col: Color = GameState.charm(charm_id)["color"]
+		CharmIcon.draw(self, size / 2.0, size.y * 0.4, charm_id, col, true, Time.get_ticks_msec() / 1000.0)
 
 # ---------------------------------------------------------------- case d'emblème dessinée
 class CharmSlot extends Button:
@@ -86,10 +166,26 @@ func _ready() -> void:
 	title_info = Label.new()
 	title_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(title_info)
+	# onglets : Emblèmes / Équipement (LB / RB, Q / E, ou clic)
+	var tabs := HBoxContainer.new()
+	tabs.alignment = BoxContainer.ALIGNMENT_CENTER
+	tabs.add_theme_constant_override("separation", 8)
+	v.add_child(tabs)
+	tabs.add_child(MenuTabs.make(false))
+	for i in 2:
+		var tb := Button.new()
+		tb.text = ["Emblèmes", "Équipement"][i]
+		tb.custom_minimum_size = Vector2(190, 36)
+		tb.focus_mode = Control.FOCUS_NONE
+		tb.pressed.connect(_set_page.bind(i))
+		tabs.add_child(tb)
+		page_tabs.append(tb)
+	tabs.add_child(MenuTabs.make(true))
 
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 24)
 	v.add_child(h)
+	page_boxes.append(h)
 	# --- colonne gauche : encoches + grille d'emblèmes
 	var left := VBoxContainer.new()
 	left.add_theme_constant_override("separation", 8)
@@ -157,6 +253,8 @@ func _ready() -> void:
 	stats_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.85))
 	right.add_child(stats_label)
 
+	_build_equipment_page(v)
+
 	status = Label.new()
 	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status.custom_minimum_size = Vector2(0, 28)
@@ -174,6 +272,152 @@ func _ready() -> void:
 	panel.resized.connect(_apply_scale)
 	Settings.changed.connect(_apply_scale)
 
+# ---------------------------------------------------------------- page « Équipement »
+func _build_equipment_page(v: VBoxContainer) -> void:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 28)
+	h.visible = false
+	v.add_child(h)
+	page_boxes.append(h)
+	# gauche : emblèmes portés
+	var left := VBoxContainer.new()
+	left.add_theme_constant_override("separation", 6)
+	h.add_child(left)
+	eq_head = Label.new()
+	eq_head.add_theme_color_override("font_color", Color(0.55, 0.62, 0.78))
+	left.add_child(eq_head)
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.custom_minimum_size = Vector2(500, 340)
+	left.add_child(sc)
+	eq_list = VBoxContainer.new()
+	eq_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	eq_list.add_theme_constant_override("separation", 6)
+	sc.add_child(eq_list)
+	# droite : arme et jauges
+	var right := VBoxContainer.new()
+	right.add_theme_constant_override("separation", 4)
+	h.add_child(right)
+	weapon_title = Label.new()
+	weapon_title.add_theme_font_size_override("font_size", 22)
+	weapon_title.add_theme_color_override("font_color", Color(1.0, 0.92, 0.7))
+	right.add_child(weapon_title)
+	gauge_box = VBoxContainer.new()
+	gauge_box.add_theme_constant_override("separation", 2)
+	right.add_child(gauge_box)
+	# légende
+	var leg := HBoxContainer.new()
+	leg.add_theme_constant_override("separation", 14)
+	for it in [["base", COL_BASE], ["niveaux / trouvailles", COL_FORGE], ["emblèmes", COL_CHARM], ["malus", COL_MALUS]]:
+		var l := Label.new()
+		l.text = "■ " + tr(it[0])
+		l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		l.add_theme_font_size_override("font_size", 13)
+		l.add_theme_color_override("font_color", it[1])
+		leg.add_child(l)
+	right.add_child(leg)
+
+func _section(text: String) -> void:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", 15)
+	l.add_theme_color_override("font_color", Color(0.55, 0.62, 0.78))
+	gauge_box.add_child(l)
+
+func _gauge(label: String, base: float, forge: float, charm: float, vmax: float, fmt := "%d", unit := "") -> void:
+	var g := Gauge.new()
+	g.label = label
+	g.base = base
+	g.forge = forge
+	g.charm = charm
+	g.vmax = vmax
+	g.fmt = fmt
+	g.unit = unit
+	g.custom_minimum_size = Vector2(520, 25)
+	gauge_box.add_child(g)
+
+func _refresh_equipment() -> void:
+	var p = main.player
+	for c in eq_list.get_children():
+		c.queue_free()
+	for c in gauge_box.get_children():
+		c.queue_free()
+	var ids: Array = GameState.prog.get("equipped", [])
+	eq_head.text = tr("Emblèmes portés : %d — encoches %d / %d") % [ids.size(), GameState.notches_used(), int(GameState.prog["notches"])]
+	if ids.is_empty():
+		var none := Label.new()
+		none.text = "Aucun emblème porté."
+		none.add_theme_color_override("font_color", Color(0.6, 0.62, 0.7))
+		eq_list.add_child(none)
+	for cid in ids:
+		var c: Dictionary = GameState.charm(int(cid))
+		var lvl: int = GameState.charm_level(int(cid))
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		var badge := CharmBadge.new()
+		badge.charm_id = int(cid)
+		badge.custom_minimum_size = Vector2(52, 52)
+		row.add_child(badge)
+		var tv := VBoxContainer.new()
+		tv.add_theme_constant_override("separation", 0)
+		var n := Label.new()
+		n.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		n.text = tr(c["name"]) + ((tr("  niv. %d") % lvl) if lvl >= 2 else "") + "   " + "●".repeat(int(c["cost"]))
+		n.add_theme_font_size_override("font_size", 17)
+		n.add_theme_color_override("font_color", Color(1.0, 0.9, 0.62))
+		tv.add_child(n)
+		var d := Label.new()
+		d.text = c["desc"]
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		d.custom_minimum_size = Vector2(430, 0)
+		d.add_theme_font_size_override("font_size", 14)
+		d.add_theme_color_override("font_color", Color(0.75, 0.78, 0.86))
+		tv.add_child(d)
+		row.add_child(tv)
+		eq_list.add_child(row)
+	# --- arme : base de l'arme, niveaux de la forgeronne, emblèmes
+	var wid: String = p.wid()
+	var lv: int = GameState.weapon_level(wid)
+	var w0: Dictionary = Weapons.get_w(wid)
+	var b: Dictionary = Weapons.bonus(wid, lv)
+	weapon_title.text = tr(w0["name"]) + tr("  niv. %d") % lv
+	_section("Arme")
+	_gauge("Dégâts", 1.0 + float(w0["dmg"]), float(b["dmg"]), 1.0 if p.eq(C.BRUTE) else 0.0, 6.0)
+	if not bool(w0["ranged"]):
+		var r0 := 70.0 * float(w0["w"])
+		var rf := r0 * float(b["reach"])
+		_gauge("Portée", r0, rf, (r0 + rf) * (p.reach() - 1.0), 360.0, "%d", "px")
+	var ac: float = PlayerScript.ATTACK_COOLDOWN
+	var s0 := 1.0 / (ac * float(w0["cd"]))
+	var sf := s0 * (1.0 + float(b["speed"]))
+	var sc := sf / float(p.clv(C.BRUTE, [1.2, 1.12, 1.05], 1.0))
+	_gauge("Coups par seconde", s0, sf - s0, sc - sf, 5.0, "%.1f")
+	_gauge("Critique", 0.0, float(b["crit"]) * 100.0, float(p.clv(C.HAWK_EYE, [0.08, 0.12, 0.16], 0.0)) * 100.0, 40.0, "%d", "%")
+	_gauge("Recul", float(w0["knock"]) * 100.0, 0.0, 0.0, 180.0, "%d", "%")
+	# --- héros
+	_section("Héros")
+	var bonus_hp := float(GameState.max_hp_bonus())
+	_gauge("Vie max", 5.0, bonus_hp, float(p.max_hp) - 5.0 - bonus_hp, 16.0)
+	var soul0: float = PlayerScript.SOUL_PER_HIT * float(GameState.d("soul")) * float(w0.get("soul", 1.0))
+	_gauge("Âme par coup", soul0, 0.0, float(p.soul_per_hit()) - soul0, 30.0, "%.0f")
+	var ult0: float = PlayerScript.ULT_PER_HIT * float(GameState.d("ult"))
+	_gauge("Ultime par coup", ult0, 0.0, float(p.ult_per_hit()) - ult0, 20.0, "%.0f", "%")
+	_gauge("Vitesse de course", 100.0, 0.0, (float(p.clv(C.SWIFT_CLOAK, [1.12, 1.18, 1.24], 1.0)) - 1.0) * 100.0, 130.0, "%d", "%")
+	_gauge("Ruées en l'air", 1.0 if p.can_dash else 0.0, 0.0, 1.0 if (p.can_dash and p.eq(C.TWIN_SHADOW)) else 0.0, 2.0)
+	_gauge("Sauts en l'air", 0.0, 0.0, 1.0 if p.eq(C.MOTH_WING) else 0.0, 2.0)
+
+func _set_page(i: int) -> void:
+	page = i
+	for k in page_boxes.size():
+		page_boxes[k].visible = k == page
+	for k in page_tabs.size():
+		page_tabs[k].add_theme_color_override("font_color", Color(1.0, 0.88, 0.55) if k == page else Color(0.75, 0.75, 0.8))
+	if page == 1:
+		_refresh_equipment()
+	elif visible:
+		slots[maxi(focused_id, 0)].grab_focus()
+	call_deferred("_apply_scale")
+
 func _apply_scale() -> void:
 	var s: float = Settings.menu_scale
 	# ne jamais dépasser de l'écran, quelle que soit la taille des menus choisie
@@ -189,8 +433,9 @@ func open() -> void:
 	Engine.time_scale = Settings.speed()
 	get_tree().paused = true
 	status.text = ""
-	_apply_scale()
 	_refresh()
+	focused_id = -1
+	_set_page(page)
 	slots[0].grab_focus()
 
 func close() -> void:
@@ -210,6 +455,10 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 	elif visible and (event.is_action_pressed("pause_menu") or (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_B)):
 		close()
+		get_viewport().set_input_as_handled()
+	elif visible and MenuTabs.step(event) != 0:
+		_set_page(posmod(page + MenuTabs.step(event), 2))
+		Audio.sfx("pickup", 0.15, -14.0)
 		get_viewport().set_input_as_handled()
 
 # ---------------------------------------------------------------- actions

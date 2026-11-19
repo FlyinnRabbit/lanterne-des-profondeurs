@@ -1,5 +1,6 @@
 extends SceneTree
-# Scriptorium à la manette : stick gauche pour naviguer, A pour entrer dans la grille, B pour revenir / fermer.
+# Scriptorium à la manette : LB / RB changent d'onglet (gauche / droite aussi sur les pages sans grille),
+# le stick parcourt directement la grille, B ferme.
 func _initialize() -> void:
 	_run()
 func _f(n):
@@ -38,17 +39,17 @@ func _run() -> void:
 	var sc = current_scene.scriptorium
 	sc.open()
 	await _f(15)
-	await _stick(JOY_AXIS_LEFT_Y, 1.0)
-	await _stick(JOY_AXIS_LEFT_Y, 1.0)
+	await _tap(JOY_BUTTON_RIGHT_SHOULDER)
+	var p0: int = sc.page
+	await _stick(JOY_AXIS_LEFT_X, 1.0)        # page sans grille : droite = onglet suivant
 	var p1: int = sc.page
-	await _tap(JOY_BUTTON_A)
 	var g1: bool = sc.focus_grid
-	await _stick(JOY_AXIS_LEFT_X, 1.0)
+	await _stick(JOY_AXIS_LEFT_X, 1.0)        # page en grille : droite = case suivante
 	var s1: int = sc.sel
-	await _tap(JOY_BUTTON_B)
-	var g2: bool = sc.focus_grid
+	await _tap(JOY_BUTTON_LEFT_SHOULDER)
+	var p2: int = sc.page
 	await _tap(JOY_BUTTON_B)
 	var closed: bool = not sc.visible
-	print("page %d (attendu 2), grille %s, sélection %d (attendu 1), retour %s, fermé %s" % [p1, g1, s1, not g2, closed])
-	print("RÉSULTAT : ", "OK" if p1 == 2 and g1 and s1 == 1 and not g2 and closed else "ÉCHEC")
+	print("RB -> page %d (attendu 1), droite -> page %d (attendu 2), grille %s, sélection %d (attendu 1), LB -> page %d (attendu 1), fermé %s" % [p0, p1, g1, s1, p2, closed])
+	print("RÉSULTAT : ", "OK" if p0 == 1 and p1 == 2 and g1 and s1 == 1 and p2 == 1 and closed else "ÉCHEC")
 	quit()

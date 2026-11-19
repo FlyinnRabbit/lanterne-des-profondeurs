@@ -30,6 +30,8 @@ var ward_cat := "cape"
 var ward_tabs := {}
 const Weapons = preload("res://scripts/weapons.gd")
 const CharmIcon = preload("res://scripts/charm_icon.gd")
+const MenuTabs = preload("res://scripts/menu_tabs.gd")
+var _in_board := false     # un classement est affiché (LB / RB passe au suivant)
 
 func _ready() -> void:
 	layer = 22
@@ -203,6 +205,7 @@ func _build_lift(root: Control) -> void:
 	v.add_child(row)
 
 func open_elevator() -> void:
+	_in_board = false
 	_open(lift_panel)
 	_clear(lift_list)
 	lift_info.text = tr("Difficulté : %s — record : palier %d.\nChaque palier : 2 niveaux puis un boss. Plus on descend, plus les ennemis sont coriaces.\nMourir ramène ici et fait perdre le butin de la descente.") % [GameState.diff_name(), GameState.record]
@@ -254,6 +257,7 @@ static func _fmt_time(t: float) -> String:
 	return "%d:%02d.%02d" % [cs / 6000, (cs / 100) % 60, cs % 100]
 
 func _boards_menu() -> void:
+	_in_board = false
 	_clear(lift_list)
 	lift_info.text = tr("Classements en ligne — %s") % GameState.diff_name()
 	var a := _lift_button(tr("Classement du jour"), _show_board.bind("daily"))
@@ -263,9 +267,27 @@ func _boards_menu() -> void:
 	a.grab_focus()
 
 var _board_kind := "daily"
+const BOARD_KINDS := ["daily", "weekly", "rush"]
 func _show_board(kind: String = "daily") -> void:
 	_board_kind = kind
+	_in_board = true
 	_clear(lift_list)
+	# onglets : jour / semaine / boss, à parcourir avec LB / RB
+	var tabs := HBoxContainer.new()
+	tabs.alignment = BoxContainer.ALIGNMENT_CENTER
+	tabs.add_theme_constant_override("separation", 6)
+	tabs.add_child(MenuTabs.make(false))
+	for k in BOARD_KINDS:
+		var tb := Button.new()
+		tb.text = {"daily": "Du jour", "weekly": "De la semaine", "rush": "Défi des boss"}[k]
+		tb.custom_minimum_size = Vector2(150, 36)
+		tb.add_theme_font_size_override("font_size", 14)
+		tb.add_theme_color_override("font_color", Color(1.0, 0.88, 0.55) if k == kind else Color(0.75, 0.75, 0.8))
+		tb.focus_mode = Control.FOCUS_NONE
+		tb.pressed.connect(_show_board.bind(k))
+		tabs.add_child(tb)
+	tabs.add_child(MenuTabs.make(true))
+	lift_list.add_child(tabs)
 	var seed := GameState.today_seed()
 	match kind:
 		"weekly":
@@ -734,6 +756,19 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause_menu") or event.is_action_pressed("inventory") or (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_B):
 		close_all()
 		get_viewport().set_input_as_handled()
+		return
+	# LB / RB (Q / E au clavier) : onglet précédent / suivant
+	var st := MenuTabs.step(event)
+	if st != 0:
+		if ward_panel.get_parent().visible:
+			var cats: Array = GameState.cos.CATS
+			_ward_tab(cats[posmod(cats.find(ward_cat) + st, cats.size())])
+			Audio.sfx("pickup", 0.15, -14.0)
+			get_viewport().set_input_as_handled()
+		elif lift_panel.get_parent().visible and _in_board:
+			_show_board(BOARD_KINDS[posmod(BOARD_KINDS.find(_board_kind) + st, BOARD_KINDS.size())])
+			Audio.sfx("pickup", 0.15, -14.0)
+			get_viewport().set_input_as_handled()
 
 # ---------------------------------------------------------------- garde-robe (la tailleuse)
 # Aperçu animé du héros avec les cosmétiques portés.
@@ -770,12 +805,14 @@ func _build_wardrobe(root: Control) -> void:
 	tabs.alignment = BoxContainer.ALIGNMENT_CENTER
 	tabs.add_theme_constant_override("separation", 6)
 	v.add_child(tabs)
+	tabs.add_child(MenuTabs.make(false))
 	for cat in GameState.cos.CATS:
 		var tb: Button = main.menu._button(GameState.cos.CAT_NAMES[cat], _ward_tab.bind(cat))
 		tb.custom_minimum_size = Vector2(118, 36)
 		tb.add_theme_font_size_override("font_size", 14)
 		tabs.add_child(tb)
 		ward_tabs[cat] = tb
+	tabs.add_child(MenuTabs.make(true))
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 14)
 	v.add_child(h)
