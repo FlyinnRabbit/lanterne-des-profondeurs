@@ -108,6 +108,25 @@ jobs:
           fi
           printf '%s' "$HOOK" | npx --yes wrangler@4 secret put DISCORD_WEBHOOK_URL
 
+      - name: Poster le code du jour maintenant (sinon au prochain passage, toutes les 30 min)
+        if: steps.check.outputs.ready == 'true'
+        env:
+          HOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          if [ -z "$HOOK" ]; then exit 0; fi
+          KEY="$(printf '%s' "$HOOK" | sha256sum | cut -d' ' -f1)"
+          for i in 1 2 3 4 5 6; do
+            OUT="$(curl -sS -X POST -H "X-Hook-Hash: $KEY" "$URL/discord/post" || true)"
+            echo "Réponse : $OUT"
+            case "$OUT" in
+              *posted*|*already*) exit 0 ;;
+              *error_*) echo "::warning::Discord a refusé le message ($OUT) : vérifie l'adresse du webhook dans DISCORD_WEBHOOK_URL."; exit 0 ;;
+            esac
+            sleep 10
+          done
+          echo "::warning::Code du jour pas encore posté ($OUT) ; il le sera au prochain passage planifié."
+
       - name: Publier l'adresse pour le jeu (leaderboard.url)
         if: steps.check.outputs.ready == 'true'
         env:

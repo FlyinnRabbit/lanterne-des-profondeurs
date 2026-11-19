@@ -1,7 +1,7 @@
 // Test local du Worker : `node test_worker.mjs` (D1 simulée avec node:sqlite).
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
-import worker, { seedOk, cleanName, isoWeek, dailyCode, dayKey, codeOk, postDailyCode, normCode } from "./worker.js";
+import worker, { seedOk, cleanName, isoWeek, dailyCode, dayKey, codeOk, postDailyCode, normCode, hookHash } from "./worker.js";
 
 const db = new DatabaseSync(":memory:");
 db.exec(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
@@ -96,5 +96,9 @@ let cr = await (await worker.fetch(new Request(`https://x/discord/code?code=${co
 check(cr.ok === true, "route /discord/code : code accepté");
 cr = await (await worker.fetch(new Request(`https://x/discord/code?code=AAAA-AAAA`, { headers: { "CF-Connecting-IP": "7.7.7.7" } }), wenv)).json();
 check(cr.ok === false, "route /discord/code : mauvais code refusé");
+let pr = await worker.fetch(new Request("https://x/discord/post", { method: "POST", headers: { "X-Hook-Hash": "nope" } }), wenv);
+check(pr.status === 403, "envoi manuel : mauvaise clé refusée");
+pr = await (await worker.fetch(new Request("https://x/discord/post", { method: "POST", headers: { "X-Hook-Hash": await hookHash(WH) } }), wenv)).json();
+check(pr.result === "already", "envoi manuel : bonne clé acceptée (déjà posté aujourd'hui)");
 console.log(fails ? `ÉCHEC (${fails})` : "RÉSULTAT : OK");
 process.exit(fails ? 1 : 0);

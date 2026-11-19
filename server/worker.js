@@ -87,6 +87,12 @@ export async function codeOk(env, code, now = new Date()) {
 }
 
 // Tâche planifiée : poste le code du jour une fois par jour (vérifié toutes les 30 min)
+// Empreinte du webhook (SHA-256 en hexadécimal) : sert de clé pour l'envoi manuel du code
+export async function hookHash(hook) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(hook)));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export async function postDailyCode(env, fetchFn = fetch, now = new Date()) {
   if (!env.DISCORD_WEBHOOK_URL) return "no_webhook";
   const day = dayKey(now);
@@ -101,7 +107,7 @@ export async function postDailyCode(env, fetchFn = fetch, now = new Date()) {
       content: `🏮 **Code du jour** pour le familier « Tube néon » : \`${code}\`\nDans le jeu : écran-titre → Discord → tape le code. Valable aujourd'hui et demain.`,
     }),
   });
-  if (!r.ok) return "error";
+  if (!r.ok) return "error_" + r.status;
   await env.DB.prepare("INSERT INTO meta (key, value) VALUES ('neon_day', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(String(day)).run();
   return "posted";
 }
@@ -137,6 +143,13 @@ export default {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
     try {
+      // envoi immédiat du code du jour (appelé par le workflow juste après le déploiement) ;
+      // clé : empreinte SHA-256 de l'adresse du webhook, connue seulement du dépôt
+      if (url.pathname === "/discord/post" && request.method === "POST") {
+        if (!env.DISCORD_WEBHOOK_URL) return json({ result: "no_webhook" });
+        if (request.headers.get("X-Hook-Hash") !== await hookHash(env.DISCORD_WEBHOOK_URL)) return json({ error: "forbidden" }, 403);
+        return json({ result: await postDailyCode(env) });
+      }
       if (url.pathname === "/discord/code" && request.method === "GET") {
         // limite d'essais par adresse (deviner le code au hasard n'est pas jouable)
         const ip = request.headers.get("CF-Connecting-IP") || "?";
