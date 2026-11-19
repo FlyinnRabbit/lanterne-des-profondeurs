@@ -26,3 +26,8 @@ CREATE TABLE IF NOT EXISTS ghosts (
   data TEXT NOT NULL,
   PRIMARY KEY (seed, diff, player_id)
 );
+-- Petites valeurs du serveur (ex. dernier jour où le code Discord du jour a été posté).
+CREATE TABLE IF NOT EXISTS meta (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);

@@ -40,6 +40,12 @@ var info: Label
 var layout_btn: OptionButton
 var ach_panel: PanelContainer
 var slots_panel: PanelContainer
+var discord_panel: PanelContainer
+var discord_status: Label
+var discord_link_btn: Button
+var discord_code: LineEdit
+var discord_join: Button
+var discord          # discord_link.gd (créé avec le panneau)
 var slots_box: VBoxContainer
 var diff_warn: Label
 var target_slot := 1
@@ -73,6 +79,7 @@ func _ready() -> void:
 	_build_difficulty(root)
 	_build_achievements(root)
 	_build_slots(root)
+	_build_discord(root)
 	home_panel = pause_panel
 	for p in _panels():
 		p.resized.connect(_apply_scale)
@@ -83,7 +90,7 @@ func _ready() -> void:
 	Input.joy_connection_changed.connect(_on_joy_changed)
 
 func _panels() -> Array:
-	return [pause_panel, controls_panel, options_panel, title_panel, diff_panel, ach_panel, slots_panel]
+	return [pause_panel, controls_panel, options_panel, title_panel, diff_panel, ach_panel, slots_panel, discord_panel]
 
 # Affiche un seul panneau
 var title_wrap: Control
@@ -175,6 +182,7 @@ func _build_title(root: Control) -> void:
 	v.add_child(_item("Commandes", _open_controls))
 	v.add_child(_item("Options", _open_options))
 	v.add_child(_item("Succès", _open_achievements))
+	v.add_child(_item("Discord", _open_discord))
 	if not OS.has_feature("web"):   # dans un navigateur, on ferme simplement l'onglet
 		v.add_child(_item("Quitter le jeu", func(): get_tree().quit()))
 	# version et mise à jour (voir updater.gd), en bas de l'écran
@@ -1135,6 +1143,103 @@ func _build_achievements(root: Control) -> void:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_child(ach_back)
 	v.add_child(row)
+
+# ---------------------------------------------------------------- Discord (familier « Tube néon »)
+class NeonPreview extends Control:
+	const PetScript = preload("res://scripts/pet.gd")
+	var t := 0.0
+	func _process(delta: float) -> void:
+		t += delta
+		queue_redraw()
+	func _draw() -> void:
+		var c := size / 2.0
+		draw_circle(c, 46.0, Color(0.07, 0.055, 0.045))
+		draw_arc(c, 46.0, 0.0, TAU, 40, Color(0.85, 0.7, 0.35), 2.0)
+		var base := Transform2D(0.0, Vector2(3.2, 3.2), 0.0, c + Vector2(sin(t * 1.7) * 4.0, sin(t * 2.3) * 3.0))
+		draw_set_transform_matrix(base)
+		PetScript.draw_pet(self, "pet_neon", Color(1.0, 0.3, 0.75), t, base)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+func _build_discord(root: Control) -> void:
+	discord_panel = _centered_panel(root)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	discord_panel.add_child(v)
+	v.add_child(_title("Discord"))
+	var txt := Label.new()
+	txt.text = "Rejoins le serveur Discord de la communauté : le code du jour y est posté. Tape-le ici pour recevoir le familier « Tube néon »."
+	txt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	txt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	txt.custom_minimum_size = Vector2(520, 0)
+	txt.add_theme_color_override("font_color", Color(0.75, 0.8, 0.9))
+	v.add_child(txt)
+	var prev := NeonPreview.new()
+	prev.custom_minimum_size = Vector2(520, 110)
+	v.add_child(prev)
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 8)
+	var join := _button("Rejoindre le serveur", func(): discord.join())
+	discord_join = join
+	join.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	col.add_child(join)
+	v.add_child(col)
+	var crow := HBoxContainer.new()
+	crow.alignment = BoxContainer.ALIGNMENT_CENTER
+	crow.add_theme_constant_override("separation", 8)
+	discord_code = LineEdit.new()
+	discord_code.placeholder_text = tr("Code du jour (XXXX-XXXX)")
+	discord_code.max_length = 12
+	discord_code.custom_minimum_size = Vector2(230, 44)
+	discord_code.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	discord_code.text_submitted.connect(func(t: String): discord.redeem(t))
+	crow.add_child(discord_code)
+	discord_link_btn = _button("Valider", func(): discord.redeem(discord_code.text))
+	discord_link_btn.custom_minimum_size = Vector2(130, 44)
+	crow.add_child(discord_link_btn)
+	v.add_child(crow)
+	discord_status = Label.new()
+	discord_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	discord_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	discord_status.custom_minimum_size = Vector2(520, 44)
+	discord_status.add_theme_color_override("font_color", Color(1.0, 0.85, 0.55))
+	v.add_child(discord_status)
+	var back := _button("Retour", _back_to_pause)
+	back.custom_minimum_size = Vector2(200, 40)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(back)
+	v.add_child(row)
+	discord = Node.new()
+	discord.set_script(load("res://scripts/discord_link.gd"))
+	add_child(discord)
+	discord.link_changed.connect(_on_discord)
+
+func _on_discord(st: String) -> void:
+	match st:
+		"checking":
+			discord_status.text = tr("Vérification du code…")
+		"ok":
+			discord_status.text = tr("Code accepté ! Familier « Tube néon » reçu et porté.")
+			Audio.sfx("crit_ready", 0.0, -4.0)
+		"bad_code":
+			discord_status.text = tr("Code incorrect ou expiré : prends celui du jour sur le serveur.")
+		"not_configured":
+			discord_status.text = tr("Bientôt disponible : le code du jour n'est pas encore activé.")
+		"too_many":
+			discord_status.text = tr("Trop d'essais : réessaie demain.")
+		"offline":
+			discord_status.text = tr("Pas de connexion : réessaie plus tard.")
+	discord_link_btn.disabled = discord.has_pet()
+	discord_code.editable = not discord.has_pet()
+
+func _open_discord() -> void:
+	discord_status.text = tr("Familier « Tube néon » déjà reçu ✔") if discord.has_pet() else ""
+	discord_link_btn.disabled = discord.has_pet()
+	discord_code.editable = not discord.has_pet()
+	discord_code.text = ""
+	_go(discord_panel)
+	(discord_code if not discord.has_pet() else discord_join).grab_focus()
 
 func _open_achievements() -> void:
 	for ch in ach_list.get_children():

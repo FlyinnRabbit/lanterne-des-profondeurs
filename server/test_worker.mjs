@@ -1,7 +1,7 @@
 // Test local du Worker : `node test_worker.mjs` (D1 simulée avec node:sqlite).
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
-import worker, { seedOk, cleanName, isoWeek } from "./worker.js";
+import worker, { seedOk, cleanName, isoWeek, dailyCode, dayKey, codeOk, postDailyCode, normCode } from "./worker.js";
 
 const db = new DatabaseSync(":memory:");
 db.exec(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
@@ -73,5 +73,28 @@ g = await (await worker.fetch(new Request(`https://x/ghost?seed=${week}&diff=1`)
 check(g.name === "Pote" && g.data === '{"v":3}', "nouveau premier : son fantôme le remplace");
 g = await (await worker.fetch(new Request(`https://x/ghost?seed=${today}&diff=0`), env)).json();
 check(g.none === true, "pas de fantôme : réponse vide");
+// ---- Discord (webhook simulé)
+const WH = "https://discord.com/api/webhooks/1/secret-token";
+const wenv = { ...env, DISCORD_WEBHOOK_URL: WH };
+const now = new Date();
+const code = await dailyCode(WH, dayKey(now));
+check(/^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(code), `code du jour au bon format (${code})`);
+check(await codeOk(wenv, code), "code du jour accepté");
+check(await codeOk(wenv, code.toLowerCase().replace("-", " ")), "minuscules et espaces tolérés");
+const yest = await dailyCode(WH, dayKey(new Date(now.getTime() - 86400000)));
+check(await codeOk(wenv, yest), "code d'hier encore accepté");
+const old = await dailyCode(WH, dayKey(new Date(now.getTime() - 3 * 86400000)));
+check(!(await codeOk(wenv, old)), "vieux code refusé");
+check(!(await codeOk(env, code)), "sans webhook configuré : refusé");
+check(normCode("abc") === "", "code mal formé ignoré");
+let posted = [];
+const fakeHook = async (u, o) => { posted.push([u, JSON.parse(o.body).content]); return new Response(null, { status: 204 }); };
+check(await postDailyCode(wenv, fakeHook) === "posted" && posted.length === 1 && posted[0][1].includes(code), "code posté sur le webhook");
+check(await postDailyCode(wenv, fakeHook) === "already" && posted.length === 1, "une seule fois par jour");
+check(await postDailyCode(env, fakeHook) === "no_webhook", "sans webhook : rien n'est posté");
+let cr = await (await worker.fetch(new Request(`https://x/discord/code?code=${code}`, { headers: { "CF-Connecting-IP": "7.7.7.7" } }), wenv)).json();
+check(cr.ok === true, "route /discord/code : code accepté");
+cr = await (await worker.fetch(new Request(`https://x/discord/code?code=AAAA-AAAA`, { headers: { "CF-Connecting-IP": "7.7.7.7" } }), wenv)).json();
+check(cr.ok === false, "route /discord/code : mauvais code refusé");
 console.log(fails ? `ÉCHEC (${fails})` : "RÉSULTAT : OK");
 process.exit(fails ? 1 : 0);

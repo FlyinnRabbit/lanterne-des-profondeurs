@@ -66,6 +66,24 @@ static func draw_pet(ci: CanvasItem, kind: String, c: Color, t: float, base := T
 			ci.draw_rect(Rect2(-3, -4.5, 6, 8), Color(1.0, 0.9, 0.55))
 			ci.draw_colored_polygon(PackedVector2Array([Vector2(-6, -6), Vector2(0, -10), Vector2(6, -6)]), Color(0.26, 0.2, 0.14))
 			ci.draw_set_transform_matrix(base)
+		"pet_neon":
+			# bâton néon droit : moitié rose, moitié cyan, qui se balance doucement et grésille parfois
+			var flick := 0.35 if fposmod(t, 4.3) < 0.07 or fposmod(t + 1.7, 6.1) < 0.05 else 1.0
+			var pink := Color(1.0, 0.3, 0.75)
+			var cyan := Color(0.25, 0.95, 1.0)
+			var d := Vector2.from_angle(-0.5 + sin(t * 1.6) * 0.18)
+			var e1 := -d * 9.0
+			var e2 := d * 9.0
+			DU.glow(ci, e1 * 0.5, 12.0, pink, 0.3 * flick)
+			DU.glow(ci, e2 * 0.5, 12.0, cyan, 0.3 * flick)
+			ci.draw_line(e1, Vector2.ZERO, Color(pink, 0.35 * flick), 6.0, true)
+			ci.draw_line(Vector2.ZERO, e2, Color(cyan, 0.35 * flick), 6.0, true)
+			ci.draw_line(e1, Vector2.ZERO, pink.lerp(Color(1, 1, 1), 0.15) * Color(1, 1, 1, flick), 3.0, true)
+			ci.draw_line(Vector2.ZERO, e2, cyan.lerp(Color(1, 1, 1), 0.15) * Color(1, 1, 1, flick), 3.0, true)
+			ci.draw_line(e1 * 0.92, e2 * 0.92, Color(1, 1, 1, 0.6 * flick), 0.9, true)
+			# embouts métalliques
+			for e in [e1, e2]:
+				ci.draw_line(e, e + (e.normalized() * 2.2), Color(0.6, 0.6, 0.66), 3.6)
 		"pet_guepe":
 			var w2 := sin(t * 50.0) * 2.0
 			ci.draw_colored_polygon(DU.ellipse(Vector2(-2, -5 + w2 * 0.3), Vector2(5, 2.2)), Color(1, 1, 1, 0.45))

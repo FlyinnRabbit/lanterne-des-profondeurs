@@ -67,6 +67,7 @@ const ITEMS := {
 	"pet_follet": {"cat": "pet", "name": "Feu follet", "ach": "shade", "c": Color(0.6, 0.8, 1.0)},
 	"pet_lanterne": {"cat": "pet", "name": "Petite lanterne", "ach": "palier6", "c": Color(1.0, 0.8, 0.45)},
 	"pet_guepe": {"cat": "pet", "name": "Guêpe de la Reine", "boss": "reine", "c": Color(1.0, 0.8, 0.2)},
+	"pet_neon": {"cat": "pet", "name": "Tube néon", "discord": true, "c": Color(1.0, 0.3, 0.75), "c2": Color(0.25, 0.95, 1.0)},
 	"pet_flocon": {"cat": "pet", "name": "Flocon vivant", "price": 120, "season": "noel", "c": Color(0.9, 0.97, 1.0)},
 	"pet_chauvesouris": {"cat": "pet", "name": "Chauve-souris", "price": 120, "season": "halloween", "c": Color(0.6, 0.45, 0.8)},
 	"pet_coeur": {"cat": "pet", "name": "Petit cœur", "price": 120, "season": "valentin", "c": Color(1.0, 0.45, 0.6)},
@@ -458,6 +459,12 @@ func draw_swatch(ci: CanvasItem, id: String, c: Vector2, r: float) -> void:
 		"pet":
 			if id == "pet_none":
 				ci.draw_line(c + Vector2(-r * 0.45, -r * 0.45), c + Vector2(r * 0.45, r * 0.45), Color(0.5, 0.5, 0.6), 2.0)
+			elif it.has("c2"):
+				# deux couleurs (Tube néon) : bâton moitié / moitié
+				ci.draw_circle(c, r * 0.55, Color(it["c"].lerp(it["c2"], 0.5), 0.25))
+				var dd := Vector2.from_angle(-0.6) * r * 0.45
+				ci.draw_line(c - dd, c, it["c"], 3.0)
+				ci.draw_line(c, c + dd, it["c2"], 3.0)
 			else:
 				ci.draw_circle(c, r * 0.55, Color(it["c"], 0.25))
 				ci.draw_circle(c, r * 0.3, it["c"])

@@ -3,6 +3,8 @@ name: Classement (Cloudflare)
 # Déploie le classement de la Descente du jour (server/) sur Cloudflare Workers + D1.
 # Secrets à ajouter dans Settings > Secrets and variables > Actions (les mêmes que pour Spare) :
 #   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+# Code Discord du jour (facultatif) : DISCORD_WEBHOOK_URL (Paramètres du serveur > Intégrations >
+#   Webhooks : webhook d'un salon réservé aux membres).
 # La base D1 « lanterne-classement » est créée au premier passage. L'adresse du Worker est
 # écrite dans leaderboard.url à la racine du dépôt : le jeu la lit pour trouver le classement.
 
@@ -91,6 +93,20 @@ jobs:
             sleep 5
           done
           echo "::warning::$URL ne répond pas encore (propagation workers.dev) ; l'adresse est publiée quand même."
+
+      - name: Webhook Discord (code du jour du familier « Tube néon »)
+        if: steps.check.outputs.ready == 'true'
+        working-directory: server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          HOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::warning::Ajoute DISCORD_WEBHOOK_URL (webhook d'un salon de ton serveur Discord) dans Settings > Secrets and variables > Actions pour activer le code du jour."
+            exit 0
+          fi
+          printf '%s' "$HOOK" | npx --yes wrangler@4 secret put DISCORD_WEBHOOK_URL
 
       - name: Publier l'adresse pour le jeu (leaderboard.url)
         if: steps.check.outputs.ready == 'true'

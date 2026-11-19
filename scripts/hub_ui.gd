@@ -902,6 +902,8 @@ func _ward_state(id: String) -> String:
 		return tr("possédé")
 	if it.get("gift", false):
 		return tr("cadeau de %s") % tr(GameState.CosmeticsScript.EVENTS[String(it["season"])]["name"])
+	if it.get("discord", false):
+		return tr("serveur Discord (écran-titre)")
 	if it.has("ach"):
 		return tr("succès : %s") % tr(Achievements.info(it["ach"])[1])
 	if it.has("boss"):
