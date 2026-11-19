@@ -27,6 +27,9 @@ var ward_list: VBoxContainer
 var ward_geo: Label
 var ward_status: Label
 var ward_cat := "cape"
+var ward_confirm: HBoxContainer   # « Acheter / Annuler » : confirmation d'un achat de cosmétique
+var ward_buy_btn: Button
+var ward_pending := ""
 var ward_tabs := {}
 const Weapons = preload("res://scripts/weapons.gd")
 const CharmIcon = preload("res://scripts/charm_icon.gd")
@@ -754,6 +757,11 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("pause_menu") or event.is_action_pressed("inventory") or (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_B):
+		# pendant une confirmation d'achat, B / Échap annule au lieu de fermer
+		if ward_pending != "" and ward_confirm.visible and not event.is_action_pressed("inventory"):
+			_ward_cancel()
+			get_viewport().set_input_as_handled()
+			return
 		close_all()
 		get_viewport().set_input_as_handled()
 		return
@@ -830,6 +838,18 @@ func _build_wardrobe(root: Control) -> void:
 	scroll.add_child(ward_list)
 	ward_status = _label("", 15, Color(1.0, 0.8, 0.55))
 	v.add_child(ward_status)
+	ward_confirm = HBoxContainer.new()
+	ward_confirm.alignment = BoxContainer.ALIGNMENT_CENTER
+	ward_confirm.add_theme_constant_override("separation", 12)
+	ward_buy_btn = main.menu._button("Acheter", _ward_buy)
+	ward_buy_btn.custom_minimum_size = Vector2(180, 40)
+	ward_buy_btn.add_theme_color_override("font_color", Color(1.0, 0.88, 0.55))
+	var no: Button = main.menu._button("Annuler", _ward_cancel)
+	no.custom_minimum_size = Vector2(180, 40)
+	ward_confirm.add_child(ward_buy_btn)
+	ward_confirm.add_child(no)
+	ward_confirm.visible = false
+	v.add_child(ward_confirm)
 	var close: Button = main.menu._button("Fermer", close_all)
 	close.custom_minimum_size = Vector2(280, 40)
 	var row := HBoxContainer.new()
@@ -841,9 +861,11 @@ func open_wardrobe() -> void:
 	var ev: String = GameState.CosmeticsScript.current_event()
 	ward_status.text = tr("Les cosmétiques de fête ne se vendent que pendant leur fête.") if ev == "" else tr("C'est %s : la collection de la fête est en vente !") % tr(GameState.CosmeticsScript.EVENTS[ev]["name"])
 	_open(ward_panel)
+	_ward_cancel(false)
 	_refresh_wardrobe(true)
 
 func _ward_tab(cat: String) -> void:
+	_ward_cancel(false)
 	ward_cat = cat
 	_refresh_wardrobe(true)
 
@@ -901,9 +923,27 @@ func _refresh_wardrobe(focus_first := false) -> void:
 	if focus_first and first:
 		first.grab_focus()
 
+# Confirmation : « Acheter » achète l'objet en attente, « Annuler » (ou B / Échap) revient à la liste.
+func _ward_buy() -> void:
+	if ward_pending != "":
+		_ward_pick(ward_pending)
+
+func _ward_cancel(refocus := true) -> void:
+	var was := ward_pending
+	ward_pending = ""
+	if ward_confirm:
+		ward_confirm.visible = false
+	if refocus and was != "":
+		ward_status.text = ""
+		for b in ward_list.get_children():
+			if b is Button and b.get_child_count() > 0 and b.get_child(0).item_id == was:
+				b.grab_focus()
+
 func _ward_pick(id: String) -> void:
 	var cos = GameState.cos
 	var it: Dictionary = cos.item(id)
+	if ward_pending != "" and ward_pending != id:
+		_ward_cancel(false)
 	if cos.has(id):
 		cos.equip(id)
 		ward_status.text = tr("%s : porté.") % tr(it["name"])
@@ -911,8 +951,19 @@ func _ward_pick(id: String) -> void:
 	elif it.has("price") and GameState.CosmeticsScript.season_on(String(it.get("season", ""))) and not it.get("gift", false):
 		var price := int(it["price"])
 		if main.player.geo < price:
+			_ward_cancel(false)
 			ward_status.text = tr("Pas assez d'éclats (%d nécessaires).") % price
 			return
+		# premier appui : on demande confirmation (rien n'est dépensé)
+		if ward_pending != id:
+			ward_pending = id
+			ward_status.text = tr("Acheter %s pour %d éclats ?") % [tr(it["name"]), price]
+			ward_confirm.visible = true
+			ward_buy_btn.grab_focus()
+			Audio.sfx("pickup", 0.15, -12.0)
+			return
+		ward_pending = ""
+		ward_confirm.visible = false
 		main.player.geo -= price
 		GameState.j_add("geo_out", price)
 		GameState.prog["geo"] = main.player.geo
