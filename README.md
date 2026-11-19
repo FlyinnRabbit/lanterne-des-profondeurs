@@ -278,7 +278,8 @@ Levels are no longer flat strips:
   layers. The first runs to the right, the second back to the left, the third to the right again
   down to the exit. A wide shaft drops from one layer to the next.
 - **Winch**: at the bottom of every grotto and every shaft a rope hangs from a winch. **Up** next to
-  it hoists you back up in about 1.5 s, so no climbing back through a pit.
+  it (or against the rope mid-jump, or **Down** at the edge of the shaft) grabs it, then **Up** / **Down**
+  climb at your own pace. **Jump** leaps off the rope, **Down + Jump** lets go.
 
 ### Special rooms
 - **Treasure**: a cracked floor hides a chest; break it (downward strikes or a dive).
@@ -390,7 +391,7 @@ to find in the levels. Each charm costs notches; you start with 3, and more can 
 | Phantom Dash | 2 | the dash hurts the enemies it passes through (1 damage) |
 | Soul Harvest | 1 | each enemy defeated restores 8 soul |
 | Plunderer's Nose | 1 | grotto chests and hidden caches give 60% more shards |
-| Climber's Knot | 1 | winches hoist twice as fast; the first ride up each winch restores 33 soul |
+| Climber's Knot | 1 | climb ropes twice as fast; the first grab of each rope restores 33 soul |
 | Last Breath | 3 | a fatal blow leaves you at 1 mask instead, once per level |
 | Blood Fang | 2 | +30% chance to cause bleeding with every hit, with any weapon (1 damage a second later); 50% with Twin Claws lv. 2 |
 | Burning Soul | 2 | the soul blade (spell) deals 1 more damage |

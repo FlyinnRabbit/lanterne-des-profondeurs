@@ -282,7 +282,8 @@ Die Zonen sind keine flachen Streifen mehr:
   führt über drei Etagen hinab. Die erste geht nach rechts, die zweite zurück nach links, die dritte
   wieder nach rechts bis zum Ausgang. Ein breiter Schacht verbindet jede Etage mit der nächsten.
 - **Seilwinde**: Am Fuß jeder Grotte und jedes Schachts hängt ein Seil an einer Winde. **Oben** daneben
-  zieht dich in ~1,5 s hinauf: Du musst die Grube nicht erneut springend überwinden.
+  (oder mitten im Sprung am Seil, oder **Unten** am Schachtrand) packst du es, dann kletterst du mit **Oben** / **Unten**
+  in deinem Tempo. **Sprung** springt vom Seil ab, **Unten + Sprung** lässt los.
 
 ### Besondere Räume
 - **Schatz**: Ein rissiger Boden verbirgt eine Truhe; zerschlage ihn (Schläge nach unten oder Sturzangriff).
@@ -391,7 +392,7 @@ weitere finden (goldene Ringe) oder kaufen. Die Ausrüstung lässt sich nur **au
 | Geistersprint | 2 | der Sprint verletzt durchquerte Gegner (1 Schaden) |
 | Seelenernte | 1 | jeder besiegte Gegner gibt 8 Seele |
 | Spürnase des Plünderers | 1 | Grottentruhen und Verstecke: +60 % Splitter |
-| Kletterknoten | 1 | Seilwinden doppelt so schnell; die erste Fahrt mit jeder Winde gibt 33 Seele |
+| Kletterknoten | 1 | doppelt so schnell am Seil klettern; das erste Greifen jedes Seils gibt 33 Seele |
 | Letzter Atemzug | 3 | ein tödlicher Treffer lässt dich mit 1 Maske überleben, einmal pro Zone |
 | Blutzahn | 2 | +30 % Chance auf Blutung bei jedem Treffer, mit jeder Waffe (1 Schaden eine Sekunde später); 50 % mit den Zwillingsklauen St. 2 |
 | Glühende Seele | 2 | die Seelenklinge (Zauber) verursacht 1 Schaden mehr |

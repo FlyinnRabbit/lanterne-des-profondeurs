@@ -597,6 +597,41 @@ func _random_charm(x: int) -> int:
 	_charms_in_level.append(id)
 	return id
 
+# Corde des treuils : en plus du pied de corde ({haut} au sol), on s'y accroche en l'air en
+# appuyant {haut} contre la corde, et d'en haut avec {bas} au bord du puits. Sur la corde, l'aide
+# rappelle les commandes.
+func _grab_winch(wn, y: float) -> void:
+	player.grab_rope(wn, y)
+	GameState.j_add("winches")
+	# Nœud de Grimpeur : la première prise de chaque corde rend de l'âme
+	if player.eq(player.C.CLIMBER) and not wn.has_meta("soul_given"):
+		wn.set_meta("soul_given", true)
+		player.soul = mini(player.soul + int(player.clv(player.C.CLIMBER, [33, 45, 60])), player.SOUL_MAX)
+
+func _winch_ropes(pp: Vector2) -> void:
+	if player.rope != null:
+		interact_hint = tr("{up|1}{down|1} : monter / descendre    {jump|1} : sauter    {down|1}+{jump|1} : lâcher")
+		return
+	if get_tree().paused or not player.can_grab_rope():
+		return
+	for it in interactables:
+		if it[1] != "winch":
+			continue
+		var wn = it[0]
+		var dx := absf(pp.x - wn.position.x)
+		# en l'air, contre la corde
+		if not player.is_on_floor() and dx < 20.0 and pp.y > wn.top.y and pp.y < wn.position.y:
+			if Input.is_action_just_pressed("up"):
+				_grab_winch(wn, pp.y)
+				return
+		# en haut, au bord du puits
+		var at_top: bool = absf(pp.y + player.SIZE.y / 2.0 - wn.top.y) < 10.0 and (dx < 56.0 or absf(pp.x - wn.arrive.x) < 40.0)
+		if player.is_on_floor() and at_top:
+			interact_hint = tr("{down|1} : descendre par la corde")
+			if Input.is_action_just_pressed("down"):
+				_grab_winch(wn, -INF)
+				return
+
 # Treuils : chaque pied de corde est relié à l'arrivée « u » la plus proche au-dessus.
 func _make_winches() -> void:
 	for lo in winch_low:
@@ -934,10 +969,12 @@ func _process(delta: float) -> void:
 	# Marchand et ascenseur (hub)
 	interact_hint = ""
 	for it in interactables:
+		if it[1] == "winch" and player.rope != null:
+			continue
 		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
 			var verbs := {"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur",
 				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "jeweler": "parler au joaillier", "arena": "Arène des Ombres (duel à deux)", "cartographer": "parler au cartographe", "elder": "écouter l'ancien",
-				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau", "winch": "se faire hisser",
+				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau", "winch": "s'accrocher à la corde",
 				"scriptorium": "consulter les registres"}
 			if it[1] == "altar" and altar_state != "":
 				continue
@@ -968,19 +1005,11 @@ func _process(delta: float) -> void:
 				elif it[1] == "gift":
 					_open_gift(it[0])
 				elif it[1] == "winch":
-					var wn = it[0]
-					var fast: bool = player.eq(player.C.CLIMBER)
-					wn.pulling = 0.9 if fast else 1.6
-					var bottom := Vector2(wn.position.x, player.global_position.y)
-					player.hoist([bottom, Vector2(wn.position.x, wn.arrive.y), wn.arrive], 2.0 if fast else 1.0)
-					GameState.j_add("winches")
-					# Nœud de Grimpeur : la première remontée de chaque treuil rend 33 d'âme
-					if fast and not wn.has_meta("soul_given"):
-						wn.set_meta("soul_given", true)
-						player.soul = mini(player.soul + int(player.clv(player.C.CLIMBER, [33, 45, 60])), player.SOUL_MAX)
-					Audio.sfx("door", 0.0, -6.0)
+					if player.can_grab_rope():
+						_grab_winch(it[0], player.global_position.y)
 				else:
 					hub_ui.open_elevator()
+	_winch_ropes(pp)
 	# Banc le plus proche
 	for bp in benches:
 		if pp.distance_to(bp) < pp.distance_to(bench_pos):

@@ -280,8 +280,9 @@ Los niveles ya no son simples franjas planas:
 - **Estratos** (las Profundidades, las Minas de Cristal, el Abismo Helado, la Forja Ardiente): el nivel
   se hunde en tres pisos. El primero va hacia la derecha, el segundo vuelve hacia la izquierda y el
   tercero va de nuevo a la derecha hasta la salida. Un pozo ancho une cada piso con el siguiente.
-- **Torno**: al pie de cada gruta y de cada pozo cuelga una cuerda de un torno. **Arriba** a su lado te
-  sube en ~1,5 s: no hace falta volver a cruzar la fosa saltando.
+- **Torno**: al pie de cada gruta y de cada pozo cuelga una cuerda de un torno. **Arriba** a su lado
+  (o contra la cuerda en pleno salto, o **Abajo** al borde del pozo) para agarrarte, y luego **Arriba** / **Abajo**
+  para subir o bajar a tu ritmo. **Salto** para saltar de la cuerda, **Abajo + Salto** para soltarte.
 
 ### Salas especiales
 - **Tesoro**: un suelo agrietado esconde un cofre; rómpelo (golpes hacia abajo o picado).
@@ -389,7 +390,7 @@ Tab abre el inventario (el juego se pausa): objetos, esquirlas, estadísticas y 
 | Embestida Espectral | 2 | la Embestida hiere a los enemigos que atraviesa (1 de daño) |
 | Cosecha de Alma | 1 | cada enemigo vencido devuelve 8 de alma |
 | Olfato del Saqueador | 1 | cofres de las grutas y escondites: +60 % de esquirlas |
-| Nudo de Escalador | 1 | tornos el doble de rápidos; la primera subida de cada torno devuelve 33 de alma |
+| Nudo de Escalador | 1 | trepas por las cuerdas el doble de rápido; el primer agarre de cada cuerda devuelve 33 de alma |
 | Último Aliento | 3 | un golpe fatal te deja con 1 máscara, una vez por zona |
 | Colmillo Sangriento | 2 | +30 % de probabilidad de hacer sangrar con cada golpe, con cualquier arma (1 de daño un segundo después); 50 % con las Garras Gemelas niv. 2 |
 | Alma Ardiente | 2 | la hoja de alma (hechizo) inflige 1 de daño más |

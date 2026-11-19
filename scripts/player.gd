@@ -122,6 +122,11 @@ const BENCH_LOCK := 1.5
 var bench_lock_t := 0.0
 # Treuil : le héros est hissé le long de ces points (contrôle rendu à l'arrivée)
 var hoist_path: Array = []
+var rope = null            # treuil dont on tient la corde (montée / descente contrôlées)
+var rope_grab_cd := 0.0    # après avoir lâché : pas de ré-accroche immédiate
+var rope_hold_t := 0.0     # depuis combien de temps on grimpe sans s'arrêter (la vitesse monte)
+const ROPE_UP := 240.0
+const ROPE_DOWN := 330.0
 var hoist_t := 0.0
 var dead := false
 var anim_t := 0.0
@@ -396,8 +401,12 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 	if dead:
 		return
+	rope_grab_cd = maxf(rope_grab_cd - delta, 0.0)
 	if not hoist_path.is_empty():
 		_hoist_step(delta)
+		return
+	if rope != null:
+		_rope_step(delta)
 		return
 	if sitting:
 		velocity = Vector2.ZERO
@@ -1464,6 +1473,8 @@ func take_damage(amount: int, from_x: float) -> void:
 	if dead:
 		return
 	hp -= amount
+	if rope != null:
+		release_rope(false)     # un coup fait lâcher la corde
 	invuln_t = INVULN_TIME * float(clv(C.STONE_SKIN, [1.4, 1.6, 1.8], 1.0))
 	GameState.j_add("hurt")
 	GameState.j_perfect(false)
@@ -1484,6 +1495,7 @@ func take_damage(amount: int, from_x: float) -> void:
 		_die()
 
 func _hazard_respawn() -> void:
+	rope = null
 	hp -= int(GameState.d("dmg"))
 	main.on_player_hurt()
 	if hp <= 0 and not _last_breath():
@@ -1546,6 +1558,91 @@ func hoist(path: Array, speed := 1.0) -> void:
 	if crouching:
 		_set_crouch(false)
 
+# ---------------------------------------------------------------- corde des treuils
+# On s'accroche (en bas, en l'air contre la corde, ou d'en haut), puis {up} / {down} pour monter
+# ou descendre ; {jump} saute de la corde, {down} + {jump} la lâche. Arrivé en haut, le héros
+# est déposé sur le rebord ; arrivé en bas, il pose pied au sol.
+func can_grab_rope() -> bool:
+	return rope == null and hoist_path.is_empty() and not dead and not sitting and rope_grab_cd <= 0.0 \
+		and knock_t <= 0.0 and not plunging and ult_charge_t <= 0.0
+
+func _rope_top(wn) -> float:
+	return wn.top.y + SIZE.y / 2.0 + 8.0
+
+func _rope_bottom(wn) -> float:
+	return wn.position.y - SIZE.y / 2.0
+
+func grab_rope(wn, y: float) -> void:
+	rope = wn
+	rope_hold_t = 0.0
+	global_position = Vector2(wn.position.x, clampf(y, _rope_top(wn), _rope_bottom(wn)))
+	velocity = Vector2.ZERO
+	attack_t = 0.0
+	dash_t = 0.0
+	charge_t = 0.0
+	thrust_t = 0.0
+	if crouching:
+		_set_crouch(false)
+	crouch_latch = false
+	# s'accrocher rend les mouvements aériens, comme un appui au sol
+	air_dash_used = false
+	air_dash2_used = false
+	air_jump_used = false
+	plunge_used = false
+	buffer_t = 0.0
+	Audio.sfx("door", 0.1, -10.0)
+
+func release_rope(hop: bool) -> void:
+	if rope == null:
+		return
+	rope = null
+	rope_grab_cd = 0.3
+	velocity = Vector2.ZERO
+	if hop:
+		var dir := _iaxis()
+		if absf(dir) > 0.3:
+			facing = int(signf(dir))
+		velocity = Vector2(facing * 160.0, JUMP_VELOCITY * 0.7)
+		squash = Vector2(0.8, 1.2)
+
+func _rope_step(delta: float) -> void:
+	var wn = rope
+	if not is_instance_valid(wn):
+		rope = null
+		return
+	velocity = Vector2.ZERO
+	var dir := _iaxis()
+	if absf(dir) > 0.3:
+		facing = int(signf(dir))   # on choisit de quel côté sauter
+	if _ijp("jump"):
+		release_rope(not _ip("down"))
+		return
+	var fast := 2.0 if eq(C.CLIMBER) else 1.0
+	# on part doucement (facile de s'arrêter où l'on veut), puis on accélère sur les longues cordes
+	var v := 0.0
+	if _ip("up"):
+		v = -ROPE_UP
+	elif _ip("down"):
+		v = ROPE_DOWN
+	rope_hold_t = rope_hold_t + delta if v != 0.0 else 0.0
+	v *= fast * lerpf(1.0, 2.2, clampf((rope_hold_t - 0.25) / 0.8, 0.0, 1.0))
+	var y := global_position.y + v * delta
+	if v != 0.0:
+		wn.pulling = maxf(wn.pulling, 0.12)
+		anim_t += delta
+	if v < 0.0 and y <= _rope_top(wn):
+		# en haut : on se hisse sur le rebord
+		rope = null
+		var pos := Vector2(wn.position.x, _rope_top(wn))
+		hoist([pos, Vector2(wn.position.x, wn.arrive.y), wn.arrive], 2.5 * fast)
+		return
+	if v > 0.0 and y >= _rope_bottom(wn):
+		# en bas : on pose pied au sol
+		global_position.y = _rope_bottom(wn)
+		release_rope(false)
+		return
+	global_position = Vector2(wn.position.x, clampf(y, _rope_top(wn), _rope_bottom(wn)))
+
 func _hoist_step(delta: float) -> void:
 	hoist_t += delta
 	velocity = Vector2.ZERO
@@ -1563,6 +1660,7 @@ func _hoist_step(delta: float) -> void:
 	else:
 		global_position = c
 		hoist_path = []
+		rope_grab_cd = 0.3        # pas de prise d'une autre corde juste en arrivant
 		last_safe = c
 		invuln_t = maxf(invuln_t, 0.4)
 

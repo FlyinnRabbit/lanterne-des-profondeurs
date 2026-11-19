@@ -284,7 +284,8 @@ Les niveaux ne sont plus de simples bandes à plat :
   s'enfonce en trois étages. Le premier va vers la droite, le deuxième revient vers la gauche, le
   troisième repart vers la droite jusqu'à la sortie. Un large puits relie chaque étage au suivant.
 - **Treuil** : au pied de chaque grotte et de chaque puits, une corde pend d'un treuil. **Haut** à côté
-  te hisse en haut en ~1,5 s : pas besoin de refaire la fosse en plateforme.
+  (ou contre la corde en plein saut, ou **Bas** au bord du puits) pour t'y accrocher, puis **Haut** / **Bas**
+  pour monter ou descendre à ton rythme. **Saut** pour sauter de la corde, **Bas + Saut** pour la lâcher.
 
 ### Salles spéciales
 - **Trésor** : un sol fissuré cache un coffre ; le briser (coups vers le bas ou piqué).
@@ -393,7 +394,7 @@ en trouve (anneaux dorés) ou on en achète d'autres. On ne change d'équipement
 | Ruée Spectrale | 2 | la Ruée blesse les ennemis traversés (1 dégât) |
 | Récolte d'Âme | 1 | chaque ennemi vaincu rend 8 d'âme |
 | Flair du Pilleur | 1 | coffres des grottes et cachettes : +60 % d'éclats |
-| Nœud de Grimpeur | 1 | treuils deux fois plus rapides ; la première remontée de chaque treuil rend 33 d'âme |
+| Nœud de Grimpeur | 1 | on grimpe aux cordes deux fois plus vite ; la première prise de chaque corde rend 33 d'âme |
 | Dernier Souffle | 3 | un coup fatal te laisse à 1 masque, une fois par niveau |
 | Croc Sanglant | 2 | +30 % de chances de faire saigner à chaque coup, avec toutes les armes (1 dégât une seconde plus tard) ; 50 % avec les Griffes niv. 2 |
 | Âme Ardente | 2 | la lame d'âme (sort) inflige 1 dégât de plus |

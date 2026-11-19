@@ -1,6 +1,6 @@
 extends Node2D
 # Treuil au pied d'un puits (grotte ou passage entre strates) : une corde pend du haut du puits ;
-# {haut} près du crochet hisse le héros jusqu'en haut en ~1,5 s, sans contrôle.
+# on s'accroche à la corde et on monte / descend à volonté (voir player.gd, « corde des treuils »).
 # position = pied de la corde (sol du bas) ; top = haut du puits ; arrive = où l'on est déposé.
 const DU = preload("res://scripts/draw_util.gd")
 var main

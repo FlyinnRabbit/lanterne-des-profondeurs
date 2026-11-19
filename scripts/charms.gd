@@ -100,7 +100,7 @@ const CHARMS := [
 		"desc": "Les coffres des grottes et les cachettes donnent 60 % d'éclats en plus.",
 		"up": "Niv. 2 / 3 : +90 % / +120 % d'éclats dans les cachettes."},
 	{"name": "Nœud de Grimpeur", "cost": 1, "color": Color(0.85, 0.7, 0.5),
-		"desc": "Les treuils hissent deux fois plus vite ; la première remontée de chaque treuil rend 33 d'âme.",
+		"desc": "Tu grimpes aux cordes des treuils deux fois plus vite ; la première prise de chaque corde rend 33 d'âme.",
 		"up": "Niv. 2 / 3 : la première remontée rend 45 / 60 d'âme."},
 	{"name": "Dernier Souffle", "cost": 3, "color": Color(1.0, 0.45, 0.45),
 		"desc": "Un coup fatal te laisse à 1 masque au lieu de te vaincre, une fois par niveau.",
