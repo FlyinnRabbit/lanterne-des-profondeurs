@@ -733,7 +733,11 @@ func _start_attack(kind: String, adir: Vector2) -> void:
 				main.spawn_projectile(global_position + Vector2(facing * 20, -6), Vector2(facing * 420.0, 0),
 					{"kind": "ghostscythe", "hostile": false, "radius": 16.0, "life": 1.4, "pierce": true, "boomerang": true, "damage": nail_damage(), "crit": false})
 			"baton":
-				var feet2 := global_position + Vector2(facing * 70.0, SIZE.y / 2.0 - 4.0)
+				# l'onde naît au bout du coup, mais jamais derrière un mur (avant : un mur fin
+				# entre le héros et ce point laissait l'onde partir de l'autre côté)
+				var wy := global_position.y + SIZE.y / 2.0 - 16.0
+				var wd := minf(70.0, SIZE.x / 2.0 + _reach_h(wy, 70.0) - 6.0)
+				var feet2 := global_position + Vector2(facing * wd, SIZE.y / 2.0 - 4.0)
 				if is_on_floor() and not main.is_solid_at(feet2 + Vector2(0, -12)):
 					main.spawn_projectile(feet2, Vector2(facing * 420.0, 0), {"kind": "wave", "hostile": false, "damage": nail_damage() + 1, "life": 0.6})
 				main.shake(7)
@@ -822,7 +826,7 @@ func attack_rect() -> Rect2:
 		return Rect2(p - Vector2(rf, rf * 0.85), Vector2(rf * 2.0, rf * 1.6))
 	# bâton niv. 2 : frappe géante, plus large et plus haute
 	if attack_kind == "finisher" and wid() == "baton" and wlv() >= 2:
-		var gw := 150.0 * reach()
+		var gw := _reach_h(p.y - 4.0, 150.0 * reach())
 		var gx := p.x if facing > 0 else p.x - gw
 		return Rect2(Vector2(gx, p.y - 70.0), Vector2(gw, 94.0))
 	if attack_kind == "air_spin":
@@ -830,6 +834,8 @@ func attack_rect() -> Rect2:
 		return Rect2(p - Vector2(ra, ra), Vector2(ra * 2.0, ra * 2.0))
 	if attack_kind == "low":
 		var lw := 70.0 * reach() * float(wpn["w"])
+		if wid() == "baton":
+			lw = _reach_h(p.y + 10.0, lw)
 		var lx := p.x if facing > 0 else p.x - lw
 		return Rect2(Vector2(lx, p.y + 2), Vector2(lw, 18))
 	if attack_kind == "thrust":
@@ -840,38 +846,49 @@ func attack_rect() -> Rect2:
 		var hu := 62.0 * reach() * float(wpn["v"])
 		if wid() == "fouet":
 			hu = _whip_reach_v(-1.0, hu)
+		elif wid() == "baton":
+			hu = _reach_v(-1.0, hu, 0.0)
 		return Rect2(p + Vector2(-32, -SIZE.y / 2.0 + 4 - hu), Vector2(64, hu))
 	if attack_dir == Vector2.DOWN:
 		var hd := 62.0 * reach() * float(wpn["v"])
 		if wid() == "fouet":
 			hd = _whip_reach_v(1.0, hd)
+		elif wid() == "baton":
+			hd = _reach_v(1.0, hd, 0.0)
 		return Rect2(p + Vector2(-32, SIZE.y / 2.0 - 6), Vector2(64, hd))
 	var w := 70.0 * reach() * (1.3 if attack_kind == "finisher" else 1.0) * float(wpn["w"])
 	var hgt := 54.0 * (1.25 if attack_kind == "finisher" else 1.0) * float(wpn["h"])
 	if attack_kind == "air_rise":
 		hgt *= 1.4
-	# fouet : la liane s'arrête au premier mur (pas de coup à travers la roche)
-	if wid() == "fouet":
-		var step := 8.0
-		var d := 0.0
-		while d < w:
-			if main.is_solid_at(Vector2(p.x + facing * (SIZE.x / 2.0 + d), p.y - 4.0)):
-				break
-			d += step
-		w = maxf(d, 24.0)
+	# fouet et bâton : l'arme s'arrête au premier mur (pas de coup à travers la roche)
+	if wid() in ["fouet", "baton"]:
+		w = _reach_h(p.y - 4.0, w)
 	var x := p.x + SIZE.x / 2.0 - 4.0 if facing > 0 else p.x - SIZE.x / 2.0 - w + 4.0
 	return Rect2(Vector2(x, p.y - hgt * 0.55), Vector2(w, hgt))
 
 # fouet vertical : un peu plus court qu'à l'horizontale, et la liane s'arrête au plafond ou au sol
 func _whip_reach_v(dir: float, full: float) -> float:
-	var maxd := full * 0.8
+	return _reach_v(dir, full * 0.8)
+
+# portée verticale coupée au premier bloc de roche (plafond ou sol)
+func _reach_v(dir: float, maxd: float, mind: float = 14.0) -> float:
 	var y0 := global_position.y + dir * (SIZE.y / 2.0 - 4.0)
 	var d := 0.0
 	while d < maxd:
 		if main.is_solid_at(Vector2(global_position.x, y0 + dir * d)):
 			break
-		d += 6.0
-	return maxf(minf(d, maxd), 14.0)
+		d += 2.0
+	return maxf(minf(d, maxd), mind)
+
+# portée horizontale (devant soi, à la hauteur y) coupée au premier mur
+func _reach_h(y: float, maxd: float) -> float:
+	var x0 := global_position.x
+	var d := 0.0
+	while d < maxd:
+		if main.is_solid_at(Vector2(x0 + facing * (SIZE.x / 2.0 + d), y)):
+			break
+		d += 4.0
+	return maxf(minf(d, maxd), 24.0)
 
 func _hit_breakables(r: Rect2) -> void:
 	for b in get_tree().get_nodes_in_group("breakables"):
