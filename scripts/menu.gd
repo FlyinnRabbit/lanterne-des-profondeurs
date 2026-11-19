@@ -1090,6 +1090,11 @@ func _build_pause(root: Control) -> void:
 	elif GameState.mode == "duel":
 		v.add_child(_button("Quitter le duel", func(): GameState.end_duel(0)))
 	v.add_child(_button("Parties…", _open_slots))
+	if GameState.mode == "hub":
+		# au Sanctuaire : retour à l'écran-titre (la partie est sauvegardée avant)
+		v.add_child(_button("Écran-titre", func():
+			GameState.save_game()
+			_to_title()))
 	if not OS.has_feature("web"):   # dans un navigateur, on ferme simplement l'onglet
 		v.add_child(_button("Quitter le jeu", func(): get_tree().quit()))
 
