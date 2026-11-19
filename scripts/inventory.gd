@@ -21,6 +21,7 @@ var status: Label
 var items_label: Label
 var stats_label: Label
 var focused_id := -1
+var mouse_moved_t := 0     # image de jeu du dernier vrai mouvement de souris
 var panel: PanelContainer
 var page := 0              # 0 : emblèmes (grille), 1 : équipement (emblèmes portés + jauges)
 var page_tabs := []
@@ -222,7 +223,7 @@ func _ready() -> void:
 		b.charm_id = id
 		b.custom_minimum_size = Vector2(80, 76)
 		b.focus_entered.connect(_show_desc.bind(id))
-		b.mouse_entered.connect(_show_desc.bind(id))
+		b.mouse_entered.connect(_on_slot_hover.bind(id))
 		b.pressed.connect(_toggle.bind(id))
 		grid.add_child(b)
 		slots.append(b)
@@ -234,6 +235,7 @@ func _ready() -> void:
 	desc_name = Label.new()
 	desc_name.add_theme_font_size_override("font_size", 24)
 	desc_name.add_theme_color_override("font_color", Color(1.0, 0.92, 0.7))
+	desc_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS   # ne pas élargir le panneau
 	right.add_child(desc_name)
 	desc_cost = Label.new()
 	desc_cost.add_theme_color_override("font_color", Color(0.85, 0.8, 0.65))
@@ -434,6 +436,7 @@ func open() -> void:
 	get_tree().paused = true
 	status.text = ""
 	_refresh()
+	_fit_desc_height()
 	focused_id = -1
 	_set_page(page)
 	slots[0].grab_focus()
@@ -446,6 +449,8 @@ func _can_edit() -> bool:
 	return main and main.player and main.player.sitting
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and event.relative.length() > 0.5:
+		mouse_moved_t = Engine.get_process_frames()
 	if event.is_action_pressed("inventory"):
 		if visible:
 			close()
@@ -478,6 +483,26 @@ func _toggle(id: int) -> void:
 		Controls.rumble(0.2, 0.0, 0.06)
 	_refresh()
 	_show_desc(id)
+
+# Survol d'une case : seulement si la souris a vraiment bougé. Sinon, quand le panneau se
+# redimensionnait (description plus ou moins longue), la case sous une souris immobile changeait,
+# la description aussi, et le panneau clignotait sans fin entre deux emblèmes.
+func _on_slot_hover(id: int) -> void:
+	if Engine.get_process_frames() - mouse_moved_t <= 2:
+		_show_desc(id)
+
+# La zone de description prend la hauteur de la plus longue (dans la langue choisie) :
+# le panneau garde la même taille quel que soit l'emblème choisi.
+func _fit_desc_height() -> void:
+	var keep: String = desc_text.text
+	desc_text.custom_minimum_size.y = 0.0
+	var hmax := 70.0
+	for id in GameState.charm_count():
+		var c: Dictionary = GameState.charm(id)
+		desc_text.text = tr(c["desc"]) + ("\n" + tr(c.get("up", "")) if c.has("up") else "")
+		hmax = maxf(hmax, desc_text.get_minimum_size().y)
+	desc_text.text = keep
+	desc_text.custom_minimum_size.y = ceilf(hmax)
 
 func _show_desc(id: int) -> void:
 	focused_id = id
