@@ -129,12 +129,21 @@ class CharmSlot extends Button:
 			CharmIcon.draw_locked(self, c, r)
 
 # ---------------------------------------------------------------- barre d'encoches
+# Encoches : rangées de ronds ; au-delà de la largeur de la grille, on passe à la ligne
+# (avant, à partir de la 22e, elles débordaient dans la colonne de description).
 class NotchBar extends Control:
+	const STEP := 30.0
+	const ROW_H := 28.0
+	func per_row() -> int:
+		return maxi(1, int((maxf(size.x, custom_minimum_size.x) - 28.0) / STEP) + 1)
+	func rows() -> int:
+		return maxi(1, ceili(float(int(GameState.prog["notches"])) / per_row()))
 	func _draw() -> void:
 		var total: int = GameState.prog["notches"]
 		var used: int = GameState.notches_used()
+		var n := per_row()
 		for i in total:
-			var p := Vector2(14 + i * 30, size.y / 2.0)
+			var p := Vector2(14 + (i % n) * STEP, ROW_H / 2.0 + (i / n) * ROW_H)
 			if i < used:
 				draw_circle(p, 10.0, Color(1.0, 0.88, 0.55))
 			draw_arc(p, 11.0, 0.0, TAU, 24, Color(0.85, 0.8, 0.65), 2.0)
@@ -196,7 +205,7 @@ func _ready() -> void:
 	nl.add_theme_color_override("font_color", Color(0.55, 0.62, 0.78))
 	left.add_child(nl)
 	notch_bar = NotchBar.new()
-	notch_bar.custom_minimum_size = Vector2(300, 28)
+	notch_bar.custom_minimum_size = Vector2(7 * 88 + 16, 28)    # largeur de la grille
 	left.add_child(notch_bar)
 	var el := Label.new()
 	el.text = "Emblèmes"
@@ -543,6 +552,7 @@ func _refresh() -> void:
 	stats_label.text = tr("Vie %d/%d   Âme %d   Ultime %d %%   Dégâts %d") % [p.hp, p.max_hp, p.soul, p.ult, p.nail_damage()]
 	for s in slots:
 		s.queue_redraw()
+	notch_bar.custom_minimum_size.y = NotchBar.ROW_H * notch_bar.rows()
 	notch_bar.queue_redraw()
 	if focused_id >= 0:
 		_show_desc(focused_id)
