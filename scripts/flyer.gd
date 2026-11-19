@@ -4,6 +4,7 @@ extends "res://scripts/enemy.gd"
 const ACCEL := 520.0
 const CHASE_SPEED := 175.0
 var home := Vector2.ZERO
+var bee := false        # ouvrière de la Reine Essaim (même comportement, dessinée en abeille)
 var dive_cd := 2.0     # élite : piqué sur le joueur
 var dive_t := 0.0
 var dive_windup := 0.0
@@ -80,7 +81,13 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	queue_redraw()
 
+func fx_color() -> Color:
+	return Color(1.0, 0.8, 0.25) if bee else super.fx_color()
+
 func _draw() -> void:
+	if bee:
+		_draw_bee()
+		return
 	var f := -1.0 if velocity.x < 0.0 else 1.0
 	var flap := sin(anim_t * 32.0)
 	var metal := body_color(Color(0.16, 0.32, 0.3))
@@ -120,6 +127,50 @@ func _draw() -> void:
 	draw_line(hd + Vector2(f * 3, 3), hd + Vector2(f * 6, 7 + sin(anim_t * 5.0)), dark, 1.3)
 	# aile de devant
 	_wing(Vector2(f * 1, -9), f, -1.2 - flap * 0.7, 0.32)
+
+# Ouvrière de la Reine Essaim : abdomen rayé jaune et noir, thorax duveteux, dard, ailes vibrantes
+func _draw_bee() -> void:
+	var f := -1.0 if velocity.x < 0.0 else 1.0
+	var flap := sin(anim_t * 46.0)
+	var yel := body_color(Color(1.0, 0.76, 0.16))
+	var blk := body_color(Color(0.1, 0.07, 0.05))
+	var fur := body_color(Color(0.86, 0.6, 0.22))
+	DU.glow(self, Vector2(0, -2), 20.0, Color(1.0, 0.8, 0.3), 0.12)
+	# aile du fond
+	_wing(Vector2(-f * 1, -8), f, -0.9 + flap * 0.8, 0.2)
+	# pattes repliées
+	for i in 3:
+		var lx := f * (3.0 - i * 3.5)
+		leg(Vector2(lx, 5), Vector2(lx + f * 1.5, 9), Vector2(lx - f * 1.0, 12 + sin(anim_t * 8.0 + i)), blk, 1.3)
+	# abdomen rayé (légèrement recourbé vers le bas), reflet
+	var ab := Vector2(-f * 8, 3)
+	DU.poly(self, DU.ellipse(ab, Vector2(10, 7.5), 22), yel)
+	for i in 3:
+		var sx := ab.x + f * (4.0 - i * 4.0)
+		DU.poly(self, PackedVector2Array([Vector2(sx - 1.4, ab.y - 7.0 + absf(i - 1.0)), Vector2(sx + 1.4, ab.y - 7.2 + absf(i - 1.0)),
+			Vector2(sx + 1.0 - f * 0.8, ab.y + 7.0 - absf(i - 1.0)), Vector2(sx - 1.8 - f * 0.8, ab.y + 6.8 - absf(i - 1.0))]), blk)
+	draw_arc(ab + Vector2(0, -1.5), 6.5, PI * 1.15, PI * 1.6, 8, Color(1, 1, 0.85, 0.55), 1.5)
+	# dard
+	DU.poly(self, PackedVector2Array([ab + Vector2(-f * 9, -1), ab + Vector2(-f * 16, 3), ab + Vector2(-f * 9, 3)]), blk)
+	# thorax duveteux
+	var th := Vector2(f * 3, -1)
+	DU.poly(self, DU.ellipse(th, Vector2(7, 6.5), 18), fur)
+	for i in 8:
+		var a := -PI + i * 0.42
+		var bp := th + Vector2(cos(a) * 6.5, sin(a) * 6.0)
+		draw_line(bp, bp + Vector2(cos(a), sin(a)) * 2.0, fur.lightened(0.25), 1.0)
+	# tête noire, gros yeux, antennes coudées
+	var hd := th + Vector2(f * 7.5, 1)
+	DU.ball(self, hd, 4.4, blk)
+	DU.ball(self, hd + Vector2(f * 1.2, -1.2), 2.4, body_color(Color(0.22, 0.16, 0.12)))
+	draw_circle(hd + Vector2(f * 1.8, -2.0), 0.7, Color(1, 1, 1, 0.7))
+	for k in [0, 1]:
+		var base := hd + Vector2(f * (1.0 + k * 1.5), -3.5)
+		var knee := base + Vector2(f * 2.0, -4.0 - k)
+		draw_line(base, knee, blk, 1.0)
+		draw_line(knee, knee + Vector2(f * 3.0, -1.0 + sin(anim_t * 6.0 + k) * 0.8), blk, 1.0)
+	# aile de devant
+	_wing(Vector2(f * 2, -9), f, -1.25 - flap * 0.8, 0.34)
 
 func _wing(root: Vector2, f: float, ang: float, a: float) -> void:
 	var dir := Vector2.from_angle(ang if f > 0 else PI - ang)

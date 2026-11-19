@@ -1698,13 +1698,15 @@ func minion_room() -> int:
 	minions = minions.filter(func(m): return is_instance_valid(m) and not m.dead)
 	return MINION_CAP - minions.size()
 
-func spawn_minion(script, pos: Vector2) -> void:
+func spawn_minion(script, pos: Vector2, props := {}) -> void:
 	if minion_room() <= 0:
 		return
 	var e := CharacterBody2D.new()
 	e.set_script(script)
 	e.main = self
 	e.position = pos
+	for k in props:
+		e.set(k, props[k])
 	add_child(e)
 	minions.append(e)
 	spawn_burst(pos, Color(0.9, 0.8, 0.4), 12, 160.0, 0.0)

@@ -81,7 +81,7 @@ func _tick(delta: float) -> void:
 			velocity = velocity.move_toward(Vector2.ZERO, 900.0 * delta)
 			if state_t <= 0.0:
 				for i in (2 if phase == 1 else 3):
-					main.spawn_minion(FlyerScript, global_position + Vector2(-60 + i * 60, -30))
+					main.spawn_minion(FlyerScript, global_position + Vector2(-60 + i * 60, -30), {"bee": true})
 				go("recover", 1.0)
 	move_and_slide()
 
