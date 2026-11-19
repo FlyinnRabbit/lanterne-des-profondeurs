@@ -54,7 +54,7 @@ const MOB_TIPS := {
 	"spitter": "Ses spores se détruisent d'un coup d'aiguille.",
 	"hopper": "Pare au moment où il retombe sur toi.",
 	"guard": "Frappe-le de dessus (rebond) ou passe dans son dos d'une ruée.",
-	"bomber": "Éloigne-toi dès qu'il clignote : son explosion blesse aussi ses voisins.",
+	"bomber": "Un coup qui ne le tue pas l'allume : éloigne-toi dès qu'il clignote, son explosion blesse aussi ses voisins.",
 	"weaver": "Ne t'attarde pas sous les plafonds, puis frappe vers le haut.",
 	"lancer": "Pare son estocade : il reste étourdi un long moment.",
 	"wraith": "Il ne fait mal que lorsqu'il est bien visible.",

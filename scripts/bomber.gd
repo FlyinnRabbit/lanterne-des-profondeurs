@@ -1,6 +1,7 @@
 extends "res://scripts/enemy.gd"
 # Bulbe explosif : roule vers le joueur, s'allume puis explose (dégâts autour, ennemis compris).
-# Tué avant d'exploser, il éclate sans danger. Élite : mèche plus courte, explosion plus large.
+# Tué avant d'exploser, il éclate sans danger ; touché sans être tué, sa mèche s'allume aussitôt.
+# Élite : mèche plus courte, explosion plus large.
 
 const SPEED := 85.0
 var fuse := -1.0
@@ -19,26 +20,38 @@ func _physics_process(delta: float) -> void:
 	stun_t -= delta
 	velocity.y = minf(velocity.y + 1800.0 * delta, 900.0)
 	var p = main.player
+	# la mèche brûle même pendant le recul d'un coup
+	if fuse >= 0.0:
+		fuse -= delta
+		if fuse <= 0.0:
+			_explode()
+			return
 	if absf(knock.x) > 10.0:
 		velocity.x = knock.x
 		knock = knock.move_toward(Vector2.ZERO, 1800.0 * delta)
 	elif fuse >= 0.0:
 		velocity.x = move_toward(velocity.x, 0.0, 600.0 * delta)
-		fuse -= delta
-		if fuse <= 0.0:
-			_explode()
-			return
 	elif stun_t <= 0.0 and p and not p.dead:
 		var d: Vector2 = p.global_position - global_position
 		if d.length() < 380.0 * aggro():
 			dir = signf(d.x) if d.x != 0.0 else dir
 			velocity.x = dir * SPEED * spd()
 			if d.length() < 64.0:
-				fuse = 0.6 if elite else 0.85
+				_light()
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, 400.0 * delta)
 	move_and_slide()
 	queue_redraw()
+
+func _light() -> void:
+	if fuse < 0.0:
+		fuse = 0.6 if elite else 0.85
+
+# un coup qui ne le tue pas allume la mèche (sans la relancer si elle brûle déjà)
+func take_hit(dmg: int, d: Vector2) -> void:
+	super.take_hit(dmg, d)
+	if not dead:
+		_light()
 
 func is_harmful() -> bool:
 	return false   # c'est l'explosion qui fait mal, pas le contact
@@ -87,4 +100,4 @@ func _draw() -> void:
 		for i in 4:
 			var a := anim_t * 9.0 + i * TAU / 4.0
 			draw_line(spark, spark + Vector2.from_angle(a) * (5.0 + i), Color(1, 0.8, 0.3, 0.8), 1.0)
-		draw_arc(Vector2.ZERO, 85.0, 0.0, TAU, 40, Color(1.0, 0.4, 0.2, 0.25), 2.0)
+		draw_arc(Vector2.ZERO, 105.0 if elite else 85.0, 0.0, TAU, 40, Color(1.0, 0.4, 0.2, 0.25), 2.0)

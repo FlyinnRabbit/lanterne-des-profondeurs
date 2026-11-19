@@ -113,7 +113,7 @@ T = {
 "tout depuis la création de ta sauvegarde": ("everything since this save began", "todo desde que creaste la partida", "alles seit Beginn dieses Spielstands"),
 "« Ce qui n'est pas écrit est oublié. Ce qui est écrit ici ne l'est jamais. »": ("“What is not written is forgotten. What is written here never is.”", "«Lo que no se escribe se olvida. Lo que se escribe aquí, jamás.»", "„Was nicht aufgeschrieben wird, ist vergessen. Was hier steht, nie.“"),
 "Éclats gagnés / dépensés": ("Shards earned / spent", "Esquirlas ganadas / gastadas", "Splitter verdient / ausgegeben"),
-"Éloigne-toi dès qu'il clignote : son explosion blesse aussi ses voisins.": ("Back off as soon as it flashes: its blast hurts its neighbours too.", "Aléjate en cuanto parpadee: su explosión también hiere a sus vecinos.", "Geh auf Abstand, sobald er blinkt: Seine Explosion verletzt auch seine Nachbarn."),
+"Un coup qui ne le tue pas l'allume : éloigne-toi dès qu'il clignote, son explosion blesse aussi ses voisins.": ("A hit that doesn't kill it lights it: back off as soon as it flashes, its blast hurts its neighbours too.", "Un golpe que no lo mata lo enciende: aléjate en cuanto parpadee, su explosión también hiere a sus vecinos.", "Ein Treffer, der ihn nicht tötet, zündet ihn: Geh auf Abstand, sobald er blinkt – seine Explosion verletzt auch seine Nachbarn."),
 "Équipé en ce moment": ("Equipped right now", "Equipado ahora mismo", "Gerade ausgerüstet"),
 "Équipé pendant %d %% de ton temps de jeu": ("Equipped for %d%% of your play time", "Equipado durante el %d %% de tu tiempo de juego", "%d %% deiner Spielzeit ausgerüstet"),
 "à vaincre": ("undefeated", "por vencer", "unbesiegt"),
