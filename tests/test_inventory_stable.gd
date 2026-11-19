@@ -9,8 +9,10 @@ func _run() -> void:
 	var gs = root.get_node("GameState")
 	gs.show_title = false
 	gs.mode = "hub"
+	# la moitié des emblèmes possédés : les cases « ??? » doivent garder la même taille de panneau
+	gs.prog["owned"] = []
 	for id in gs.charm_count():
-		if not gs.prog["owned"].has(id):
+		if id % 2 == 0:
 			gs.prog["owned"].append(id)
 	change_scene_to_file("res://main.tscn")
 	await process_frame

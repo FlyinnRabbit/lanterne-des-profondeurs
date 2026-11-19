@@ -238,6 +238,7 @@ func _ready() -> void:
 	desc_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS   # ne pas élargir le panneau
 	right.add_child(desc_name)
 	desc_cost = Label.new()
+	desc_cost.text = " "
 	desc_cost.add_theme_color_override("font_color", Color(0.85, 0.8, 0.65))
 	right.add_child(desc_cost)
 	desc_text = Label.new()
@@ -422,8 +423,10 @@ func _set_page(i: int) -> void:
 
 # Le panneau peut changer de taille après l'ouverture (description, page Équipement, langue) :
 # on revérifie à chaque image qu'il tient dans la fenêtre (avant, il pouvait déborder en bas).
+# Seulement pour le rétrécir : un aller-retour de taille déplaçait les cases sous une souris
+# immobile, la description changeait, et le panneau « zoomait » sans arrêt.
 func _process(_d: float) -> void:
-	if visible and panel and not is_equal_approx(panel.scale.x, _fit_scale()):
+	if visible and panel and _fit_scale() < panel.scale.x - 0.002:
 		_apply_scale()
 
 func _fit_scale() -> float:
@@ -524,7 +527,7 @@ func _show_desc(id: int) -> void:
 		desc_text.text = tr(c["desc"]) + ("\n" + tr(c.get("up", "")) if c.has("up") else "")
 	else:
 		desc_name.text = "???"
-		desc_cost.text = ""
+		desc_cost.text = " "     # garde sa ligne : le panneau ne doit pas changer de hauteur
 		desc_text.text = "Un emblème encore caché quelque part dans les profondeurs."
 
 func _refresh() -> void:
