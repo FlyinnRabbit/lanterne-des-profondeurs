@@ -7,6 +7,7 @@ var trail: Array[Vector2] = []
 var under := false
 var emerges_left := 0
 var dust_t := 0.0
+var slump := 0.0      # 0 → 1 : étourdi, le corps s'affale à plat sur le sol derrière la tête
 
 func _ready() -> void:
 	boss_setup(Vector2(54, 54), 48, "Le Ver des Profondeurs")
@@ -65,6 +66,9 @@ func _tick(delta: float) -> void:
 			if state_t <= 0.0:
 				_dig(false)
 				global_position.y = floor_y - size.y / 2.0 - 2.0
+				# le corps sort du trou derrière la tête (et non depuis sa position sous terre)
+				for i in trail.size():
+					trail[i] = Vector2(global_position.x, floor_y + 6.0)
 				velocity = Vector2(0, -980.0)
 				main.shake(10)
 				main.spawn_burst(Vector2(global_position.x, floor_y), Color(0.6, 0.5, 0.4), 24, 300.0)
@@ -99,10 +103,28 @@ func _tick(delta: float) -> void:
 		velocity = Vector2.ZERO
 	else:
 		move_and_slide()
-	# le corps suit la tête
+
+# Le corps suit la tête à chaque image, y compris pendant l'étourdissement (_tick n'est alors pas
+# appelé : avant, les anneaux restaient figés pendant que la tête glissait ou retombait, et le
+# corps s'étirait en travers de l'écran avant de rattraper la tête d'un coup).
+func _physics_process(delta: float) -> void:
+	super._physics_process(delta)
 	trail.push_front(global_position)
 	if trail.size() > 9:
 		trail.pop_back()
+	# Étourdi : le corps se couche sur le sol derrière la tête (avant, il restait dressé en colonne
+	# au-dessus de la tête pendant tout l'étourdissement). En se relevant, la traînée repart de
+	# cette pose pour ne pas sauter d'un coup.
+	var was := slump
+	slump = move_toward(slump, 1.0 if stun_t > 0.0 and not under else 0.0, delta * (7.0 if stun_t > 0.0 else 4.0))
+	if slump > 0.0 or was > 0.0:
+		for i in trail.size():
+			trail[i] = trail[i].lerp(global_position + _slump_pos(i) - Vector2(0, 4), slump)
+
+# position d'un anneau quand le ver est affalé (repère de la tête)
+func _slump_pos(i: int) -> Vector2:
+	var r := 24.0 - i * 1.6
+	return Vector2(-float(dir) * i * 13.0, size.y / 2.0 - r + 2.0 + sin(anim_t * 5.0 + i * 0.8) * 1.2 * slump)
 
 func _dig(down: bool) -> void:
 	under = down
