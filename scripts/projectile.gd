@@ -25,6 +25,7 @@ var colorblind := false
 var volley = null       # étoiles d'une même salve : un seul coup par ennemi (Dictionary partagé)
 var from_trap := false   # fléchette de totem : la parer ne rapporte ni âme ni ultime
 
+var goo_color := Color(0.5, 0.9, 0.4)   # glue des slimes élites : couleur du slime
 var shooter = null      # duel : le joueur qui a lancé ce projectile (il ne se touche pas lui-même)
 func _ready() -> void:
 	add_to_group("projectiles")
@@ -36,12 +37,16 @@ func _ready() -> void:
 				best = d
 				shooter = pl
 	z_index = 2
+	if kind == "goo":
+		z_index = 6     # devant les herbes du sol
 	if kind == "wave":
 		life = minf(life, 3.0)
 
 func get_rect() -> Rect2:
 	if kind == "webpatch":
 		return Rect2(global_position - Vector2(22, 10), Vector2(44, 12))
+	if kind == "goo":
+		return Rect2(global_position - Vector2(radius, 8), Vector2(radius * 2.0, 10))
 	if kind == "wave":
 		return Rect2(global_position - Vector2(12, 34), Vector2(24, 36))
 	return Rect2(global_position - Vector2(radius, radius), Vector2(radius, radius) * 2.0)
@@ -82,7 +87,7 @@ func _physics_process(delta: float) -> void:
 			else:
 				pop()
 				return
-	elif kind == "webpatch":
+	elif kind == "webpatch" or kind == "goo":
 		pass
 	elif main.is_solid_at(global_position) and not returning:
 		if kind == "web" and hostile:
@@ -99,6 +104,8 @@ func _physics_process(delta: float) -> void:
 		if not p.dead and p.dash_t <= 0.0 and r.intersects(p.get_rect()):
 			if kind == "webpatch":
 				p.ensnare(0.4)           # la toile au sol colle tant qu'on marche dessus
+			elif kind == "goo":
+				p.ensnare(0.4, goo_color)   # flaque de glue : colle aussi, sans toile
 			elif kind == "web":
 				# boule de toile : englue au lieu de blesser (une parade la renvoie)
 				if p.parry_t > 0.0:
@@ -181,6 +188,7 @@ func _color() -> Color:
 		"shuriken": return Color(0.8, 0.85, 0.95)
 		"dart": return Color(1.0, 0.55, 0.3)
 		"web", "webpatch": return Color(0.9, 0.9, 0.97)
+		"goo": return goo_color
 		"page": return Color(0.95, 0.88, 0.7)
 		"drop": return Color(0.62, 1.0, 0.3)
 		"fruit": return Color(0.95, 0.55, 0.2)
@@ -261,6 +269,32 @@ func _draw() -> void:
 				var a := k * PI / 3.0 + t * 4.0
 				draw_line(Vector2.from_angle(a) * radius, Vector2.from_angle(a + PI * 0.8) * radius, Color(0.95, 0.95, 1.0, 0.85), 1.2)
 			draw_arc(Vector2.ZERO, radius * 0.7, 0.0, TAU, 12, Color(0.95, 0.95, 1.0, 0.7), 1.0)
+			return
+		"goo":
+			# flaque de glue de slime : nappe luisante aux bords ronds, bulles qui crèvent, s'estompe
+			var ga := clampf(life / 0.8, 0.0, 1.0) * clampf(t / 0.12, 0.0, 1.0)
+			var spread := minf(1.0, 0.55 + t * 4.0)
+			var rw := radius * spread
+			var gc := goo_color.darkened(0.15)
+			var pts := PackedVector2Array()
+			for i in 20:
+				var a := PI + i * PI / 19.0
+				var wob := 1.0 + 0.08 * sin(i * 2.7 + t * 2.0)
+				pts.append(Vector2(cos(a) * rw * wob, sin(a) * 6.5 * wob))
+			pts.append(Vector2(rw, 1))
+			pts.append(Vector2(-rw, 1))
+			draw_colored_polygon(pts, Color(gc, 0.75 * ga))
+			# gouttes posées autour
+			for k in 3:
+				var dx := (k - 1) * rw * 0.85 + sin(k * 4.1) * 3.0
+				draw_circle(Vector2(dx, -2.0), 3.4 - absf(k - 1) * 0.8, Color(gc, 0.85 * ga))
+			# reflet
+			draw_line(Vector2(-rw * 0.55, -4.6), Vector2(rw * 0.15, -5.2), Color(1, 1, 1, 0.5 * ga), 1.6)
+			# bulles qui gonflent puis crèvent
+			for k in 2:
+				var u := fposmod(t * 0.9 + k * 0.5, 1.0)
+				var bx := (k * 2 - 1) * rw * 0.35
+				draw_arc(Vector2(bx, -4.0 - u * 2.5), 1.2 + u * 1.8, PI, TAU, 8, Color(1, 1, 1, 0.5 * ga * (1.0 - u)), 0.9)
 			return
 		"webpatch":
 			# nappe de toile au sol, qui s'estompe à la fin

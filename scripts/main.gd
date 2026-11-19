@@ -1672,7 +1672,8 @@ func spawn_projectile(pos: Vector2, vel: Vector2, opts: Dictionary = {}) -> void
 	for k in opts:
 		pr.set(k, opts[k])
 	add_child(pr)
-	pr.add_child(make_light(pr._color(), 0.6, 0.8))
+	if pr.kind != "goo":     # la glue des slimes reste mate (pas de halo lumineux au sol)
+		pr.add_child(make_light(pr._color(), 0.6, 0.8))
 
 # Pilier qui jaillit du sol en x (sol à floor_y) après un avertissement
 func spawn_pillar(x: float, floor_y: float, delay: float = 0.0, opts: Dictionary = {}) -> void:

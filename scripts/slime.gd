@@ -59,7 +59,7 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor() and was_air:
 		squish = 1.0
 		if elite and not small:
-			main.spawn_projectile(Vector2(global_position.x, global_position.y + size.y / 2.0), Vector2.ZERO, {"kind": "webpatch", "life": 2.5, "radius": 18.0})
+			main.spawn_projectile(Vector2(global_position.x, global_position.y + size.y / 2.0), Vector2.ZERO, {"kind": "goo", "life": 2.5, "radius": 18.0, "goo_color": tint.lerp(Color(1.0, 0.35, 0.3), 0.35)})
 	was_air = not is_on_floor()
 	queue_redraw()
 

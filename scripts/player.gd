@@ -218,18 +218,21 @@ func run_speed() -> float:
 
 # Toile de tisseuse : englué, on court deux fois moins vite et on saute moins haut. La ruée arrache la toile.
 var web_t := 0.0
+var goo_col := Color(0, 0, 0, 0)   # englué par une glue de slime (sinon : toile)
 var grab_t := 0.0     # main squelettique : immobilisé (pas de course ni de saut) ; la ruée libère
 func grab(secs: float) -> void:
 	if dead or sitting or dash_t > 0.0:
 		return
 	grab_t = maxf(grab_t, secs)
 	Audio.sfx("hit", 0.1, -8.0)
-func ensnare(secs: float) -> void:
+# goo : couleur de la glue d'un slime (transparente = toile d'araignée)
+func ensnare(secs: float, goo := Color(0, 0, 0, 0)) -> void:
 	if dead or sitting:
 		return
 	if web_t <= 0.0:
-		Audio.sfx("whip", 0.1, -8.0)
+		Audio.sfx("spit" if goo.a > 0.0 else "whip", 0.1, -8.0)
 	web_t = maxf(web_t, secs)
+	goo_col = goo
 
 func dash_cooldown() -> float:
 	return DASH_COOLDOWN * float(clv(C.SWIFT_CLOAK, [0.5, 0.42, 0.35], 1.0))
@@ -1693,7 +1696,18 @@ func sit(pos: Vector2, heal: bool = true) -> void:
 
 # ---------------------------------------------------------------- dessin
 func _draw() -> void:
-	if web_t > 0.0:
+	if web_t > 0.0 and goo_col.a > 0.0:
+		# glue aux pieds : paquets collants et filaments qui s'étirent
+		var wa := minf(web_t / 0.3, 1.0)
+		var fy := SIZE.y / 2.0
+		for k in 3:
+			var x := (k - 1) * 6.0
+			draw_circle(Vector2(x, fy - 2.5), 4.4 - absf(k - 1) * 0.8, Color(goo_col.darkened(0.15), 0.85 * wa))
+		var st := 3.0 + absf(sin(anim_t * 6.0)) * 3.0
+		draw_line(Vector2(-4, fy - 3.0), Vector2(-5, fy - 3.0 - st), Color(goo_col, 0.6 * wa), 1.6)
+		draw_line(Vector2(5, fy - 3.0), Vector2(6, fy - 2.0 - st * 0.7), Color(goo_col, 0.55 * wa), 1.3)
+		draw_line(Vector2(-6, fy - 3.0), Vector2(1, fy - 3.4), Color(1, 1, 1, 0.4 * wa), 1.0)
+	elif web_t > 0.0:
 		var wa := minf(web_t, 1.0)
 		for k in 5:
 			var a := k * 1.3 + 0.4
