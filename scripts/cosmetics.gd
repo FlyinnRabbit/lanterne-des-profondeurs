@@ -85,6 +85,7 @@ const ITEMS := {
 
 var owned := {}
 var equipped := {}
+var try_on := {}        # cabine d'essayage de la tailleuse : catégorie -> cosmétique essayé (rien n'est sauvegardé)
 var gifts := {}          # fête -> année du dernier cadeau ouvert
 signal changed
 
@@ -124,8 +125,12 @@ func item(id: String) -> Dictionary:
 func eq(cat: String) -> String:
 	return String(equipped.get(cat, DEFAULTS[cat]))
 
+# ce que le héros montre : l'objet essayé chez la tailleuse, sinon celui qu'il porte
+func shown(cat: String) -> String:
+	return String(try_on.get(cat, eq(cat)))
+
 func look(cat: String) -> Dictionary:
-	return ITEMS.get(eq(cat), ITEMS[DEFAULTS[cat]])
+	return ITEMS.get(shown(cat), ITEMS[DEFAULTS[cat]])
 
 # Donne un cosmétique. Renvoie vrai s'il est nouveau.
 func grant(id: String) -> bool:
@@ -309,7 +314,7 @@ func draw_hero(ci: CanvasItem, bob: float, sway: float, anim_t: float, sitting: 
 			var sp := Vector2(-8.0 + fposmod(i * 7.3, 17.0), -22.0 + fposmod(i * 5.1, 17.0) + bob * 0.5)
 			var tw := 0.4 + 0.6 * absf(sin(anim_t * 2.0 + i * 1.7))
 			ci.draw_circle(sp, 0.9, Color(1.0, 1.0, 0.9, tw))
-	if eq("cape") == "cape_noel":
+	if shown("cape") == "cape_noel":
 		ci.draw_polyline(PackedVector2Array([Vector2(12, -3), Vector2(8, 0), Vector2(4, -4 + sway * 0.3), Vector2(0, 0), Vector2(-4, -4 - sway * 0.3), Vector2(-8, 0), Vector2(-13, -3)]), Color(0.97, 0.97, 0.97), 3.0)
 	else:
 		ci.draw_polyline(PackedVector2Array([Vector2(12, -3), Vector2(8, 0), Vector2(4, -4 + sway * 0.3), Vector2(0, 0), Vector2(-4, -4 - sway * 0.3), Vector2(-8, 0), Vector2(-13, -3)]), Color(0.02, 0.02, 0.04), 1.2)
@@ -340,7 +345,7 @@ func draw_hero(ci: CanvasItem, bob: float, sway: float, anim_t: float, sitting: 
 	DU.flat(ci, DU.ellipse(Vector2(5, hy - 6), Vector2(2.4, blink)), eye.lightened(0.15))
 	if blink > 1.0:
 		ci.draw_circle(Vector2(4.3, hy - 7), 0.8, Color(1, 1, 0.9))
-	draw_hat(ci, eq("hat"), hy, sway, anim_t)
+	draw_hat(ci, shown("hat"), hy, sway, anim_t)
 
 # Plafonne la luminosité d'une couleur (les ombrages et la lumière du héros l'éclaircissent déjà beaucoup).
 static func tone(c: Color, vmax: float) -> Color:

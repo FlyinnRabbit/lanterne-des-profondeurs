@@ -520,6 +520,8 @@ T = {
 "Recommencer le tutoriel": ("Restart the tutorial", "Reiniciar el tutorial", "Tutorial neu starten"),
 "Abandonner la descente": ("Abandon the descent", "Abandonar el descenso", "Abstieg abbrechen"),
 "Acheter": ("Buy", "Comprar", "Kaufen"),
+"Essai": ("Trying on", "Probando", "Anprobe"),
+"Aperçu": ("Preview", "Vista previa", "Vorschau"),
 "Annuler": ("Cancel", "Cancelar", "Abbrechen"),
 "Acheter %s pour %d éclats ?": ("Buy %s for %d shards?", "¿Comprar %s por %d esquirlas?", "%s für %d Splitter kaufen?"),
 "Nouvelle partie…": ("New game…", "Nueva partida…", "Neues Spiel…"),

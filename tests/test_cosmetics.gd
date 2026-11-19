@@ -41,6 +41,7 @@ func _run() -> void:
 	var refused: bool = not cos.has("cape_braise")
 	main.player.geo = 500
 	main.hub_ui._ward_pick("cape_braise")
+	main.hub_ui._ward_buy()       # confirmation « Acheter »
 	print("achat : refusé sans éclats %s, acheté %s, porté %s, éclats restants %d" % [refused, cos.has("cape_braise"), cos.eq("cape") == "cape_braise", main.player.geo])
 	ok = ok and refused and cos.has("cape_braise") and cos.eq("cape") == "cape_braise" and main.player.geo == 420
 	# objet de succès : pas achetable
@@ -48,6 +49,7 @@ func _run() -> void:
 	ok = ok and not cos.has("hat_couronne")
 	# objet de saison : selon la date
 	main.hub_ui._ward_pick("cape_noel")
+	main.hub_ui._ward_buy()
 	var ev: String = gs.CosmeticsScript.current_event()
 	print("fête en cours : '%s', cape de Noël achetée : %s" % [ev, cos.has("cape_noel")])
 	ok = ok and cos.has("cape_noel") == (ev == "noel")

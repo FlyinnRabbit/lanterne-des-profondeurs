@@ -30,6 +30,11 @@ func _run() -> void:
 			break
 	var ok := target != ""
 	print("cosmétique à vendre : ", target)
+	# cabine d'essayage : sélectionner l'objet l'essaie sans l'acheter ni le porter
+	hub._ward_try(target)
+	var cat: String = cos.item(target)["cat"]
+	print("essai : montré %s, porté %s" % [cos.shown(cat), cos.eq(cat)])
+	if cos.shown(cat) != target or cos.eq(cat) == target: ok = false
 	var g0: int = main.player.geo
 	hub._ward_pick(target)
 	print("1er appui : éclats %d -> %d, possédé %s, confirmation %s" % [g0, main.player.geo, cos.has(target), hub.ward_confirm.visible])
@@ -41,5 +46,9 @@ func _run() -> void:
 	hub._ward_buy()
 	print("confirmé : éclats %d, possédé %s, confirmation %s" % [main.player.geo, cos.has(target), hub.ward_confirm.visible])
 	if main.player.geo >= g0 or not cos.has(target) or hub.ward_confirm.visible: ok = false
+	hub._ward_try(target)
+	hub.close_all()
+	print("après fermeture : essai vidé %s" % cos.try_on.is_empty())
+	if not cos.try_on.is_empty(): ok = false
 	print("RÉSULTAT : ", "OK" if ok else "ÉCHEC")
 	quit()

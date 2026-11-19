@@ -1,4 +1,5 @@
 extends CanvasLayer
+const PetScript = preload("res://scripts/pet.gd")
 const LoadingScript = preload("res://scripts/loading.gd")
 # Interfaces du hub : boutique du marchand et ascenseur (choix du palier).
 
@@ -744,6 +745,7 @@ func _open(panel: PanelContainer) -> void:
 	get_tree().paused = true
 
 func close_all() -> void:
+	GameState.cos.try_on.clear()     # fin de l'essayage
 	visible = false
 	get_tree().paused = false
 
@@ -787,12 +789,32 @@ class HeroPreview extends Control:
 		queue_redraw()
 	func _draw() -> void:
 		var c := size / 2.0
+		var cos = GameState.cos
+		var trying := ""
+		for cat in cos.try_on:
+			trying = cos.try_on[cat]
 		draw_circle(c + Vector2(0, 6), 78.0, Color(0.07, 0.055, 0.045))
-		draw_arc(c + Vector2(0, 6), 78.0, 0.0, TAU, 48, Color(0.85, 0.7, 0.35), 2.0)
+		draw_arc(c + Vector2(0, 6), 78.0, 0.0, TAU, 48, Color(0.85, 0.7, 0.35) if trying == "" else Color(0.6, 0.85, 1.0), 2.0)
 		draw_set_transform(c + Vector2(4, 62), 0.0, Vector2(3.0, 3.0))
 		draw_colored_polygon(PackedVector2Array([Vector2(-14, 0), Vector2(0, -3), Vector2(14, 0), Vector2(0, 3)]), Color(0, 0, 0, 0.45))
-		GameState.cos.draw_hero(self, sin(t * 2.5) * 0.6, sin(t * 2.0) * 1.0, t, false, false)
+		cos.draw_hero(self, sin(t * 2.5) * 0.6, sin(t * 2.0) * 1.0, t, false, false)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# familier (porté ou essayé), animé, qui flotte près de l'épaule du héros
+		var pet: String = cos.shown("pet")
+		if pet != "pet_none":
+			var pp := c + Vector2(-56.0 + sin(t * 1.7) * 6.0, -50.0 + sin(t * 2.3) * 5.0)
+			var base := Transform2D(0.0, Vector2(2.6, 2.6), 0.0, pp)
+			draw_set_transform_matrix(base)
+			PetScript.draw_pet(self, pet, cos.item(pet).get("c", Color.WHITE), t, base)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if trying != "":
+			var cat: String = cos.item(trying).get("cat", "")
+			# l'ultime ne se voit pas sur le héros : grande pastille à côté
+			if cat == "ult":
+				cos.draw_swatch(self, trying, c + Vector2(58, -52), 20.0)
+			var f := ThemeDB.fallback_font
+			var tag := tr("Essai") if not cos.has(trying) else tr("Aperçu")
+			draw_string(f, Vector2(0, size.y - 6), tag, HORIZONTAL_ALIGNMENT_CENTER, size.x, 15, Color(0.6, 0.85, 1.0))
 
 class Swatch extends Control:
 	var item_id := ""
@@ -860,6 +882,7 @@ func _build_wardrobe(root: Control) -> void:
 func open_wardrobe() -> void:
 	var ev: String = GameState.CosmeticsScript.current_event()
 	ward_status.text = tr("Les cosmétiques de fête ne se vendent que pendant leur fête.") if ev == "" else tr("C'est %s : la collection de la fête est en vente !") % tr(GameState.CosmeticsScript.EVENTS[ev]["name"])
+	GameState.cos.try_on.clear()
 	_open(ward_panel)
 	_ward_cancel(false)
 	_refresh_wardrobe(true)
@@ -899,6 +922,8 @@ func _refresh_wardrobe(focus_first := false) -> void:
 	for id in cos.items_of(ward_cat):
 		var it: Dictionary = cos.item(id)
 		var b: Button = main.menu._button("", _ward_pick.bind(id))
+		b.focus_entered.connect(_ward_try.bind(id))
+		b.mouse_entered.connect(_ward_try.bind(id))
 		b.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		b.text = "        " + tr(it["name"]) + "  —  " + _ward_state(id)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -922,6 +947,15 @@ func _refresh_wardrobe(focus_first := false) -> void:
 			first = b
 	if focus_first and first:
 		first.grab_focus()
+
+# Cabine d'essayage : l'objet sélectionné dans la liste s'affiche sur l'aperçu du héros, même s'il
+# n'est pas encore acheté (rien n'est porté ni sauvegardé tant qu'on ne valide pas).
+func _ward_try(id: String) -> void:
+	var cos = GameState.cos
+	cos.try_on.clear()
+	var cat: String = cos.item(id).get("cat", ward_cat)
+	if cos.eq(cat) != id:
+		cos.try_on[cat] = id
 
 # Confirmation : « Acheter » achète l'objet en attente, « Annuler » (ou B / Échap) revient à la liste.
 func _ward_buy() -> void:
@@ -977,6 +1011,7 @@ func _ward_pick(id: String) -> void:
 		ward_status.text = tr(it["name"]) + " — " + _ward_state(id)
 		return
 	Achievements.check_wardrobe()
+	cos.try_on.erase(String(it.get("cat", "")))   # porté pour de vrai : fin de l'essai
 	var keep := id
 	_refresh_wardrobe()
 	for b in ward_list.get_children():
