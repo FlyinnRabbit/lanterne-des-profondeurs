@@ -4,7 +4,7 @@ extends "res://scripts/enemy.gd"
 const ACCEL := 520.0
 const CHASE_SPEED := 175.0
 var home := Vector2.ZERO
-var bee := false        # ouvrière de la Reine Essaim (même comportement, dessinée en abeille)
+var bee := false        # abeille : ouvrière de la Reine Essaim ou volant de la Ruche (même comportement)
 var dive_cd := 2.0     # élite : piqué sur le joueur
 var dive_t := 0.0
 var dive_windup := 0.0
@@ -20,6 +20,9 @@ func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	home = global_position
 	anim_t = randf() * 10.0
+	# dans la Ruche Bourdonnante, les volants sont des abeilles
+	if main and main.pal and String(main.pal.get("id", "")) == "ruche":
+		bee = true
 
 func _physics_process(delta: float) -> void:
 	anim_t += delta

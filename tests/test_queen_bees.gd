@@ -33,5 +33,19 @@ func _run() -> void:
 			if m.bee: bees += 1
 			else: others += 1
 	print("ouvrières invoquées : ", bees, " ; volants ordinaires : ", others)
-	print("RÉSULTAT : ", "OK" if bees >= 2 and others == 0 else "ÉCHEC")
+	var ok := bees >= 2 and others == 0
+	# dans la Ruche, les volants ordinaires sont aussi des abeilles ; ailleurs, des moucherons
+	for bid in ["ruche", "jardins"]:
+		main.pal = main.pal.duplicate()
+		main.pal["id"] = bid
+		var f := CharacterBody2D.new()
+		f.set_script(load("res://scripts/flyer.gd"))
+		f.main = main
+		f.position = main.player.global_position + Vector2(0, -200)
+		main.add_child(f)
+		await _f(1)
+		print(bid, " : abeille ", f.bee)
+		if f.bee != (bid == "ruche"): ok = false
+		f.queue_free()
+	print("RÉSULTAT : ", "OK" if ok else "ÉCHEC")
 	quit()
