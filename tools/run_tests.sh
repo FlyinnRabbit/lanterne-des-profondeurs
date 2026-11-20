@@ -20,6 +20,9 @@ if command -v node >/dev/null; then
 	node server/dev_server.mjs 8797 >/dev/null 2>&1 & SERVERS+=($!)
 	export LANTERNE_LEADERBOARD_URL="http://127.0.0.1:8787"
 	sleep 1
+	for pid in "${SERVERS[@]}"; do
+		kill -0 "$pid" 2>/dev/null || echo "⚠ serveur de classement local arrêté (Node 22.13+ requis pour node:sqlite)"
+	done
 fi
 trap 'kill ${SERVERS[@]:-} 2>/dev/null' EXIT
 
