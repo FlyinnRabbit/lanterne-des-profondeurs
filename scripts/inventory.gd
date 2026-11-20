@@ -217,9 +217,13 @@ func _ready() -> void:
 	grid.add_theme_constant_override("v_separation", 8)
 	var gscroll := ScrollContainer.new()
 	gscroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	gscroll.follow_focus = true
+	# défilement par rangées entières : jamais d'emblème coupé en haut ou en bas
+	# (le suivi automatique du focus faisait défiler au pixel près à la manette)
+	gscroll.follow_focus = false
 	gscroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
-	gscroll.custom_minimum_size = Vector2(7 * 88 + 16, 3 * 84 - 4)
+	grid_scroll = gscroll
+	gscroll.get_v_scroll_bar().value_changed.connect(_snap_rows)
+	gscroll.custom_minimum_size = Vector2(7 * 88 + 16, 3 * 84 - 8)   # 3 rangées pile
 	gscroll.add_child(grid)
 	left.add_child(gscroll)
 	var hint := Label.new()
@@ -232,6 +236,7 @@ func _ready() -> void:
 		b.charm_id = id
 		b.custom_minimum_size = Vector2(80, 76)
 		b.focus_entered.connect(_show_desc.bind(id))
+		b.focus_entered.connect(_scroll_to_slot.bind(id))
 		b.mouse_entered.connect(_on_slot_hover.bind(id))
 		b.pressed.connect(_toggle.bind(id))
 		grid.add_child(b)
@@ -556,3 +561,31 @@ func _refresh() -> void:
 	notch_bar.queue_redraw()
 	if focused_id >= 0:
 		_show_desc(focused_id)
+
+# ---------------------------------------------------------------- grille : défilement par rangées
+const ROW_PITCH := 84       # hauteur d'une case (76) + espace (8)
+const ROWS_SHOWN := 3
+var grid_scroll: ScrollContainer
+var _snapping := false
+
+func _snap_rows(v: float) -> void:
+	if _snapping or grid_scroll == null:
+		return
+	var sb := grid_scroll.get_v_scroll_bar()
+	var snapped := minf(roundf(v / ROW_PITCH) * ROW_PITCH, sb.max_value - sb.page)
+	if absf(snapped - v) > 0.5:
+		_snapping = true
+		grid_scroll.set_deferred("scroll_vertical", int(snapped))
+		_snapping = false
+
+# la case qui prend le focus (manette / clavier) est amenée dans les rangées visibles
+func _scroll_to_slot(id: int) -> void:
+	if grid_scroll == null:
+		return
+	var row := id / 7
+	var top := int(roundf(grid_scroll.scroll_vertical / float(ROW_PITCH)))
+	if row < top:
+		top = row
+	elif row >= top + ROWS_SHOWN:
+		top = row - ROWS_SHOWN + 1
+	grid_scroll.scroll_vertical = top * ROW_PITCH
