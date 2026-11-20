@@ -22,12 +22,14 @@ var _menu_rects := []
 var _cell_rects := []
 # Emblèmes : liste déroulante (5 rangées de 7 visibles)
 const CHARM_ROWS := 5
+const MOB_ROWS := 4      # bestiaire : 4 rangées visibles, la liste défile
 # panneau de bois sombre cerclé de laiton, comme les autres menus ; le contenu des pages
 # (dessiné autrefois sur la page de droite du livre) est décalé de CONTENT sous les onglets
 const PANEL := Rect2(196, 20, 888, 682)
 const CONTENT := Vector2(-165, 50)
 const BRASS := Color(0.72, 0.58, 0.32)
 var charm_row0 := 0
+var mob_row0 := 0
 var _close_rect := Rect2()
 
 const PAGES := ["Statistiques de la partie", "Records", "Bestiaire", "Gardiens", "Emblèmes"]
@@ -146,6 +148,7 @@ func open() -> void:
 	focus_grid = false
 	sel = 0
 	charm_row0 = 0
+	mob_row0 = 0
 	get_tree().paused = true
 	Audio.sfx("door", 0.05, -6.0)
 	_build_portraits()
@@ -283,6 +286,7 @@ func _place_portraits() -> void:
 				var cell := _cell_rect(pt[1])
 				n.position = cell.position + Vector2(cell.size.x / 2.0, 42)
 				n.scale = Vector2(1.3, 1.3)
+				n.visible = pt[1] / 4 >= mob_row0 and pt[1] / 4 < mob_row0 + MOB_ROWS
 			else:
 				n.position = Vector2(1000 + (-40 if pt[1] == -1 and portraits.size() > MOBS.size() + 1 else 0) + (50 if pt[1] == -2 else 0), 200)
 				n.scale = Vector2(2.6, 2.6) if pt[1] == -1 else Vector2(2.0, 2.0)
@@ -466,7 +470,7 @@ func _draw_records(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> 
 func _cell_rect(i: int) -> Rect2:
 	match page:
 		2:
-			return Rect2(420 + (i % 4) * 114, 108 + (i / 4) * 120, 110, 114)
+			return Rect2(420 + (i % 4) * 114, 108 + (i / 4 - mob_row0) * 120, 110, 114)
 		3:
 			return Rect2(420 + (i % 5) * 92, 112 + (i / 5) * 156, 88, 148)
 		4:
@@ -485,11 +489,19 @@ func _draw_bestiary(c: Control, f: Font, ink: Color, red: Color, soft: Color) ->
 	for i in MOBS.size():
 		var r := _cell_rect(i)
 		_cell_rects.append(r)
+		if i / 4 < mob_row0 or i / 4 >= mob_row0 + MOB_ROWS:
+			_cell_rects[i] = Rect2()      # hors de la zone visible (liste déroulante)
+			continue
 		_sel_frame(c, r, i == sel)
 		var d := _mob_data(MOBS[i])
 		var k := int(d.get("k", 0))
 		c.draw_string(f, r.position + Vector2(0, 86), tr(MOB_NAMES[MOBS[i]]) if k > 0 else "???", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 14, ink)
 		c.draw_string(f, r.position + Vector2(0, 104), (tr("%s vaincus") % fmt_n(k)) if k > 0 else tr("jamais vaincu"), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 11, soft)
+	var mrows := ceili(MOBS.size() / 4.0)
+	if mob_row0 > 0:
+		c.draw_string(f, Vector2(420, 104), "▲", HORIZONTAL_ALIGNMENT_RIGHT, 4 * 114 - 4, 16, red)
+	if mob_row0 + MOB_ROWS < mrows:
+		c.draw_string(f, Vector2(420, 108 + MOB_ROWS * 120 + 16), "▼", HORIZONTAL_ALIGNMENT_RIGHT, 4 * 114 - 4, 16, red)
 	# fiche
 	var id: String = MOBS[sel]
 	var d2 := _mob_data(id)
@@ -654,6 +666,7 @@ func _set_page(p: int) -> void:
 	focus_grid = _grid_count() > 0
 	sel = 0
 	charm_row0 = 0
+	mob_row0 = 0
 	Audio.sfx("door", 0.2, -12.0)
 	_build_portraits()
 
@@ -669,6 +682,12 @@ func _set_sel(i: int) -> void:
 			charm_row0 = row
 		elif row >= charm_row0 + CHARM_ROWS:
 			charm_row0 = row - CHARM_ROWS + 1
+	if page == 2:
+		var mrow := sel / 4
+		if mrow < mob_row0:
+			mob_row0 = mrow
+		elif mrow >= mob_row0 + MOB_ROWS:
+			mob_row0 = mrow - MOB_ROWS + 1
 	if page in [2, 3]:
 		_build_portraits()
 
@@ -754,6 +773,11 @@ func _on_gui_input(event: InputEvent) -> void:
 	var p: Vector2 = (event.position - _off()) / _k()
 	var click: bool = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
 	# molette : fait défiler la liste des emblèmes
+	if page == 2 and event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		var maxm := maxi(ceili(MOBS.size() / 4.0) - MOB_ROWS, 0)
+		mob_row0 = clampi(mob_row0 + (1 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1), 0, maxm)
+		_place_portraits()
+		return
 	if page == 4 and event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
 		var maxr := maxi(ceili(_grid_count() / 7.0) - CHARM_ROWS, 0)
 		charm_row0 = clampi(charm_row0 + (1 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1), 0, maxr)
