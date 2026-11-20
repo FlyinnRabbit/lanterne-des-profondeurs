@@ -12,7 +12,9 @@ const DU = preload("res://scripts/draw_util.gd")
 #  book       (z) : livre maudit qui lance une volée de pages tranchantes (parables) — Bibliothèque
 #  hand       (a) : main squelettique qui jaillit sous le héros et l'agrippe (la ruée libère) — Ossuaire
 #  steam      (o) : bouche qui crache un jet de vapeur horizontal à hauteur de tête — Citadelle
-#  drip       (d) : goutte acide qui grossit au plafond puis tombe — Profondeurs
+#  drip       (d) : goutte qui grossit au plafond puis tombe — acide (Profondeurs), miel (Ruche), venin (Jungle)
+#  iceplate   (i) : plaque de glace : on y glisse, impossible de s'arrêter net — Abysses Gelés
+#  crystalplate (+) : dalle de cristal : marcher dessus la fait vibrer, puis des éclats jaillissent — Mines
 # Les pièges au sol à cycle blessent aussi les ennemis : attire-les dedans !
 const Ch = preload("res://scripts/charms.gd")
 var main
@@ -26,6 +28,9 @@ var turn_t := 0.0        # totem : en train de pivoter
 var element := "fire"    # geyser : "fire" / "ice"
 const CYCLE := {"spikes": [1.6, 0.55, 0.9], "gas": [1.8, 0.7, 1.5], "geyser": [1.9, 0.7, 1.0],
 	"crystal": [2.0, 0.7, 0.6], "steam": [1.8, 0.6, 1.2], "book": [2.4, 0.6, 0.3], "drip": [2.2, 0.6, 0.1]}
+# dalle de cristal : armée en marchant dessus, puis éruption, puis recharge
+var plate_state := "idle"   # idle / arm / burst / rest
+var plate_t := 0.0
 var foe_cd := {}         # ennemis déjà blessés pendant ce jet (un coup par activation)
 # main squelettique
 var hand_t := 0.0
@@ -56,6 +61,26 @@ func _ready() -> void:
 	if kind == "blade":
 		length = maxf(floor_y - position.y - 30.0, 60.0)   # point bas à hauteur de tête : passe au-dessus d'un héros accroupi
 	z_index = 2
+
+func _biome() -> String:
+	return String(main.pal.get("id", ""))
+
+# couleur du liquide / des spores selon le biome
+func _drip_col() -> Color:
+	if Settings.colorblind:
+		return Color(1.0, 0.1, 0.85)
+	match _biome():
+		"ruche": return Color(1.0, 0.72, 0.18)
+		"jungle": return Color(0.82, 0.42, 1.0)
+	return Color(0.62, 1.0, 0.3)
+
+func _gas_cols() -> Array:   # [chapeau, nuage, taches]
+	if Settings.colorblind:
+		return [Color(1.0, 0.1, 0.85), Color(1.0, 0.1, 0.85), Color(1, 1, 1)]
+	match _biome():
+		"ruche": return [Color(0.92, 0.62, 0.18), Color(1.0, 0.82, 0.3), Color(1.0, 0.95, 0.7)]
+		"jungle": return [Color(0.58, 0.28, 0.62), Color(0.8, 0.5, 0.95), Color(0.95, 0.85, 1.0)]
+	return [Color(0.55, 0.72, 0.3), Color(0.6, 0.9, 0.35), Color(0.92, 0.95, 0.75)]
 
 func _player_rect() -> Rect2:
 	return main.player.get_rect()
@@ -122,7 +147,39 @@ func _physics_process(delta: float) -> void:
 			if _phase() == 2 and fmod(t, period) - CYCLE[kind][0] - CYCLE[kind][1] < delta:
 				if absf(main.player.global_position.x - global_position.x) < 650.0:
 					main.spawn_projectile(global_position + Vector2(0, 20), Vector2(0, 60),
-						{"kind": "drop", "hostile": true, "radius": 6.0, "gravity": 900.0, "life": 2.5, "from_trap": true})
+						{"kind": "drop", "hostile": true, "radius": 6.0, "gravity": 900.0, "life": 2.5, "from_trap": true, "goo_color": _drip_col()})
+		"iceplate":
+			var pi = main.player
+			var feet: float = pi.get_rect().end.y
+			if absf(pi.global_position.x - global_position.x) < 50.0 and absf(feet - global_position.y) < 6.0:
+				pi.ice_t = 0.12
+		"crystalplate":
+			var pc = main.player
+			var on: bool = absf(pc.global_position.x - global_position.x) < 34.0 and absf(pc.get_rect().end.y - global_position.y) < 8.0
+			plate_t -= delta
+			match plate_state:
+				"idle":
+					if on and not pc.dead:
+						plate_state = "arm"
+						plate_t = 0.5
+						Audio.sfx("crit_ready", 0.25, -8.0)
+				"arm":
+					if plate_t <= 0.0:
+						plate_state = "burst"
+						plate_t = 0.45
+						foe_cd.clear()
+						Audio.sfx("parry", 0.2, -8.0)
+						main.spawn_burst(global_position + Vector2(0, -6), main.pal.get("moss", Color(0.6, 0.9, 1.0)), 10, 160.0, 300.0)
+				"burst":
+					if _danger_rect().intersects(_player_rect()):
+						_hurt(global_position + Vector2(0, 8))
+					_hurt_foes()
+					if plate_t <= 0.0:
+						plate_state = "rest"
+						plate_t = 1.6
+				"rest":
+					if plate_t <= 0.0:
+						plate_state = "idle"
 		"hand":
 			var pl = main.player
 			var over: bool = absf(pl.global_position.x - global_position.x) < 20.0 and absf(pl.get_rect().end.y - global_position.y) < 10.0
@@ -215,6 +272,8 @@ func _danger_rect() -> Rect2:
 		"spikes": return Rect2(global_position + Vector2(-30, -20), Vector2(60, 20))
 		"gas": return Rect2(global_position + Vector2(-44, -96), Vector2(88, 84))
 		"geyser": return Rect2(global_position + Vector2(-14, -150), Vector2(28, 150))
+		"crystalplate":
+			return Rect2(global_position + Vector2(-34, -44), Vector2(68, 44)) if plate_state == "burst" else Rect2()
 		"steam":
 			var l := 132.0 * minf(_phase_k() * 5.0, 1.0)
 			return Rect2(global_position + Vector2(12.0 if dir > 0 else -12.0 - l, -38), Vector2(l, 16))
@@ -376,13 +435,20 @@ func _draw() -> void:
 			# bosse de roche moussue au plafond, suintante ; la goutte s'étire au bout d'un col fin
 			var ph := _phase()
 			var k := _phase_k()
-			var ac := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.62, 1.0, 0.3)
+			var ac := _drip_col()
 			var rock := Color(0.3, 0.29, 0.31)
+			if _biome() == "ruche":
+				rock = Color(0.62, 0.42, 0.16)      # rayon de cire
+			elif _biome() == "jungle":
+				rock = Color(0.26, 0.2, 0.13)       # racine noueuse
 			DU.flat(self, PackedVector2Array([Vector2(-17, -2), Vector2(-13, 4), Vector2(-7, 6), Vector2(-4, 10), Vector2(0, 13), Vector2(4, 9), Vector2(9, 7), Vector2(13, 3), Vector2(17, -2)]), rock)
 			DU.flat(self, PackedVector2Array([Vector2(-9, 1), Vector2(-4, 7), Vector2(0, 10), Vector2(3, 6), Vector2(-2, 3)]), rock.darkened(0.3))
 			draw_line(Vector2(-13, 3), Vector2(-5, 8), rock.lightened(0.2), 1.0)
 			for mx in [-12.0, 10.0]:
-				draw_circle(Vector2(mx, 1), 2.4, Color(0.3, 0.42, 0.28))
+				if _biome() == "ruche":
+					draw_arc(Vector2(mx, 1), 3.0, 0.0, TAU, 6, Color(0.4, 0.25, 0.08), 1.0)
+				else:
+					draw_circle(Vector2(mx, 1), 2.4, Color(0.3, 0.42, 0.28))
 			# coulées d'acide sur la roche
 			for sx in [-7.0, 6.0]:
 				draw_line(Vector2(sx, 3), Vector2(sx * 0.5, 9), Color(ac, 0.7), 1.6)
@@ -408,6 +474,56 @@ func _draw() -> void:
 				if ph == 1:
 					DU.glow(self, c, 16.0, ac, 0.45)
 
+		"iceplate":
+			# plaque de glace vive, bleu profond et brillante (tranche nettement sur la neige)
+			var ice := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.38, 0.66, 0.95)
+			var pts := PackedVector2Array([Vector2(-52, 1), Vector2(-48, -5), Vector2(-20, -6.5), Vector2(10, -6), Vector2(46, -6.5), Vector2(52, 1)])
+			var cols := PackedColorArray()
+			for q in pts:
+				cols.append(ice.lightened(0.25) if q.y < -3 else ice.darkened(0.25))
+			draw_polygon(pts, cols)
+			draw_polyline(pts, Color(0.15, 0.3, 0.5, 0.9), 1.2)
+			draw_line(Vector2(-47, -5), Vector2(45, -6), Color(1, 1, 1, 0.9), 1.4)
+			for cr in [[-32.0, -14.0], [4.0, 18.0], [26.0, 40.0]]:
+				draw_line(Vector2(cr[0], -5), Vector2(cr[1], 0), Color(1, 1, 1, 0.55), 1.0)
+			var sx := fmod(t * 70.0, 240.0) - 120.0
+			if absf(sx) < 46.0:
+				draw_line(Vector2(sx - 5, 0), Vector2(sx + 5, -6), Color(1, 1, 1, 0.9), 2.5)
+			for i in 3:
+				var tw := 0.5 + 0.5 * sin(t * 3.0 + i * 2.0)
+				var sp := Vector2(-38 + i * 36, -7.5)
+				draw_line(sp + Vector2(-3 * tw, 0), sp + Vector2(3 * tw, 0), Color(1, 1, 1, 0.8 * tw), 1.0)
+				draw_line(sp + Vector2(0, -3 * tw), sp + Vector2(0, 3 * tw), Color(1, 1, 1, 0.8 * tw), 1.0)
+		"crystalplate":
+			# dalle de cristaux hexagonaux sertie dans le sol ; vibre, puis des éclats jaillissent
+			var cc: Color = Color(1.0, 0.1, 0.85) if Settings.colorblind else main.pal.get("moss", Color(0.6, 0.9, 1.0))
+			var a := 0.35
+			if plate_state == "arm":
+				a = 0.6 + 0.4 * sin(t * 40.0)
+			elif plate_state == "rest":
+				a = 0.15
+			DU.box(self, Rect2(-34, -4, 68, 5), Color(0.18, 0.2, 0.26))
+			for i in 5:
+				var c := Vector2(-26 + i * 13, -3)
+				var hex := PackedVector2Array()
+				for j in 6:
+					hex.append(c + Vector2.from_angle(j * TAU / 6.0) * Vector2(6.0, 3.0))
+				DU.flat(self, hex, cc.darkened(0.35).lerp(cc, a))
+				draw_line(c + Vector2(-3, -1), c + Vector2(2, -2), Color(1, 1, 1, 0.5 * a + 0.2), 1.0)
+			if plate_state == "arm":
+				DU.glow(self, Vector2(0, -6), 34.0, cc, 0.35 * a)
+				var jx := sin(t * 70.0) * 1.2
+				draw_line(Vector2(-30 + jx, -6), Vector2(30 + jx, -6), Color(cc.lightened(0.4), 0.6), 1.0)
+			elif plate_state == "burst":
+				var k := 1.0 - plate_t / 0.45
+				var hgt := 44.0 * minf(k * 4.0, 1.0) * (1.0 if k < 0.7 else (1.0 - k) / 0.3)
+				for i in 6:
+					var bx := -28.0 + i * 11.2
+					var hh := hgt * (0.65 + 0.35 * sin(i * 2.1 + 1.0))
+					var lean := (i - 2.5) * 1.6
+					DU.flat(self, PackedVector2Array([Vector2(bx - 4, -2), Vector2(bx + lean, -hh), Vector2(bx + 4, -2)]), cc.lightened(0.15))
+					draw_line(Vector2(bx - 1, -3), Vector2(bx + lean - 0.5, -hh + 3), Color(1, 1, 1, 0.7), 1.0)
+				DU.glow(self, Vector2(0, -20), 40.0, cc, 0.4)
 		"spikes":
 			var ph := _phase()
 			var k := _phase_k()
@@ -430,18 +546,19 @@ func _draw() -> void:
 			var ph := _phase()
 			var k := _phase_k()
 			var sw := 1.0 + (0.25 * k + sin(t * 40.0) * 0.04 if ph == 1 else 0.0)
-			var cap := Color(1.0, 0.1, 0.85) if Settings.colorblind else Color(0.55, 0.72, 0.3)
+			var gcs := _gas_cols()
+			var cap: Color = gcs[0]
 			# pied et chapeau tacheté, qui gonfle avant de cracher
 			DU.box(self, Rect2(-5, -16, 10, 16), Color(0.82, 0.78, 0.66))
 			DU.poly(self, DU.ellipse(Vector2(0, -18), Vector2(17, 11) * sw, 20, PI, TAU), cap)
 			draw_line(Vector2(-16 * sw, -18), Vector2(16 * sw, -18), cap.darkened(0.4), 1.4)
 			for i in 4:
-				draw_circle(Vector2((-9 + i * 6) * sw, (-23 + absf(i - 1.5) * 2.0) * sw - 2), 2.0, Color(0.92, 0.95, 0.75))
+				draw_circle(Vector2((-9 + i * 6) * sw, (-23 + absf(i - 1.5) * 2.0) * sw - 2), 2.0, gcs[2])
 			if ph == 1:
-				DU.glow(self, Vector2(0, -22), 24.0, Color(0.7, 1.0, 0.4), 0.3 * k)
+				DU.glow(self, Vector2(0, -22), 24.0, gcs[1], 0.3 * k)
 			if ph == 2:
 				var a := 1.0 if k < 0.75 else (1.0 - k) / 0.25
-				var gc := Color(0.6, 0.9, 0.35) if not Settings.colorblind else Color(1.0, 0.1, 0.85)
+				var gc: Color = gcs[1]
 				for i in 9:
 					var ang := i * 0.7 + t * 0.8
 					var r := 14.0 + 24.0 * minf(k * 4.0, 1.0)

@@ -480,6 +480,10 @@ func _spawn_everything() -> void:
 				"k", "q", "v", "y", "x", "z", "a":
 					var tk: String = {"k": "spikes", "q": "gas", "v": "geyser", "y": "geyser", "x": "crystal", "z": "book", "a": "hand"}[row[x]]
 					_make_trap(tk, Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), {"element": "ice" if row[x] == "y" else "fire"})
+				"i":
+					_make_trap("iceplate", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), {})
+				"+":
+					_make_trap("crystalplate", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), {})
 				"o":
 					# jet de vapeur : bouche posée au sol, souffle vers le côté le plus dégagé
 					var ol := 0

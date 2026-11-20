@@ -190,7 +190,7 @@ func _color() -> Color:
 		"web", "webpatch": return Color(0.9, 0.9, 0.97)
 		"goo": return goo_color
 		"page": return Color(0.95, 0.88, 0.7)
-		"drop": return Color(0.62, 1.0, 0.3)
+		"drop": return goo_color
 		"fruit": return Color(0.95, 0.55, 0.2)
 		"ghostscythe": return Color(0.6, 0.95, 0.85)
 		"slashwave": return Color(0.85, 0.92, 1.0)

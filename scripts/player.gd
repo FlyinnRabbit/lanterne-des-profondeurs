@@ -132,6 +132,7 @@ var dead := false
 var anim_t := 0.0
 var squash := Vector2.ONE
 var was_on_floor := true
+var ice_t := 0.0          # sur une plaque de glace : on glisse (posé par le piège à chaque image)
 var last_vy := 0.0
 var after_t := 0.0
 var parry_t := 0.0
@@ -363,7 +364,7 @@ func _physics_process(delta: float) -> void:
 	anim_t += delta
 	for t in ["coyote_t", "buffer_t", "dash_t", "dash_cd", "attack_cd", "attack_t", "invuln_t", "knock_t", "recoil_t",
 			"combo_t", "thrust_t", "post_dash_t", "spell_cd", "crit_t", "last_crit_t", "perfect_t", "plunge_cd", "plunge_kill_t",
-			"bench_lock_t", "web_t", "grab_t", "veil_cd", "hazard_cd"]:
+			"bench_lock_t", "web_t", "grab_t", "veil_cd", "hazard_cd", "ice_t"]:
 		set(t, maxf(get(t) - delta, 0.0))
 	if knock.length() > 10.0:
 		# duel : recul infligé par l'adversaire
@@ -573,7 +574,12 @@ func _physics_process(delta: float) -> void:
 	elif recoil_t > 0.0:
 		velocity.x = recoil_vx
 	else:
-		velocity.x = dir * run_speed() * (0.35 if parry_t > 0.0 else 1.0) * (0.3 if crouching else 1.0)
+		var want_vx := dir * run_speed() * (0.35 if parry_t > 0.0 else 1.0) * (0.3 if crouching else 1.0)
+		if ice_t > 0.0 and on_floor:
+			# glace : l'élan se garde, on accélère et on freine lentement
+			velocity.x = move_toward(velocity.x, want_vx, (380.0 if absf(want_vx) > absf(velocity.x) else 240.0) * delta)
+		else:
+			velocity.x = want_vx
 		if dir != 0.0 and attack_t <= 0.0:
 			facing = int(dir)
 	# Le piqué se lance en maintenant « bas » : à l'atterrissage on ne s'accroupit pas tant que la

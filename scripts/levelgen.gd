@@ -741,20 +741,21 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 # geyser de flammes (Forge) ou de glace (Abysses Gelés). Posés avec parcimonie et jamais
 # près d'un autre danger (pas de piège sur piège), ni près du départ, de la sortie, d'un banc
 # ou de l'arène du boss.
-const HAZARDS := "^ZUVkqvyCXKxzaod"
+const HAZARDS := "^ZUVkqvyCXKxzaodi+"
 const KEEP_CLEAR := "PEBOHLSGR*N$"
 func _ground_traps(depth: int) -> void:
 	var pool := {"k": 1.0}
 	match biome_id:
-		"jardins", "ruche": pool = {"q": 1.6, "k": 0.6}
+		"jardins": pool = {"q": 1.6, "k": 0.6}
+		"ruche": pool = {"q": 1.0, "d": 0.9, "k": 0.5}
 		"forge": pool = {"v": 1.6, "k": 0.6}
-		"glace": pool = {"y": 1.6, "k": 0.6}
+		"glace": pool = {"y": 1.1, "i": 1.1, "k": 0.5}
 		"profondeurs": pool = {"d": 1.4, "k": 0.6}
 		"citadelle": pool = {"o": 1.4, "k": 0.6}
-		"cristal": pool = {"x": 1.4, "k": 0.6}
+		"cristal": pool = {"x": 1.1, "+": 1.1, "k": 0.5}
 		"bibliotheque": pool = {"z": 1.4, "k": 0.6}
 		"ossuaire": pool = {"a": 1.4, "k": 0.6}
-		"jungle": pool = {"q": 1.0, "k": 0.8}
+		"jungle": pool = {"q": 0.9, "d": 0.6, "k": 0.7}
 		"desert": pool = {"v": 1.0, "k": 1.0}
 		"antique": pool = {"o": 0.8, "k": 1.0}
 	var want := clampi(1 + depth / 2, 1, 4)
