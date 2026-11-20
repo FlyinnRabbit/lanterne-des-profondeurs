@@ -7,12 +7,15 @@ extends Node
 
 const VersionScript = preload("res://scripts/version.gd")
 const URL_SOURCE := "https://raw.githubusercontent.com/FlyinnRabbit/lanterne-des-profondeurs/main/leaderboard.url"
+# Adresse de secours si GitHub est injoignable (certains réseaux bloquent raw.githubusercontent.com)
+const FALLBACK := "https://lanterne-classement.blindtest42.workers.dev"
 const HEADERS := ["User-Agent: LanterneDesProfondeurs", "Content-Type: application/json"]
 
 var endpoint := ""          # adresse du Worker, une fois connue
 var last := {}              # dernière réponse (top 10 + rang), pour l'affichage
 var _waiting := []          # appels en attente de l'adresse
 var _resolving := false
+var last_net := ""          # dernier échec réseau (« R5 » : résultat HTTPRequest, « H500 » : code HTTP), pour le diagnostic
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -45,8 +48,14 @@ func _http(url: String, method: int, body: String, cb: Callable) -> void:
 	add_child(h)
 	h.request_completed.connect(func(result: int, code: int, _hd: PackedStringArray, data: PackedByteArray):
 		h.queue_free()
+		if result != HTTPRequest.RESULT_SUCCESS:
+			last_net = "R%d" % result
+		elif code != 200:
+			last_net = "H%d" % code
 		cb.call(result == HTTPRequest.RESULT_SUCCESS, code, data.get_string_from_utf8()))
-	if h.request(url, PackedStringArray(HEADERS), method, body) != OK:
+	var err := h.request(url, PackedStringArray(HEADERS), method, body)
+	if err != OK:
+		last_net = "E%d" % err
 		h.queue_free()
 		cb.call(false, 0, "")
 
@@ -63,8 +72,8 @@ func _with_endpoint(fn: Callable, fail: Callable) -> void:
 		_resolving = false
 		var u := text.strip_edges()
 		var found := ok and code == 200 and u.begins_with("https://")
-		if found:
-			endpoint = u.trim_suffix("/")
+		endpoint = u.trim_suffix("/") if found else FALLBACK
+		found = true
 		var w := _waiting.duplicate()
 		_waiting.clear()
 		for pair in w:

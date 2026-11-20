@@ -1229,7 +1229,7 @@ func _on_discord(st: String) -> void:
 		"too_many":
 			discord_status.text = tr("Trop d'essais : réessaie demain.")
 		"offline":
-			discord_status.text = tr("Pas de connexion : réessaie plus tard.")
+			discord_status.text = tr("Pas de connexion : réessaie plus tard.") + ("  [%s]" % discord.last_net if discord.last_net != "" else "")
 	discord_link_btn.disabled = discord.has_pet()
 	discord_code.editable = not discord.has_pet()
 
