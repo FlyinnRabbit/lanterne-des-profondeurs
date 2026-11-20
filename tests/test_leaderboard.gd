@@ -17,6 +17,16 @@ func _run() -> void:
 	await process_frame
 	paused = false
 	var main = current_scene
+	# classement du jour peuplé d'avance (serveur vierge) : 2 temps meilleurs que 240 s, 9 moins bons
+	var url := OS.get_environment("LANTERNE_LEADERBOARD_URL")
+	for i in 11:
+		var hr := HTTPRequest.new()
+		root.add_child(hr)
+		var body := JSON.stringify({"seed": gs.today_seed(), "diff": 1, "player_id": "%016x" % (0xb07000 + i),
+			"name": "Veilleur %d" % (i + 1), "time": 100.0 + i * 100.0 + (0.0 if i < 2 else 100.0), "version": "test"})
+		hr.request(url + "/score", ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+		await hr.request_completed
+		hr.queue_free()
 	# fin de Descente du jour simulée
 	gs.saved_seed = gs.run_seed
 	gs.run_seed = gs.today_seed()

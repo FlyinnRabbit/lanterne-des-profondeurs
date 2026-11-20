@@ -24,6 +24,15 @@ func _scene() -> void:
 	Engine.time_scale = 1.0
 	await _frames(5)
 func _find(main, ch: String) -> Vector2i:
+	if ch == "$T":
+		# salle au trésor : la cachette est sous une dalle fissurée (le coffre du caveau des leviers
+		# et celui de la chambre secrète ne comptent pas)
+		for y in range(2, main.MAP.size()):
+			var row: String = main.MAP[y]
+			for x in row.length():
+				if row[x] == "$" and x < (main.MAP[y - 2] as String).length() and main.MAP[y - 2][x] == "W":
+					return Vector2i(x, y)
+		return Vector2i(-1, -1)
 	for y in main.MAP.size():
 		var x: int = (main.MAP[y] as String).find(ch)
 		if x >= 0:
@@ -85,11 +94,11 @@ func _run() -> void:
 	await _frames(3)
 	await _shot("v17_minimap")
 	# --- salle au trésor
-	var c = await _level_with(gs, "$")
+	var c = await _level_with(gs, "$T")
 	main = current_scene
 	var lid = null
 	for n in main.get_children():
-		if n.get_script() == main.PlatformScript and n.kind == "breakable":
+		if n.get_script() == main.PlatformScript and n.kind == "breakable" and absf(n.position.x - c.x * 32) < 80:
 			lid = n
 	main.player.global_position = Vector2(lid.position.x + 16, lid.position.y - 18)
 	await _frames(10)

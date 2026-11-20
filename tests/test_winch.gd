@@ -48,6 +48,7 @@ func _run() -> void:
 			pl.global_position = w.position + Vector2(10, -18)
 			pl.velocity = Vector2.ZERO
 			await _f(30)
+			await process_frame   # appui entre deux images (sinon « just_pressed » peut être manqué)
 			Input.action_press("up")
 			await _f(2)
 			var grabbed: bool = pl.rope == w
@@ -64,12 +65,14 @@ func _run() -> void:
 			var down_ok := false
 			var mid_ok := false
 			if good:
+				await process_frame   # appui entre deux images (sinon « just_pressed » peut être manqué)
 				Input.action_press("down")
 				await _f(3)
 				var on_rope: bool = pl.rope == w
 				await _f(18)
 				Input.action_release("down")
 				var y_mid: float = pl.global_position.y
+				await process_frame   # appui entre deux images (sinon « just_pressed » peut être manqué)
 				Input.action_press("jump")
 				await _f(2)
 				Input.action_release("jump")
@@ -80,6 +83,7 @@ func _run() -> void:
 				pl.velocity = Vector2.ZERO
 				await _f(1)
 				main.call("_grab_winch", w, pl.global_position.y)
+				await process_frame   # appui entre deux images (sinon « just_pressed » peut être manqué)
 				Input.action_press("down")
 				var m := 0
 				while pl.rope != null and m < 1500:

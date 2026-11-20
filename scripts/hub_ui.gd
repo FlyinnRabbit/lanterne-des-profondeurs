@@ -826,7 +826,8 @@ func open_npc(kind: String) -> void:
 			for i in mini(GameState.record + 1, ELDER_LINES.size()):
 				lines.append(tr(ELDER_LINES[i]))
 			npc_text.text = "\n\n".join(lines.slice(maxi(lines.size() - 3, 0)))
-	Lore.hear(npc_name.text, npc_text.text)
+	# même nom que dans les Mémoires de l'Ancien (« L'ancien » ici, « L'Ancien » là-bas)
+	Lore.hear("L'Ancien" if npc_name.text == "L'ancien" else npc_name.text, npc_text.text)
 	var close := _npc_button("Fermer", close_all)
 	npc_scroll.custom_minimum_size.y = minf(npc_buttons.get_child_count() * 46.0, 420.0)
 	npc_scroll.scroll_vertical = 0

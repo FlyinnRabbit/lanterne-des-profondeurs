@@ -29,8 +29,23 @@ run_one() {
 	name="$(basename "$t" .gd)"
 	log="$OUT/$name.log"
 	start=$(date +%s)
-	timeout "$TIMEOUT" xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . \
-		--rendering-driver opengl3 --resolution 1280x720 --audio-driver Dummy -s "$t" >"$log" 2>&1
+	# chaque test a ses propres sauvegardes (dossier utilisateur vierge) : pas d'interférence
+	# entre tests lancés en parallèle ni de dépendance aux parties précédentes
+	export XDG_DATA_HOME="$OUT/data_$name"
+	mkdir -p "$XDG_DATA_HOME"
+	setsid timeout "$TIMEOUT" xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . \
+		--rendering-driver opengl3 --resolution 1280x720 --audio-driver Dummy -s "$t" >"$log" 2>&1 &
+	local pid=$!
+	# une erreur de script fige le test sans le quitter : on l'arrête tout de suite
+	while kill -0 $pid 2>/dev/null; do
+		if grep -q "SCRIPT ERROR" "$log" 2>/dev/null; then
+			sleep 2
+			kill -- -$pid 2>/dev/null
+			break
+		fi
+		sleep 2
+	done
+	wait $pid 2>/dev/null
 	code=$?
 	dur=$(( $(date +%s) - start ))
 	if [ $code -eq 124 ]; then verdict="DÉLAI"
@@ -41,6 +56,8 @@ run_one() {
 }
 export -f run_one
 export OUT GODOT TIMEOUT
+# les tests lisent les textes du jeu en français (la langue suit celle du système)
+export LANG=fr_FR.UTF-8 LC_ALL=fr_FR.UTF-8
 
 TESTS=()
 for t in tests/test_*.gd; do

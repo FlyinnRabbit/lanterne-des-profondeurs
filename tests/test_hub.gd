@@ -34,7 +34,9 @@ func _run() -> void:
 	main.hub_ui.open_elevator()
 	await _wait()
 	print("   ascenseur : ", main.hub_ui.lift_list.get_child_count(), " palier(s)")
-	main.hub_ui._descend(1)
+	# (l'écran animé de l'ascenseur est testé ailleurs : on lance la descente directement)
+	main.hub_ui.close_all()
+	gs.start_descent(1, main.player)
 	main = await _scene()
 	print("2. mode=", gs.mode, " palier ", gs.palier, " niveau ", gs.step, " : ", main.level["name"], " boss=", main.boss != null)
 	gs.go_next_level(main.player)
@@ -54,7 +56,10 @@ func _run() -> void:
 	main.player.geo += 500
 	gs.add_charm(5)
 	main.player.take_damage(99, main.player.global_position.x - 5)
-	await create_timer(2.5).timeout
+	for i in 1200:
+		await process_frame
+		if gs.mode == "hub" and current_scene != main and current_scene != null:
+			break
 	main = await _scene()
 	print("   après la mort : mode=", gs.mode, " geo=", main.player.geo, " (avant descente ", geo_before, ") emblème 5 perdu=", not gs.owns(5), " max_hp=", main.player.max_hp)
 	print("   message : ", main.hud.message.replace("\n", " / "))

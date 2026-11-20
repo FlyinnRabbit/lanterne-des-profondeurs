@@ -211,7 +211,8 @@ static func unlocked_count() -> int:
 # Journal des répliques des habitants : {nom: [répliques]}, sans doublons, ordre d'écoute.
 static func hear(who: String, line: String) -> void:
 	line = line.strip_edges()
-	if who == "" or line == "" or not line.begins_with("«"):
+	# une réplique commence par un guillemet, quelle que soit la langue (« », “ ”, „ “, ")
+	if who == "" or line == "" or not (line[0] in ["«", "“", "„", "\"", "»"]):
 		return
 	if not GameState.prog.has("talk"):
 		GameState.prog["talk"] = {}
