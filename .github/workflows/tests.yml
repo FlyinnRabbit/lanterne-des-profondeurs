@@ -1,0 +1,54 @@
+# Lance la suite de tests du jeu (tests/test_*.gd) à chaque push et sur demande.
+# Les tests tournent sous un écran virtuel (xvfb) : les écrans de menu et le rendu sont vérifiés.
+name: Tests
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Installer Godot 4.3 et xvfb
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri >/dev/null
+          cd "$RUNNER_TEMP"
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          mv Godot_v4.3-stable_linux.x86_64 godot && chmod +x godot
+
+      - name: Importer les ressources
+        run: timeout 600 xvfb-run -a "$RUNNER_TEMP/godot" --headless --path . --import >/dev/null 2>&1 || true
+
+      - name: Tests (part ${{ matrix.shard }} / 3)
+        env:
+          TEST_TIMEOUT: "900"
+          TEST_JOBS: "2"
+          SHARD: ${{ matrix.shard }}
+        run: |
+          chmod +x tools/run_tests.sh
+          # Répartit les tests entre les 3 parts : on passe un filtre vide et on retire les autres.
+          i=0; for t in tests/test_*.gd; do
+            [ $((i % 3)) -ne "$SHARD" ] && mv "$t" "$t.off"
+            i=$((i+1))
+          done
+          tools/run_tests.sh "$RUNNER_TEMP/godot"

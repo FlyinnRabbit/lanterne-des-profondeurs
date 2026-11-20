@@ -4,7 +4,7 @@ extends RefCounted
 # Accès : GameState.cos  (ce n'est PAS un autoload : un patch de mise à jour ne peut pas en ajouter).
 #
 # Obtention : "price" = vendu par la tailleuse ; "ach" = offert par un succès ;
-# "boss" = butin rare d'un boss ; "season" = vendu (ou offert) seulement pendant l'évènement.
+# "boss" = butin rare d'un boss ; "quest" = récompense d'une requête de l'Ancien ; "season" = vendu (ou offert) seulement pendant l'évènement.
 const Paths = preload("res://scripts/paths.gd")
 const DU = preload("res://scripts/draw_util.gd")
 const SAVE_NAME := "cosmetics.cfg"
@@ -25,6 +25,7 @@ const ITEMS := {
 	"cape_os": {"cat": "cape", "name": "Cape d'ivoire", "price": 120, "c": Color(0.72, 0.68, 0.58), "c2": Color(0.4, 0.36, 0.3)},
 	"cape_or": {"cat": "cape", "name": "Cape du Veilleur doré", "ach": "final", "c": Color(0.36, 0.25, 0.06), "c2": Color(1.0, 0.85, 0.45)},
 	"cape_nuit": {"cat": "cape", "name": "Cape de nuit étoilée", "ach": "finals4", "c": Color(0.04, 0.05, 0.16), "c2": Color(0.75, 0.85, 1.0), "stars": true},
+	"cape_champion": {"cat": "cape", "name": "Cape du champion", "quest": "q_elites", "c": Color(0.2, 0.03, 0.05), "c2": Color(1.0, 0.28, 0.22), "ember": true},
 	"cape_noel": {"cat": "cape", "name": "Cape de Noël", "price": 100, "season": "noel", "c": Color(0.65, 0.08, 0.08), "c2": Color(0.95, 0.95, 0.95)},
 	"cape_halloween": {"cat": "cape", "name": "Cape de la veillée", "price": 100, "season": "halloween", "c": Color(0.36, 0.17, 0.03), "c2": Color(0.1, 0.05, 0.12)},
 	"cape_rose": {"cat": "cape", "name": "Cape de roses", "price": 100, "season": "valentin", "c": Color(0.42, 0.12, 0.24), "c2": Color(0.95, 0.65, 0.75)},
@@ -36,6 +37,7 @@ const ITEMS := {
 	"scarf_blanche": {"cat": "scarf", "name": "Écharpe blanche", "price": 40, "c": Color(0.95, 0.95, 1.0), "c2": Color(0.6, 0.62, 0.72)},
 	"scarf_violette": {"cat": "scarf", "name": "Écharpe violette", "price": 40, "c": Color(0.75, 0.5, 1.0), "c2": Color(0.38, 0.2, 0.55)},
 	"scarf_braise": {"cat": "scarf", "name": "Écharpe de braise vive", "boss": "cerbere", "c": Color(1.0, 0.6, 0.2), "c2": Color(0.7, 0.15, 0.05), "glow": true},
+	"scarf_memoire": {"cat": "scarf", "name": "Écharpe de mémoire", "quest": "q_frag3", "c": Color(0.78, 0.66, 1.0), "c2": Color(0.36, 0.24, 0.62), "glow": true},
 	"scarf_guirlande": {"cat": "scarf", "name": "Guirlande lumineuse", "price": 60, "season": "noel", "c": Color(0.2, 0.55, 0.25), "c2": Color(0.1, 0.3, 0.14), "lights": true},
 	# --- couvre-chefs
 	"hat_none": {"cat": "hat", "name": "Capuche nue", "c": Color(0.3, 0.27, 0.42)},
@@ -45,6 +47,7 @@ const ITEMS := {
 	"hat_couronne": {"cat": "hat", "name": "Couronne d'or", "ach": "rich", "c": Color(1.0, 0.85, 0.4)},
 	"hat_aureole": {"cat": "hat", "name": "Auréole", "ach": "flawless", "c": Color(1.0, 0.95, 0.7)},
 	"hat_cornes": {"cat": "hat", "name": "Cornes d'os", "boss": "colosse", "c": Color(0.85, 0.82, 0.72)},
+	"hat_serments": {"cat": "hat", "name": "Diadème des dix serments", "quest": "q_guardians", "c": Color(1.0, 0.8, 0.45)},
 	"hat_bonnet": {"cat": "hat", "name": "Bonnet de Noël", "season": "noel", "gift": true, "c": Color(0.85, 0.12, 0.12)},
 	"hat_renne": {"cat": "hat", "name": "Bois de renne", "price": 120, "season": "noel", "c": Color(0.5, 0.33, 0.18)},
 	"hat_citrouille": {"cat": "hat", "name": "Citrouille creusée", "season": "halloween", "gift": true, "c": Color(0.95, 0.5, 0.1)},
@@ -57,6 +60,7 @@ const ITEMS := {
 	"trail_spectre": {"cat": "trail", "name": "Spectre", "price": 100, "c": Color(0.55, 1.0, 0.6), "c2": Color(0.15, 0.5, 0.3), "slash": Color(0.8, 1.0, 0.85)},
 	"trail_or": {"cat": "trail", "name": "Or pur", "ach": "crit50", "c": Color(1.0, 0.9, 0.5), "c2": Color(0.8, 0.6, 0.15), "slash": Color(1.0, 0.92, 0.6)},
 	"trail_regard": {"cat": "trail", "name": "Regard d'en dessous", "boss": "oeil", "c": Color(1.0, 0.3, 0.6), "c2": Color(0.5, 0.1, 0.4), "slash": Color(1.0, 0.75, 0.9)},
+	"trail_souvenir": {"cat": "trail", "name": "Souvenir retrouvé", "quest": "q_frag8", "c": Color(0.8, 0.7, 1.0), "c2": Color(0.45, 0.3, 0.75), "slash": Color(0.92, 0.88, 1.0)},
 	"trail_flocons": {"cat": "trail", "name": "Flocons", "price": 100, "season": "noel", "c": Color(0.9, 0.97, 1.0), "c2": Color(0.75, 0.85, 1.0), "slash": Color(0.92, 0.97, 1.0), "snow": true},
 	"trail_coeurs": {"cat": "trail", "name": "Cœur battant", "price": 100, "season": "valentin", "c": Color(1.0, 0.45, 0.6), "c2": Color(0.7, 0.2, 0.4), "slash": Color(1.0, 0.8, 0.88)},
 	"trail_citrouille": {"cat": "trail", "name": "Feu de citrouille", "price": 100, "season": "halloween", "c": Color(1.0, 0.6, 0.15), "c2": Color(0.35, 0.15, 0.45), "slash": Color(1.0, 0.85, 0.65)},
@@ -68,6 +72,7 @@ const ITEMS := {
 	"pet_lanterne": {"cat": "pet", "name": "Petite lanterne", "ach": "palier6", "c": Color(1.0, 0.8, 0.45)},
 	"pet_guepe": {"cat": "pet", "name": "Guêpe de la Reine", "boss": "reine", "c": Color(1.0, 0.8, 0.2)},
 	"pet_neon": {"cat": "pet", "name": "Tube néon", "discord": true, "c": Color(1.0, 0.3, 0.75), "c2": Color(0.25, 0.95, 1.0)},
+	"pet_page": {"cat": "pet", "name": "Page vagabonde", "quest": "q_bestiary", "c": Color(0.95, 0.9, 0.75)},
 	"pet_flocon": {"cat": "pet", "name": "Flocon vivant", "price": 120, "season": "noel", "c": Color(0.9, 0.97, 1.0)},
 	"pet_chauvesouris": {"cat": "pet", "name": "Chauve-souris", "price": 120, "season": "halloween", "c": Color(0.6, 0.45, 0.8)},
 	"pet_coeur": {"cat": "pet", "name": "Petit cœur", "price": 120, "season": "valentin", "c": Color(1.0, 0.45, 0.6)},
@@ -168,6 +173,13 @@ func for_achievement(ach: String) -> Array:
 	var out := []
 	for id in ITEMS:
 		if ITEMS[id].get("ach", "") == ach:
+			out.append(id)
+	return out
+
+func for_quest(q: String) -> Array:
+	var out := []
+	for id in ITEMS:
+		if ITEMS[id].get("quest", "") == q:
 			out.append(id)
 	return out
 
@@ -315,6 +327,10 @@ func draw_hero(ci: CanvasItem, bob: float, sway: float, anim_t: float, sitting: 
 			var sp := Vector2(-8.0 + fposmod(i * 7.3, 17.0), -22.0 + fposmod(i * 5.1, 17.0) + bob * 0.5)
 			var tw := 0.4 + 0.6 * absf(sin(anim_t * 2.0 + i * 1.7))
 			ci.draw_circle(sp, 0.9, Color(1.0, 1.0, 0.9, tw))
+	if cp.get("ember", false):
+		# liseré rouge des élites : il pulse le long de l'ourlet
+		var pul := 0.45 + 0.35 * sin(anim_t * 3.0)
+		ci.draw_polyline(PackedVector2Array([Vector2(12, -3), Vector2(8, 0), Vector2(4, -4 + sway * 0.3), Vector2(0, 0), Vector2(-4, -4 - sway * 0.3), Vector2(-8, 0), Vector2(-13, -3)]), Color(cp["c2"], pul * 0.35), 4.0)
 	if shown("cape") == "cape_noel":
 		ci.draw_polyline(PackedVector2Array([Vector2(12, -3), Vector2(8, 0), Vector2(4, -4 + sway * 0.3), Vector2(0, 0), Vector2(-4, -4 - sway * 0.3), Vector2(-8, 0), Vector2(-13, -3)]), Color(0.97, 0.97, 0.97), 3.0)
 	else:
@@ -424,6 +440,18 @@ func draw_hat(ci: CanvasItem, id: String, hy: float, sway: float, anim_t: float)
 				ci.draw_line(b3, tip3, fur, 5.0)
 				ci.draw_circle(tip3, 2.5, fur)
 				ci.draw_line(b3 + Vector2(0, -3), tip3 + Vector2(0, 3), Color(0.95, 0.65, 0.72), 2.0)
+		"hat_serments":
+			# diadème d'or : dix petites flammes, une par gardien délivré
+			var gold := Color(0.78, 0.6, 0.22)
+			ci.draw_arc(Vector2(1, hy - 7), 11.0, PI * 1.12, PI * 1.88, 14, gold, 2.2)
+			for i in 10:
+				var a := PI * 1.15 + i * (PI * 0.7 / 9.0)
+				var b := Vector2(1, hy - 7) + Vector2.from_angle(a) * 11.0
+				var h := 3.5 + (1.5 if i in [4, 5] else 0.0) + sin(anim_t * 7.0 + i * 1.3) * 0.7
+				var tipf := b + Vector2.from_angle(a) * h
+				var fc := Color(1.0, 0.85, 0.45) if i % 2 == 0 else Color(0.8, 0.7, 1.0)
+				ci.draw_circle(b, 1.6, Color(fc, 0.25))
+				DU.flat(ci, PackedVector2Array([b + Vector2.from_angle(a + PI / 2) * 1.2, tipf, b - Vector2.from_angle(a + PI / 2) * 1.2]), fc)
 		"hat_renne":
 			var br := Color(0.5, 0.33, 0.18)
 			for s in [-1.0, 1.0]:

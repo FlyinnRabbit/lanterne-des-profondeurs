@@ -116,6 +116,19 @@ static func draw_pet(ci: CanvasItem, kind: String, c: Color, t: float, base := T
 			ci.draw_circle(Vector2(4.2, -7 - hop2), 0.8, Color(0.1, 0.08, 0.05))
 			ci.draw_line(Vector2(-1, 5 - hop2), Vector2(-1, 8), Color(1.0, 0.55, 0.15), 1.2)
 			ci.draw_line(Vector2(2, 5 - hop2), Vector2(2, 8), Color(1.0, 0.55, 0.15), 1.2)
+		"pet_page":
+			# page arrachée au Grimoire, qui volette en se pliant
+			var fold := sin(t * 6.0)
+			DU.glow(ci, Vector2.ZERO, 12.0, Color(0.85, 0.75, 1.0), 0.2)
+			var ink := Color(0.35, 0.28, 0.4)
+			for s in [-1.0, 1.0]:
+				var pg := PackedVector2Array([Vector2(0, -6), Vector2(s * 8.0 * (0.55 + 0.45 * absf(fold)), -6 - fold * s * 1.5), Vector2(s * 8.0 * (0.55 + 0.45 * absf(fold)), 5 - fold * s * 1.5), Vector2(0, 5)])
+				ci.draw_colored_polygon(pg, c if s > 0 else c.darkened(0.12))
+				for k in 3:
+					var yy := -3.0 + k * 2.6
+					ci.draw_line(Vector2(s * 1.5, yy), Vector2(s * 6.0 * (0.55 + 0.45 * absf(fold)), yy - fold * s * 1.0), Color(ink, 0.6), 0.8)
+			ci.draw_line(Vector2(0, -6), Vector2(0, 5), c.darkened(0.35), 1.2)
+			ci.draw_circle(Vector2(0, -0.5), 1.6, Color(1.0, 0.75, 0.35))
 		"pet_flocon":
 			DU.glow(ci, Vector2.ZERO, 14.0, c, 0.3)
 			for j in 3:

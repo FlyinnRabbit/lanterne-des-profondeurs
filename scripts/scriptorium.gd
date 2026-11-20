@@ -34,11 +34,14 @@ const PAGES := ["Statistiques de la partie", "Records", "Bestiaire", "Gardiens",
 const TABS := ["Statistiques", "Records", "Bestiaire", "Gardiens", "Emblèmes"]
 const PAGE_SUBS := ["tout depuis la création de ta sauvegarde", "tes meilleurs exploits", "les créatures vaincues", "les boss vaincus", "ta collection"]
 
-const MOBS := ["crawler", "flyer", "spitter", "hopper", "guard", "bomber", "weaver", "lancer", "wraith", "monkey", "mimic", "moth", "mole", "slime", "scorpion", "goblin"]
+const MOBS := ["crawler", "flyer", "spitter", "hopper", "guard", "bomber", "weaver", "lancer", "wraith", "monkey", "mimic", "moth", "mole", "slime", "scorpion", "goblin",
+	"angler", "puffball", "drowned", "turtle", "imp", "tome", "golem", "skeleton"]
 const MOB_NAMES := {"crawler": "Rampant", "flyer": "Volant", "spitter": "Cracheur", "hopper": "Sauteur", "guard": "Garde",
 	"bomber": "Bulbe", "weaver": "Tisseuse", "lancer": "Lancier", "wraith": "Spectre",
 	"monkey": "Singe", "mimic": "Mimique", "moth": "Mite", "mole": "Taupe",
-	"slime": "Slime", "scorpion": "Scorpion", "goblin": "Gobelin"}
+	"slime": "Slime", "scorpion": "Scorpion", "goblin": "Gobelin",
+	"angler": "Baudroie", "puffball": "Vesse-de-loup", "drowned": "Noyé", "turtle": "Tortue de cristal",
+	"imp": "Diablotin de braise", "tome": "Grimoire volant", "golem": "Golem de givre", "skeleton": "Squelette"}
 const MOB_DESC := {
 	"crawler": "Patrouille au sol ; quand il te voit, il se ramasse puis charge tête baissée.",
 	"flyer": "Tourne en l'air puis plonge droit sur toi.",
@@ -55,7 +58,15 @@ const MOB_DESC := {
 	"mole": "Creuse sous le sol jusqu'à toi, puis jaillit sous tes pieds.",
 	"slime": "Avance par bonds écrasés ; tué, il se divise en deux petits slimes.",
 	"scorpion": "Arme son dard puis pique en avant : le venin te coûte un masque de plus un peu après.",
-	"goblin": "Lance des dagues de loin, frappe deux fois de près, et s'enfuit quand il faiblit."}
+	"goblin": "Lance des dagues de loin, frappe deux fois de près, et s'enfuit quand il faiblit.",
+	"angler": "Poisson des grottes au leurre lumineux : il dérive, ouvre la gueule, puis fonce sur toi.",
+	"puffball": "Champignon boursouflé qui se dandine vers toi, gonfle puis éclate en nuage de spores.",
+	"drowned": "Sort d'une flaque quand tu approches et t'agrippe de ses bras ruisselants.",
+	"turtle": "Sa carapace de cristal renvoie les coups portés de face ; elle charge tête baissée.",
+	"imp": "Sautille à distance et lance des boules de braise en cloche.",
+	"tome": "Livre maudit qui flotte à distance et lâche des volées de pages tranchantes.",
+	"golem": "Lent et lourd : il frappe le sol et une onde de givre court au ras du sol.",
+	"skeleton": "Frappe de son glaive ; abattu, il s'effondre… et se relève."}
 const MOB_TIPS := {
 	"crawler": "Un rebond sur sa carapace l'arrête net.",
 	"flyer": "Recule au moment du piqué, puis frappe vers le haut.",
@@ -72,7 +83,15 @@ const MOB_TIPS := {
 	"mole": "Écarte-toi quand le sol se fissure, puis frappe-la pendant qu'elle est sortie.",
 	"slime": "Un rebond dessus l'écrase net ; garde de la place pour ses petits.",
 	"scorpion": "Ses pinces parent les coups bas : frappe-le de dessus. Repose-toi pour chasser le venin.",
-	"goblin": "Pare ses dagues pour les lui renvoyer ; s'il fuit, achève-le avant qu'il ne revienne."}
+	"goblin": "Pare ses dagues pour les lui renvoyer ; s'il fuit, achève-le avant qu'il ne revienne.",
+	"angler": "Quand sa gueule s'ouvre, écarte-toi : après sa charge, il est à ta merci.",
+	"puffball": "Tue-le avant qu'il n'éclate, ou recule dès qu'il gonfle.",
+	"drowned": "Une flaque qui frémit cache un Noyé : frappe-le dès qu'il sort.",
+	"turtle": "Frappe-la par-derrière ou de dessus, ou pare sa charge pour la retourner.",
+	"imp": "Ses braises suivent une cloche : fonce sous la trajectoire.",
+	"tome": "Pare ou détruis ses pages, puis saute le frapper pendant qu'il recharge.",
+	"golem": "Saute par-dessus l'onde de givre ; frappe-le pendant qu'il relève les poings.",
+	"skeleton": "Frappe le tas d'os avant qu'il ne se relève."}
 
 const BOSSES := ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre", "cerbere", "centaure", "oeil"]
 const BOSS_NAMES := {"gardien": "Le Gardien du Puits", "abbesse": "L'Abbesse Engloutie", "reine": "La Reine Essaim",

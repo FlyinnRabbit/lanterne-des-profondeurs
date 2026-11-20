@@ -32,6 +32,10 @@ func _elder_unread() -> bool:
 
 func _draw() -> void:
 	match kind:
+		"lever":
+			_draw_lever()
+		"lever_plaque":
+			_draw_plaque()
 		"tailor":
 			_draw_tailor()
 		"fete":
@@ -70,6 +74,18 @@ func _draw() -> void:
 			for i in 3:
 				var a := t * 2.0 + i * TAU / 3.0
 				DU.ball(self, Vector2(cos(a) * 22.0, y + sin(a) * 8.0), 2.0, Color(0.7, 0.95, 1.0))
+		"memory":
+			# fragment de mémoire : éclat de verre de la Lanterne où tourne un souvenir violet
+			var y := -26.0 + sin(t * 2.0) * 4.0
+			DU.glow(self, Vector2(0, y), 30.0, Color(0.7, 0.55, 1.0), 0.35)
+			var pts := PackedVector2Array([Vector2(0, y - 12), Vector2(7, y - 2), Vector2(3, y + 11), Vector2(-6, y + 6), Vector2(-7, y - 4)])
+			DU.flat(self, pts, Color(0.62, 0.5, 0.95, 0.85))
+			draw_polyline(pts + PackedVector2Array([pts[0]]), Color(0.95, 0.9, 1.0, 0.8), 1.2)
+			for i in 3:
+				var a := t * 1.6 + i * TAU / 3.0
+				draw_circle(Vector2(cos(a) * 3.0, y + sin(a) * 4.0), 1.3, Color(1, 0.95, 1.0, 0.9))
+			# socle de pierre
+			DU.flat(self, PackedVector2Array([Vector2(-10, 0), Vector2(-7, -6), Vector2(7, -6), Vector2(10, 0)]), Color(0.3, 0.27, 0.33))
 		"door":
 			_door()
 		"charm":
@@ -1465,3 +1481,49 @@ func _draw_owl(c: Vector2) -> void:
 	draw_line(h + Vector2(-0.4, 0.5), h + Vector2(0.4, 0.5), gold, 1.0)
 	DU.flat(self, PackedVector2Array([h + Vector2(-1.5, 3.5), h + Vector2(1.5, 3.5), h + Vector2(0, 6.5)]), Color(0.85, 0.65, 0.3))
 
+
+# ---------------------------------------------------------------- salle des leviers
+const RUNE_COLS := [Color(0.55, 0.85, 1.0), Color(1.0, 0.72, 0.4), Color(0.75, 1.0, 0.6)]
+
+func _rune(c: Vector2, r: int, sz: float, col: Color, w := 2.2) -> void:
+	match r:
+		0:   # triangle
+			draw_polyline(PackedVector2Array([c + Vector2(0, -sz), c + Vector2(sz * 0.9, sz * 0.7), c + Vector2(-sz * 0.9, sz * 0.7), c + Vector2(0, -sz)]), col, w)
+		1:   # cercle pointé
+			draw_arc(c, sz * 0.85, 0.0, TAU, 18, col, w)
+			draw_circle(c, w * 0.9, col)
+		2:   # losange barré
+			draw_polyline(PackedVector2Array([c + Vector2(0, -sz), c + Vector2(sz, 0), c + Vector2(0, sz), c + Vector2(-sz, 0), c + Vector2(0, -sz)]), col, w)
+			draw_line(c + Vector2(-sz * 0.5, 0), c + Vector2(sz * 0.5, 0), col, w)
+
+func _draw_lever() -> void:
+	var r: int = get_meta("rune", 0)
+	var st := Color(0.42, 0.4, 0.45)
+	# socle de pierre gravé de la rune
+	DU.box(self, Rect2(-14, -22, 28, 22), st)
+	DU.box(self, Rect2(-16, -25, 32, 5), st.lightened(0.15))
+	var rc: Color = RUNE_COLS[r]
+	var glow := 1.0 if lit else 0.45 + 0.15 * sin(t * 2.5 + r)
+	_rune(Vector2(0, -11), r, 6.0, Color(rc.r, rc.g, rc.b, glow))
+	if lit:
+		DU.ball(self, Vector2(0, -11), 13.0, Color(rc.r, rc.g, rc.b, 0.18))
+	# manche : levé (penché à gauche) ou abaissé (penché à droite)
+	var a := deg_to_rad(35.0 if lit else -35.0)
+	var tip := Vector2(0, -25) + Vector2(sin(a), -cos(a)) * 30.0
+	draw_line(Vector2(0, -25), tip, Color(0.22, 0.2, 0.22), 5.0)
+	draw_line(Vector2(0, -25), tip, Color(0.55, 0.5, 0.48), 3.0)
+	DU.ball(self, tip, 5.0, Color(0.7, 0.25, 0.2) if not lit else rc)
+	DU.ball(self, Vector2(0, -25), 4.0, Color(0.3, 0.28, 0.3))
+
+func _draw_plaque() -> void:
+	var order: Array = get_meta("order", [0, 1, 2])
+	var st := Color(0.5, 0.47, 0.5)
+	var rr := Rect2(-34, -24, 68, 22)
+	DU.box(self, rr.grow(3), st.darkened(0.35))
+	DU.box(self, rr, st)
+	for i in order.size():
+		var rc: Color = RUNE_COLS[int(order[i])]
+		var a := 1.0 if lit else 0.6 + 0.25 * sin(t * 2.0 + i * 0.8)
+		_rune(Vector2(-21 + i * 21, -13), int(order[i]), 6.0, Color(rc.r, rc.g, rc.b, a), 2.0)
+		if i < order.size() - 1:
+			draw_circle(Vector2(-10.5 + i * 21, -13), 1.5, st.darkened(0.4))

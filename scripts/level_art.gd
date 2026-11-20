@@ -47,6 +47,8 @@ func _ready() -> void:
 			fg.art = self
 			fg.z_index = 40
 			add_child(fg)
+		if int(Settings.gfx_quality) <= 1:
+			_decor_lights()
 		return
 	biome = String(main.pal.get("id", "profondeurs"))
 	_compute_depth()
@@ -83,9 +85,13 @@ func _ready() -> void:
 func redraw_all() -> void:
 	for ch in chunks:
 		ch.queue_redraw()
+		for k in ch.get_children():
+			if k is CanvasItem:
+				k.queue_redraw()
 
 func _cell(x: int, y: int) -> bool:
-	return main.solid.has(Vector2i(x, y))
+	var c := Vector2i(x, y)
+	return main.solid.has(c) or main.veiled.has(c)
 
 func _hash(x: int, y: int) -> float:
 	return fposmod(sin(x * 12.9898 + y * 78.233) * 43758.5453, 1.0)
@@ -94,12 +100,12 @@ func _compute_depth() -> void:
 	var q: Array[Vector2i] = []
 	var w: int = main.map_size.x
 	var h: int = main.map_size.y
-	for c in main.solid.keys():
+	for c in main.solid.keys() + main.veiled.keys():
 		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 			var n: Vector2i = c + d
 			if n.x < 0 or n.y < 0 or n.x >= w or n.y >= h:
 				continue
-			if not main.solid.has(n):
+			if not main.solid.has(n) and not main.veiled.has(n):
 				depth[c] = 0
 				q.append(c)
 				break
@@ -112,7 +118,7 @@ func _compute_depth() -> void:
 			continue
 		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 			var n: Vector2i = c + d
-			if main.solid.has(n) and not depth.has(n):
+			if (main.solid.has(n) or main.veiled.has(n)) and not depth.has(n):
 				depth[n] = dc + 1
 				q.append(n)
 
@@ -125,7 +131,7 @@ func _corner(x: int, y: int, rock: Color, deep: Color) -> Color:
 	var n := 0
 	for d in [Vector2i(-1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 0)]:
 		var c := Vector2i(x + d.x, y + d.y)
-		if main.solid.has(c):
+		if main.solid.has(c) or main.veiled.has(c):
 			s += _depth_at(c.x, c.y)
 			n += 1
 	var k := clampf((s / maxf(n, 1)) / 6.0, 0.0, 1.0)
@@ -252,6 +258,45 @@ func _draw() -> void:
 			_jag_outline(p0 + Vector2(T, T), p0 + Vector2(0, T), Vector2(0, 1), JAG_CEIL, false)
 		_wear(r, h, x, y, up, down, left, right)
 	_spikes()
+
+# ---------------------------------------------------------------- lumières du décor
+# Ce qui brille dans le décor éclaire vraiment autour de lui : champignons lumineux, bougies,
+# cristaux, braises, gros cristaux de premier plan. Mêmes tirages que le dessin (même case,
+# même hasard), au plus quelques lumières par tranche.
+func _decor_lights() -> void:
+	var T: int = main.TILE
+	var n := 0
+	for c in cells:
+		if n >= 4:
+			break
+		var x: int = c.x
+		var y: int = c.y
+		if _cell(x, y - 1):
+			continue
+		var h := _hash(x, y)
+		var h2 := _hash(x + 31, y - 17)
+		var g := Vector2(x * T + 6 + h * (T - 12), y * T)
+		var col := Color(0, 0, 0, 0)
+		var sc := 0.45
+		if h2 > 0.36 and h2 <= 0.5 and biome in ["profondeurs", "jardins"]:
+			col = Color(0.5, 0.8, 1.0) if biome == "profondeurs" else Color(0.6, 1.0, 0.55)
+		elif h2 > 0.5 and h2 <= 0.78 and biome == "citadelle":
+			col = Color(1.0, 0.75, 0.4)
+		elif h2 > 0.5 and h2 <= 0.78 and biome in ["cristal", "glace"]:
+			col = main.pal["moss"] if biome == "cristal" else Color(0.6, 0.85, 1.0)
+		elif h2 > 0.36 and h2 <= 0.5 and biome == "forge" and h > 0.45:
+			col = Color(1.0, 0.5, 0.15)
+		# gros cristaux et scories du premier plan
+		var hf := _hash(x * 3 + 11, y * 5 - 3)
+		if hf > 0.86 and x >= 18 and biome in ["cristal", "forge"] and not _cell(x, y - 2):
+			col = main.pal["moss"] if biome == "cristal" else Color(1.0, 0.45, 0.12)
+			g = Vector2(x * T + 6 + _hash(x, y + 77) * (T - 12), y * T - 18)
+			sc = 0.8
+		if col.a == 0.0:
+			continue
+		var l: PointLight2D = main.make_light(col, sc, 0.55, g + Vector2(0, -8))
+		add_child(l)
+		n += 1
 
 # ---------------------------------------------------------------- usure : fissures, coins ébréchés, éboulis
 func _wear(r: Rect2, h: float, x: int, y: int, up: bool, down: bool, left: bool, right: bool) -> void:

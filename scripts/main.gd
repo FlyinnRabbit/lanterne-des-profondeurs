@@ -61,6 +61,14 @@ const MothScript = preload("res://scripts/moth.gd")
 const MoleScript = preload("res://scripts/mole.gd")
 const SlimeScript = preload("res://scripts/slime.gd")
 const ScorpionScript = preload("res://scripts/scorpion.gd")
+const AnglerScript = preload("res://scripts/angler.gd")
+const PuffballScript = preload("res://scripts/puffball.gd")
+const DrownedScript = preload("res://scripts/drowned.gd")
+const TurtleScript = preload("res://scripts/turtle.gd")
+const ImpScript = preload("res://scripts/imp.gd")
+const TomeScript = preload("res://scripts/tome.gd")
+const GolemScript = preload("res://scripts/golem.gd")
+const SkeletonScript = preload("res://scripts/skeleton.gd")
 const GoblinScript = preload("res://scripts/goblin.gd")
 const LancerScript = preload("res://scripts/lancer.gd")
 const WraithScript = preload("res://scripts/wraith.gd")
@@ -108,6 +116,15 @@ var challenge_goal = null
 var challenge_t := 0.0
 var challenge_done := false
 var altar_foes := []
+var breakable_cells := {}   # case → dalle fissurée
+var veiled := {}            # cases cachées sous un voile de roche (comptent comme roche pour l'ombrage)
+var memory_cells := []      # cases des fragments de mémoire (chambres secrètes à voiler)
+var levers := []          # salle des leviers : props « lever » (meta rune / ordre)
+var lever_order := []     # runes dans l'ordre à tirer (montré sur la plaque)
+var lever_done := []      # runes déjà tirées
+var lever_gate            # herse du caveau
+var lever_key := ""
+var lever_reset_t := 0.0
 var altar_state := ""     # "" / "fight" / "done"
 var explored := PackedByteArray()   # cases découvertes (carte)
 var _reveal_t := 0.0
@@ -136,6 +153,7 @@ func _ready() -> void:
 	light_tex = DU.radial_texture()
 	_build_level()
 	_spawn_everything()
+	_veil_secrets()
 	_make_winches()
 	_spawn_shade()
 	_setup_camera_and_fx()
@@ -200,6 +218,7 @@ func _ready() -> void:
 			tr("  (boss)") if GameState.is_boss_level() else "", tr(level["name"]), GameState.diff_name()] + cur, 3.5)
 	GameState.pending_message = ""
 	Audio.play_playlist(level.get("music", []))
+	Audio.play_ambience("hub" if GameState.is_hub() else String(pal.get("id", "")))
 	if GameState.show_title:
 		LoadingScript.launch(get_tree())     # écran de lancement animé (une seule fois)
 		menu.open_title()
@@ -211,7 +230,7 @@ func _build_level() -> void:
 	for row in MAP:
 		w = maxi(w, (row as String).length())
 	map_size = Vector2i(w, h)
-	var gate_cells := {"Y": [], "X": []}
+	var gate_cells := {"Y": [], "X": [], "9": []}
 	for y in h:
 		var row: String = MAP[y]
 		for x in w:
@@ -221,7 +240,7 @@ func _build_level() -> void:
 					solid[Vector2i(x, y)] = true
 				"^":
 					spikes.append(Rect2(x * TILE + 3, y * TILE + 12, TILE - 6, TILE - 12))
-				"Y", "X":
+				"Y", "X", "9":
 					gate_cells[ch].append(Vector2i(x, y))
 	# Collisions : fusion gloutonne des cases en grands rectangles.
 	var body := StaticBody2D.new()
@@ -272,6 +291,26 @@ func _build_level() -> void:
 	# Grilles de l'arène
 	entry_gate = _make_gate(gate_cells["Y"], false)
 	exit_gate = _make_gate(gate_cells["X"], true)
+	if not gate_cells["9"].is_empty():
+		var c0: Vector2i = gate_cells["9"][0]
+		lever_key = "%d-%d-%d#%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, c0.x, c0.y]
+		var solved := GameState.mode == "descent" and GameState.is_collected(lever_key)
+		lever_gate = _make_gate(gate_cells["9"], not solved)
+		var lr := RandomNumberGenerator.new()
+		lr.seed = hash(lever_key)
+		lever_order = [0, 1, 2]
+		for i in range(2, 0, -1):
+			var j := lr.randi_range(0, i)
+			var tmp = lever_order[i]
+			lever_order[i] = lever_order[j]
+			lever_order[j] = tmp
+		var top := 99999
+		for c in gate_cells["9"]:
+			top = mini(top, c.y)
+		var plq = _make_prop("lever_plaque", Vector2(c0.x * TILE + TILE / 2.0, top * TILE - 4), Color(0.6, 0.85, 1.0), 0.9)
+		plq.set_meta("order", lever_order)
+		plq.lit = solved
+		levers.append(plq)
 
 func _make_gate(cells: Array, closed: bool):
 	if cells.is_empty():
@@ -422,18 +461,30 @@ func _spawn_everything() -> void:
 					var mp = _make_prop("merchant", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.5), 2.5)
 					interactables.append([mp, "merchant"])
 				"W":
-					_make_platform("breakable", Vector2(x * TILE, y * TILE), Vector2(TILE, TILE))
+					breakable_cells[Vector2i(x, y)] = _make_platform("breakable", Vector2(x * TILE, y * TILE), Vector2(TILE, TILE))
 				"$":
 					var gkey := "%d-%d-%d$%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, x, y]
 					if not GameState.is_collected(gkey):
 						var cp2 = _make_prop("cache", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.85, 0.4), 1.8)
 						pickups.append([cp2, "geo", gkey])
+				"|":
+					# fragment de mémoire (chambre secrète) : l'Ancien en fait des souvenirs
+					var mkey := "%d-%d-%d|%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, x, y]
+					if not GameState.is_collected(mkey):
+						var mp2 = _make_prop("memory", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(0.75, 0.65, 1.0), 1.4)
+						pickups.append([mp2, "memory", mkey])
+					memory_cells.append(Vector2i(x, y))
 				"S":
 					challenge_start = _make_prop("challenge", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.75, 0.35), 2.0)
 					challenge_key = "%d-%d-%d~%d,%d" % [GameState.run_seed, GameState.palier, GameState.step, x, y]
 					if GameState.mode == "descent" and GameState.is_collected(challenge_key):
 						challenge_done = true     # défi déjà réussi lors d'un passage précédent
 						challenge_start.lit = true
+				"0":
+					var lv = _make_prop("lever", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(0.6, 0.85, 1.0), 0.6)
+					lv.set_meta("rune", levers.filter(func(o): return o.kind == "lever").size())
+					levers.append(lv)
+					interactables.append([lv, "lever"])
 				"G":
 					challenge_goal = _make_prop("flag", Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.75, 0.35), 2.0)
 				"F", "J", "I", "]":
@@ -561,6 +612,22 @@ func _spawn_everything() -> void:
 					var nm := 2 + int(fposmod(float(x * 7 + y * 3), 2.0))
 					for k in nm:
 						enemy_spawns.append([MothScript, Vector2(x * TILE + 16 + (k - 1) * 22, y * TILE + 16 + (k % 2) * 14), null, _roll_elite(x + k, y)])
+				"<":
+					enemy_spawns.append([AnglerScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
+				"?":
+					enemy_spawns.append([TomeScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
+				";":
+					enemy_spawns.append([PuffballScript, _cell_feet(x, y, 24), null, _roll_elite(x, y)])
+				">":
+					enemy_spawns.append([DrownedScript, _cell_feet(x, y, 40), null, _roll_elite(x, y)])
+				"=":
+					enemy_spawns.append([TurtleScript, _cell_feet(x, y, 24), null, _roll_elite(x, y)])
+				"!":
+					enemy_spawns.append([ImpScript, _cell_feet(x, y, 24), null, _roll_elite(x, y)])
+				":":
+					enemy_spawns.append([GolemScript, _cell_feet(x, y, 42), null, _roll_elite(x, y)])
+				"/":
+					enemy_spawns.append([SkeletonScript, _cell_feet(x, y, 40), null, _roll_elite(x, y)])
 				"r":
 					enemy_spawns.append([WraithScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
 				"K", "Q":
@@ -617,6 +684,8 @@ func _do_interact(it: Array) -> void:
 		hub_ui.open_arsenal()
 	elif it[1] == "altar":
 		_start_altar(it[0])
+	elif it[1] == "lever":
+		_pull_lever(it[0])
 	elif it[1] == "elder":
 		elder_ui.open()
 	elif it[1] in ["smith", "cartographer", "jeweler"]:
@@ -692,7 +761,7 @@ func _make_prop(kind: String, pos: Vector2, light_color: Color, light_scale: flo
 	p.kind = kind
 	p.position = pos
 	add_child(p)
-	p.add_child(make_light(light_color, light_scale, 0.9, Vector2(0, -24) if kind != "orb" else Vector2.ZERO))
+	p.add_child(make_light(light_color, light_scale, 0.9, Vector2(0, -24) if kind != "orb" else Vector2.ZERO, kind == "bench"))
 	return p
 
 func respawn_enemies() -> void:
@@ -706,7 +775,7 @@ func respawn_enemies() -> void:
 			add_child(e)
 			s[2] = e
 
-func make_light(color: Color, sc: float, energy: float, offset: Vector2 = Vector2.ZERO) -> PointLight2D:
+func make_light(color: Color, sc: float, energy: float, offset: Vector2 = Vector2.ZERO, shadows := false) -> PointLight2D:
 	var l := PointLight2D.new()
 	l.texture = light_tex
 	l.color = color
@@ -757,7 +826,7 @@ func _setup_camera_and_fx() -> void:
 	dust.scale_amount_max = 2.5
 	dust.color = pal["dust"]
 	camera.add_child(dust)
-	player.add_child(make_light(pal.get("light", Color(1.0, 0.85, 0.6)), 1.3 if GameState.curse == "dark" and GameState.mode == "descent" else 2.2, 1.0 if GameState.curse == "dark" else 0.85, Vector2(0, -10)))
+	player.add_child(make_light(pal.get("light", Color(1.0, 0.85, 0.6)), 1.3 if GameState.curse == "dark" and GameState.mode == "descent" else 2.2, 1.0 if GameState.curse == "dark" else 0.85, Vector2(0, -10), true))
 	var pet := Node2D.new()
 	pet.set_script(preload("res://scripts/pet.gd"))
 	pet.main = self
@@ -816,6 +885,90 @@ func _update_rooms(delta: float) -> void:
 func _mark_collected(key: String) -> void:
 	if key != "" and GameState.mode == "descent" and not GameState.is_collected(key):
 		GameState.prog["collected"].append(key)
+
+# Salle des leviers : tirer les trois leviers dans l'ordre des runes de la plaque.
+# Une erreur : les leviers se relèvent ; le bon ordre ouvre la herse du caveau.
+# Chambres secrètes : un voile de roche cache la chambre (remplissage depuis le fragment, fermé
+# par la roche et les dalles fissurées) jusqu'à ce que la dalle cède ou que le héros y entre.
+func _veil_secrets() -> void:
+	for start in memory_cells:
+		var seen := {start: true}
+		var todo: Array = [start]
+		var walls := []
+		var ok := true
+		while not todo.is_empty() and ok:
+			var c: Vector2i = todo.pop_back()
+			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var n: Vector2i = c + d
+				if seen.has(n) or solid.has(n):
+					continue
+				if breakable_cells.has(n):
+					if not breakable_cells[n] in walls:
+						walls.append(breakable_cells[n])
+					continue
+				if n.x < 0 or n.y < 0 or n.x >= map_size.x or n.y >= map_size.y:
+					ok = false
+					break
+				seen[n] = true
+				todo.append(n)
+				if seen.size() > 90:
+					ok = false
+		if not ok or walls.is_empty():
+			continue
+		for c in seen:
+			veiled[c] = true
+		var v := Node2D.new()
+		v.set_script(preload("res://scripts/secret_veil.gd"))
+		v.main = self
+		v.cells = seen.keys()
+		v.walls = walls
+		add_child(v)
+	if not veiled.is_empty():
+		for n in get_children():
+			if n is Node2D and n.get_script() == LevelArtScript and not n.is_chunk:
+				n.depth.clear()
+				n._compute_depth()
+				n.redraw_all()
+				for v in get_children():
+					if v.has_method("set_art"):
+						v.set_art(n)
+
+func _pull_lever(lv) -> void:
+	if lv.lit or lever_reset_t > 0.0 or lever_gate == null or not lever_gate.closed:
+		return
+	lv.lit = true
+	var rune: int = lv.get_meta("rune")
+	lever_done.append(rune)
+	Audio.sfx("door", 0.1, -6.0)
+	shake(3)
+	if rune != lever_order[lever_done.size() - 1]:
+		lever_reset_t = 0.7
+		show_message(tr("Mauvais ordre… les leviers se relèvent."), 2.0)
+		return
+	if lever_done.size() == lever_order.size():
+		lever_gate.set_closed(false)
+		for o in levers:
+			if o.kind == "lever_plaque":
+				o.lit = true
+		shake(8)
+		Audio.sfx("lift_chains", 0.0, -2.0)
+		Audio.sfx("achievement", 0.0, -6.0)
+		spawn_burst(lever_gate.rect.get_center(), Color(0.6, 0.85, 1.0), 18, 160.0, 0.0)
+		show_message(tr("La herse du caveau se lève !"), 2.5)
+		if GameState.mode == "descent":
+			_mark_collected(lever_key)
+
+func _lever_tick(delta: float) -> void:
+	if lever_reset_t <= 0.0:
+		return
+	lever_reset_t -= delta
+	if lever_reset_t <= 0.0:
+		lever_done.clear()
+		Audio.sfx("hit", 0.1, -10.0)
+		for o in levers:
+			if o.kind == "lever":
+				o.lit = false
+				spawn_burst(o.position + Vector2(0, -20), Color(0.7, 0.7, 0.75), 6, 80.0, 0.0)
 
 func _start_altar(prop) -> void:
 	if altar_state != "":
@@ -968,7 +1121,36 @@ func _update_sleep() -> void:
 		if n.process_mode != want:
 			n.process_mode = want
 
+# Sanctuaire : les habitants parlent quand on passe près d'eux (bulle, une fois par passage)
+const LoreScript = preload("res://scripts/lore.gd")
+var _chat_cd := {}
+func _npc_chatter(delta: float) -> void:
+	if not GameState.is_hub() or player == null or get_tree().paused:
+		return
+	for k in _chat_cd.keys():
+		_chat_cd[k] -= delta
+	for it in interactables:
+		var kind: String = it[1]
+		if not LoreScript.AMBIENT.has(kind) or not is_instance_valid(it[0]):
+			continue
+		var d: float = player.global_position.distance_to(it[0].global_position)
+		if d < 110.0 and float(_chat_cd.get(kind, 0.0)) <= 0.0:
+			var line := LoreScript.ambient_line(kind)
+			if line == "":
+				continue
+			_chat_cd[kind] = 25.0
+			var b := Node2D.new()
+			b.set_script(preload("res://scripts/bubble.gd"))
+			b.text = tr(line)
+			b.position = it[0].global_position + Vector2(0, -92)
+			add_child(b)
+			LoreScript.hear(LoreScript.NPC_NAMES[kind], tr(line))
+		elif d > 220.0 and float(_chat_cd.get(kind, 0.0)) > 0.0 and float(_chat_cd[kind]) < 20.0:
+			_chat_cd[kind] = minf(_chat_cd[kind], 6.0)
+
 func _process(delta: float) -> void:
+	_npc_chatter(delta)
+	_lever_tick(delta)
 	if not get_tree().paused:
 		clock += delta
 	_update_moths(delta)
@@ -1004,17 +1186,27 @@ func _process(delta: float) -> void:
 	var pp: Vector2 = player.global_position
 	# Marchand et ascenseur (hub)
 	interact_hint = ""
-	for it in interactables:
-		if it[1] == "winch" and player.rope != null:
+	# seulement le plus proche : un marchand à côté d'un treuil ne vole plus la corde
+	var closest = null
+	var best_d := 60.0
+	for it0 in interactables:
+		if it0[1] == "winch" and player.rope != null:
 			continue
-		if pp.distance_to(it[0].position + Vector2(0, -20)) < 60.0 and not player.dead:
+		var dd := pp.distance_to(it0[0].position + Vector2(0, -20))
+		if dd < best_d:
+			best_d = dd
+			closest = it0
+	for it in ([closest] if closest != null else []):
+		if not player.dead:
 			var verbs := {"merchant": "parler au marchand", "arsenal": "ouvrir l'arsenal", "elevator": "appeler l'ascenseur",
 				"altar": "réveiller l'autel (3 élites)", "smith": "parler à la forgeronne", "jeweler": "parler au joaillier", "arena": "Arène des Ombres (duel à deux)", "cartographer": "parler au cartographe", "elder": "écouter l'ancien",
-				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau", "winch": "s'accrocher à la corde",
+				"tailor": "ouvrir la garde-robe", "gift": "ouvrir ton cadeau", "winch": "s'accrocher à la corde", "lever": "actionner le levier",
 				"scriptorium": "consulter les registres"}
 			if it[1] == "altar" and altar_state != "":
 				continue
 			if it[1] == "gift" and not it[0].lit:
+				continue
+			if it[1] == "lever" and (it[0].lit or lever_reset_t > 0.0 or (lever_gate and not lever_gate.closed)):
 				continue
 			interact_hint = tr("{up|1} : %s") % tr(verbs[it[1]])
 			if Input.is_action_just_pressed("up") and player.is_on_floor() and not get_tree().paused:
@@ -1104,6 +1296,11 @@ func _process(delta: float) -> void:
 				Audio.sfx("pickup", 0.0)
 				show_message(tr("Trésor caché : +%d éclats !") % amount, 3.0)
 				Achievements.unlock("room")
+			elif pk[1] == "memory":
+				GameState.prog["memories"] = int(GameState.prog.get("memories", 0)) + 1
+				GameState.prog["collected"].append(pk[2])
+				Audio.sfx("soul_level", 0.0)
+				show_message(tr("Fragment de mémoire (%d) — l'Ancien saura quoi en faire.") % int(GameState.prog["memories"]), 3.5)
 			elif pk[1] == "charm":
 				GameState.add_charm(pk[2])
 				if pk.size() > 3:
@@ -1413,6 +1610,70 @@ func _spark_tex() -> Texture2D:
 		_spark = DU.radial_texture(32)
 	return _spark
 
+# Éclats propres au biome (feuilles, braises, neige, éclats de cristal, os, miel, sable, pages…),
+# projetés aux impacts et aux morts : deux teintes, gravité et taille selon la matière.
+func biome_debris(pos: Vector2, amount: int = 8, speed: float = 160.0) -> void:
+	if amount <= 0:
+		return
+	var id := String(pal.get("id", ""))
+	var moss: Color = pal.get("moss", Color(0.6, 0.8, 0.5))
+	var rk: Color = pal.get("rock_hi", Color(0.5, 0.5, 0.5))
+	var c1 := rk.lightened(0.2)
+	var c2 := rk
+	var grav := 420.0
+	var sz := Vector2(0.06, 0.13)
+	match id:
+		"jungle", "jardins":
+			c1 = moss; c2 = moss.darkened(0.35); grav = 160.0; sz = Vector2(0.08, 0.15)
+		"profondeurs":
+			c1 = Color(0.55, 0.85, 1.0); c2 = rk; grav = 200.0
+		"glace":
+			c1 = Color(0.95, 0.98, 1.0); c2 = Color(0.6, 0.8, 1.0); grav = 90.0
+		"cristal":
+			c1 = moss.lightened(0.3); c2 = moss; grav = 380.0; sz = Vector2(0.07, 0.16)
+		"forge":
+			c1 = Color(1.0, 0.75, 0.3); c2 = Color(1.0, 0.35, 0.1); grav = -60.0; sz = Vector2(0.05, 0.1)
+		"ruche":
+			c1 = Color(1.0, 0.8, 0.3); c2 = Color(0.8, 0.5, 0.15); grav = 520.0
+		"ossuaire":
+			c1 = Color(0.88, 0.84, 0.72); c2 = Color(0.6, 0.55, 0.45); grav = 520.0
+		"desert":
+			c1 = rk.lightened(0.3); c2 = rk; grav = 300.0; sz = Vector2(0.04, 0.09)
+		"bibliotheque":
+			c1 = Color(0.95, 0.9, 0.75); c2 = Color(0.75, 0.65, 0.5); grav = 70.0; sz = Vector2(0.09, 0.16)
+		"citadelle":
+			c1 = Color(0.6, 0.75, 1.0); c2 = rk; grav = 380.0
+	var p := CPUParticles2D.new()
+	p.position = pos
+	p.one_shot = true
+	p.explosiveness = 0.95
+	p.amount = amount
+	p.lifetime = 0.9 if absf(grav) < 200.0 else 0.6
+	p.direction = Vector2(0, -1)
+	p.spread = 75.0
+	p.gravity = Vector2(0, grav)
+	p.initial_velocity_min = speed * 0.35
+	p.initial_velocity_max = speed
+	p.angular_velocity_min = -360.0
+	p.angular_velocity_max = 360.0
+	p.damping_min = 20.0 if absf(grav) < 200.0 else 0.0
+	p.damping_max = 60.0 if absf(grav) < 200.0 else 0.0
+	p.scale_amount_min = sz.x
+	p.scale_amount_max = sz.y
+	p.texture = _spark_tex()
+	var tint := Gradient.new()
+	tint.set_color(0, c1)
+	tint.set_color(1, c2)
+	p.color_initial_ramp = tint
+	var fade := Gradient.new()
+	fade.set_color(0, Color(1, 1, 1, 1))
+	fade.set_color(1, Color(1, 1, 1, 0))
+	p.color_ramp = fade
+	p.z_index = 5
+	add_child(p)
+	p.emitting = true
+	get_tree().create_timer(1.4).timeout.connect(p.queue_free)
+
 func spawn_burst(pos: Vector2, color: Color, amount: int = 12, speed: float = 160.0, grav: float = 300.0) -> void:
 	var p := CPUParticles2D.new()
 	p.position = pos
@@ -1476,6 +1737,9 @@ func on_enemy_killed(e, geo: int) -> void:
 		Achievements.unlock("plunge")
 	Audio.sfx("kill")
 	spawn_burst(e.global_position, Color(0.95, 0.9, 0.75), 18, 220.0)
+	biome_debris(e.global_position, 14 if e.elite else 9, 230.0)
+	if not e.is_boss and e.get_script() != DummyScript:
+		hit_stop(0.1 if e.elite else 0.05)   # petit arrêt sur image à chaque ennemi vaincu
 	spawn_fx("death", e.global_position, e.fx_color() if e.has_method("fx_color") else Color(0.7, 0.65, 0.75))
 	if geo > 0:
 		spawn_fx("shards", e.global_position, Color(0.75, 0.85, 1.0), Vector2(clampi(geo / 2 + 1, 1, 8), 0))
@@ -1498,6 +1762,7 @@ func on_player_died() -> void:
 	# En descente : retour au hub, le butin de la descente est perdu
 	if not GameState.is_tutorial():
 		Audio.stop_music()
+		Audio.stop_ambience()
 		GameState.die_in_descent(player.geo, respawn_pos if player.global_position.y > map_size.y * TILE else player.global_position)
 		return
 	if boss_started and not boss_dead:

@@ -67,7 +67,97 @@ const GUARDIANS := {
 	"oeil": "Le fond du monde a toujours regardé vers le haut, vers la Lanterne. Sans elle, l'Œil ne voit plus rien. Ses tentacules tâtonnent à la recherche de la lumière perdue, et ils serrent tout ce qu'ils trouvent.",
 }
 
+# Requêtes de l'Ancien : objectifs à remplir en descente ; une fois remplies, on revient les lui
+# raconter (récompense en éclats et un souvenir caché ajouté aux Chroniques).
+const SIGNATURE_FOES := ["angler", "puffball", "drowned", "turtle", "imp", "tome", "golem", "skeleton"]
+const QUESTS := [
+	{"id": "q_frag3", "title": "Les éclats perdus", "ask": "« Des morceaux de mémoire sont restés coincés dans la roche, derrière des dalles fissurées. Rapporte-m'en trois. »",
+		"goal": 3, "geo": 120, "memory": "s1"},
+	{"id": "q_elites", "title": "Les champions de l'ombre", "ask": "« Certaines créatures portent un liseré rouge : ce sont les plus fortes. Abats-en quinze, et je te dirai mon nom. »",
+		"goal": 15, "geo": 150, "memory": "s2"},
+	{"id": "q_bestiary", "title": "Ce qui rôde", "ask": "« Chaque palier a engendré sa propre créature. Affronte-les toutes, au moins une fois, et reviens me les décrire. »",
+		"goal": 8, "geo": 200, "memory": "s3"},
+	{"id": "q_frag8", "title": "La mémoire entière", "ask": "« Huit fragments. Avec huit, je pourrai me souvenir de la flamme telle qu'elle était. »",
+		"goal": 8, "geo": 300, "memory": "s4"},
+	{"id": "q_guardians", "title": "Les dix serments", "ask": "« Délivre les dix gardiens de leur serment. Tous. Alors seulement je te confierai le dernier souvenir. »",
+		"goal": 10, "geo": 400, "memory": "s5"},
+]
+# souvenirs cachés, débloqués par les requêtes (affichés à la fin des Chroniques)
+const SECRETS := {
+	"s1": {"title": "Sous le septième", "text": "Le cartographe n'a pas menti : il existe un palier sous le septième. On n'y descend pas, on y tombe. C'est de là que monte le froid qui a éteint la Lanterne, et c'est là que l'Ombre retourne quand on la croit vaincue."},
+	"s2": {"title": "Le nom de l'Ancien", "text": "Je m'appelais Liseron. Les autres Veilleurs se moquaient de ma lenteur : « Liseron arrivera quand la flamme aura fini de brûler. » Ils avaient raison. Garde ce nom pour toi, petit veilleur ; il ne sert plus qu'à moi."},
+	"s3": {"title": "Ce qui rôde", "text": "Les créatures de chaque palier ne sont pas nées méchantes. La baudroie guidait les mineurs, le golem gardait les sources gelées, le grimoire enseignait aux apprentis. L'obscurité ne crée rien : elle tord ce qui existe."},
+	"s4": {"title": "La flamme d'avant", "text": "Avant d'être une lanterne, la flamme était une étoile tombée au fond du monde. Les premiers Veilleurs l'ont trouvée, encore tiède, et ont bâti le Sanctuaire autour pour qu'elle ne soit plus jamais seule."},
+	"s5": {"title": "Le dernier souvenir", "text": "Quand tu rallumeras la Lanterne, je ne serai peut-être plus là pour le voir. Ce n'est pas grave. Une lanterne n'a pas besoin qu'on la regarde ; elle a besoin qu'on la porte. Tu l'as portée plus loin que nous tous."},
+}
+
+static func quest_progress(q: Dictionary) -> int:
+	match String(q["id"]):
+		"q_frag3", "q_frag8":
+			return int(GameState.prog.get("memories", 0))
+		"q_elites":
+			return int((GameState.journal.get("c", {}) as Dictionary).get("elites", 0))
+		"q_bestiary":
+			var mobs: Dictionary = GameState.journal.get("mobs", {})
+			var n := 0
+			for m in SIGNATURE_FOES:
+				if int((mobs.get(m, {}) as Dictionary).get("k", 0)) > 0:
+					n += 1
+			return n
+		"q_guardians":
+			var n2 := 0
+			for b in BOSS_ORDER:
+				if boss_beaten(b):
+					n2 += 1
+			return n2
+	return 0
+
+static func quest_done(id: String) -> bool:
+	return (GameState.prog.get("quests_done", []) as Array).has(id)
+
+static func quests_ready() -> int:
+	var n := 0
+	for q in QUESTS:
+		if not quest_done(q["id"]) and quest_progress(q) >= int(q["goal"]):
+			n += 1
+	return n
+
 const BOSS_ORDER := ["gardien", "abbesse", "reine", "colosse", "ver", "chevalier", "ombre", "cerbere", "centaure", "oeil"]
+
+# Ce que disent les habitants quand on passe près d'eux au Sanctuaire (bulle au-dessus de leur
+# tête). Chaque ligne s'ouvre à partir d'un palier terminé ; elles sont consignées dans Paroles.
+const NPC_NAMES := {"smith": "La forgeronne", "jeweler": "Le joaillier", "cartographer": "Le cartographe",
+	"merchant": "Le marchand", "tailor": "La tailleuse", "scriptorium": "Maître Plume", "elder": "L'Ancien"}
+const AMBIENT := {
+	"smith": [[0, "« Approche, que je voie l'état de ta lame. »"], [2, "« Le froid gagne la forge. Chaque coup de marteau le repousse un peu. »"],
+		[4, "« Mon frère gardait le Puits. Tu l'as croisé, n'est-ce pas ? »"], [6, "« Si tu le délivres… dis-lui que sa sœur forge encore. »"]],
+	"jeweler": [[0, "« Ces emblèmes… ce sont des éclats de la Lanterne. Je les reconnais. »"], [3, "« J'ai serti ces verres de mes mains. Elles étaient moins sèches, alors. »"],
+		[6, "« Encore un éclat, et je pourrai presque voir la flamme à travers. »"]],
+	"cartographer": [[0, "« Les tunnels ont encore bougé cette nuit. Mes cartes, elles, ne bougent pas. Hélas. »"], [3, "« Le Ver a mangé trois de mes routes la semaine dernière. »"],
+		[5, "« Il y a un palier sous le septième. Non. Oublie ce que j'ai dit. »"]],
+	"merchant": [[0, "« Une lueur ! Enfin quelqu'un qui porte de la lumière. »"], [2, "« Mes ailes ne supportent plus le noir. Ta lanterne me fait du bien. »"],
+		[5, "« Je garde un coffre que je n'ouvre jamais. Tu sauras pourquoi, un jour. »"]],
+	"tailor": [[0, "« Chaque cape est une promesse. Ne la déchire pas trop vite. »"], [3, "« J'ai encore une aiguille plantée dans une vieille cape. Elle attend. »"],
+		[6, "« Le Chevalier… s'il revient, dis-lui que son ourlet n'est pas fini. »"]],
+	"scriptorium": [[0, "« Hou. J'écris tout ce que tu fais. Même tes chutes. Surtout tes chutes. »"], [2, "« Une chose oubliée devient toujours un monstre. Je refuse d'oublier. »"],
+		[5, "« Ton registre devient épais. C'est bon signe, petit veilleur. »"]],
+	"elder": [[0, "« Viens t'asseoir, j'ai des histoires plein la coquille. »"], [3, "« Tu as trouvé des fragments de mémoire ? Apporte-les-moi. »"],
+		[6, "« Je commence à croire que tu y arriveras. »"]],
+}
+
+static func ambient_line(npc: String) -> String:
+	var opts := []
+	for l in AMBIENT.get(npc, []):
+		if GameState.record >= int(l[0]):
+			opts.append(l[1])
+	if opts.is_empty():
+		return ""
+	# la plus récente d'abord tant qu'elle n'a pas été entendue, sinon au hasard
+	var heard: Array = talk().get(NPC_NAMES.get(npc, ""), [])
+	for i in range(opts.size() - 1, -1, -1):
+		if not heard.has(TranslationServer.translate(opts[i])):
+			return opts[i]
+	return opts[randi() % opts.size()]
 
 # ---------------------------------------------------------------- état
 static func boss_beaten(id: String) -> bool:
@@ -90,6 +180,8 @@ static func entries() -> Array:
 			out.append(["p_" + p["id"] + "_b", GameState.record >= int(p["need_b"])])
 	for b in BOSS_ORDER:
 		out.append(["g_" + b, boss_beaten(b)])
+	for q in QUESTS:
+		out.append([q["memory"], quest_done(q["id"])])
 	return out
 
 static func read_list() -> Array:
@@ -101,7 +193,7 @@ static func is_read(id: String) -> bool:
 	return read_list().has(id)
 
 static func unread_count() -> int:
-	var n := 0
+	var n := quests_ready()
 	var rl := read_list()
 	for e in entries():
 		if e[1] and not rl.has(e[0]):

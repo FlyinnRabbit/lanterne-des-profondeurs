@@ -1071,6 +1071,10 @@ func _ward_state(id: String) -> String:
 		return tr("succès : %s") % tr(Achievements.info(it["ach"])[1])
 	if it.has("boss"):
 		return tr("butin rare : %s") % tr(GameState.BOSSES[it["boss"]]["name"])
+	if it.has("quest"):
+		for q in preload("res://scripts/lore.gd").QUESTS:
+			if q["id"] == it["quest"]:
+				return tr("requête de l'Ancien : %s") % tr(q["title"])
 	if it.has("price"):
 		if not GameState.CosmeticsScript.season_on(String(it.get("season", ""))):
 			return tr("de retour pour %s") % tr(GameState.CosmeticsScript.EVENTS[String(it["season"])]["name"])

@@ -12,7 +12,7 @@ const W := 1280.0
 const H := 720.0
 const PANEL := Rect2(196, 20, 888, 682)
 const BRASS := Color(0.72, 0.58, 0.32)
-const TABS := ["Chroniques", "Habitants", "Gardiens", "Paroles"]
+const TABS := ["Chroniques", "Habitants", "Gardiens", "Paroles", "Requêtes"]
 const LIST := Rect2(222, 168, 296, 470)
 const ROW_H := 34.0
 const TEXT_X := 548.0
@@ -76,7 +76,7 @@ func open() -> void:
 	page = 0
 	sel = 0
 	var found := false
-	for p in 3:
+	for p in [0, 1, 2, 4]:
 		var items := _items(p)
 		for i in items.size():
 			if items[i]["new"]:
@@ -133,6 +133,11 @@ func _items(p: int) -> Array:
 				out.append({"title": tr(c["title"]), "unlocked": ok, "new": ok and not Lore.is_read(c["id"]),
 					"hint": tr("Termine le palier %d pour que l'Ancien s'en souvienne.") % int(c["need"]),
 					"text": tr(c["text"]), "ids": [c["id"]]})
+			for q in Lore.QUESTS:
+				if Lore.quest_done(q["id"]):
+					var sc: Dictionary = Lore.SECRETS[q["memory"]]
+					out.append({"title": "✦ " + tr(sc["title"]), "unlocked": true, "new": not Lore.is_read(q["memory"]),
+						"hint": "", "text": tr(sc["text"]), "ids": [q["memory"]]})
 		1:
 			for pe in Lore.PEOPLE:
 				var ok := rec >= int(pe["need"])
@@ -165,6 +170,12 @@ func _items(p: int) -> Array:
 				who.push_front("L'Ancien")
 			for w in who:
 				out.append({"title": tr(w), "unlocked": true, "new": false, "lines": talk[w], "ids": []})
+		4:
+			for q in Lore.QUESTS:
+				var prog := mini(Lore.quest_progress(q), int(q["goal"]))
+				var done := Lore.quest_done(q["id"])
+				out.append({"title": tr(q["title"]), "unlocked": true, "quest": q, "progress": prog, "done": done,
+					"new": not done and prog >= int(q["goal"]), "text": tr(q["ask"]), "ids": []})
 	return out
 
 func _mark_read() -> void:
@@ -328,7 +339,7 @@ func _draw_panel() -> void:
 		c.draw_style_box(sb, r)
 		c.draw_string(f, r.position + Vector2(0, 23), tr(TABS[i]), HORIZONTAL_ALIGNMENT_CENTER, tw, 15, Color(1.0, 0.88, 0.55) if on else Color(0.78, 0.74, 0.68))
 		# point doré : il reste des mémoires à écouter dans cet onglet
-		if i < 3:
+		if i != 3:
 			for it in _items(i):
 				if it["new"]:
 					c.draw_circle(r.position + Vector2(tw - 12, 10), 4.0, Color(1.0, 0.8, 0.35))
@@ -387,6 +398,9 @@ func _draw_entry(c: Control, f: Font, it: Dictionary, ink: Color, gold: Color, s
 				break
 			y = _wrap_draw(c, String(lines[i]), Vector2(x, y), w, 14, ink) + 8
 		return
+	if page == 4:
+		_draw_quest(c, f, it, ink, gold, soft)
+		return
 	var has_portrait := page == 2 or (page == 1 and String(it.get("prop", "")) != "")
 	var y0 := 186.0
 	if has_portrait:
@@ -404,6 +418,66 @@ func _draw_entry(c: Control, f: Font, it: Dictionary, ink: Color, gold: Color, s
 	var y2 := _wrap_draw(c, body, Vector2(x, ny + 8), w, fs, ink)
 	if String(it.get("hint_b", "")) != "":
 		_wrap_draw(c, it["hint_b"], Vector2(x, y2 + 4), w, maxi(fs - 2, 12), soft)
+
+var _claim_rect := Rect2()
+func _draw_quest(c: Control, f: Font, it: Dictionary, ink: Color, gold: Color, soft: Color) -> void:
+	var x := TEXT_X
+	var w := TEXT_W
+	var q: Dictionary = it["quest"]
+	var ny := _wrap_draw(c, it["title"], Vector2(x, 196), w, 21, gold, true)
+	c.draw_rect(Rect2(x + w / 2.0 - 60, ny - 10, 120, 1.5), Color(BRASS, 0.45))
+	var y2 := _wrap_draw(c, it["text"], Vector2(x, ny + 12), w, 16, ink)
+	# progression
+	var goal := int(q["goal"])
+	var pr := float(it["progress"]) / goal
+	var bar := Rect2(x + 40, y2 + 18, w - 80, 14)
+	c.draw_style_box(_box(Color(0.12, 0.09, 0.07), Color(0.36, 0.27, 0.18)), bar)
+	c.draw_rect(Rect2(bar.position + Vector2(2, 2), Vector2((bar.size.x - 4) * pr, bar.size.y - 5)), Color(0.98, 0.8, 0.4) if pr >= 1.0 else Color(0.7, 0.55, 0.3))
+	c.draw_string(f, Vector2(x, y2 + 52), "%d / %d" % [it["progress"], goal], HORIZONTAL_ALIGNMENT_CENTER, w, 15, soft)
+	c.draw_string(f, Vector2(x, y2 + 76), tr("Récompense : %d éclats et un souvenir caché") % int(q["geo"]), HORIZONTAL_ALIGNMENT_CENTER, w, 14, soft)
+	var cids: Array = GameState.cos.for_quest(String(q["id"]))
+	if not cids.is_empty():
+		var cid: String = cids[0]
+		var cy := y2 + 106
+		var label := tr("+ cosmétique : %s") % tr(GameState.cos.item(cid)["name"])
+		var lw := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+		var cx := x + (w - lw) / 2.0 + 14.0
+		GameState.cos.draw_swatch(c, cid, Vector2(cx - 22.0, cy - 5.0), 12.0)
+		c.draw_string(f, Vector2(cx, cy), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.85, 0.75, 1.0))
+	_claim_rect = Rect2()
+	if it["done"]:
+		c.draw_string(f, Vector2(x, y2 + 146), tr("Accomplie — le souvenir est dans les Chroniques."), HORIZONTAL_ALIGNMENT_CENTER, w, 15, Color(0.6, 0.85, 0.6))
+	elif pr >= 1.0:
+		_claim_rect = Rect2(x + w / 2.0 - 110, y2 + 126, 220, 38)
+		var pulse := 0.75 + 0.25 * sin(t * 4.0)
+		c.draw_style_box(_box(Color(0.28, 0.2, 0.12), Color(1.0, 0.86, 0.55, pulse), 2, 3), _claim_rect)
+		c.draw_string(f, _claim_rect.position + Vector2(0, 25), tr("Raconter à l'Ancien"), HORIZONTAL_ALIGNMENT_CENTER, _claim_rect.size.x, 16, Color(1.0, 0.9, 0.6))
+
+func _claim() -> void:
+	if page != 4:
+		return
+	var items := _items(4)
+	if sel >= items.size():
+		return
+	var it: Dictionary = items[sel]
+	if it["done"] or int(it["progress"]) < int(it["quest"]["goal"]):
+		return
+	var q: Dictionary = it["quest"]
+	if not GameState.prog.has("quests_done"):
+		GameState.prog["quests_done"] = []
+	GameState.prog["quests_done"].append(q["id"])
+	if main and main.player:
+		main.player.geo += int(q["geo"])
+		GameState.prog["geo"] = main.player.geo
+		GameState.j_add("geo_in", int(q["geo"]))
+	GameState.snapshot = GameState.prog.duplicate(true)
+	GameState.save_game()
+	toast = tr("« Tu as fait tout ça pour un vieil escargot ? »  +%d éclats") % int(q["geo"])
+	for cid in GameState.cos.for_quest(String(q["id"])):
+		if Achievements.give_cosmetic(cid):
+			toast += "  ·  " + tr("Cosmétique : %s") % tr(GameState.cos.item(cid)["name"])
+	toast_t = 3.5
+	Audio.sfx("achievement", 0.0, -4.0)
 
 # ---------------------------------------------------------------- commandes
 func _set_page(p: int) -> void:
@@ -454,6 +528,8 @@ func _nav_input(delta: float) -> void:
 	if _pressed(["pause_menu", "ui_cancel", "inventory"]) or _b_edge():
 		close()
 		return
+	if page == 4 and _pressed(["ui_accept", "jump", "attack"]):
+		_claim()
 	var d := Vector2i.ZERO
 	if _held(["up", "ui_up"]):
 		d.y = -1
@@ -501,5 +577,8 @@ func _on_gui_input(event: InputEvent) -> void:
 		if _row_rects[i].has_point(p):
 			_set_sel(i)
 			return
+	if _claim_rect.has_area() and _claim_rect.has_point(p):
+		_claim()
+		return
 	if _close_rect.has_point(p):
 		close()

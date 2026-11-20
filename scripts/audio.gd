@@ -16,6 +16,12 @@ var current_path := ""
 var sfx_streams := {}
 var sfx_pool: Array[AudioStreamPlayer] = []
 var duck := 0.0   # atténuation en pause (dB)
+# ambiance du biome (boucle discrète sous la musique) et bruits de pas
+const AMB_DB := -15.0
+var amb: AudioStreamPlayer
+var amb_id := ""
+var _amb_tw: Tween
+var step_streams := {}   # matière -> [variantes]
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -41,6 +47,16 @@ func _ready() -> void:
 		var path := "res://sfx/%s.wav" % n
 		if ResourceLoader.exists(path):
 			sfx_streams[n] = load(path)
+	amb = AudioStreamPlayer.new()
+	amb.bus = "SFX"
+	amb.volume_db = -80.0
+	add_child(amb)
+	for m in ["stone", "grass", "snow", "sand", "wood", "crystal", "soft"]:
+		step_streams[m] = []
+		for k in 3:
+			var sp := "res://sfx/step_%s%d.wav" % [m, k]
+			if ResourceLoader.exists(sp):
+				step_streams[m].append(load(sp))
 	Settings.changed.connect(apply_volumes)
 	apply_volumes()
 
@@ -145,6 +161,46 @@ func _process(_delta: float) -> void:
 		var p := players[active]
 		if p.playing and p.volume_db > -30.0:
 			p.volume_db = duck
+
+# ---------------------------------------------------------------- ambiance et pas
+func play_ambience(id: String) -> void:
+	if id == amb_id and amb.playing:
+		return
+	amb_id = id
+	var path := "res://sfx/amb_%s.ogg" % id
+	if _amb_tw and _amb_tw.is_valid():
+		_amb_tw.kill()
+	if not ResourceLoader.exists(path):
+		stop_ambience()
+		return
+	var st = load(path).duplicate()
+	if st is AudioStreamOggVorbis:
+		st.loop = true
+	amb.stream = st
+	amb.volume_db = -50.0
+	amb.play(randf() * 10.0)
+	_amb_tw = create_tween()
+	_amb_tw.tween_property(amb, "volume_db", AMB_DB, 2.5)
+
+func stop_ambience() -> void:
+	amb_id = ""
+	if _amb_tw and _amb_tw.is_valid():
+		_amb_tw.kill()
+	_amb_tw = create_tween()
+	_amb_tw.tween_property(amb, "volume_db", -60.0, 1.2)
+	_amb_tw.tween_callback(amb.stop)
+
+func step(material: String, vol_db := -17.0) -> void:
+	var arr: Array = step_streams.get(material, [])
+	if arr.is_empty():
+		return
+	for s in sfx_pool:
+		if not s.playing:
+			s.stream = arr[randi() % arr.size()]
+			s.pitch_scale = randf_range(0.9, 1.1)
+			s.volume_db = vol_db
+			s.play()
+			return
 
 # ---------------------------------------------------------------- bruitages
 func sfx(name: String, pitch_var := 0.08, vol_db := 0.0) -> void:

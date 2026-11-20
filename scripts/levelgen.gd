@@ -79,6 +79,8 @@ func _width(kind: String) -> int:
 		"treasure": return rng.randi_range(14, 18)
 		"challenge": return 12
 		"altar": return rng.randi_range(22, 26)
+		"secret": return 16
+		"levers": return 20
 		"grotto": return rng.randi_range(22, 26)
 		"drop": return 12
 		"landing": return 14
@@ -94,7 +96,7 @@ func _fmin(kind: String) -> int:
 	return 14
 
 # salles qui gardent la hauteur précédente et interdisent de monter juste après (plafond bas)
-const LOW_CEIL := ["corridor", "arena", "cave"]
+const LOW_CEIL := ["corridor", "arena", "cave", "secret", "levers"]
 
 var f := F           # rangée du sol de la salle en cours (varie d'une salle à l'autre)
 var challenge_x := -1
@@ -325,6 +327,38 @@ func _chunk(kind: String, x0: int, w: int, boss_char: String) -> void:
 			# arène d'élites : l'autel invoque trois élites, récompense à la clé
 			fill(x0 + 1, CEIL + 1, x1 - 1, f - 11, "#")
 			put(x0 + w / 2, f - 1, "R")
+		"secret":
+			# couloir bas ; au plafond, une dalle fissurée cache une chambre secrète
+			# (fragment de mémoire pour l'Ancien et petit trésor). Frapper vers le haut pour l'ouvrir.
+			fill(x0, CEIL + 1, x1, f - 4, "#")
+			var a := x0 + 4
+			var b := x1 - 3
+			fill(a, f - 8, b, f - 5, ".")
+			var hx := x0 + 6
+			put(hx, f - 4, "W")
+			put(hx + 1, f - 4, "W")
+			put(hx + 2, f - 1, "#")      # marche pour se hisser dans la chambre
+			put(b - 1, f - 5, "$")
+			put(a + 5, f - 5, "|")
+			ground_spots.append(Vector2i(x1 - 2, f - 1))
+		"levers":
+			# salle des leviers : trois leviers marqués d'une rune ; la plaque au-dessus de la herse
+			# donne l'ordre. Dans le bon ordre, la herse du caveau s'ouvre (coffre, parfois un fragment).
+			# Le chemin passe par-dessus le caveau.
+			fill(x0, CEIL + 1, x1, f - 9, "#")
+			var vx := x0 + 12
+			fill(vx, f - 4, x1, f - 4, "#")          # toit du caveau (on marche dessus)
+			fill(x1, f - 3, x1, f - 1, "#")          # mur du fond
+			for yy in range(f - 3, f):
+				put(vx, yy, "9")                     # herse du caveau
+			put(x0 + 10, f - 1, "#")                 # marches pour monter sur le toit
+			put(x0 + 10, f - 2, "#")
+			for i in 3:
+				put(x0 + 2 + i * 3, f - 1, "0")
+			put(x1 - 2, f - 1, "$")
+			if rng.randf() < 0.5:
+				put(x1 - 4, f - 1, "|")
+			air_spots.append(Vector2i(x0 + 6, f - 6))
 		"grotto":
 			_grotto(x0, x1)
 		"drop":
@@ -612,6 +646,8 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 	weights["treasure"] = 0.45
 	weights["challenge"] = 0.4
 	weights["altar"] = 0.35
+	weights["secret"] = 0.3
+	weights["levers"] = 0.3
 	var strata: bool = biome_id in STRATA and not rush
 	if strata:
 		weights.erase("challenge")    # le drapeau du défi se cherche vers la droite : pas en strates
@@ -622,7 +658,7 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 		for r in recent:
 			wsel.erase(r)            # pas deux fois la même salle de suite (ni à une salle d'écart)
 		var k := _pick(wsel)
-		if k in ["treasure", "challenge", "altar"]:
+		if k in ["treasure", "challenge", "altar", "secret", "levers"]:
 			weights.erase(k)      # au plus une salle spéciale de chaque sorte
 		chunks.append(k)
 		recent.append(k)
@@ -690,18 +726,21 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 	# singe (n), mite (e), taupe (p) : rares ailleurs, fréquents dans leurs biomes
 	for k in ["n", "e", "p", "(", ")", "%"]:
 		ew[k] = variety * 0.3 + float(extras.get(k, 0.0))
+	# ennemi signature : n'apparaît que dans son biome, et souvent
+	if SIGNATURE.has(biome_id):
+		ew[SIGNATURE[biome_id]] = 1.5
 	var ground := _shuffled(ground_spots.filter(func(p): return p.x > 18))
 	var air := _shuffled(air_spots.filter(func(p): return p.x > 18))
 	for i in count:
 		var k := _pick(ew)
-		if k in ["f", "w", "r", "e"] and not air.is_empty():
+		if k in AIR_FOES and not air.is_empty():
 			var p: Vector2i = air.pop_back()
 			if g[p.y][p.x] == ".":
 				put(p.x, p.y, k)
 		elif not ground.is_empty():
 			var p: Vector2i = ground.pop_back()
 			if g[p.y][p.x] == "." and g[p.y + 1][p.x] == "#":
-				put(p.x, p.y, k if k in ["s", "h", "g", "b", "l", "n", "p", "(", ")", "%"] else "c")
+				put(p.x, p.y, k if k in GROUND_FOES else "c")
 	# mimique : parfois une fausse cachette au trésor, sur un sol sûr
 	if rng.randf() < 0.3 + depth * 0.03 and not ground.is_empty():
 		var mp: Vector2i = ground.pop_back()
@@ -710,14 +749,14 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 	# ennemis garantis dans les grottes (sur un sol sûr près du point prévu)
 	var gtypes: Dictionary = {}
 	for k in ew:
-		if not k in ["f", "w", "r", "e"]:
+		if not k in AIR_FOES:
 			gtypes[k] = ew[k]
 	for p in cave_spots:
 		for dx in [0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5]:
 			var q := Vector2i(p.x + dx, p.y)
 			if q.x > 0 and q.x < W - 1 and q.y + 1 < H and g[q.y][q.x] == "." and g[q.y + 1][q.x] == "#":
 				var k := _pick(gtypes) if not gtypes.is_empty() else "c"
-				put(q.x, q.y, k if k in ["s", "h", "g", "b", "l", "n", "p", "(", ")", "%"] else "c")
+				put(q.x, q.y, k if k in GROUND_FOES else "c")
 				break
 	# emblèmes (« * ») et encoche
 	item_spots = _shuffled(item_spots)
@@ -743,6 +782,12 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 # ou de l'arène du boss.
 const HAZARDS := "^ZUVkqvyCXKxzaodi+"
 const KEEP_CLEAR := "PEBOHLSGR*N$"
+# ennemi propre à chaque biome : Baudroie, Vesse-de-loup, Noyé, Tortue de cristal, Diablotin de
+# braise, Grimoire volant, Golem de givre, Squelette
+const SIGNATURE := {"profondeurs": "<", "jardins": ";", "citadelle": ">", "cristal": "=", "forge": "!",
+	"bibliotheque": "?", "glace": ":", "ossuaire": "/"}
+const AIR_FOES := ["f", "w", "r", "e", "<", "?"]
+const GROUND_FOES := ["s", "h", "g", "b", "l", "n", "p", "(", ")", "%", ";", ">", "=", "!", ":", "/"]
 func _ground_traps(depth: int) -> void:
 	var pool := {"k": 1.0}
 	match biome_id:

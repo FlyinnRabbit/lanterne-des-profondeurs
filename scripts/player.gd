@@ -400,7 +400,13 @@ func _physics_process(delta: float) -> void:
 	if crit_ready:
 		crit_light.energy = 1.1 + 0.4 * sin(anim_t * 10.0)
 		crit_light.position = Vector2(facing * 16, -2)
-	squash = squash.lerp(Vector2.ONE, minf(delta * 12.0, 1.0))
+	# en l'air, le corps s'étire avec la vitesse verticale (montée comme chute) ; au sol, il revient
+	var rest := Vector2.ONE
+	if not is_on_floor() and not sitting and rope == null and dash_t <= 0.0:
+		var kv := clampf(absf(velocity.y) / 900.0, 0.0, 1.0)
+		rest = Vector2(1.0 - kv * 0.12, 1.0 + kv * 0.16)
+	squash = squash.lerp(rest, minf(delta * 12.0, 1.0))
+	_anim_feet(delta)
 	modulate.a = 0.35 if (invuln_t > 0.0 and fmod(invuln_t, 0.16) < 0.08 and not sitting and hoist_path.is_empty()) else 1.0
 	queue_redraw()
 	if dead:
@@ -676,10 +682,63 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_post_move(on_floor)
 
+# couleur de la poussière soulevée : celle du sol du biome
+func _dust_col() -> Color:
+	var id := String(main.pal.get("id", ""))
+	if id == "glace":
+		return Color(0.9, 0.95, 1.0)
+	if id in ["jungle", "jardins"]:
+		return main.pal["moss"].darkened(0.3)
+	return main.pal.get("rock_hi", Color(0.75, 0.72, 0.68)).lightened(0.25)
+
+# demi-tour et départ de course au sol : petit écrasement et bouffée de poussière aux pieds
+var _last_facing := 1
+var _was_running := false
+var _feet_cd := 0.0
+var _step_t := 0.0
+func _step_mat() -> String:
+	match String(main.pal.get("id", "")):
+		"jungle", "jardins": return "grass"
+		"glace": return "snow"
+		"desert": return "sand"
+		"cristal": return "crystal"
+		"bibliotheque": return "wood"
+		"ruche": return "soft"
+	return "stone"
+func _anim_feet(delta: float) -> void:
+	_feet_cd -= delta
+	var on := is_on_floor() and not sitting and rope == null
+	var running := on and absf(velocity.x) > 60.0
+	if on and facing != _last_facing and absf(velocity.x) > 60.0 and _feet_cd <= 0.0:
+		squash = Vector2(0.86, 1.1)
+		main.spawn_fx("dust", global_position + Vector2(-facing * 6, SIZE.y / 2.0), _dust_col())
+		_feet_cd = 0.25
+	elif running and not _was_running and _feet_cd <= 0.0:
+		squash = Vector2(1.1, 0.92)
+		main.spawn_fx("dust", global_position + Vector2(-facing * 10, SIZE.y / 2.0), _dust_col())
+		_feet_cd = 0.25
+	_last_facing = facing
+	_was_running = running
+	# pas : le rythme suit la vitesse, le son la matière du sol
+	if running:
+		_step_t -= delta * absf(velocity.x) / RUN_SPEED
+		if _step_t <= 0.0:
+			_step_t = 0.27
+			Audio.step(_step_mat())
+	else:
+		_step_t = 0.05
+
 func _post_move(prev_on_floor: bool) -> void:
 	was_on_floor = is_on_floor()
-	if not prev_on_floor and was_on_floor and last_vy > 420.0:
-		main.spawn_fx("dust", global_position + Vector2(0, SIZE.y / 2.0), Color(0.75, 0.72, 0.68))
+	if not prev_on_floor and was_on_floor and last_vy > 240.0:
+		# atterrissage : écrasement et poussière à la mesure de la chute
+		var kl := clampf((last_vy - 240.0) / 700.0, 0.0, 1.0)
+		squash = Vector2(1.08 + 0.3 * kl, 0.92 - 0.3 * kl)
+		Audio.step(_step_mat(), -16.0 + 8.0 * kl)
+		if last_vy > 420.0:
+			main.spawn_fx("dust", global_position + Vector2(0, SIZE.y / 2.0), _dust_col())
+		if last_vy > 760.0:
+			main.biome_debris(global_position + Vector2(0, SIZE.y / 2.0), 6, 150.0)
 	# images rémanentes pendant la ruée
 	if dash_t > 0.0:
 		after_t -= get_physics_process_delta_time()
@@ -1005,8 +1064,12 @@ func _do_attack_hits() -> void:
 			else:
 				ult = mini(ult + ult_per_hit(), ULT_MAX)
 			if not second:
-				main.shake(4 if attack_kind == "slash" else 8)
-				main.hit_stop(0.04 if attack_kind == "slash" else 0.07)
+				# poids de l'arme : le marteau secoue, les griffes et les étoiles à peine
+				var heft: float = {"marteau": 1.6, "baton": 1.3, "faux": 1.2, "fouet": 0.9, "griffes": 0.7, "shuriken": 0.6}.get(wid(), 1.0)
+				main.shake((4.0 if attack_kind == "slash" else 8.0) * heft)
+				main.hit_stop((0.04 if attack_kind == "slash" else 0.07) * (0.6 + heft * 0.4))
+				if is_instance_valid(e):
+					main.biome_debris(e.global_position, int(3 + heft * 3), 140.0 * heft)
 			if attack_kind in ["spin", "thrust", "air_spin", "air_rise"] or second:
 				pass   # pas de recul : ces coups traversent (ni pour la 2e griffe : un seul rebond par attaque)
 			elif attack_dir == Vector2.DOWN:
