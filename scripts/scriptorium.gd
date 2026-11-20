@@ -30,6 +30,9 @@ const CONTENT := Vector2(-165, 50)
 const BRASS := Color(0.72, 0.58, 0.32)
 var charm_row0 := 0
 var mob_row0 := 0
+var var_sel := 0          # bestiaire : variante affichée de la créature choisie (abeille, couleurs de slime…)
+var _var_rects := []
+const BiomesData = preload("res://scripts/biomes.gd")
 var _close_rect := Rect2()
 
 const PAGES := ["Statistiques de la partie", "Records", "Bestiaire", "Gardiens", "Emblèmes"]
@@ -248,6 +251,43 @@ func _boss_script(id: String) -> Array:
 		return ["res://scripts/%s.gd" % m[id], 0]
 	return ["res://scripts/boss.gd", 2 if id == "abbesse" else 1]
 
+# Variantes d'une créature : le Volant devient une abeille dans la Ruche (et chez la Reine Essaim),
+# le Slime prend la couleur de chaque biome. Une variante est « vue » quand on a vaincu la créature
+# dans le biome concerné (sinon silhouette).
+func _variants(id: String) -> Array:
+	var met: Array = _mob_data(id).get("b", [])
+	var out := []
+	match id:
+		"flyer":
+			var hive := ""
+			for b in BiomesData.all():
+				if b["id"] == "ruche":
+					hive = b["name"]
+			var other := false
+			for m in met:
+				if String(m) != hive:
+					other = true
+			out.append({"label": "Volant", "seen": other or (met.is_empty() and int(_mob_data(id).get("k", 0)) > 0), "col": Color(0.45, 0.8, 0.75)})
+			out.append({"label": "Abeille (La Ruche Bourdonnante)", "seen": met.has(hive), "bee": true, "col": Color(1.0, 0.8, 0.25)})
+		"slime":
+			for b in BiomesData.all():
+				out.append({"label": b["name"], "seen": met.has(b["name"]), "pal": b["pal"], "col": load("res://scripts/slime.gd").biome_tint(b["pal"])})
+		"crawler", "spitter", "hopper":
+			# teinte du biome (carapace, feuillage, corps)
+			var E = load("res://scripts/enemy.gd")
+			for b in BiomesData.all():
+				var tc: Color = E.skin_tint(b["pal"])
+				out.append({"label": b["name"], "seen": met.has(b["name"]), "skin": tc, "col": Color(tc.r, tc.g, tc.b)})
+	return out
+
+func _apply_variant(n, v: Dictionary) -> void:
+	if v.get("bee", false):
+		n.bee = true
+	if v.has("pal"):
+		n.tint = load("res://scripts/slime.gd").biome_tint(v["pal"])
+	if v.has("skin"):
+		n.vtint = v["skin"]
+
 func _build_portraits() -> void:
 	_clear_portraits()
 	if page == 2:
@@ -259,10 +299,18 @@ func _build_portraits() -> void:
 			portraits.append([n, i, false])
 		var big = _make("res://scripts/%s.gd" % MOBS[sel])
 		portraits.append([big, -1, true])
+		var vs := _variants(MOBS[sel])
+		var v: Dictionary = vs[clampi(var_sel, 0, vs.size() - 1)] if not vs.is_empty() else {}
 		if int(_mob_data(MOBS[sel]).get("e", 0)) > 0:
 			var el = _make("res://scripts/%s.gd" % MOBS[sel], 0, true)
 			portraits.append([el, -2, true])
+			if not v.is_empty():
+				_apply_variant(el, v)
+				el.modulate = Color(1, 1, 1) if v["seen"] else Color(0, 0, 0, 0.75)
 		big.modulate = Color(1, 1, 1) if int(_mob_data(MOBS[sel]).get("k", 0)) > 0 else Color(0, 0, 0, 0.75)
+		if not v.is_empty():
+			_apply_variant(big, v)
+			big.modulate = Color(1, 1, 1) if v["seen"] else Color(0, 0, 0, 0.75)
 	elif page == 3:
 		for i in BOSSES.size():
 			var id: String = BOSSES[i]
@@ -513,7 +561,35 @@ func _draw_bestiary(c: Control, f: Font, ink: Color, red: Color, soft: Color) ->
 	if not known:
 		_wrap_draw(c, tr("Maître Plume n'a encore rien écrit sur cette créature. Va la vaincre !"), Vector2(x, 362), w, 14, soft)
 		return
-	var y := _wrap_draw(c, tr(MOB_DESC[id]), Vector2(x, 360), w, 14, ink)
+	var y0 := 360.0
+	_var_rects.clear()
+	var vs := _variants(id)
+	if not vs.is_empty():
+		# pastilles des variantes (cliquables) + nom de la variante affichée
+		var vi := clampi(var_sel, 0, vs.size() - 1)
+		var step := minf(22.0, (w - 20.0) / vs.size())
+		var x0 := x + w / 2.0 - step * (vs.size() - 1) / 2.0
+		for i in vs.size():
+			var cc := Vector2(x0 + i * step, 348)
+			var vc: Color = vs[i]["col"] if vs[i]["seen"] else Color(0.22, 0.18, 0.15)
+			if i == vi:
+				c.draw_circle(cc, 9.5, Color(1.0, 0.86, 0.55))
+			c.draw_circle(cc, 7.0, vc)
+			if not vs[i]["seen"]:
+				c.draw_string(f, cc + Vector2(-4, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.55, 0.48, 0.4))
+			_var_rects.append(Rect2(cc - Vector2(step / 2.0, 11), Vector2(step, 22)))
+		var vname: String = tr(vs[vi]["label"]) if vs[vi]["seen"] else tr("variante pas encore vue")
+		c.draw_string(f, Vector2(x, 376), "%s  (%d / %d)" % [vname, vi + 1, vs.size()], HORIZONTAL_ALIGNMENT_CENTER, w, 12, soft)
+		var gs: Array = G.for_action("jump")
+		var hint := tr("variante suivante")
+		var hw := f.get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+		var gw: float = G.width(gs[0], 16.0, f) if not gs.is_empty() else 0.0
+		var hx := x + (w - hw - gw - 6.0) / 2.0
+		if not gs.is_empty():
+			G.draw(c, hx, 392, 16.0, gs[0], f)
+		c.draw_string(f, Vector2(hx + gw + 6.0, 397), hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, soft)
+		y0 = 412.0
+	var y := _wrap_draw(c, tr(MOB_DESC[id]), Vector2(x, y0), w, 14, ink)
 	var biomes: Array = d2.get("b", [])
 	var bl := []
 	for b in biomes:
@@ -522,7 +598,7 @@ func _draw_bestiary(c: Control, f: Font, ink: Color, red: Color, soft: Color) ->
 	for i in rows.size():
 		_row(c, f, Vector2(x, y + 14 + i * 24), w, tr(rows[i][0]), rows[i][1], ink)
 	y += 14 + rows.size() * 24
-	if not bl.is_empty():
+	if not bl.is_empty() and vs.is_empty():      # avec des variantes, les pastilles montrent déjà les biomes
 		y = _wrap_draw(c, tr("Rencontré : %s") % ", ".join(bl), Vector2(x, y + 6), w, 13, soft)
 	_tip(c, f, Vector2(x, y + 14), w, tr(MOB_TIPS[id]), red, ink)
 
@@ -675,6 +751,7 @@ func _set_sel(i: int) -> void:
 	if i == sel:
 		return
 	sel = i
+	var_sel = 0
 	if page == 4:
 		# la sélection reste dans la zone visible
 		var row := sel / 7
@@ -722,6 +799,12 @@ func _nav_input(delta: float) -> void:
 	if _pressed(["pause_menu", "ui_cancel", "inventory"]) or b_edge:
 		close()
 		return
+	if page == 2 and _pressed(["jump", "ui_accept"]) and int(_mob_data(MOBS[sel]).get("k", 0)) > 0:
+		var nv := _variants(MOBS[sel]).size()
+		if nv > 1:
+			var_sel = (var_sel + 1) % nv
+			Audio.sfx("door", 0.2, -14.0)
+			_build_portraits()
 	var d := Vector2i.ZERO
 	if _held(["up", "ui_up"]):
 		d.y = -1
@@ -787,6 +870,12 @@ func _on_gui_input(event: InputEvent) -> void:
 			if _menu_rects[i].has_point(p) and click:
 				_set_page(i)
 				return
+		if click and page == 2:
+			for i in _var_rects.size():
+				if _var_rects[i].has_point(p - CONTENT):
+					var_sel = i
+					_build_portraits()
+					return
 		for i in _cell_rects.size():
 			if _cell_rects[i].has_point(p - CONTENT):
 				focus_grid = true

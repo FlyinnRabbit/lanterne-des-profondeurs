@@ -18,6 +18,15 @@ var is_boss := false
 var hp_max := 0          # vie de départ (pour la barre de vie)
 var show_bar := true
 var display := false     # portrait (Scriptorium) : dessiné seulement, aucune logique de jeu
+# Variante de biome : certaines créatures prennent la teinte du biome où elles vivent
+# (carapace du Rampant, feuillage du Cracheur, corps du Sauteur). a = force du mélange.
+var vtint := Color(0, 0, 0, 0)
+const BIOME_SKINNED := ["crawler", "spitter", "hopper"]
+
+static func skin_tint(pal: Dictionary) -> Color:
+	var c: Color = pal.get("moss", Color(0.6, 0.8, 0.5))
+	c = Color.from_hsv(c.h, clampf(c.s, 0.35, 0.8), clampf(c.v, 0.45, 0.85))
+	return Color(c.r, c.g, c.b, 0.5)
 const HpBarScript = preload("res://scripts/hp_bar.gd")
 const TelegraphScript = preload("res://scripts/telegraph.gd")
 const EliteOutline = preload("res://shaders/elite_outline.gdshader")
@@ -31,6 +40,8 @@ func aggro() -> float:
 	return float(GameState.scaled("aggro")) * (1.25 if elite else 1.0)
 
 func setup_body() -> void:
+	if not display and main and main.pal and String(get_script().resource_path.get_file().get_basename()) in BIOME_SKINNED:
+		vtint = skin_tint(main.pal)
 	if display:
 		hp_max = hp
 		return
@@ -166,6 +177,10 @@ func die() -> void:
 func body_color(base: Color) -> Color:
 	if flash_t > 0.0:
 		return Color(1, 1, 1)
+	if vtint.a > 0.0:
+		# garde la luminosité d'origine, prend la teinte du biome
+		var t := Color(vtint.r, vtint.g, vtint.b) * (base.get_luminance() / maxf(Color(vtint.r, vtint.g, vtint.b).get_luminance(), 0.05))
+		base = base.lerp(Color(clampf(t.r, 0, 1), clampf(t.g, 0, 1), clampf(t.b, 0, 1), base.a), vtint.a)
 	return base.lerp(Color(1.0, 0.35, 0.3), 0.35) if elite else base
 
 # Étoiles d'étourdissement au-dessus de la tête
