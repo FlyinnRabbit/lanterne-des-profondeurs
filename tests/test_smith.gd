@@ -35,6 +35,7 @@ func _run() -> void:
 	print("boutons forgeronne : ", labels)
 	var found := up_btn != null
 	up_btn.pressed.emit()
+	main.hub_ui._npc_ok()      # confirmation « Valider »
 	await process_frame
 	print("après : ", main.hub_ui.npc_text.text, "")
 	print("arme=", gs.weapon(), " lv=", gs.prog.get("weapon_lv"))

@@ -13,7 +13,14 @@ var shop_desc: Label
 var shop_status: Label
 var shop_confirm: HBoxContainer    # « Acheter / Annuler » : confirmation d'un achat chez le marchand
 var shop_buy_btn: Button
-var shop_pending := []             # [kind, id, nom, prix] de l'article en attente de confirmation
+var shop_pending := []
+var npc_confirm: HBoxContainer     # même confirmation chez la forgeronne, le joaillier, le cartographe
+var npc_buy_btn: Button
+var npc_pending := Callable()
+var ars_confirm: HBoxContainer     # … et à l'arsenal
+var ars_buy_btn: Button
+var ars_pending := Callable()
+var _ars_go := false             # [kind, id, nom, prix] de l'article en attente de confirmation
 var lift_list: VBoxContainer
 var lift_info: Label
 var npc_panel: PanelContainer
@@ -38,6 +45,7 @@ var ward_tabs := {}
 const Weapons = preload("res://scripts/weapons.gd")
 const CharmIcon = preload("res://scripts/charm_icon.gd")
 const MenuTabs = preload("res://scripts/menu_tabs.gd")
+const Lore = preload("res://scripts/lore.gd")
 var _in_board := false     # un classement est affiché (LB / RB passe au suivant)
 
 func _ready() -> void:
@@ -191,6 +199,21 @@ func _ask_buy(kind: String, id: int, iname: String, price: int) -> void:
 	shop_buy_btn.grab_focus()
 	Audio.sfx("pickup", 0.15, -12.0)
 
+# Rangée « label / Annuler » ; renvoie [rangée, bouton de validation]
+func _confirm_row(ok_label: String, ok_cb: Callable, no_cb: Callable) -> Array:
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	var yes: Button = main.menu._button(ok_label, ok_cb)
+	yes.custom_minimum_size = Vector2(180, 40)
+	yes.add_theme_color_override("font_color", Color(1.0, 0.88, 0.55))
+	var no: Button = main.menu._button("Annuler", no_cb)
+	no.custom_minimum_size = Vector2(180, 40)
+	row.add_child(yes)
+	row.add_child(no)
+	row.visible = false
+	return [row, yes]
+
 func _shop_ok() -> void:
 	if shop_pending.is_empty():
 		return
@@ -224,6 +247,7 @@ func _buy(kind: String, id: int) -> void:
 	_refresh_shop()
 
 func open_shop() -> void:
+	Lore.hear("Le marchand", tr("« Des éclats contre des merveilles, petit veilleur. »"))
 	shop_pending = []
 	shop_confirm.visible = false
 	shop_status.text = ""
@@ -501,6 +525,10 @@ func _build_arsenal(root: Control) -> void:
 	v.add_child(ars_desc)
 	ars_status = _label("", 16, Color(1.0, 0.85, 0.55))
 	v.add_child(ars_status)
+	var ac := _confirm_row("Acheter", _ars_ok, _ars_cancel)
+	ars_confirm = ac[0]
+	ars_buy_btn = ac[1]
+	v.add_child(ars_confirm)
 	var close: Button = main.menu._button("Fermer", close_all)
 	close.custom_minimum_size = Vector2(200, 40)
 	var row := HBoxContainer.new()
@@ -509,6 +537,8 @@ func _build_arsenal(root: Control) -> void:
 	v.add_child(row)
 
 func open_arsenal() -> void:
+	ars_pending = Callable()
+	ars_confirm.visible = false
 	ars_status.text = ""
 	ars_desc.text = ""
 	_open(ars_panel)
@@ -576,6 +606,24 @@ func _refresh_arsenal(focus_id: String = "") -> void:
 	if to_focus:
 		to_focus.grab_focus()
 
+func _ars_ok() -> void:
+	if not ars_pending.is_valid():
+		return
+	var cb := ars_pending
+	ars_pending = Callable()
+	ars_confirm.visible = false
+	_ars_go = true          # confirmé : l'achat se fait sans redemander
+	cb.call()
+	_ars_go = false
+
+func _ars_cancel(refocus := true) -> void:
+	var was := ars_pending.is_valid()
+	ars_pending = Callable()
+	ars_confirm.visible = false
+	if refocus and was:
+		ars_status.text = ""
+		_refresh_arsenal()
+
 func _try_weapon(id: String) -> void:
 	GameState.trial_weapon = "" if GameState.trial_weapon == id else id
 	ars_status.text = (tr("Essai : %s. Frappe le mannequin à droite pour voir ses dégâts.") % tr(Weapons.W[id]["name"])) if GameState.trial_weapon != "" else "Essai terminé."
@@ -588,6 +636,14 @@ func _pick_weapon(id: String) -> void:
 		ars_status.text = tr("%s équipée.") % tr(Weapons.W[id]["name"])
 		Audio.sfx("pickup", 0.0, -3.0)
 	else:
+		var price := int(Weapons.W[id]["price"])
+		if main.player.geo >= price and not _ars_go:
+			ars_pending = _pick_weapon.bind(id)
+			ars_status.text = tr("Acheter %s pour %d éclats ?") % [tr(Weapons.W[id]["name"]), price]
+			ars_confirm.visible = true
+			ars_buy_btn.grab_focus()
+			Audio.sfx("pickup", 0.15, -12.0)
+			return
 		var err: String = GameState.buy_weapon(id, main.player)
 		if err != "":
 			ars_status.text = err
@@ -628,6 +684,10 @@ func _build_npc(root: Control) -> void:
 	npc_scroll.follow_focus = true
 	npc_scroll.add_child(npc_buttons)
 	v.add_child(npc_scroll)
+	var nc := _confirm_row("Valider", _npc_ok, _npc_cancel)
+	npc_confirm = nc[0]
+	npc_buy_btn = nc[1]
+	v.add_child(npc_confirm)
 
 func _npc_button(text: String, cb: Callable) -> Button:
 	var b: Button = main.menu._button(text, cb)
@@ -635,7 +695,40 @@ func _npc_button(text: String, cb: Callable) -> Button:
 	npc_buttons.add_child(b)
 	return b
 
+# Achat chez un habitant : on demande d'abord (rien n'est dépensé) ; sans assez d'éclats,
+# l'achat est tenté tout de suite pour afficher le message d'erreur habituel.
+func _npc_ask(msg: String, price: int, cb: Callable) -> void:
+	if main.player.geo < price:
+		cb.call()
+		return
+	npc_pending = cb
+	npc_text.text = msg
+	npc_confirm.visible = true
+	npc_buy_btn.grab_focus()
+	Audio.sfx("pickup", 0.15, -12.0)
+
+func _npc_ok() -> void:
+	if not npc_pending.is_valid():
+		return
+	var cb := npc_pending
+	npc_pending = Callable()
+	npc_confirm.visible = false
+	cb.call()
+
+func _npc_cancel(refocus := true) -> void:
+	var was := npc_pending.is_valid()
+	npc_pending = Callable()
+	npc_confirm.visible = false
+	if refocus and was:
+		for b in npc_buttons.get_children():
+			if b is Button and not b.disabled:
+				b.grab_focus()
+				break
+
 func open_npc(kind: String) -> void:
+	npc_pending = Callable()
+	if npc_confirm:
+		npc_confirm.visible = false
 	_open(npc_panel)
 	_clear(npc_buttons)
 	var first: Button = null
@@ -674,7 +767,9 @@ func open_npc(kind: String) -> void:
 						b = _npc_button(tr("%s niv. %d → %d — termine le palier %d") % [wname, cur_lv, to_lv, need], func(): pass)
 						b.disabled = true
 					else:
-						b = _npc_button(tr("%s niv. %d → %d — %d éclats") % [wname, cur_lv, to_lv, Weapons.up_price(id, to_lv)], _smith_upgrade.bind(id))
+						var wp: int = Weapons.up_price(id, to_lv)
+						b = _npc_button(tr("%s niv. %d → %d — %d éclats") % [wname, cur_lv, to_lv, wp],
+							func(): _npc_ask(tr("Forger %s au niveau %d pour %d éclats ?") % [wname, to_lv, wp], wp, _smith_upgrade.bind(id)))
 				b.focus_entered.connect(func(): npc_text.text = wname + " — " + up_desc)
 				b.mouse_entered.connect(func(): npc_text.text = wname + " — " + up_desc)
 				if first == null and not b.disabled:
@@ -709,7 +804,10 @@ func open_npc(kind: String) -> void:
 						cb = _npc_button(tr("%s niv. %d → %d — termine le palier %d") % [cname, clv, clv + 1, cneed], func(): pass)
 						cb.disabled = true
 					else:
-						cb = _npc_button(tr("%s niv. %d → %d — %d éclats") % [cname, clv, clv + 1, GameState.charm_up_price(int(cid), clv + 1)], _smith_charm.bind(int(cid)))
+						var cp: int = GameState.charm_up_price(int(cid), clv + 1)
+						var cid_i := int(cid)
+						cb = _npc_button(tr("%s niv. %d → %d — %d éclats") % [cname, clv, clv + 1, cp],
+							func(): _npc_ask(tr("Renforcer %s au niveau %d pour %d éclats ?") % [cname, clv + 1, cp], cp, _smith_charm.bind(cid_i)))
 				cb.focus_entered.connect(func(): npc_text.text = cname + " — " + cdesc)
 				cb.mouse_entered.connect(func(): npc_text.text = cname + " — " + cdesc)
 				if first == null and not cb.disabled:
@@ -720,13 +818,15 @@ func open_npc(kind: String) -> void:
 				npc_text.text = "« Ma plume trace déjà tout pour toi. Ouvre ta carte en descente : chaque recoin y est. »"
 			else:
 				npc_text.text = tr("« Je dessine les paliers avant que tu y poses le pied. Ma plume : %d éclats, et ta carte montrera tout le niveau dès l'arrivée. »") % CARTO_PRICE
-				first = _npc_button(tr("Acheter la Plume du cartographe — %d éclats") % CARTO_PRICE, _buy_map)
+				first = _npc_button(tr("Acheter la Plume du cartographe — %d éclats") % CARTO_PRICE,
+					func(): _npc_ask(tr("Acheter la Plume du cartographe pour %d éclats ?") % CARTO_PRICE, CARTO_PRICE, _buy_map))
 		"elder":
 			npc_name.text = "L'ancien"
 			var lines := []
 			for i in mini(GameState.record + 1, ELDER_LINES.size()):
 				lines.append(tr(ELDER_LINES[i]))
 			npc_text.text = "\n\n".join(lines.slice(maxi(lines.size() - 3, 0)))
+	Lore.hear(npc_name.text, npc_text.text)
 	var close := _npc_button("Fermer", close_all)
 	npc_scroll.custom_minimum_size.y = minf(npc_buttons.get_child_count() * 46.0, 420.0)
 	npc_scroll.scroll_vertical = 0
@@ -816,6 +916,14 @@ func _input(event: InputEvent) -> void:
 			return
 		if not shop_pending.is_empty() and shop_confirm.visible and not event.is_action_pressed("inventory"):
 			_shop_cancel()
+			get_viewport().set_input_as_handled()
+			return
+		if npc_pending.is_valid() and npc_confirm.visible and not event.is_action_pressed("inventory"):
+			_npc_cancel()
+			get_viewport().set_input_as_handled()
+			return
+		if ars_pending.is_valid() and ars_confirm.visible and not event.is_action_pressed("inventory"):
+			_ars_cancel()
 			get_viewport().set_input_as_handled()
 			return
 		close_all()
@@ -934,6 +1042,7 @@ func _build_wardrobe(root: Control) -> void:
 	v.add_child(row)
 
 func open_wardrobe() -> void:
+	Lore.hear("La tailleuse", tr("« Une cape, c'est une promesse. Choisis la tienne, petit veilleur. »"))
 	var ev: String = GameState.CosmeticsScript.current_event()
 	ward_status.text = tr("Les cosmétiques de fête ne se vendent que pendant leur fête.") if ev == "" else tr("C'est %s : la collection de la fête est en vente !") % tr(GameState.CosmeticsScript.EVENTS[ev]["name"])
 	GameState.cos.try_on.clear()
