@@ -37,17 +37,25 @@ func _run() -> void:
 	var ach = root.get_node("Achievements")
 	ach.run["time"] = 240.0
 	gs.go_next_level(main.player)
-	await create_timer(2.5, true, false, true).timeout
+	# réponse du serveur : on l'attend (jusqu'à 15 s) au lieu d'un délai fixe
+	for i in 60:
+		await create_timer(0.25, true, false, true).timeout
+		if int(gs.board.last.get("me", {}).get("rank", -1)) > 0 and current_scene.hud.message.find("sur") >= 0:
+			break
 	var msg: String = current_scene.hud.message
 	print("message : ", msg.replace("\n", " | "))
 	print("dernière réponse : rang ", gs.board.last.get("me", {}).get("rank", -1), " sur ", gs.board.last.get("total", -1))
 	# écran du classement
 	current_scene.hub_ui.open_elevator()
 	current_scene.hub_ui._show_board()
-	await create_timer(1.5, true, false, true).timeout
+	for i in 60:
+		await create_timer(0.25, true, false, true).timeout
+		if current_scene.hub_ui._board_rows.get_child_count() >= 10:
+			break
 	for i in 4:
 		await process_frame
 	await RenderingServer.frame_post_draw
+	DirAccess.make_dir_recursive_absolute("/tmp/gfx")
 	root.get_viewport().get_texture().get_image().save_png("/tmp/gfx/board.png")
 	var lines: int = current_scene.hub_ui._board_rows.get_child_count()
 	print("lignes affichées : ", lines)

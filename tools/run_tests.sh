@@ -57,7 +57,7 @@ run_one() {
 export -f run_one
 export OUT GODOT TIMEOUT
 # les tests lisent les textes du jeu en français (la langue suit celle du système)
-export LANG=fr_FR.UTF-8 LC_ALL=fr_FR.UTF-8
+export LANG=fr_FR.UTF-8; unset LC_ALL
 
 TESTS=()
 for t in tests/test_*.gd; do
@@ -73,7 +73,7 @@ FAILS=$(grep -vc "^OK" "$OUT/_bilan" || true)
 TOTAL=$(wc -l <"$OUT/_bilan")
 for f in $(grep -v "^OK" "$OUT/_bilan" | awk '{print $3}'); do
 	echo "──── $f ────"
-	grep -E "SCRIPT ERROR|ÉCHEC|FAIL|RÉSULTAT|at: " "$OUT/$f.log" | head -20
+	grep -vE "^\s*$|keyboard_get_keycode|Not supported by this display|V-Sync|set_use_vsync|^OpenGL|^Godot Engine|leaked at exit|still in use at exit|at: (cleanup|clear) " "$OUT/$f.log" | tail -25
 done
 echo "Bilan : $((TOTAL - FAILS)) / $TOTAL tests OK"
 [ "$FAILS" -eq 0 ]
