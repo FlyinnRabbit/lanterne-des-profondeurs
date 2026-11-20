@@ -136,7 +136,11 @@ func _draw_map() -> void:
 	view.draw_string(font, rc + Vector2(-4, -26), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, INK)
 	var ms: Vector2i = main.map_size
 	var top := pr.position.y + 60.0
-	var area := Vector2(psz.x - 70.0, psz.y - 100.0)
+	# niveau en strates (plus haut que large) : la légende passe dans une colonne à droite,
+	# sinon elle recouvrait la 3e strate (Mines, Glace, Forge, Profondeurs)
+	var tall: bool = ms.y * 2 > ms.x
+	var area := Vector2(psz.x - 70.0 - (240.0 if tall else 0.0), psz.y - 100.0)
+	var map_mid := mid - (120.0 if tall else 0.0)
 	var c := floorf(minf(area.x / ms.x, area.y / ms.y))
 	c = maxf(c, 2.0)
 	# centre le dessin sur la partie explorée
@@ -156,10 +160,13 @@ func _draw_map() -> void:
 		y0 = 0
 		x1 = ms.x - 1
 		y1 = ms.y - 1
-	var origin := Vector2(mid - (x0 + x1 + 1) * c / 2.0, top + area.y / 2.0 - (y0 + y1 + 1) * c / 2.0)
+	var origin := Vector2(map_mid - (x0 + x1 + 1) * c / 2.0, top + area.y / 2.0 - (y0 + y1 + 1) * c / 2.0)
 	draw_cells(view, main, origin, c, Rect2i(Vector2i.ZERO, ms))
 	var kinds := draw_markers(view, main, origin, c, Rect2i(Vector2i.ZERO, ms), true)
-	draw_legend(view, font, kinds, pr.position + Vector2(118.0, psz.y - 22.0 - minf(kinds.size(), 4) * 20.0), 80.0)
+	if tall:
+		draw_legend(view, font, kinds, Vector2(pr.end.x - 235.0, top + 40.0), 260.0)
+	else:
+		draw_legend(view, font, kinds, pr.position + Vector2(118.0, psz.y - 22.0 - minf(kinds.size(), 4) * 20.0), 80.0)
 	view.draw_set_transform(Vector2.ZERO, 0.0)
 	Glyphs.draw_rich(view, font, 0, sz.x, pr.end.y + 34, "{map|1} / {pause|1} : fermer", 16, Color(0.85, 0.8, 0.7))
 
