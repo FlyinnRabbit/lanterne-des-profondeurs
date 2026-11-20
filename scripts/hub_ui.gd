@@ -11,6 +11,9 @@ var shop_list: VBoxContainer
 var shop_geo: Label
 var shop_desc: Label
 var shop_status: Label
+var shop_confirm: HBoxContainer    # « Acheter / Annuler » : confirmation d'un achat chez le marchand
+var shop_buy_btn: Button
+var shop_pending := []             # [kind, id, nom, prix] de l'article en attente de confirmation
 var lift_list: VBoxContainer
 var lift_info: Label
 var npc_panel: PanelContainer
@@ -105,6 +108,18 @@ func _build_shop(root: Control) -> void:
 	v.add_child(shop_desc)
 	shop_status = _label("", 16, Color(1.0, 0.85, 0.55))
 	v.add_child(shop_status)
+	shop_confirm = HBoxContainer.new()
+	shop_confirm.alignment = BoxContainer.ALIGNMENT_CENTER
+	shop_confirm.add_theme_constant_override("separation", 12)
+	shop_buy_btn = main.menu._button("Acheter", _shop_ok)
+	shop_buy_btn.custom_minimum_size = Vector2(180, 40)
+	shop_buy_btn.add_theme_color_override("font_color", Color(1.0, 0.88, 0.55))
+	var no: Button = main.menu._button("Annuler", _shop_cancel)
+	no.custom_minimum_size = Vector2(180, 40)
+	shop_confirm.add_child(shop_buy_btn)
+	shop_confirm.add_child(no)
+	shop_confirm.visible = false
+	v.add_child(shop_confirm)
 	var close: Button = main.menu._button("Fermer", close_all)
 	close.custom_minimum_size = Vector2(200, 40)
 	var row := HBoxContainer.new()
@@ -154,7 +169,7 @@ func _refresh_shop() -> void:
 			else:
 				CharmIcon.draw_item(ic, Vector2(17, 17), 15.0, kind_s))
 		b.add_child(ic)
-		b.pressed.connect(_buy.bind(it["kind"], it["id"]))
+		b.pressed.connect(_ask_buy.bind(it["kind"], it["id"], it["name"], int(it["price"])))
 		b.focus_entered.connect(func(): shop_desc.text = it["desc"])
 		b.mouse_entered.connect(func(): shop_desc.text = it["desc"])
 		shop_list.add_child(b)
@@ -162,6 +177,39 @@ func _refresh_shop() -> void:
 			first = b
 	if first:
 		first.grab_focus()
+
+# Premier appui sur un article : on demande confirmation (rien n'est dépensé) ;
+# « Acheter » achète, « Annuler » (ou B / Échap) revient à la liste.
+func _ask_buy(kind: String, id: int, iname: String, price: int) -> void:
+	if main.player.geo < price:
+		_shop_cancel(false)
+		shop_status.text = tr("Pas assez d'éclats (%d nécessaires).") % price
+		return
+	shop_pending = [kind, id, iname, price]
+	shop_status.text = tr("Acheter %s pour %d éclats ?") % [iname, price]
+	shop_confirm.visible = true
+	shop_buy_btn.grab_focus()
+	Audio.sfx("pickup", 0.15, -12.0)
+
+func _shop_ok() -> void:
+	if shop_pending.is_empty():
+		return
+	var p := shop_pending
+	shop_pending = []
+	shop_confirm.visible = false
+	_buy(p[0], p[1])
+
+func _shop_cancel(refocus := true) -> void:
+	var was := shop_pending
+	shop_pending = []
+	if shop_confirm:
+		shop_confirm.visible = false
+	if refocus and not was.is_empty():
+		shop_status.text = ""
+		for b in shop_list.get_children():
+			if b is Button and not b.disabled:
+				b.grab_focus()
+				break
 
 func _buy(kind: String, id: int) -> void:
 	var err: String = GameState.buy(kind, id, main.player)
@@ -176,6 +224,8 @@ func _buy(kind: String, id: int) -> void:
 	_refresh_shop()
 
 func open_shop() -> void:
+	shop_pending = []
+	shop_confirm.visible = false
 	shop_status.text = ""
 	shop_desc.text = ""
 	_open(shop_panel)
@@ -762,6 +812,10 @@ func _input(event: InputEvent) -> void:
 		# pendant une confirmation d'achat, B / Échap annule au lieu de fermer
 		if ward_pending != "" and ward_confirm.visible and not event.is_action_pressed("inventory"):
 			_ward_cancel()
+			get_viewport().set_input_as_handled()
+			return
+		if not shop_pending.is_empty() and shop_confirm.visible and not event.is_action_pressed("inventory"):
+			_shop_cancel()
 			get_viewport().set_input_as_handled()
 			return
 		close_all()
