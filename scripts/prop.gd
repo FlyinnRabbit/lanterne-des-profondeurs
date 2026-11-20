@@ -21,6 +21,15 @@ func _process(delta: float) -> void:
 	t += delta
 	queue_redraw()
 
+# Ancien : y a-t-il des mémoires pas encore écoutées ? (recalculé deux fois par seconde)
+var _unread := false
+var _unread_t := 0.0
+func _elder_unread() -> bool:
+	if t - _unread_t > 0.5 or _unread_t == 0.0:
+		_unread_t = t + 0.0001
+		_unread = load("res://scripts/lore.gd").unread_count() > 0
+	return _unread
+
 func _draw() -> void:
 	match kind:
 		"tailor":
@@ -528,6 +537,15 @@ func _draw() -> void:
 			for i in 3:
 				var sy2 := -46.0 - fmod(t * 14.0 + i * 15.0, 45.0)
 				draw_circle(Vector2(-62 + sin(t + i) * 5.0, sy2), 3.0 + i, Color(0.7, 0.7, 0.75, 0.15))
+			# mémoires à écouter : bulle « ! » qui flotte au-dessus de sa capuche
+			if not has_meta("portrait") and _elder_unread():
+				var bp := Vector2(23, -72 + sin(t * 2.5) * 3.0)
+				DU.glow(self, bp, 18.0, Color(1.0, 0.8, 0.35), 0.35)
+				draw_circle(bp, 9.0, Color(0.98, 0.86, 0.5))
+				draw_arc(bp, 9.0, 0.0, TAU, 20, Color(0.45, 0.3, 0.12), 1.4)
+				DU.poly(self, PackedVector2Array([bp + Vector2(-3, 7), bp + Vector2(3, 7), bp + Vector2(0, 12)]), Color(0.98, 0.86, 0.5))
+				draw_line(bp + Vector2(0, -5), bp + Vector2(0, 1.5), Color(0.3, 0.18, 0.06), 2.4)
+				draw_circle(bp + Vector2(0, 4.5), 1.4, Color(0.3, 0.18, 0.06))
 		"arsenal":
 			# Arsenal : présentoir de bois à auvent, fond de planches, bannière,
 			# les quatre armes exposées sur leurs crochets, caisse et lanterne

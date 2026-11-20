@@ -98,6 +98,7 @@ var light_tex: GradientTexture2D
 var menu
 var inventory
 var scriptorium
+var elder_ui                       # les Mémoires de l'Ancien (elder.gd)
 const ScriptoriumScript = preload("res://scripts/scriptorium.gd")
 var map_view
 var challenge_start = null
@@ -167,6 +168,10 @@ func _ready() -> void:
 	scriptorium.set_script(ScriptoriumScript)
 	scriptorium.main = self
 	add_child(scriptorium)
+	elder_ui = CanvasLayer.new()
+	elder_ui.set_script(load("res://scripts/elder.gd"))
+	elder_ui.main = self
+	add_child(elder_ui)
 	GameState.equipment_changed.connect(player.apply_equipment)
 	hub_ui = CanvasLayer.new()
 	hub_ui.set_script(HubUIScript)
@@ -434,7 +439,7 @@ func _spawn_everything() -> void:
 				"F", "J", "I", "]":
 					# habitants du Sanctuaire : arrivent au fil des paliers terminés
 					var npc: String = {"F": "smith", "J": "cartographer", "I": "elder", "]": "jeweler"}[row[x]]
-					var need: int = {"smith": 1, "cartographer": 2, "elder": 3, "jeweler": 2}[npc]
+					var need: int = {"smith": 1, "cartographer": 2, "elder": 1, "jeweler": 2}[npc]
 					if GameState.record >= need:
 						# le joaillier, juste sous la lumière, était tout blanc : lumière plus douce
 						var np2 = _make_prop(npc, Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE), Color(1.0, 0.8, 0.55), 0.8 if npc == "jeweler" else 2.0)
@@ -608,7 +613,9 @@ func _do_interact(it: Array) -> void:
 		hub_ui.open_arsenal()
 	elif it[1] == "altar":
 		_start_altar(it[0])
-	elif it[1] in ["smith", "cartographer", "elder", "jeweler"]:
+	elif it[1] == "elder":
+		elder_ui.open()
+	elif it[1] in ["smith", "cartographer", "jeweler"]:
 		hub_ui.open_npc(it[1])
 	elif it[1] == "tailor":
 		hub_ui.open_wardrobe()
