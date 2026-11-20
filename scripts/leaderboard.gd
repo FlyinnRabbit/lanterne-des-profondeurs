@@ -44,10 +44,16 @@ static func player_name() -> String:
 
 func _http(url: String, method: int, body: String, cb: Callable) -> void:
 	var h := HTTPRequest.new()
-	h.timeout = 12.0
+	h.timeout = 10.0
 	add_child(h)
 	h.request_completed.connect(func(result: int, code: int, _hd: PackedStringArray, data: PackedByteArray):
 		h.queue_free()
+		# connexion impossible ou sans réponse : souvent une IPv6 cassée sur le PC (le navigateur,
+		# lui, repasse tout seul en IPv4). On réessaie une fois en forçant l'IPv4.
+		if result in [HTTPRequest.RESULT_TIMEOUT, HTTPRequest.RESULT_CANT_CONNECT, HTTPRequest.RESULT_CONNECTION_ERROR,
+				HTTPRequest.RESULT_NO_RESPONSE, HTTPRequest.RESULT_CANT_RESOLVE]:
+			_http_v4(url, method, body, cb, "R%d" % result)
+			return
 		if result != HTTPRequest.RESULT_SUCCESS:
 			last_net = "R%d" % result
 		elif code != 200:
@@ -58,6 +64,75 @@ func _http(url: String, method: int, body: String, cb: Callable) -> void:
 		last_net = "E%d" % err
 		h.queue_free()
 		cb.call(false, 0, "")
+
+# Même requête, mais vers l'adresse IPv4 du serveur (le certificat et le nom envoyés au serveur
+# restent ceux du vrai nom d'hôte). first : code du premier échec, gardé pour le diagnostic.
+func _http_v4(url: String, method: int, body: String, cb: Callable, first: String) -> void:
+	var tls := url.begins_with("https://")
+	var rest := url.substr(8 if tls else 7)
+	var slash := rest.find("/")
+	var hostport := rest if slash < 0 else rest.substr(0, slash)
+	var path := "/" if slash < 0 else rest.substr(slash)
+	var host := hostport
+	var port := 443 if tls else 80
+	if hostport.contains(":"):
+		host = hostport.get_slice(":", 0)
+		port = int(hostport.get_slice(":", 1))
+	var ip := host if host.is_valid_ip_address() else IP.resolve_hostname(host, IP.TYPE_IPV4)
+	if ip == "":
+		last_net = first + "/v4R3"
+		cb.call(false, 0, "")
+		return
+	var c := HTTPClient.new()
+	var err := c.connect_to_host(ip, port, TLSOptions.client(null, host) if tls else null)
+	if err != OK:
+		last_net = first + "/v4E%d" % err
+		cb.call(false, 0, "")
+		return
+	var t0 := Time.get_ticks_msec()
+	var timed_out := func() -> bool: return Time.get_ticks_msec() - t0 > 12000
+	while c.get_status() in [HTTPClient.STATUS_CONNECTING, HTTPClient.STATUS_RESOLVING]:
+		c.poll()
+		if timed_out.call():
+			break
+		await get_tree().process_frame
+	if c.get_status() != HTTPClient.STATUS_CONNECTED:
+		last_net = first + "/v4S%d" % c.get_status()
+		cb.call(false, 0, "")
+		return
+	var hd := PackedStringArray(HEADERS)
+	hd.append("Host: " + host)
+	err = c.request(method, path, hd, body)
+	if err != OK:
+		last_net = first + "/v4E%d" % err
+		cb.call(false, 0, "")
+		return
+	while c.get_status() == HTTPClient.STATUS_REQUESTING:
+		c.poll()
+		if timed_out.call():
+			break
+		await get_tree().process_frame
+	if not c.get_status() in [HTTPClient.STATUS_BODY, HTTPClient.STATUS_CONNECTED]:
+		last_net = first + "/v4S%d" % c.get_status()
+		cb.call(false, 0, "")
+		return
+	var data := PackedByteArray()
+	while c.get_status() == HTTPClient.STATUS_BODY:
+		c.poll()
+		var chunk := c.read_response_body_chunk()
+		if chunk.size() > 0:
+			data.append_array(chunk)
+		elif timed_out.call():
+			break
+		else:
+			await get_tree().process_frame
+	var code := c.get_response_code()
+	c.close()
+	if code != 200:
+		last_net = first + "/v4H%d" % code
+	else:
+		last_net = ""
+	cb.call(code > 0, code, data.get_string_from_utf8())
 
 # Trouve l'adresse du serveur puis lance fn ; fail si elle est introuvable (hors ligne).
 func _with_endpoint(fn: Callable, fail: Callable) -> void:
