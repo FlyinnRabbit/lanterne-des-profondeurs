@@ -127,6 +127,20 @@ jobs:
           done
           echo "::warning::Code du jour pas encore posté ($OUT) ; il le sera au prochain passage planifié."
 
+      - name: Vérifier le code du jour (comme le jeu)
+        if: steps.check.outputs.ready == 'true'
+        env:
+          HOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          URL: ${{ steps.deploy.outputs.url }}
+        working-directory: server
+        run: |
+          if [ -z "$HOOK" ]; then exit 0; fi
+          CODE="$(node --input-type=module -e 'import { dailyCode, dayKey } from "./worker.js"; console.log((await dailyCode(process.env.HOOK, dayKey())).replace("-", ""));')"
+          echo "::add-mask::$CODE"
+          echo "Bon code   : $(curl -sS -A LanterneDesProfondeurs -w ' (HTTP %{http_code})' "$URL/discord/code?code=$CODE" || true)"
+          echo "Faux code  : $(curl -sS -A LanterneDesProfondeurs -w ' (HTTP %{http_code})' "$URL/discord/code?code=AAAAAAAA" || true)"
+          echo "Adresse    : $(curl -sS -w ' (HTTP %{http_code})' https://raw.githubusercontent.com/FlyinnRabbit/lanterne-des-profondeurs/main/leaderboard.url || true)"
+
       - name: Publier l'adresse pour le jeu (leaderboard.url)
         if: steps.check.outputs.ready == 'true'
         env:

@@ -3,6 +3,7 @@ extends Node
 # Bus créés au démarrage : Master > Music, Master > SFX. Volumes réglés dans Options.
 
 const FADE := 1.5
+var _fade_tw: Tween
 const SFX_NAMES := ["slash", "hit", "hurt", "parry", "dash", "jump", "ult", "pickup", "heal", "spit", "kill", "door",
 	"whip", "hammer", "star", "star_hit", "crit", "crit_ready", "achievement", "soul_level", "soul_full"]
 
@@ -67,6 +68,9 @@ func play_playlist(paths: Array, shuffle := true) -> void:
 	# Si le morceau en cours fait partie de la nouvelle playlist, on le laisse continuer
 	if current_path in playlist and players[active].playing:
 		index = playlist.find(current_path)
+		var st = players[active].stream
+		if st is AudioStreamOggVorbis:
+			st.loop = playlist.size() == 1      # devenu seul : il boucle sans blanc
 		return
 	_crossfade(playlist[0], playlist.size() == 1)
 
@@ -81,8 +85,12 @@ func resume_level() -> void:
 		_crossfade(playlist[index], playlist.size() == 1)
 
 func stop_music() -> void:
+	if _fade_tw and _fade_tw.is_valid():
+		_fade_tw.kill()
 	for p in players:
-		create_tween().tween_property(p, "volume_db", -80.0, FADE)
+		var tw := create_tween()
+		tw.tween_property(p, "volume_db", -80.0, FADE)
+		tw.tween_callback(p.stop)
 	current_path = ""
 
 func _crossfade(path: String, loop: bool) -> void:
@@ -97,23 +105,39 @@ func _crossfade(path: String, loop: bool) -> void:
 	active = 1 - active
 	var p := players[active]
 	p.stream = stream
-	p.volume_db = -40.0
+	p.volume_db = -80.0
 	p.play()
 	current_path = path
-	var tw := create_tween().set_parallel(true)
-	tw.tween_property(p, "volume_db", duck, FADE)
-	if old.playing:
-		tw.tween_property(old, "volume_db", -80.0, FADE)
-		tw.chain().tween_callback(old.stop)
+	# fondu à puissance constante (en amplitude, pas en dB) : pas de creux au milieu
+	var from_old := db_to_linear(old.volume_db - duck) if old.playing else 0.0
+	if _fade_tw and _fade_tw.is_valid():
+		_fade_tw.kill()
+	_fade_tw = create_tween()
+	_fade_tw.tween_method(func(t: float):
+		p.volume_db = linear_to_db(maxf(sqrt(t), 0.0001)) + duck
+		if old.playing:
+			old.volume_db = linear_to_db(maxf(sqrt(1.0 - t) * from_old, 0.0001)) + duck, 0.0, 1.0, FADE)
+	_fade_tw.tween_callback(func():
+		if old != players[active]:
+			old.stop())
+
+# Fin proche d'un morceau de la playlist : le suivant commence en fondu AVANT la fin, sans blanc.
+func _next_in_playlist() -> void:
+	index = (index + 1) % playlist.size()
+	_crossfade(playlist[index], playlist.size() == 1)
 
 func _on_finished(i: int) -> void:
 	# fin d'un morceau de la playlist : on enchaîne le suivant (la playlist boucle)
 	if i != active or boss_mode or playlist.is_empty():
 		return
-	index = (index + 1) % playlist.size()
-	_crossfade(playlist[index], playlist.size() == 1)
+	_next_in_playlist()
 
 func _process(_delta: float) -> void:
+	var cur := players[active]
+	if not boss_mode and playlist.size() > 1 and cur.playing and cur.stream:
+		var left: float = cur.stream.get_length() - cur.get_playback_position()
+		if left > 0.0 and left < FADE:
+			_next_in_playlist()
 	# musique un peu plus basse quand le jeu est en pause
 	var target := -8.0 if get_tree().paused else 0.0
 	if not is_equal_approx(target, duck):
