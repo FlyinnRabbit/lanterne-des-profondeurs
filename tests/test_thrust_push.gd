@@ -50,6 +50,7 @@ func _run() -> void:
 			continue
 		e.hp = 999
 		var pushes := []
+		var proj := []        # projections déclenchées (compteur du journal) : insensible au décor
 		for k in 2:
 			e.global_position = pl.global_position + Vector2(90, -4)
 			e.knock = Vector2.ZERO
@@ -57,13 +58,17 @@ func _run() -> void:
 			pl.facing = 1
 			pl.invuln_t = 5.0
 			var x0: float = e.global_position.x
+			var j0 := int(gs.j_get("pushes", 0))
 			await _thrust(pl)
 			await _f(40)
 			pushes.append(e.global_position.x - x0)
+			proj.append(int(gs.j_get("pushes", 0)) - j0)
 			pl.dash_cd = 0.0
 		var want_push: bool = w != "shuriken"
-		var good: bool = (pushes[0] > 120.0 and pushes[0] > pushes[1] + 40.0) == want_push and pushes[1] < 100.0
-		print("%-9s : recul 1er estoc %.0f px, 2e estoc (recharge) %.0f px -> %s" % [w, pushes[0], pushes[1], "ok" if good else "PROBLÈME"])
+		# la distance parcourue dépend du décor et de l'ennemi tiré au hasard (mur, pente, ennemi qui
+		# avance) : on juge sur les projections réellement déclenchées
+		var good: bool = (proj[0] >= 1) == want_push and proj[1] == 0
+		print("%-9s : recul 1er estoc %.0f px (projeté %d), 2e estoc (recharge) %.0f px (projeté %d) -> %s" % [w, pushes[0], proj[0], pushes[1], proj[1], "ok" if good else "PROBLÈME"])
 		ok = ok and good
 	print("RÉSULTAT : ", "OK" if ok else "ÉCHEC")
 	quit()

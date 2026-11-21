@@ -14,7 +14,7 @@ Todo está dibujado con código: el juego no contiene ni una sola imagen.
 
 <p align="center"><a href="docs/video/trailer_es.mp4"><img src="docs/video/preview.gif" width="820" alt="Vista previa del tráiler: haz clic para verlo"></a></p>
 
-<p align="center"><b><a href="docs/video/trailer_es.mp4">▶ Ver el tráiler (80 s)</a></b> · <a href="docs/booklet/booklet_es.pdf">Folleto (PDF, 10 páginas)</a></p>
+<p align="center"><b><a href="docs/video/trailer_es.mp4">▶ Ver el tráiler (58 s)</a></b> · <a href="docs/booklet/booklet_es.pdf">Folleto (PDF, 10 páginas)</a></p>
 
 ## El objetivo
 
@@ -29,6 +29,7 @@ guarda las esquirlas perdidas donde caíste, y el ascensor recuerda hasta dónde
 
 - **12 biomas**; las zonas se generan de nuevo en cada descenso, con grutas, estratos de tres pisos, tornos y trampas propias de cada bioma
 - **10 jefes**: 6 guardianes de nivel y 4 jefes finales, cada uno con una fase 2 y su propia música
+- **12 campeones**, uno por bioma: minijefes el doble de grandes, con contorno dorado y su propia barra de vida
 - **16 tipos de enemigos**, del reptante al mono ladrón, pasando por el mímico y el goblin
 - **Combate**: combos de 3 golpes, torbellino cargado, combo aéreo, pogo, ataque en picado, estocada en embestida, parada (perfecta = golpe crítico), hoja de alma, definitivo
 - **7 armas** forjadas hasta el nivel 5 por la herrera, **42 emblemas** reforzados hasta el nivel 3 por el joyero
@@ -180,6 +181,10 @@ jugada. Logros, cosméticos y opciones son comunes a todas las ranuras. El guard
 Al empezar: **Jugar** → elige la dificultad (y la opción «Saltar el tutorial»).
 También durante una partida: Pausa → «Nueva partida…».
 
+El **tutorial** tiene dos pisos. Arriba: movimiento, combate, parada, Embestida, alma, definitiva y bancos.
+Abajo, tras bajar por un torno: un puente que se derrumba, una roca agrietada que romper, un emblema que
+equipar en un banco, esquirlas y el mapa. Las esquirlas del tutorial se conservan.
+
 **Una sola vida** (casilla al crear la partida, en todas las dificultades): la primera muerte borra la
 ranura (fuera del tutorial). Una pequeña calavera junto a las esquirlas lo recuerda. Los logros y los
 cosméticos se conservan, porque son comunes a todas las partidas.
@@ -214,7 +219,9 @@ Tras el tutorial llegas al **Santuario de la Linterna**, el corazón del juego:
 - **Arsenal**: comprar y equipar tu arma base. **Probar** presta un arma mientras sigas en el Santuario.
 - **Maniquí de entrenamiento** (a la derecha del arsenal): muestra tu daño por segundo.
 - **Sastra**: el guardarropa y los cosméticos.
-- **Ascensor**: elegir el **nivel** al que bajar, y los modos especiales (más abajo).
+- **Ascensor**: elegir el **nivel** al que bajar, y los modos especiales (más abajo). Una franja muestra el
+  camino hasta el **nivel 7**, donde se apagó la Linterna: niveles vencidos en oro, el nivel abierto rodeado y
+  los siguientes con candado. Tras el 7 muestra el ciclo actual (8-14, 15-21…) con su jefe final al final.
 - **Habitantes** que llegan al superar niveles:
   - la **herrera** (nivel 1): forja cada arma hasta el **nivel 5**;
   - el **joyero**, un faraón momificado sobre su plataforma (nivel 2): refuerza **todos tus emblemas** hasta
@@ -297,7 +304,9 @@ zigzag, caminos dobles, cuevas bajas, puentes frágiles, abismos con plataforma 
 - **Tótem de dardos**: dispara a la altura de la cabeza. Agáchate, salta o para.
 - **Cuchilla péndulo**: su punto más bajo pasa justo por encima del héroe agachado.
 - **Estalactita**: cae cuando pasas por debajo.
-- **Bloques frágiles**: se hunden poco después de pisarlos y luego se rehacen.
+- **Puentes frágiles**: se hunden poco después de pisarlos y luego se rehacen. Cada bioma tiene los suyos
+  (tablas, huesos, libros, sombreros de seta, hielo, panal…).
+- **Rocas agrietadas**: bloquean un paso; golpéalas hasta que cedan. Su material cambia con el bioma.
 - **Plataforma móvil**: va y viene sobre un abismo.
 - **Plataforma que se derrumba** (Minas de Cristal): cede bajo tus pies en una lluvia de cascotes.
 
@@ -437,6 +446,12 @@ Los efectos se definen en `scripts/charms.gd` y se aplican en `scripts/player.gd
 - **Élites** (brillo rojo): más vida, más rápidos, botín doble y un ataque extra — el reptante embiste,
   el volador cae en picado, el escupidor lanza 3 esporas, el saltador encadena dos saltos, el guardia
   carga con su escudo.
+- **Campeones** (contorno dorado): desde el nivel 2, más o menos una zona sin jefe de cada dos o tres esconde
+  al campeón de su bioma, el doble de grande, con su barra de vida y una gran recompensa en esquirlas. Una vez
+  vencido, no vuelve. El Gran Rape (Profundidades), la Bejín Madre (Jardines), el Capitán Ahogado (Ciudadela),
+  la Tortuga Ancestral (Minas), el Diablillo Herrero (Forja), el Grimorio Prohibido (Biblioteca), el Gólem del
+  Glaciar (Abismo), el Zángano Guardián (Colmena), el Rey Esqueleto (Osario), el Rey Mono (Jungla), el
+  Escorpión Emperador (Arenas) y el Jefe Goblin (Templo).
 
 Ningún enemigo puede golpear a través de una pared. Los enemigos duros y las élites son más frecuentes
 cuanto más bajas.
@@ -494,6 +509,9 @@ Todo está dibujado con código, con un estilo detallado y pintado:
   hielo, panal, huesos), más oscura en profundidad y con los bordes iluminados;
 - **suelos decorados** según el bioma (hierba, setas luminosas, cristales, cráneos, libros, velas,
   nieve, miel) y **fondos con paralaje** en tres planos con niebla y rayos de luz;
+- un **tercer plano** entre el fondo y el héroe, distinto en cada bioma: estanque de setas, pantano, fuente
+  sagrada, entrada de mina de cristal, volcán con coladas, río de miel, esfera armilar, cascada helada,
+  derrumbe de huesos, río de la jungla, arenas movedizas, fuente romana;
 - **héroe, enemigos, 10 jefes y habitantes del Santuario** con sombreado, brillos y detalles;
 - **trampas, rejas, pilares de ataque, portal de salida** (un diseño por bioma) y **el final**;
 - **emblemas**: cada uno tiene su medallón grabado y su icono; los **golpes de arma** dejan estelas pintadas;
@@ -598,7 +616,7 @@ música, sonidos o imágenes: las instalaciones antiguas verán entonces el avis
 
 ## Música y sonidos
 Una banda sonora **original** generada para el juego (sin material de terceros): 32 pistas en bucle en
-`music/` — una o dos por bioma que se encadenan con fundido, un tema por jefe, uno para el tutorial,
+`music/` — una o dos por bioma que se encadenan con fundido, un tema por jefe (cada uno con su motivo, su ritmo y sus instrumentos), uno para el tutorial,
 uno para el Santuario y uno por fiesta. Los efectos de sonido están en `sfx/`, con sonidos propios de
 cada arma, de los golpes críticos y de la parada perfecta. Volúmenes **general / música / efectos** en
 Opciones; la música baja un poco cuando el juego está en pausa.
@@ -614,8 +632,15 @@ Opciones; la música baja un poco cuando el juego está en pausa.
 `LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787`).
 
 ## Licencia
-Copyright (c) 2026 FlyinnRabbit. **Todos los derechos reservados.** Puedes descargar, instalar y ejecutar el
-juego para uso personal y no comercial. Modificarlo, redistribuirlo, publicarlo o venderlo, total o
-parcialmente, no está permitido sin permiso por escrito. Texto completo: `LICENSE` (en inglés).
-Excepción: `sfx/lift_chains.ogg` procede de la grabación *Chains Chiming* de freesound_community en Pixabay (licencia de contenido de Pixabay).
-El juego se inspira en Hollow Knight (Team Cherry), pero no reutiliza ninguno de sus personajes ni recursos.
+Copyright (c) 2026 FlyinnRabbit. **Todos los derechos reservados.** Linterna de las Profundidades es un juego
+comercial: su código, gráficos, música, sonidos, textos y nombre pertenecen a su autor.
+- **Código fuente**: publicado para leerlo. Copiarlo, modificarlo, compilarlo, redistribuirlo o reutilizar una
+  parte (código, gráficos, música, sonidos) en otro proyecto no está permitido sin permiso por escrito.
+- **Versiones gratuitas** (navegador y descargas de GitHub): puedes instalarlas y jugarlas para uso personal y
+  no comercial, pero no redistribuirlas, alojarlas en otro sitio ni venderlas.
+- **Versión de Steam**: se rige por el Acuerdo de Suscriptor de Steam y las condiciones de su página.
+- **Vídeos, directos y capturas**, monetizados o no: permitidos, siempre que no se presenten como oficiales.
+
+Texto completo: `LICENSE` (en inglés). El motor Godot está bajo licencia MIT; `sfx/lift_chains.ogg` procede de
+la grabación *Chains Chiming* de freesound_community en Pixabay (licencia de contenido de Pixabay).
+El juego se inspira en Hollow Knight (Team Cherry) pero no reutiliza ninguno de sus personajes ni elementos.

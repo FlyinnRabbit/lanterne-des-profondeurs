@@ -14,7 +14,7 @@ Alles wird per Code gezeichnet: Das Spiel enthält kein einziges Bild.
 
 <p align="center"><a href="docs/video/trailer_de.mp4"><img src="docs/video/preview.gif" width="820" alt="Trailer-Vorschau: zum Ansehen klicken"></a></p>
 
-<p align="center"><b><a href="docs/video/trailer_de.mp4">▶ Trailer ansehen (80 s)</a></b> · <a href="docs/booklet/booklet_de.pdf">Booklet (PDF, 10 Seiten)</a></p>
+<p align="center"><b><a href="docs/video/trailer_de.mp4">▶ Trailer ansehen (58 s)</a></b> · <a href="docs/booklet/booklet_de.pdf">Booklet (PDF, 10 Seiten)</a></p>
 
 ## Das Ziel
 
@@ -29,6 +29,7 @@ Schatten bewahrt die verlorenen Splitter dort, wo du gefallen bist, und der Aufz
 
 - **12 Biome**; die Zonen werden bei jedem Abstieg neu erzeugt, mit Grotten, dreistöckigen Schichten, Seilwinden und Fallen, die zu jedem Biom passen
 - **10 Bosse**: 6 Ebenenwächter und 4 Endbosse, jeder mit einer Phase 2 und eigener Musik
+- **12 Champions**, einer pro Biom: doppelt so große Minibosse mit goldenem Umriss und eigener Lebensleiste
 - **16 Gegnerarten**, vom Kriecher über den Mimik bis zum diebischen Affen und dem Goblin
 - **Kampf**: 3-Schlag-Kombos, aufgeladener Wirbel, Luftkombo, Pogo, Sturzangriff, Sprintstoß, Parade (perfekt = kritischer Treffer), Seelenklinge, Ultimative
 - **7 Waffen**, von der Schmiedin bis Stufe 5 geschmiedet, **42 Embleme**, vom Juwelier bis Stufe 3 verstärkt
@@ -180,6 +181,10 @@ gespielten Platz. Erfolge, Kosmetik und Optionen gelten für alle Plätze. Gespe
 Zum Start: **Spielen** → Schwierigkeit wählen (und die Option „Tutorial überspringen").
 Auch während eines Spiels: Pause → „Neues Spiel …".
 
+Das **Tutorial** hat zwei Etagen. Oben: Bewegung, Kampf, Parade, Sprint, Seele, Ultimate und Bänke.
+Unten, nach dem Abstieg an einer Winde: eine einstürzende Brücke, ein rissiger Fels zum Zerschlagen, ein
+Emblem zum Ausrüsten auf einer Bank, Splitter und die Karte. Splitter aus dem Tutorial bleiben erhalten.
+
 **Nur ein Leben** (Kästchen beim Erstellen des Spiels, in jeder Schwierigkeit): Der erste Tod löscht den
 Speicherplatz (außerhalb des Tutorials). Ein kleiner Schädel neben den Splittern erinnert daran. Erfolge und
 Kosmetik bleiben erhalten, da sie für alle Spielstände gelten.
@@ -215,7 +220,9 @@ Nach dem Tutorial kommst du im **Heiligtum der Laterne** an, dem Herz des Spiels
   Heiligtum bleibst.
 - **Trainingspuppe** (rechts vom Arsenal): zeigt deinen Schaden pro Sekunde.
 - **Schneiderin**: die Garderobe und die Kosmetik.
-- **Aufzug**: die **Ebene** wählen, in die du hinabsteigst, und die Sondermodi (siehe unten).
+- **Aufzug**: die **Ebene** wählen, in die du hinabsteigst, und die Sondermodi (siehe unten). Eine Leiste
+  zeigt den Weg bis **Ebene 7**, wo die Laterne erloschen ist: besiegte Ebenen in Gold, die offene umkreist,
+  die nächsten mit Schloss. Nach Ebene 7 zeigt sie den aktuellen Zyklus (8-14, 15-21 …) mit seinem Endboss.
 - **Bewohner**, die mit jeder geschafften Ebene kommen:
   - die **Schmiedin** (Ebene 1): schmiedet jede Waffe bis **Stufe 5**;
   - der **Juwelier**, ein mumifizierter Pharao auf seiner Plattform (Ebene 2): verstärkt **alle deine Embleme**
@@ -299,7 +306,9 @@ Klingengänge.
 - **Pfeiltotem**: schießt auf Kopfhöhe. Duck dich, spring oder pariere.
 - **Pendelklinge**: ihr tiefster Punkt geht knapp über den geduckten Helden hinweg.
 - **Stalaktit**: fällt, wenn du darunter hindurchgehst.
-- **Brüchige Blöcke**: stürzen kurz nach dem Betreten ein und bilden sich dann neu.
+- **Brüchige Brücken**: stürzen kurz nach dem Betreten ein und bilden sich dann neu. Jedes Biom hat eigene
+  (Bretter, Knochen, Bücher, Pilzhüte, Eis, Waben …).
+- **Rissige Felsen**: versperren einen Durchgang; schlag zu, bis sie nachgeben. Ihr Material hängt vom Biom ab.
 - **Bewegliche Plattform**: pendelt über einem Abgrund.
 - **Einstürzende Plattform** (Kristallminen): gibt unter dir in einem Schuttregen nach.
 
@@ -439,6 +448,12 @@ Die Wirkungen sind in `scripts/charms.gd` definiert und werden in `scripts/playe
 - **Eliten** (rotes Leuchten): mehr Leben, schneller, doppelte Beute und ein Zusatzangriff — der Kriecher
   stürmt, der Flieger stürzt herab, der Spucker spuckt 3 Sporen, der Springer springt zweimal hintereinander,
   die Wache stürmt mit ihrem Schild.
+- **Champions** (goldener Umriss): Ab Ebene 2 verbirgt etwa jeder zweite oder dritte Abschnitt ohne Boss
+  den Champion seines Bioms, doppelt so groß, mit eigener Lebensleiste und vielen Splittern als Belohnung.
+  Einmal besiegt, kehrt er nicht zurück. Der Große Anglerfisch (Tiefen), der Mutterbovist (Gärten), der
+  Ertrunkene Kapitän (Zitadelle), die Uralte Schildkröte (Minen), der Schmiedekobold (Schmiede), das Verbotene
+  Grimoire (Bibliothek), der Gletschergolem (Abgrund), die Wächterdrohne (Bienenstock), der Skelettkönig
+  (Beinhaus), der Affenkönig (Dschungel), der Kaiserskorpion (Sande) und der Koboldhäuptling (Tempel).
 
 Kein Gegner kann durch eine Wand treffen. Zähe Gegner und Eliten werden häufiger, je tiefer du kommst.
 
@@ -497,6 +512,9 @@ Alles wird per Code gezeichnet, in einem detaillierten, gemalten Stil:
   Waben, Knochen), dunkler in der Tiefe, mit beleuchteten Kanten;
 - **verzierte Böden** je nach Biom (Gras, leuchtende Pilze, Kristalle, Schädel, Bücher, Kerzen, Schnee,
   Honig) und **Parallax-Hintergründe** in drei Ebenen mit Nebel und Lichtstrahlen;
+- eine **dritte Ebene** zwischen Hintergrund und Held, in jedem Biom anders: Pilzteich, Sumpf, heiliger
+  Brunnen, Eingang einer Kristallmine, Vulkan mit Lavaströmen, Honigfluss, Armillarsphäre, gefrorener
+  Wasserfall, Knochenrutsche, Dschungelfluss, Treibsand, römischer Brunnen;
 - **Held, Gegner, 10 Bosse und Bewohner des Heiligtums** mit Schattierung, Glanzlichtern und Details;
 - **Fallen, Gitter, Angriffssäulen, Ausgangsportal** (ein Design pro Biom) und **das Ende**;
 - **Embleme**: jedes hat sein graviertes Medaillon und sein Symbol; **Waffenschläge** hinterlassen gemalte Spuren;
@@ -601,7 +619,7 @@ Installationen sehen dann den Download-Hinweis.
 
 ## Musik und Sounds
 Ein **eigener**, für das Spiel erzeugter Soundtrack (ohne fremdes Material): 32 Loops in `music/` — ein oder zwei
-pro Biom, die überblendet ineinander übergehen, ein Thema pro Boss, eines für das Tutorial, eines für das
+pro Biom, die überblendet ineinander übergehen, ein Thema pro Boss (jedes mit eigenem Motiv, Rhythmus und Instrumenten), eines für das Tutorial, eines für das
 Heiligtum und eines pro Fest. Die Soundeffekte liegen in `sfx/`, mit eigenen Klängen für jede Waffe,
 für kritische Treffer und für die perfekte Parade. Lautstärken **Gesamt / Musik / Effekte** in den
 Optionen; die Musik wird leiser, wenn das Spiel pausiert.
@@ -617,9 +635,16 @@ Optionen; die Musik wird leiser, wenn das Spiel pausiert.
 `LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787` starten).
 
 ## Lizenz
-Copyright (c) 2026 FlyinnRabbit. **Alle Rechte vorbehalten.** Du darfst das Spiel für den persönlichen,
-nicht kommerziellen Gebrauch herunterladen, installieren und ausführen. Es ganz oder teilweise zu ändern,
-weiterzuverbreiten, zu veröffentlichen oder zu verkaufen, ist ohne schriftliche Genehmigung nicht erlaubt.
-Vollständiger Text: `LICENSE` (auf Englisch).
-Ausnahme: `sfx/lift_chains.ogg` stammt aus der Aufnahme *Chains Chiming* von freesound_community auf Pixabay (Pixabay-Inhaltslizenz).
+Copyright (c) 2026 FlyinnRabbit. **Alle Rechte vorbehalten.** Laterne der Tiefen ist ein kommerzielles Spiel:
+Code, Grafik, Musik, Sounds, Texte und Name gehören dem Autor.
+- **Quellcode**: zum Lesen veröffentlicht. Ihn zu kopieren, zu ändern, zu kompilieren, weiterzuverbreiten oder
+  Teile davon (Code, Grafik, Musik, Sounds) in einem anderen Projekt zu verwenden, ist ohne schriftliche
+  Genehmigung nicht erlaubt.
+- **Kostenlose Versionen** (Browser und GitHub-Downloads): Du darfst sie für den persönlichen, nicht kommerziellen
+  Gebrauch installieren und spielen, aber nicht weiterverbreiten, anderswo hosten oder verkaufen.
+- **Steam-Version**: Es gelten der Steam-Nutzungsvertrag und die Bedingungen auf der Shopseite des Spiels.
+- **Videos, Streams und Screenshots**, monetarisiert oder nicht: erlaubt, solange sie sich nicht als offiziell ausgeben.
+
+Vollständiger Text: `LICENSE` (auf Englisch). Die Godot-Engine steht unter der MIT-Lizenz; `sfx/lift_chains.ogg`
+stammt aus der Aufnahme *Chains Chiming* von freesound_community auf Pixabay (Pixabay-Inhaltslizenz).
 Das Spiel ist von Hollow Knight (Team Cherry) inspiriert, übernimmt aber keine seiner Figuren oder Inhalte.

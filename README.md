@@ -14,7 +14,7 @@ Everything is drawn in code — there is not a single image asset in the game.
 
 <p align="center"><a href="docs/video/trailer_en.mp4"><img src="docs/video/preview.gif" width="820" alt="Trailer preview: click to watch"></a></p>
 
-<p align="center"><b><a href="docs/video/trailer_en.mp4">▶ Watch the trailer (80 s)</a></b> · <a href="docs/booklet/booklet_en.pdf">Booklet (PDF, 10 pages)</a></p>
+<p align="center"><b><a href="docs/video/trailer_en.mp4">▶ Watch the trailer (58 s)</a></b> · <a href="docs/booklet/booklet_en.pdf">Booklet (PDF, 10 pages)</a></p>
 
 ## The goal
 
@@ -29,6 +29,7 @@ keeps the shards you dropped where you fell, and the lift remembers how deep you
 
 - **12 biomes**; levels are generated anew on every descent, with grottos, three-storey strata, winches and traps specific to each biome
 - **10 bosses**: 6 tier guardians and 4 final bosses, each with a phase 2 and its own music
+- **12 champions**, one per biome: mini-bosses twice the size, outlined in gold, with their own health bar
 - **16 kinds of enemies**, from the crawler to the thieving monkey, the mimic and the goblin
 - **Combat**: 3-hit combos, charged whirl, air combo, pogo, plunge attack, dash thrust, parry (a perfect parry makes your next hit critical), soul blade, ultimate
 - **7 weapons** forged up to level 5 by the smith, **42 charms** strengthened up to level 3 by the jeweler
@@ -178,6 +179,10 @@ played. Achievements and options are shared by all slots. Saving is automatic.
 On launch: **Play** → choose the difficulty (and the "Skip the tutorial" option).
 Also available during a game: Pause → "New game…".
 
+The **tutorial** has two floors. Upstairs: movement, combat, parry, Dash, soul, ultimate and benches.
+Downstairs, after climbing down a winch: a collapsing bridge, a cracked rock to break, a charm to equip on a
+bench, shards and the map. Shards found in the tutorial are kept.
+
 **One life** (box to tick when creating a game, at every difficulty): your first death erases the save
 slot (outside the tutorial). A small skull next to your shards reminds you. Achievements and cosmetics are
 kept, since they are shared by all slots.
@@ -211,7 +216,9 @@ After the tutorial you arrive at **The Lantern Sanctuary**, the hub of the game:
 - **Arsenal**: buy and equip your base weapon. **Try** lends a weapon while you stay in the Sanctuary.
 - **Training dummy** (right of the arsenal): shows your damage per second.
 - **Seamstress**: the wardrobe and cosmetics.
-- **Elevator**: choose the **tier** to descend to, and the special modes (below).
+- **Elevator**: choose the **tier** to descend to, and the special modes (below). A track shows the way to
+  **tier 7**, where the Lantern went out: beaten tiers in gold, the open tier circled, the next ones padlocked.
+  After tier 7 it shows the current cycle (8-14, 15-21…) with its final boss at the end.
 - **Residents** arrive as you clear tiers:
   - the **smith** (tier 1): forges every weapon up to **level 5**;
   - the **jeweler**, a mummified pharaoh on his platform (tier 2): strengthens **every charm you own**
@@ -295,7 +302,9 @@ platform, blade corridors.
 - **Dart totem**: shoots at head height. Crouch, jump or parry.
 - **Pendulum blade**: its lowest point passes just above a crouching hero.
 - **Stalactite**: drops when you walk under it.
-- **Fragile blocks**: collapse shortly after you land on them, then re-form.
+- **Fragile bridges**: collapse shortly after you land on them, then re-form. Each biome has its own
+  (planks, bones, books, mushroom caps, ice, honeycomb…).
+- **Cracked rocks**: block a passage; hit them until they give way. Their material changes with the biome.
 - **Moving platform**: goes back and forth above a chasm.
 - **Collapsing platform** (Crystal Mines): gives way under you in a rain of rubble.
 
@@ -438,6 +447,12 @@ Effects are defined in `scripts/charms.gd` and applied in `scripts/player.gd`.
 - **Elites** (red glow): more health, faster, double loot, and an extra attack — the crawler
   charges, the flyer dive-bombs, the spitter fires 3 spores, the hopper chains two leaps,
   the guard charges with its shield.
+- **Champions** (gold outline): from tier 2, about one level without a boss in two or three hides its
+  biome's champion, twice the size, with its own health bar and a big shard reward. Once beaten, it does not
+  come back. The Great Angler (Depths), the Mother Puffball (Gardens), the Drowned Captain (Citadel), the
+  Ancestral Tortoise (Mines), the Smith Imp (Forge), the Forbidden Grimoire (Library), the Glacier Golem
+  (Abyss), the Guardian Drone (Hive), the Skeleton King (Ossuary), the Monkey King (Jungle), the Emperor
+  Scorpion (Sands) and the Goblin Chief (Temple).
 
 The tougher enemies and the elites become more frequent the deeper you go.
 
@@ -495,6 +510,9 @@ Everything is drawn in code, in a detailed, painted style:
   honeycomb, bones), darker with depth, with lit edges;
 - **decorated ground** per biome (grass, glowing mushrooms, crystals, skulls, books, candles,
   snow, honey) and **parallax backgrounds** on three planes with mist and light rays;
+- a **third plane** between the background and the hero, different in every biome: mushroom pond, swamp,
+  sacred fountain, crystal mine entrance, volcano with lava flows, honey river, armillary sphere, frozen
+  waterfall, bone slide, jungle river, quicksand, Roman fountain;
 - **hero, enemies, 10 bosses and Sanctuary residents** with shading, highlights and detail;
 - **traps, gates, attack pillars, the exit portal** (one design per biome) and the **ending**;
 - **charms** each have an engraved medallion and icon; **weapon swings** leave painted trails;
@@ -597,7 +615,7 @@ older installs will then see the download notice instead.
 
 ## Music and sounds
 An **original** soundtrack generated for the game (no third-party material): 32 looping tracks in
-`music/` — one or two per biome that crossfade, a theme per boss, one for the tutorial, one for the
+`music/` — one or two per biome that crossfade, a theme per boss (each with its own motif, rhythm and instruments), one for the tutorial, one for the
 Sanctuary and one per festival.
 Sound effects are in `sfx/`, with distinct sounds per weapon, for critical hits and for the
 perfect parry. **Master / music / effects** volumes are in Options; the music lowers a little
@@ -614,8 +632,15 @@ tests it; `node server/dev_server.mjs` runs it locally (start the game with
 `LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787`).
 
 ## License
-Copyright (c) 2026 FlyinnRabbit. **All rights reserved.** You may download, install and run the game
-for personal, non-commercial use. Modifying, redistributing, publishing or selling it, in whole or in
-part, is not allowed without written permission. Full text: `LICENSE`.
-Exception: `sfx/lift_chains.ogg` comes from the recording *Chains Chiming* by freesound_community on Pixabay (Pixabay Content License).
+Copyright (c) 2026 FlyinnRabbit. **All rights reserved.** Lantern of the Depths is a commercial game: its
+code, graphics, music, sounds, texts and name belong to their author.
+- **Source code**: published to be read. Copying, modifying, compiling or redistributing it, or reusing any part
+  of it (code, graphics, music, sounds) in another project, is not allowed without written permission.
+- **Free builds** (browser and GitHub downloads): you may install and play them for personal, non-commercial
+  use, but not redistribute them, host them elsewhere or sell them.
+- **Steam version**: governed by the Steam Subscriber Agreement and the terms on the game's store page.
+- **Videos, streams and screenshots**, monetized or not: allowed, as long as they don't claim to be official.
+
+Full text: `LICENSE`. The Godot engine is under the MIT License; `sfx/lift_chains.ogg` comes from the recording
+*Chains Chiming* by freesound_community on Pixabay (Pixabay Content License).
 The game is inspired by Hollow Knight (Team Cherry) but reuses none of its characters or assets.

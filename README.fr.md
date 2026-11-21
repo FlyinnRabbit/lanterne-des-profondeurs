@@ -14,7 +14,7 @@ Tout est dessiné en code : le jeu ne contient aucune image.
 
 <p align="center"><a href="docs/video/trailer_fr.mp4"><img src="docs/video/preview.gif" width="820" alt="Aperçu de la bande-annonce : cliquer pour la regarder"></a></p>
 
-<p align="center"><b><a href="docs/video/trailer_fr.mp4">▶ Regarder la bande-annonce (80 s)</a></b> · <a href="docs/booklet/booklet_fr.pdf">Livret (PDF, 10 pages)</a></p>
+<p align="center"><b><a href="docs/video/trailer_fr.mp4">▶ Regarder la bande-annonce (58 s)</a></b> · <a href="docs/booklet/booklet_fr.pdf">Livret (PDF, 10 pages)</a></p>
 
 ## Le but
 
@@ -29,6 +29,7 @@ ombre garde les éclats perdus là où tu es tombé, et l'ascenseur se souvient 
 
 - **12 biomes** ; les niveaux sont générés à chaque descente, avec grottes, strates sur trois étages, treuils et pièges propres à chaque biome
 - **10 boss** : 6 gardiens de palier et 4 boss finaux, chacun avec une phase 2 et sa musique
+- **12 champions**, un par biome : des mini-boss deux fois plus grands, cerclés d'or, avec leur barre de vie
 - **16 sortes d'ennemis**, du rampant au singe voleur, en passant par la mimique et le gobelin
 - **Combat** : combos en 3 coups, tourbillon chargé, combo aérien, pogo, attaque plongée, estoc en ruée, parade (parfaite = coup critique), lame d'âme, ultime
 - **7 armes** forgées jusqu'au niveau 5 chez la forgeronne, **42 emblèmes** renforcés jusqu'au niveau 3 chez le joaillier
@@ -181,6 +182,10 @@ La sauvegarde est automatique.
 Au lancement : **Jouer** → choisir la difficulté (et l'option « Passer le tutoriel »).
 Aussi possible en cours de partie : Pause → « Nouvelle partie… ».
 
+Le **tutoriel** se joue sur deux étages. En haut : déplacements, combat, parade, Ruée, âme, ultime et banc.
+En bas, après la descente par un treuil : pont qui s'effondre, roche fissurée à briser, emblème à équiper
+sur un banc, éclats et carte. Les éclats trouvés au tutoriel sont gardés.
+
 **Une seule vie** (case à cocher à la création de la partie, dans toutes les difficultés) : la première mort
 efface l'emplacement (hors tutoriel). Un petit crâne à côté des éclats le rappelle. Les succès et les
 cosmétiques sont gardés, car ils sont communs à toutes les parties.
@@ -216,7 +221,9 @@ Après le tutoriel, tu arrives au **Sanctuaire de la Lanterne**, le cœur du jeu
 - **Arsenal** : acheter et équiper ton arme de base. **Essayer** prête une arme tant que tu restes au Sanctuaire.
 - **Mannequin d'entraînement** (à droite de l'arsenal) : affiche tes dégâts par seconde.
 - **Tailleuse** : la garde-robe et les cosmétiques.
-- **Ascenseur** : choisir le **palier** où descendre, et les modes spéciaux (plus bas).
+- **Ascenseur** : choisir le **palier** où descendre, et les modes spéciaux (plus bas). Une frise montre
+  le chemin jusqu'au **palier 7**, où la Lanterne s'est éteinte : paliers vaincus en or, palier ouvert cerclé,
+  les suivants sous cadenas. Après le 7, elle montre le cycle en cours (8-14, 15-21…) avec son boss final au bout.
 - **Habitants** qui arrivent au fil des paliers terminés :
   - la **forgeronne** (palier 1) : forge chaque arme jusqu'au **niveau 5** ;
   - le **joaillier**, un pharaon momifié sur sa plateforme (palier 2) : renforce **tous tes emblèmes**
@@ -301,7 +308,9 @@ mobile, couloirs de lames.
 - **Totem à fléchettes** : tire à hauteur de tête. Accroupis-toi, saute ou pare.
 - **Lame pendule** : son point le plus bas passe juste au-dessus du héros accroupi.
 - **Stalactite** : tombe quand tu passes dessous.
-- **Blocs fragiles** : s'effondrent peu après que tu t'y poses, puis se reforment.
+- **Ponts fragiles** : s'effondrent peu après que tu t'y poses, puis se reforment. Chaque biome a les siens
+  (planches, os, livres, chapeaux de champignon, glace, rayons de miel…).
+- **Roches fissurées** : bloquent un passage ; frappe-les jusqu'à ce qu'elles cèdent. Leur matière change avec le biome.
 - **Plateforme mobile** : fait des allers-retours au-dessus d'un gouffre.
 - **Plateforme qui s'effondre** (Mines de Cristal) : cède sous tes pieds dans une pluie de gravats.
 
@@ -441,6 +450,12 @@ Les effets sont définis dans `scripts/charms.gd` et appliqués dans `scripts/pl
 - **Élites** (lueur rouge) : plus de vie, plus rapides, butin double et une attaque en plus — le rampant
   charge, le volant pique, le cracheur tire 3 spores, le sauteur enchaîne deux bonds, le garde charge
   avec son bouclier.
+- **Champions** (contour doré) : à partir du palier 2, un niveau sans boss sur deux ou trois cache le
+  champion de son biome, deux fois plus grand, avec sa barre de vie et une grosse récompense en éclats. Une
+  fois vaincu, il ne revient pas. La Grande Baudroie (Profondeurs), la Vesse-Mère (Jardins), le Capitaine
+  Noyé (Citadelle), la Tortue Ancestrale (Mines), le Diablotin Forgeron (Forge), le Grimoire Interdit
+  (Bibliothèque), le Golem du Glacier (Abysses), le Bourdon Gardien (Ruche), le Roi Squelette (Ossuaire),
+  le Roi Singe (Jungle), le Scorpion Empereur (Sables) et le Chef Gobelin (Temple).
 
 Aucun ennemi ne peut toucher à travers un mur. Les ennemis coriaces et les élites deviennent plus
 fréquents en profondeur.
@@ -500,6 +515,9 @@ Tout est dessiné en code, dans un style détaillé et peint :
   lave, glace, alvéoles, ossements), plus sombre en profondeur, aux arêtes éclairées ;
 - **sols décorés** selon le biome (herbe, champignons lumineux, cristaux, crânes, livres, bougies, neige,
   miel) et **fonds en parallaxe** sur trois plans avec brume et rayons de lumière ;
+- **troisième plan** entre le fond et le héros, propre à chaque biome : étang aux champignons, marais,
+  fontaine sacrée, entrée de mine de cristal, volcan et ses coulées, rivière de miel, sphère armillaire,
+  cascade gelée, éboulis d'ossements, rivière de la jungle, sables mouvants, fontaine romaine ;
 - **héros, ennemis, 10 boss et habitants du Sanctuaire** avec ombrages, reflets et détails ;
 - **pièges, grilles, piliers d'attaque, portail de sortie** (un modèle par biome) et **la fin** ;
 - **emblèmes** : chacun a son médaillon gravé et son icône ; les **coups d'arme** laissent des traînées peintes ;
@@ -604,7 +622,7 @@ musiques, des sons ou des images : les anciennes installations verront alors l'a
 
 ## Musique et sons
 Une bande-son **originale** générée pour le jeu (sans aucun emprunt extérieur) : 32 morceaux en boucle dans
-`music/` — un ou deux par biome qui s'enchaînent en fondu, un thème par boss, un pour le tutoriel, un
+`music/` — un ou deux par biome qui s'enchaînent en fondu, un thème par boss (chacun avec son motif, son rythme et ses instruments), un pour le tutoriel, un
 pour le Sanctuaire et un par fête. Les bruitages sont dans `sfx/`, avec des sons propres à chaque arme,
 aux coups critiques et à la parade parfaite. Volumes **général / musique / effets** dans les Options ;
 la musique baisse un peu quand le jeu est en pause.
@@ -620,8 +638,15 @@ le teste ; `node server/dev_server.mjs` le lance en local (jeu lancé avec
 `LANTERNE_LEADERBOARD_URL=http://127.0.0.1:8787`).
 
 ## Licence
-Copyright (c) 2026 FlyinnRabbit. **Tous droits réservés.** Tu peux télécharger, installer et lancer le jeu
-pour un usage personnel et non commercial. Le modifier, le redistribuer, le publier ou le vendre, en tout ou
-en partie, n'est pas autorisé sans permission écrite. Texte complet : `LICENSE` (en anglais).
-Exception : `sfx/lift_chains.ogg` provient de l'enregistrement *Chains Chiming* de freesound_community sur Pixabay (licence de contenu Pixabay).
+Copyright (c) 2026 FlyinnRabbit. **Tous droits réservés.** Lanterne des Profondeurs est un jeu commercial :
+son code, ses graphismes, sa musique, ses sons, ses textes et son nom appartiennent à leur auteur.
+- **Code source** : publié pour être lu. Le copier, le modifier, le compiler, le redistribuer ou en réutiliser
+  une partie (code, graphismes, musique, sons) dans un autre projet n'est pas autorisé sans permission écrite.
+- **Versions gratuites** (navigateur et téléchargements GitHub) : tu peux les installer et y jouer pour un
+  usage personnel et non commercial, mais pas les redistribuer, les héberger ailleurs ni les vendre.
+- **Version Steam** : régie par l'accord de souscription Steam et les conditions de la page du jeu.
+- **Vidéos, streams et captures**, monétisés ou non : autorisés, tant qu'ils ne se présentent pas comme officiels.
+
+Texte complet : `LICENSE` (en anglais). Le moteur Godot est sous licence MIT ; `sfx/lift_chains.ogg` provient
+de l'enregistrement *Chains Chiming* de freesound_community sur Pixabay (licence de contenu Pixabay).
 Le jeu s'inspire de Hollow Knight (Team Cherry) mais ne reprend aucun de ses personnages ni de ses éléments.

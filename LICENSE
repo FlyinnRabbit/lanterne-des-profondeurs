@@ -1,7 +1,44 @@
+Lanterne des Profondeurs (Lantern of the Depths)
 Copyright (c) 2026 FlyinnRabbit. All rights reserved.
 
-Permission is hereby granted to any person obtaining a copy of this software and associated documentation files (the "Software") to download, install, and run the Software solely for personal, non-commercial evaluation and testing purposes.
+Lanterne des Profondeurs is a commercial game. Its source code, graphics, music, sound effects,
+texts, characters and name are the exclusive property of the copyright holder, except for the
+third-party material listed in section 5.
 
-No permission is granted to modify, adapt, translate, reverse-engineer, merge, publish, distribute, sublicense, and/or sell copies of the Software, or to use the Software for any commercial purpose, without the prior written permission of the copyright holder.
+1. Source code
+   The source code is published so that it can be read. You may view it and link to it.
+   You may not copy, modify, compile, redistribute, sublicense or sell it, in whole or in part,
+   or reuse any part of it (code, graphics, music, sounds, texts) in another project, without
+   the prior written permission of the copyright holder.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+2. Free builds
+   The builds published free of charge by the copyright holder (the browser version and the
+   downloads on the project's GitHub Releases page) may be downloaded, installed and played for
+   personal, non-commercial use. You may not redistribute them, host them elsewhere, include them
+   in a bundle or a compilation, or sell them.
+
+3. Steam version
+   Copies of the game obtained through Steam are licensed under the Steam Subscriber Agreement
+   and the terms shown on the game's Steam store page.
+
+4. Videos, streams and screenshots
+   You may record, stream and publish videos and screenshots of the game, including monetized
+   ones, as long as you do not present them as official or claim the game as your own.
+
+5. Third-party material
+   - Godot Engine, copyright (c) 2014-present Godot Engine contributors and (c) 2007-2014 Juan
+     Linietsky, Ariel Manzur, used under the MIT License. The engine's third-party components are
+     listed in its COPYRIGHT.txt (https://github.com/godotengine/godot/blob/master/COPYRIGHT.txt).
+   - sfx/lift_chains.ogg comes from the recording "Chains Chiming" by freesound_community on
+     Pixabay, used under the Pixabay Content License.
+
+6. Trademarks and inspiration
+   Lanterne des Profondeurs is inspired by Hollow Knight (Team Cherry) but reuses none of its
+   characters or assets. Hollow Knight is a trademark of Team Cherry. Steam is a trademark of
+   Valve Corporation.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
