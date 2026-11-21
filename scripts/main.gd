@@ -1365,7 +1365,8 @@ func _process(delta: float) -> void:
 				GameState.prog["collected"].append(pk[2])     # cachette vidée
 				Audio.sfx("pickup", 0.0)
 				show_pickup(tr("Trésor caché : +%d éclats !") % amount, 3.0)
-				Achievements.unlock("room")
+				if not GameState.is_tutorial():
+					Achievements.unlock("room")
 			elif pk[1] == "memory":
 				GameState.prog["memories"] = int(GameState.prog.get("memories", 0)) + 1
 				GameState.prog["collected"].append(pk[2])

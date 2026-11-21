@@ -1113,7 +1113,9 @@ func _update_info() -> void:
 	if GameState.is_tutorial():
 		info.text = "Tutoriel"
 	elif GameState.is_hub():
-		info.text = tr("Sanctuaire — %s — record : palier %d") % [GameState.diff_name(), GameState.record]
+		info.text = tr("Sanctuaire — %s — record : palier %d") % [GameState.diff_name(), GameState.record] + "\n" + GameState.goal_text()
+	elif GameState.mode == "descent":
+		info.text = tr("Palier %d — niveau %d / %d — %s") % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER, GameState.diff_name()] + "\n" + GameState.goal_text()
 	else:
 		info.text = tr("Palier %d — niveau %d / %d — %s") % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER, GameState.diff_name()]
 	route.text = "" if GameState.is_tutorial() else (tr("Progression sauvegardée automatiquement") + (tr(" (mode portable : dossier « sauvegardes » à côté du jeu)") if Paths.is_portable() else ""))

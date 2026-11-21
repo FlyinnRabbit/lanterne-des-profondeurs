@@ -25,6 +25,99 @@ var lift_list: VBoxContainer
 var lift_scroll: ScrollContainer
 var lift_more: Label        # « ▼ » : il reste des choix plus bas
 var lift_info: Label
+var lift_track: Control      # les 7 paliers jusqu'à la Lanterne : franchis, ouvert, verrouillés
+
+# Frise de l'ascenseur : un rond par palier (doré = boss vaincu, cerclé = ouvert, sombre et
+# cadenassé = pas encore atteint), la Lanterne éteinte au bout. Après le palier 7, la frise montre
+# le cycle en cours (8-14, 15-21…) : au bout, le boss final ; la Lanterne rallumée sur le côté.
+class LiftTrack extends Control:
+	var t := 0.0
+	func _process(delta: float) -> void:
+		if is_visible_in_tree():
+			t += delta
+			queue_redraw()
+	func _draw() -> void:
+		var GS = get_node("/root/GameState")
+		var font := get_theme_default_font()
+		var n: int = GS.FINAL_PALIER
+		var base: int = GS.goal_palier() - n
+		var cycle := base / n + 1
+		var w := size.x
+		var y := 44.0
+		var x0 := 40.0 if cycle == 1 else 76.0
+		var dx := (w - x0 - 40.0) / float(n - 1)
+		var gold := Color(1.0, 0.82, 0.45)
+		if cycle > 1:
+			var ttl := tr("Sous le septième — cycle %d") % cycle
+			var tw0 := font.get_string_size(ttl, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+			draw_string(font, Vector2((w - tw0) / 2.0, 12.0), ttl, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.8, 0.7, 0.95))
+			_lantern(Vector2(22.0, y), true)
+			draw_line(Vector2(36.0, y), Vector2(x0 - 14.0, y), gold.darkened(0.2), 3.0)
+		draw_line(Vector2(x0, y), Vector2(x0 + dx * (n - 1), y), Color(0.35, 0.38, 0.48), 3.0)
+		var done := clampi(GS.record - base, 0, n)
+		if done > 0:
+			draw_line(Vector2(x0, y), Vector2(x0 + dx * (done - 1), y), gold.darkened(0.2), 3.0)
+		for i in n:
+			var p := base + i + 1
+			var c := Vector2(x0 + dx * i, y)
+			var last := i == n - 1
+			if p <= GS.record:
+				draw_circle(c, 11.0, gold)
+				draw_arc(c, 11.0, 0, TAU, 24, gold.lightened(0.4), 1.5)
+			elif p <= GS.unlocked:
+				var pulse := 0.5 + 0.5 * sin(t * 3.0)
+				draw_circle(c, 11.0, Color(0.16, 0.2, 0.3))
+				draw_arc(c, 13.0 + pulse * 2.0, 0, TAU, 28, Color(0.6, 0.85, 1.0, 0.6 + 0.4 * pulse), 2.5)
+			else:
+				draw_circle(c, 10.0, Color(0.12, 0.13, 0.18))
+				draw_arc(c, 10.0, 0, TAU, 24, Color(0.3, 0.32, 0.4), 1.5)
+				if not last:
+					# petit cadenas
+					draw_rect(Rect2(c + Vector2(-4.5, -1), Vector2(9, 7)), Color(0.42, 0.44, 0.52))
+					draw_arc(c + Vector2(0, -1.5), 3.2, PI, TAU, 8, Color(0.42, 0.44, 0.52), 1.6)
+			if last:
+				if cycle == 1:
+					_lantern(c + Vector2(0, -1), p <= GS.record)
+				else:
+					_skull(c, p <= GS.record)
+			var lab := str(p)
+			if last and cycle == 1:
+				lab = "%d — %s" % [p, tr("Lanterne rallumée") if p <= GS.record else tr("la Lanterne")]
+			elif last:
+				# le nom du boss final, dès que son palier est ouvert (la liste le montre aussi)
+				lab = "%d — %s" % [p, GS.boss_name_for(p) if p <= GS.unlocked else tr("boss final")]
+			var fs := 15
+			var tw := font.get_string_size(lab, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+			var col := gold if p <= GS.record else (Color(0.7, 0.88, 1.0) if p <= GS.unlocked else Color(0.45, 0.47, 0.55))
+			if last and p > GS.record:
+				col = Color(0.85, 0.75, 0.55)
+			draw_string(font, Vector2(clampf(c.x - tw / 2.0, 0.0, w - tw), y + 34.0), lab, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+	func _lantern(lp: Vector2, lit: bool) -> void:
+		var lc := Color(1.0, 0.75, 0.35) if lit else Color(0.45, 0.47, 0.55)
+		if lit:
+			draw_circle(lp, 20.0, Color(1.0, 0.7, 0.3, 0.18))
+		draw_rect(Rect2(lp + Vector2(-6, -7), Vector2(12, 13)), Color(0.08, 0.08, 0.1))
+		draw_rect(Rect2(lp + Vector2(-6, -7), Vector2(12, 13)), lc, false, 1.6)
+		draw_rect(Rect2(lp + Vector2(-8, -10), Vector2(16, 3)), lc)
+		draw_rect(Rect2(lp + Vector2(-7, 6), Vector2(14, 3)), lc)
+		draw_arc(lp + Vector2(0, -11), 4.0, PI, TAU, 8, lc, 1.5)
+		if lit:
+			draw_circle(lp, 3.0, Color(1.0, 0.9, 0.55))
+	# tête de boss final : crâne couronné (doré une fois vaincu)
+	func _skull(c: Vector2, beaten: bool) -> void:
+		var col := Color(1.0, 0.82, 0.45) if beaten else Color(0.85, 0.5, 0.5)
+		var pulse := 0.5 + 0.5 * sin(t * 2.0)
+		if not beaten:
+			draw_circle(c, 17.0 + pulse * 2.0, Color(0.8, 0.2, 0.2, 0.12))
+		draw_circle(c + Vector2(0, -1), 9.0, Color(0.1, 0.08, 0.1))
+		draw_arc(c + Vector2(0, -1), 9.0, 0, TAU, 24, col, 1.6)
+		draw_rect(Rect2(c + Vector2(-5, 6), Vector2(10, 4)), Color(0.1, 0.08, 0.1))
+		draw_rect(Rect2(c + Vector2(-5, 6), Vector2(10, 4)), col, false, 1.4)
+		draw_circle(c + Vector2(-3.5, -1), 2.2, col)
+		draw_circle(c + Vector2(3.5, -1), 2.2, col)
+		var crown := PackedVector2Array([c + Vector2(-8, -9), c + Vector2(-8, -16), c + Vector2(-4, -12), c + Vector2(0, -18),
+			c + Vector2(4, -12), c + Vector2(8, -16), c + Vector2(8, -9)])
+		draw_colored_polygon(crown, col)
 var npc_panel: PanelContainer
 var npc_scroll: ScrollContainer
 var npc_name: Label
@@ -264,6 +357,9 @@ func _build_lift(root: Control) -> void:
 	v.add_theme_constant_override("separation", 8)
 	lift_panel.add_child(v)
 	v.add_child(_label("Ascenseur", 32, Color(0.7, 0.88, 1.0)))
+	lift_track = LiftTrack.new()
+	lift_track.custom_minimum_size = Vector2(560, 88)
+	v.add_child(lift_track)
 	lift_info = _label("", 16, Color(0.65, 0.7, 0.82))
 	lift_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lift_info.custom_minimum_size = Vector2(560, 0)
@@ -303,17 +399,23 @@ func _lift_arrows() -> void:
 	var sb := lift_scroll.get_v_scroll_bar()
 	lift_more.modulate.a = 1.0 if sb.max_value - sb.page > 1.0 and sb.value < sb.max_value - sb.page - 1.0 else 0.0
 
-func open_elevator() -> void:
+func open_elevator(all_paliers := false) -> void:
 	_in_board = false
 	_open(lift_panel)
 	_clear(lift_list)
-	lift_info.text = tr("Difficulté : %s — record : palier %d.\nChaque palier : 2 niveaux puis un boss. Plus on descend, plus les ennemis sont coriaces.\nMourir ramène ici et fait perdre le butin de la descente.") % [GameState.diff_name(), GameState.record]
+	lift_info.text = GameState.goal_text() + "\n" + tr("Difficulté : %s — record : palier %d.\nChaque palier : 2 niveaux puis un boss. Plus on descend, plus les ennemis sont coriaces.\nMourir ramène ici et fait perdre le butin de la descente.") % [GameState.diff_name(), GameState.record]
+	lift_track.queue_redraw()
 	var first: Button = null
-	for p in range(GameState.unlocked, 0, -1):
+	var base: int = GameState.goal_palier() - GameState.FINAL_PALIER
+	var lowest := 1 if all_paliers else base + 1
+	for p in range(GameState.unlocked, lowest - 1, -1):
 		var boss: String = GameState.boss_name_for(p)
 		var b := _lift_button(tr("Palier %d — boss : %s%s") % [p, boss, tr("  (nouveau !)") if p > GameState.record else ""], _choose_curse.bind(p))
 		if first == null:
 			first = b
+	if lowest > 1:
+		var pb := _lift_button(tr("Paliers précédents (1 – %d)…") % (lowest - 1), open_elevator.bind(true))
+		pb.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
 	# modes spéciaux
 	var dkey := "daily_%d" % GameState.today_seed()
 	var dbest := float(Achievements.counters.get(dkey, 0.0))
@@ -846,7 +948,11 @@ func open_npc(kind: String) -> void:
 			var lines := []
 			for i in mini(GameState.record + 1, ELDER_LINES.size()):
 				lines.append(tr(ELDER_LINES[i]))
-			npc_text.text = "\n\n".join(lines.slice(maxi(lines.size() - 3, 0)))
+			lines = lines.slice(maxi(lines.size() - 2, 0))
+			# le but reste toujours dit, même avant d'avoir appris l'histoire des gardiens
+			if GameState.record < GameState.FINAL_PALIER and lines[-1] != tr(ELDER_LINES[-1]):
+				lines.append(tr("Descends jusqu'au septième palier, petit veilleur. C'est là que la Lanterne s'est éteinte, et c'est là qu'il faut la rallumer."))
+			npc_text.text = "\n\n".join(lines)
 	# même nom que dans les Mémoires de l'Ancien (« L'ancien » ici, « L'Ancien » là-bas)
 	Lore.hear("L'Ancien" if npc_name.text == "L'ancien" else npc_name.text, npc_text.text)
 	var close := _npc_button("Fermer", close_all)

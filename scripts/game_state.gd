@@ -178,6 +178,20 @@ func _fresh() -> Dictionary:
 		"bonus_hp": 0, "notches_bought": 0, "weapon": "aiguille", "weapons_owned": []}
 
 # ---------------------------------------------------------------- niveaux
+# premier message au Sanctuaire : le but de la partie
+const GOAL_MESSAGE := "Le Sanctuaire de la Lanterne\nLa Lanterne s'est éteinte au septième palier. Descends la rallumer.\nParle au marchand, puis prends l'ascenseur."
+const FINAL_PALIER := 7
+
+# prochain palier-but (7, puis 14, 21… une fois la Lanterne rallumée)
+func goal_palier() -> int:
+	return (record / FINAL_PALIER + 1) * FINAL_PALIER
+
+func goal_text() -> String:
+	var g := goal_palier()
+	if g == FINAL_PALIER:
+		return tr("Objectif : atteindre le palier %d et rallumer la Lanterne") % g
+	return tr("Objectif : vaincre le boss final du palier %d") % g
+
 func is_tutorial() -> bool:
 	return mode == "tutorial"
 
@@ -449,8 +463,9 @@ func go_next_level(player) -> void:
 		return
 	if mode == "tutorial":
 		prog["can_dash"] = true
+		prog["geo"] = player.geo       # les éclats trouvés au tutoriel sont gardés
 		mode = "hub"
-		pending_message = "Le Sanctuaire de la Lanterne\nParle au marchand, puis prends l'ascenseur pour descendre."
+		pending_message = GOAL_MESSAGE
 	elif mode == "descent":
 		prog["geo"] = player.geo
 		if step < STEPS_PER_PALIER:
@@ -575,7 +590,7 @@ func new_game(skip_tutorial := false, diff := -1, s := -1, single_life := false)
 	if skip_tutorial:
 		prog["can_dash"] = true
 		mode = "hub"
-		pending_message = "Le Sanctuaire de la Lanterne\nParle au marchand, puis prends l'ascenseur pour descendre."
+		pending_message = GOAL_MESSAGE
 	else:
 		mode = "tutorial"
 	snapshot = prog.duplicate(true)
