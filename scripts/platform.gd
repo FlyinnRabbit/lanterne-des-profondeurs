@@ -99,68 +99,6 @@ func _physics_process(delta: float) -> void:
 							cs.set_deferred("disabled", false)
 	queue_redraw()
 
-# Pont d'os (Ossuaire) : fémurs posés en travers sur deux longs os, liés par des tendons secs
-func _bone_bridge(off: Vector2) -> void:
-	var bone := Color(0.86, 0.81, 0.68)
-	var shade := bone.darkened(0.35)
-	var h := size.y
-	# deux longs os porteurs
-	for yy in [h * 0.32, h * 0.72]:
-		draw_line(off + Vector2(2, yy), off + Vector2(size.x - 2, yy), shade, 5.0)
-		draw_line(off + Vector2(2, yy - 1), off + Vector2(size.x - 2, yy - 1), bone, 3.0)
-	# fémurs en travers
-	var n := int(size.x / 9.0)
-	for i in n:
-		var x := 4.0 + i * (size.x - 8.0) / maxf(n - 1, 1)
-		var tilt := sin(i * 2.7 + size.x) * 1.5
-		var a := off + Vector2(x - tilt, 1)
-		var b := off + Vector2(x + tilt, h - 2)
-		draw_line(a, b, shade, 5.0)
-		draw_line(a, b, bone, 3.4)
-		for q in [a, b]:
-			draw_circle(q + Vector2(-1.5, 0), 2.4, bone)
-			draw_circle(q + Vector2(1.5, 0), 2.4, bone)
-	# un petit crâne de temps en temps
-	if size.x >= 60.0:
-		var sc := off + Vector2(size.x * 0.5, -3)
-		draw_circle(sc, 5.0, bone)
-		draw_circle(sc + Vector2(-2, 0), 1.3, Color(0.15, 0.12, 0.1))
-		draw_circle(sc + Vector2(2, 0), 1.3, Color(0.15, 0.12, 0.1))
-	if state == "shake":
-		for i in 3:
-			var cx := fposmod(i * 23.0 + t * 7.0, size.x)
-			draw_line(off + Vector2(cx, 2), off + Vector2(cx + 3, h * 0.6), Color(0.2, 0.15, 0.1), 1.2)
-
-# Pont de livres (Bibliothèque) : gros volumes couchés, tranches colorées, pages qui dépassent
-func _book_bridge(off: Vector2) -> void:
-	var cols := [Color(0.55, 0.2, 0.18), Color(0.2, 0.32, 0.5), Color(0.3, 0.42, 0.25), Color(0.5, 0.38, 0.18), Color(0.38, 0.22, 0.42)]
-	var x := 0.0
-	var i := 0
-	while x < size.x - 1.0:
-		var bw := 10.0 + fposmod(sin(i * 7.1 + size.x) * 91.3, 1.0) * 10.0
-		bw = minf(bw, size.x - x)
-		var lift := fposmod(sin(i * 3.3) * 17.0, 1.0) * 3.0
-		var r := Rect2(off + Vector2(x, lift), Vector2(bw - 1.0, size.y - lift))
-		var c: Color = cols[i % cols.size()]
-		DU.vgrad(self, r, c.lightened(0.12), c.darkened(0.35))
-		# pages (tranche claire) en haut, nervures du dos
-		draw_rect(Rect2(r.position + Vector2(1, 1), Vector2(r.size.x - 2, 3)), Color(0.93, 0.88, 0.74))
-		draw_line(r.position + Vector2(0, r.size.y * 0.45), r.position + Vector2(r.size.x, r.size.y * 0.45), Color(0.9, 0.75, 0.35, 0.8), 1.0)
-		draw_line(r.position + Vector2(0, r.size.y * 0.7), r.position + Vector2(r.size.x, r.size.y * 0.7), Color(0.9, 0.75, 0.35, 0.8), 1.0)
-		x += bw
-		i += 1
-	if state == "shake":
-		for k in 3:
-			var px := fposmod(t * 53.0 + k * 31.0, size.x)
-			draw_rect(Rect2(off + Vector2(px, -2 - fposmod(t * 40.0 + k * 7.0, 10.0)), Vector2(5, 4)), Color(0.95, 0.92, 0.82))
-
-func _crumble_bits(off: Vector2, c: Color) -> void:
-	if state != "shake":
-		return
-	for i in 4:
-		var px := fposmod(t * 97.0 + i * 37.0, size.x)
-		draw_rect(Rect2(off + Vector2(px, size.y + fposmod(t * 60.0 + i * 9.0, 14.0)), Vector2(3, 2)), c)
-
 func _slab(off: Vector2, c: Color, cut: float) -> void:
 	# dalle de pierre : dégradé, arête éclairée, ombre dessous, joints entre blocs
 	DU.vgrad(self, Rect2(off, size), c.lightened(0.08), c.darkened(0.45))

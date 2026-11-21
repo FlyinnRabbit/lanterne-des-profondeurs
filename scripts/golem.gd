@@ -43,7 +43,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		knock = Vector2.ZERO
 		slam_cd -= delta
-		var near: bool = p and not p.dead and absf(p.global_position.y - global_position.y) < 80.0 and absf(p.global_position.x - global_position.x) < 300.0 * aggro()
+		var near: bool = p and not p.dead and absf(p.global_position.y - global_position.y) < 80.0 * reach and absf(p.global_position.x - global_position.x) < 300.0 * aggro()
 		if near:
 			dir = -1.0 if p.global_position.x < global_position.x else 1.0
 			if absf(p.global_position.x - global_position.x) < 190.0 and slam_cd <= 0.0 and is_on_floor():

@@ -22,6 +22,7 @@ var display := false     # portrait (Scriptorium) : dessiné seulement, aucune l
 # (carapace du Rampant, feuillage du Cracheur, corps du Sauteur). a = force du mélange.
 var vtint := Color(0, 0, 0, 0)
 var champion := ""        # nom du champion du biome (mini-boss), sinon vide
+var reach := 1.0          # portée des attaques (champion : grandit avec lui)
 const BIOME_SKINNED := ["crawler", "spitter", "hopper", "guard", "lancer"]
 
 static func skin_tint(pal: Dictionary) -> Color:

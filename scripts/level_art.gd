@@ -542,15 +542,24 @@ func _skull(g: Vector2) -> void:
 	draw_circle(g + Vector2(-2.2, -6), 1.6, Color(0.08, 0.07, 0.06))
 	draw_circle(g + Vector2(2.2, -6), 1.6, Color(0.08, 0.07, 0.06))
 
+# petit décor au sol de la Bibliothèque : encrier et plume, bougie usée ou sablier
 func _books(g: Vector2, h: float) -> void:
-	var cols := [Color(0.5, 0.2, 0.18), Color(0.25, 0.32, 0.45), Color(0.35, 0.42, 0.25), Color(0.55, 0.45, 0.25)]
-	var yy := 0.0
-	for i in 2 + int(h * 2.0):
-		var w := 13.0 - i * 1.5
-		var off := (_hash(int(g.x) + i, i) - 0.5) * 3.0
-		draw_rect(Rect2(g + Vector2(-w / 2.0 + off, -yy - 3.0), Vector2(w, 3.0)), cols[i % cols.size()])
-		draw_line(g + Vector2(-w / 2.0 + off, -yy - 1.5), g + Vector2(w / 2.0 + off - 1, -yy - 1.5), Color(0.9, 0.85, 0.7, 0.6), 0.8)
-		yy += 3.0
+	if h < 0.33:
+		# encrier et plume
+		draw_colored_polygon(DU.ellipse(g + Vector2(0, -3), Vector2(4, 3.5), 10), Color(0.12, 0.1, 0.16))
+		draw_rect(Rect2(g + Vector2(-2, -8), Vector2(4, 2.5)), Color(0.2, 0.17, 0.22))
+		draw_line(g + Vector2(1, -8), g + Vector2(7, -18), Color(0.92, 0.9, 0.85), 1.6)
+		draw_line(g + Vector2(3, -11), g + Vector2(7, -17), Color(0.95, 0.93, 0.9), 2.4)
+	elif h < 0.66:
+		_candle(g, h * 0.6)
+	else:
+		# sablier
+		var gl := Color(0.75, 0.85, 0.9, 0.7)
+		var wd := Color(0.45, 0.3, 0.18)
+		draw_rect(Rect2(g + Vector2(-5, -2), Vector2(10, 2)), wd)
+		draw_rect(Rect2(g + Vector2(-5, -16), Vector2(10, 2)), wd)
+		draw_colored_polygon(PackedVector2Array([g + Vector2(-4, -14), g + Vector2(4, -14), g + Vector2(0.7, -8), g + Vector2(4, -2), g + Vector2(-4, -2), g + Vector2(-0.7, -8)]), gl)
+		draw_colored_polygon(PackedVector2Array([g + Vector2(-3.5, -2), g + Vector2(3.5, -2), g + Vector2(0, -5.5)]), Color(0.95, 0.8, 0.45))
 
 func _candle(g: Vector2, h: float) -> void:
 	var hh := 5.0 + h * 6.0
@@ -1106,53 +1115,55 @@ func _fg_pillar(ci: CanvasItem, g: Vector2, s: float, bricks := false) -> void:
 	ci.draw_arc(dr, 6 * s, PI, TAU, 8, Color(0, 0, 0, 0.25), 1.0)
 	_mound(ci, g, 46.0 * s, 6.0)
 
-# ---- bibliothèque : grimoires et étagère renversée
+# ---- bibliothèque : pupitre de lecture, grand chandelier, globe terrestre
 func _fg_books(ci: CanvasItem, g: Vector2, s: float) -> void:
-	var cols := [Color(0.5, 0.18, 0.14), Color(0.2, 0.33, 0.45), Color(0.45, 0.37, 0.18), Color(0.3, 0.2, 0.38), Color(0.4, 0.25, 0.13)]
-	_contact(ci, g, 34.0 * s)
-	var yy := g.y + 1
-	var n := 4 + int(s * 3)
-	for i in n:
-		var bw := (26.0 - (i % 3) * 3.0 - i * 0.8) * s
-		var bh := (6.0 + (i % 2) * 1.5) * s
-		var off := sin(i * 1.7) * 3.0 + i * 0.6
-		var c: Color = cols[(i + int(g.x)) % cols.size()]
-		ci.draw_rect(Rect2(g.x - bw / 2.0 + off, yy - bh, bw, bh), c)
-		ci.draw_rect(Rect2(g.x + bw / 2.0 + off - 3, yy - bh + 1, 2.5, bh - 2), Color(0.92, 0.87, 0.72))
-		ci.draw_line(Vector2(g.x - bw / 2.0 + off, yy - bh), Vector2(g.x + bw / 2.0 + off, yy - bh), c.lightened(0.35), 1.0)
-		ci.draw_line(Vector2(g.x - bw / 2.0 + off + 4, yy - bh + 2), Vector2(g.x - bw / 2.0 + off + 4, yy - 1), Color(0.95, 0.8, 0.4, 0.7), 1.0)
-		yy -= bh
-	# feuilles volantes au sol
+	# pupitre en bois sur pied, parchemin déroulé
+	var wood := Color(0.4, 0.26, 0.15)
+	var hgt := 40.0 * s
+	_contact(ci, g, 30.0 * s)
+	ci.draw_colored_polygon(PackedVector2Array([g + Vector2(-12 * s, 2), g + Vector2(12 * s, 2), g + Vector2(5 * s, -5 * s), g + Vector2(-5 * s, -5 * s)]), wood.darkened(0.2))
+	_shade_poly(ci, PackedVector2Array([g + Vector2(-3 * s, -4 * s), g + Vector2(3 * s, -4 * s), g + Vector2(3 * s, -hgt), g + Vector2(-3 * s, -hgt)]), wood, g.y - hgt, g.y)
+	var top := PackedVector2Array([g + Vector2(-16 * s, -hgt + 2), g + Vector2(14 * s, -hgt - 9 * s), g + Vector2(16 * s, -hgt - 5 * s), g + Vector2(-14 * s, -hgt + 6)])
+	ci.draw_colored_polygon(top, wood.lightened(0.15))
+	var scroll := PackedVector2Array([g + Vector2(-12 * s, -hgt - 1), g + Vector2(11 * s, -hgt - 10 * s), g + Vector2(12 * s, -hgt - 7 * s), g + Vector2(-11 * s, -hgt + 2)])
+	ci.draw_colored_polygon(scroll, Color(0.92, 0.86, 0.7))
 	for i in 3:
-		var p := g + Vector2(-20 * s + i * 17 * s, 0)
-		ci.draw_colored_polygon(PackedVector2Array([p + Vector2(-5, 1), p + Vector2(4, -1), p + Vector2(5, 2), p + Vector2(-4, 3)]), Color(0.9, 0.85, 0.7))
+		var a := g + Vector2(-8 * s + i * 2, -hgt - 1.5 - i * 2.4 * s)
+		ci.draw_line(a, a + Vector2(14 * s, -6 * s), Color(0.35, 0.3, 0.3, 0.6), 0.8)
+	ci.draw_circle(g + Vector2(-12 * s, -hgt + 0.5), 2.2 * s, Color(0.85, 0.78, 0.6))
+	ci.draw_circle(g + Vector2(12 * s, -hgt - 8.5 * s), 2.2 * s, Color(0.85, 0.78, 0.6))
+	_mound(ci, g, 24.0 * s, 3.0)
 
 func _fg_shelf(ci: CanvasItem, g: Vector2, s: float) -> void:
-	# étagère effondrée en biais, livres renversés
-	var wood := Color(0.36, 0.23, 0.13)
-	var hgt := 52.0 * s
-	var w := 30.0 * s
-	_contact(ci, g, w * 1.6)
-	var lean := 10.0 * s
-	var fr := PackedVector2Array([g + Vector2(-w * 0.5, 2), g + Vector2(-w * 0.5 + lean, -hgt), g + Vector2(w * 0.5 + lean, -hgt), g + Vector2(w * 0.5, 2)])
-	_shade_poly(ci, fr, wood, g.y - hgt, g.y)
-	var cols := [Color(0.5, 0.18, 0.14), Color(0.2, 0.33, 0.45), Color(0.45, 0.37, 0.18), Color(0.3, 0.2, 0.38)]
-	for sh in 3:
-		var y0 := g.y - 4 - sh * hgt / 3.0
-		var x0 := g.x - w * 0.5 + 3 + lean * (sh / 3.0 + 0.05)
-		ci.draw_line(Vector2(x0 - 2, y0), Vector2(x0 + w - 4, y0), wood.darkened(0.35), 2.0)
-		var bx := x0
-		var i := 0
-		while bx < x0 + w - 10:
-			var bw := 3.0 + _hash(int(bx), sh) * 2.5
-			var bh := hgt / 3.0 - 6 - _hash(sh, int(bx)) * 4
-			var c: Color = cols[(i + sh) % cols.size()]
-			if _hash(i, sh + 7) > 0.25:
-				ci.draw_rect(Rect2(bx, y0 - bh, bw, bh), c)
-			bx += bw + 1.0
-			i += 1
-	ci.draw_polyline(PackedVector2Array([fr[1], fr[2]]), wood.lightened(0.25), 1.5)
-	_mound(ci, g, w * 1.3, 4.0)
+	# grand chandelier de laiton à trois branches, ou globe terrestre sur son pied
+	var brass := Color(0.78, 0.6, 0.3)
+	_contact(ci, g, 26.0 * s)
+	if _hash(int(g.x), 41) > 0.5:
+		var hgt := 64.0 * s
+		ci.draw_colored_polygon(PackedVector2Array([g + Vector2(-10 * s, 2), g + Vector2(10 * s, 2), g + Vector2(3 * s, -6 * s), g + Vector2(-3 * s, -6 * s)]), brass.darkened(0.3))
+		ci.draw_line(g + Vector2(0, -4 * s), g + Vector2(0, -hgt), brass, 3.0 * s)
+		for k in [0.3, 0.6]:
+			ci.draw_circle(g + Vector2(0, -hgt * k), 2.6 * s, brass.lightened(0.2))
+		for sd in [-1.0, 0.0, 1.0]:
+			var tip := g + Vector2(sd * 14.0 * s, -hgt - (0.0 if sd == 0.0 else -6.0 * s))
+			if sd != 0.0:
+				ci.draw_polyline(PackedVector2Array([g + Vector2(0, -hgt + 12 * s), g + Vector2(sd * 12 * s, -hgt + 10 * s), tip]), brass, 2.0 * s)
+			ci.draw_rect(Rect2(tip + Vector2(-2 * s, -9 * s), Vector2(4 * s, 9 * s)), Color(0.93, 0.9, 0.8))
+			ci.draw_circle(tip + Vector2(0, -12 * s), 6.0 * s, Color(1.0, 0.75, 0.4, 0.25))
+			DU.flat(ci, DU.ellipse(tip + Vector2(0, -12 * s), Vector2(1.6 * s, 3.0 * s)), Color(1.0, 0.85, 0.45))
+	else:
+		var hgt := 44.0 * s
+		var c := g + Vector2(0, -hgt)
+		ci.draw_line(g + Vector2(-9 * s, 2), g + Vector2(0, -12 * s), Color(0.36, 0.24, 0.14), 2.5 * s)
+		ci.draw_line(g + Vector2(9 * s, 2), g + Vector2(0, -12 * s), Color(0.36, 0.24, 0.14), 2.5 * s)
+		ci.draw_line(g + Vector2(0, -12 * s), c + Vector2(0, 13 * s), Color(0.36, 0.24, 0.14), 2.5 * s)
+		ci.draw_circle(c, 12.0 * s, Color(0.3, 0.45, 0.55))
+		for i in 3:
+			var p := c + Vector2((_hash(int(g.x), i) - 0.5) * 14 * s, (_hash(i, int(g.y)) - 0.5) * 14 * s)
+			ci.draw_colored_polygon(DU.ellipse(p, Vector2(4 * s, 3 * s), 8), Color(0.75, 0.65, 0.4))
+		ci.draw_arc(c, 14.0 * s, -PI * 0.6, PI * 0.9, 16, brass, 2.0)
+		ci.draw_arc(c, 10.0 * s, PI * 1.1, PI * 1.4, 6, Color(1, 1, 1, 0.3), 1.5)
+	_mound(ci, g, 22.0 * s, 3.0)
 
 func _fg_boulder(ci: CanvasItem, g: Vector2, s: float) -> void:
 	var st: Color = main.pal["rock_hi"]

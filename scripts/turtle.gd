@@ -26,7 +26,7 @@ func parried(d: Vector2) -> void:
 func take_hit(dmg: int, d: Vector2) -> void:
 	var p = main.player
 	var from_front: bool = p != null and signf(p.global_position.x - global_position.x) == dir
-	var from_above: bool = d.y > 0.5 or (p != null and p.global_position.y < global_position.y - 20.0)
+	var from_above: bool = d.y > 0.5 or (p != null and p.global_position.y < global_position.y - 20.0 * reach)
 	if flipped_t <= 0.0 and stun_t <= 0.0 and from_front and not from_above:
 		# la carapace encaisse : étincelles et petit recul pour le héros
 		flash_t = 0.06
@@ -65,7 +65,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		knock = Vector2.ZERO
 		charge_cd -= delta
-		var near: bool = p and not p.dead and absf(p.global_position.y - global_position.y) < 50.0 and absf(p.global_position.x - global_position.x) < 260.0 * aggro()
+		var near: bool = p and not p.dead and absf(p.global_position.y - global_position.y) < 50.0 * reach and absf(p.global_position.x - global_position.x) < 260.0 * aggro()
 		if near:
 			dir = -1.0 if p.global_position.x < global_position.x else 1.0
 			if charge_cd <= 0.0:

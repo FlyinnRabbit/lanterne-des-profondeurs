@@ -60,6 +60,8 @@ func _run() -> void:
 		if c.get("state") == "hidden":
 			c.state = "walk"     # le Noyé se cache dans sa flaque : on le fait surgir
 			c.set("rise", 1.0)
+		if c.get("flipped_t") != null:
+			c.flipped_t = 2.0     # la Tortue : on la frappe retournée (sa carapace pare de face)
 		for k in 4:               # le Squelette s'effondre d'abord en tas, puis le tas cède
 			if is_instance_valid(c) and not c.dead:
 				c.take_hit(99999, Vector2.RIGHT)

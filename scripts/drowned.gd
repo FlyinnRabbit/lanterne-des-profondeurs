@@ -35,7 +35,7 @@ func _physics_process(delta: float) -> void:
 		"hidden":
 			rise = 0.0
 			velocity.x = 0.0
-			if p and not p.dead and absf(dxp) < 170.0 * aggro() and absf(p.global_position.y - global_position.y) < 70.0:
+			if p and not p.dead and absf(dxp) < 170.0 * aggro() and absf(p.global_position.y - global_position.y) < 70.0 * reach:
 				state = "appear"
 				st_t = 0.8
 				Audio.sfx("spit", 0.2, -8.0)
@@ -56,7 +56,7 @@ func _physics_process(delta: float) -> void:
 				velocity.x = dir * 50.0 * spd()
 				if is_on_floor() and not main.is_solid_at(global_position + Vector2(dir * 16.0, size.y / 2.0 + 8.0)):
 					velocity.x = 0.0
-				if absf(dxp) < 44.0:
+				if absf(dxp) < 44.0 * reach:
 					state = "windup"
 					st_t = 0.4
 				elif elite and not dove and absf(dxp) > 140.0:
@@ -67,7 +67,7 @@ func _physics_process(delta: float) -> void:
 			if st_t <= 0.0:
 				state = "grab"
 				st_t = 0.3
-				if p and absf(dxp) < 52.0 and absf(p.global_position.y - global_position.y) < 50.0:
+				if p and absf(dxp) < 52.0 * reach and absf(p.global_position.y - global_position.y) < 50.0 * reach:
 					p.receive_hit(global_position, self)
 		"grab":
 			velocity.x = 0.0

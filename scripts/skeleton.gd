@@ -72,15 +72,15 @@ func _physics_process(delta: float) -> void:
 	elif swing_t > 0.0:
 		swing_t -= delta
 		velocity.x = dir * 90.0
-		if p and Rect2(global_position + Vector2(dir * 10.0 - (34.0 if dir < 0 else 0.0), -22), Vector2(34, 34)).intersects(p.get_rect()):
+		if p and Rect2(global_position + Vector2(dir * 10.0 * reach - (34.0 * reach if dir < 0 else 0.0), -22 * reach), Vector2(34, 34) * reach).intersects(p.get_rect()):
 			p.receive_hit(global_position, self)
 	else:
 		knock = Vector2.ZERO
 		swing_cd -= delta
-		var near: bool = p and not p.dead and absf(p.global_position.y - global_position.y) < 60.0 and absf(p.global_position.x - global_position.x) < 320.0 * aggro()
+		var near: bool = p and not p.dead and absf(p.global_position.y - global_position.y) < 60.0 * reach and absf(p.global_position.x - global_position.x) < 320.0 * aggro()
 		if near:
 			dir = -1 if p.global_position.x < global_position.x else 1
-			if absf(p.global_position.x - global_position.x) < 56.0 and swing_cd <= 0.0:
+			if absf(p.global_position.x - global_position.x) < 56.0 * reach and swing_cd <= 0.0:
 				windup = 0.45 if not elite else 0.32
 				swing_cd = 1.4 / aggro()
 		velocity.x = dir * SPEED * spd() * (1.0 if near else 0.6)

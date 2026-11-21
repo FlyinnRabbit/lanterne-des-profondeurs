@@ -811,9 +811,17 @@ func _make_champion(e, info: Dictionary) -> void:
 	e.champion = info["name"]
 	e.set_meta("champ_key", info["key"])
 	e.scale = Vector2(CHAMP_SCALE, CHAMP_SCALE)
+	# la forme de collision grandit avec l'échelle ; la taille logique aussi (pieds, bords du sol,
+	# zone de coup) pour que son IA raisonne sur son vrai corps
+	e.size *= CHAMP_SCALE
+	e.reach = CHAMP_SCALE
+	if e.get("state") == "hidden":
+		# le Capitaine Noyé ne se cache pas dans une flaque : il attend debout, bien visible
+		e.state = "walk"
+		e.set("rise", 1.0)
 	var floor_pos: Vector2 = info.get("floor", e.position)
 	info["floor"] = floor_pos
-	e.position = floor_pos - Vector2(0, e.size.y * CHAMP_SCALE / 2.0 + 1.0 + (110.0 if info["air"] else 0.0))
+	e.position = floor_pos - Vector2(0, e.size.y / 2.0 + 1.0 + (110.0 if info["air"] else 0.0))
 	if e.get("home") != null:
 		e.home = e.position
 	e.hp = int(e.hp * (5 + GameState.palier))
@@ -1658,8 +1666,10 @@ func hit_stop(duration: float) -> void:
 	if not Settings.hitstop:
 		return
 	Engine.time_scale = 0.05 * Settings.speed()
-	await get_tree().create_timer(duration, true, false, true).timeout
-	Engine.time_scale = Settings.speed()
+	get_tree().create_timer(duration, true, false, true).timeout.connect(Settings.end_hitstop)
+
+func _exit_tree() -> void:
+	Engine.time_scale = Settings.speed()      # jamais de ralenti hérité d'une scène quittée
 
 func show_message(text: String, duration: float = 2.5, small := false) -> void:
 	if hud:

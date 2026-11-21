@@ -36,10 +36,10 @@ func _physics_process(delta: float) -> void:
 			return
 	else:
 		knock = Vector2.ZERO
-		var near: bool = p and not p.dead and absf(p.global_position.y - global_position.y) < 60.0 and absf(p.global_position.x - global_position.x) < 260.0 * aggro()
+		var near: bool = p and not p.dead and absf(p.global_position.y - global_position.y) < 60.0 * reach and absf(p.global_position.x - global_position.x) < 260.0 * aggro()
 		if near:
 			dir = -1.0 if p.global_position.x < global_position.x else 1.0
-			if absf(p.global_position.x - global_position.x) < 54.0:
+			if absf(p.global_position.x - global_position.x) < 54.0 * reach:
 				swell = 0.01
 		velocity.x = dir * 45.0 * spd() * (1.4 if near else 0.6)
 		if is_on_floor() and not main.is_solid_at(global_position + Vector2(dir * 16.0, size.y / 2.0 + 8.0)):
@@ -50,7 +50,7 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _burst() -> void:
-	var r := 70.0 if elite else 54.0
+	var r := (70.0 if elite else 54.0) * reach
 	var p = main.player
 	if p and not p.dead and p.global_position.distance_to(global_position) < r:
 		p.receive_hit(global_position, self)
@@ -60,6 +60,11 @@ func _burst() -> void:
 	main.spawn_burst(global_position + Vector2(0, -8), Color(0.65, 0.9, 0.45), 30, r * 3.0, -40.0)
 	Audio.sfx("spit", 0.1, -2.0)
 	main.shake(5)
+	if champion != "":
+		# la Vesse-Mère ne meurt pas en éclatant : elle se dégonfle, souffle, et recommence
+		swell = 0.0
+		stun_t = 1.6
+		return
 	geo_value = 0
 	die()
 

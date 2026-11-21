@@ -5,7 +5,7 @@ config_version=5
 [application]
 
 config/name="Lanterne des Profondeurs"
-config/version="2.9.36"
+config/version="2.9.37"
 config/data_gen=3
 config/description="Petit metroidvania 2D inspiré de Hollow Knight"
 run/main_scene="res://main.tscn"

@@ -45,6 +45,11 @@ const SPEED_CHOICES := [1.0, 0.9, 0.8, 0.7]
 const SPEED_LABELS := ["100 %", "90 %", "80 %", "70 %"]
 const GFX_LABELS := ["Haute", "Équilibrée", "Basse"]
 
+# fin d'un arrêt sur image : rend la vitesse normale (appelé par un minuteur de l'arbre, pour
+# qu'un changement de scène pendant l'arrêt ne laisse pas le jeu au ralenti)
+func end_hitstop() -> void:
+	Engine.time_scale = speed()
+
 func speed() -> float:
 	return SPEED_CHOICES[clampi(game_speed, 0, SPEED_CHOICES.size() - 1)]
 
