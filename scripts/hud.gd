@@ -298,8 +298,9 @@ func _draw() -> void:
 		draw_rect(Rect2(tp, Vector2(tw, 36)), Color(0.08, 0.06, 0.02, 0.85 * ta))
 		draw_rect(Rect2(tp, Vector2(tw, 36)), Color(1.0, 0.8, 0.4, ta), false, 2.0)
 		draw_string(font, tp + Vector2(20, 24), ts[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1.0, 0.9, 0.6, ta))
-	# Panneau du tutoriel
-	if main.sign_text != "":
+	# Panneau du tutoriel (caché pendant la carte : il recouvrait « fermer » en bas du parchemin)
+	var map_open: bool = main.map_view != null and main.map_view.visible
+	if main.sign_text != "" and not map_open:
 		var sl: PackedStringArray = main.sign_text.split("\n")
 		var bw := 200.0
 		for line in sl:

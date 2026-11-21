@@ -91,6 +91,7 @@ var parry_perfect_now := false   # la parade en cours est parfaite (lu par l'enn
 var plunging := false
 var plunge_used := false        # une seule plongée par saut
 var rise_used := false          # une seule entaille montante par saut (pas de vol infini)
+var attack_buf := 0.0           # appui sur {attaque} pendant la recharge : le coup part dès qu'elle finit
 var plunge_cd := 0.0
 var plunge_kill_t := 0.0
 var crit_ready := false         # coup critique prêt (après une parade parfaite)
@@ -621,8 +622,14 @@ func _physics_process(delta: float) -> void:
 	if _ijr("jump") and velocity.y < 0.0:
 		velocity.y *= JUMP_CUT
 
-	# Attaque : combo de 3 coups (le 3e est un coup final), coup chargé en maintenant
-	if _ijp("attack") and attack_cd <= 0.0 and knock_t <= 0.0:
+	# Attaque : combo de 3 coups (le 3e est un coup final), coup chargé en maintenant.
+	# Un appui un peu trop tôt (pendant la recharge) est gardé 0,25 s : enchaîner vite ne perd
+	# plus de coup, et le combo (au sol comme en l'air) part au rythme de l'arme.
+	attack_buf = maxf(attack_buf - delta, 0.0)
+	if _ijp("attack"):
+		attack_buf = 0.25
+	if attack_buf > 0.0 and attack_cd <= 0.0 and knock_t <= 0.0:
+		attack_buf = 0.0
 		var adir := Vector2(facing, 0)
 		if _ip("up"):
 			adir = Vector2.UP
@@ -634,8 +641,11 @@ func _physics_process(delta: float) -> void:
 			_start_attack(["air", "air_rise", "air_spin"][air_i], adir)
 			combo_t = attack_cd + COMBO_SLACK
 			if air_i == 1 and not rise_used:
+				# entaille montante : relance nette vers le haut, même en pleine montée
 				rise_used = true
-				velocity.y = minf(velocity.y, -300.0)
+				velocity.y = maxf(minf(velocity.y, 0.0) - 400.0, -780.0)
+				squash = Vector2(0.8, 1.2)
+				main.spawn_burst(global_position + Vector2(0, SIZE.y / 2.0), Color(1.0, 0.95, 0.8, 0.8), 8, 110.0, 80.0)
 			elif air_i == 2 and not rise_used:
 				velocity.y = minf(velocity.y, -150.0)
 		else:

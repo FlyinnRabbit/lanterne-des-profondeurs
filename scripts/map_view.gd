@@ -22,6 +22,8 @@ func toggle() -> void:
 		visible = true
 		get_tree().paused = true
 		view.queue_redraw()
+	if main.hud:
+		main.hud.queue_redraw()      # le panneau du tutoriel se cache / revient avec la carte
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("map"):
