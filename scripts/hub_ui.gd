@@ -22,6 +22,8 @@ var ars_buy_btn: Button
 var ars_pending := Callable()
 var _ars_go := false             # [kind, id, nom, prix] de l'article en attente de confirmation
 var lift_list: VBoxContainer
+var lift_scroll: ScrollContainer
+var lift_more: Label        # « ▼ » : il reste des choix plus bas
 var lift_info: Label
 var npc_panel: PanelContainer
 var npc_scroll: ScrollContainer
@@ -271,16 +273,35 @@ func _build_lift(root: Control) -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.follow_focus = true
 	v.add_child(scroll)
+	lift_scroll = scroll
 	lift_list = VBoxContainer.new()
 	lift_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lift_list.add_theme_constant_override("separation", 6)
 	scroll.add_child(lift_list)
+	# la zone prend la hauteur de la liste (jusqu'à 9 lignes entières) : plus de ligne coupée en bas
+	lift_list.minimum_size_changed.connect(_fit_lift)
+	scroll.get_v_scroll_bar().value_changed.connect(func(_v): _lift_arrows())
+	lift_more = _label("▼", 14, Color(1.0, 0.86, 0.55))
+	v.add_child(lift_more)
 	var close: Button = main.menu._button("Rester au Sanctuaire", close_all)
 	close.custom_minimum_size = Vector2(280, 40)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_child(close)
 	v.add_child(row)
+
+func _fit_lift() -> void:
+	if lift_scroll == null:
+		return
+	var h := lift_list.get_combined_minimum_size().y
+	lift_scroll.custom_minimum_size.y = clampf(h, 80.0, 9 * 46.0 - 6.0)
+	_lift_arrows.call_deferred()
+
+func _lift_arrows() -> void:
+	if lift_more == null:
+		return
+	var sb := lift_scroll.get_v_scroll_bar()
+	lift_more.modulate.a = 1.0 if sb.max_value - sb.page > 1.0 and sb.value < sb.max_value - sb.page - 1.0 else 0.0
 
 func open_elevator() -> void:
 	_in_board = false

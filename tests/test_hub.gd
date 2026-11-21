@@ -1,6 +1,7 @@
 extends SceneTree
 # Teste la boucle hub → ascenseur → descente → boss → hub, la boutique, la mort et la sauvegarde.
 func _initialize() -> void:
+	RenderingServer.render_loop_enabled = false   # aucun dessin nécessaire : test plus rapide
 	_run()
 
 func _wait(n := 3) -> void:

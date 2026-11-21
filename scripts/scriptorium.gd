@@ -272,7 +272,7 @@ func _variants(id: String) -> Array:
 		"slime":
 			for b in BiomesData.all():
 				out.append({"label": b["name"], "seen": met.has(b["name"]), "pal": b["pal"], "col": load("res://scripts/slime.gd").biome_tint(b["pal"])})
-		"crawler", "spitter", "hopper":
+		"crawler", "spitter", "hopper", "guard", "lancer":
 			# teinte du biome (carapace, feuillage, corps)
 			var E = load("res://scripts/enemy.gd")
 			for b in BiomesData.all():
@@ -456,7 +456,7 @@ func _draw_stats(c: Control, f: Font, ink: Color, red: Color, soft: Color) -> vo
 	var w := 340.0
 	c.draw_string(f, Vector2(x1, 124), tr("%s · temps de jeu : %s") % [tr(GameState.DIFFS[GameState.difficulty]["name"]), fmt_time(float(_c("time", 0.0)))], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, soft)
 	_heading(c, f, Vector2(x1, 162), w, tr("Combat"), red)
-	var rows1 := [["Ennemis vaincus", fmt_n(_c("kills"))], ["dont élites", fmt_n(_c("elites"))], ["Gardiens vaincus", fmt_n(_c("bosses"))],
+	var rows1 := [["Ennemis vaincus", fmt_n(_c("kills"))], ["dont élites / champions", "%s / %s" % [fmt_n(_c("elites")), fmt_n(_c("champions"))]], ["Gardiens vaincus", fmt_n(_c("bosses"))],
 		["Dégâts infligés", fmt_n(_c("damage"))], ["Coups critiques", fmt_n(_c("crits"))],
 		["Parades (dont parfaites)", "%s (%s)" % [fmt_n(_c("parries")), fmt_n(_c("perfect"))]],
 		["Soins / sorts / ultimes", "%s / %s / %s" % [fmt_n(_c("heals")), fmt_n(_c("spells")), fmt_n(_c("ults"))]],

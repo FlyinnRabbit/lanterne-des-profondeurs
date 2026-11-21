@@ -5,6 +5,8 @@ var shots := false
 
 func _initialize() -> void:
 	shots = "--shots" in OS.get_cmdline_user_args()
+	# sans captures, inutile de dessiner : le test va bien plus vite (la logique tourne pareil)
+	RenderingServer.render_loop_enabled = shots
 	_run()
 
 func _wait(n := 3) -> void:
@@ -23,12 +25,10 @@ func _run() -> void:
 				pal = p
 				break
 		if id in gs.FINALS:
+			# boss final : on fixe le tirage du palier 7 (sinon le premier tiré reste pour toute la partie)
 			pal = 7
-			for sd in range(1, 400):
-				gs.run_seed = sd
-				gs._cache.clear()
-				if gs.boss_for(7) == id:
-					break
+			gs._cache.clear()
+			gs.prog["finals_drawn"] = {"7": id}
 		gs.mode = "descent"
 		gs.palier = pal
 		gs.step = 2

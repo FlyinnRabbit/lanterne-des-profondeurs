@@ -70,6 +70,17 @@ const TomeScript = preload("res://scripts/tome.gd")
 const GolemScript = preload("res://scripts/golem.gd")
 const SkeletonScript = preload("res://scripts/skeleton.gd")
 const GoblinScript = preload("res://scripts/goblin.gd")
+# Champions des biomes (mini-boss) : une version géante et coriace de la créature du biome
+const CHAMPIONS := {
+	"profondeurs": ["angler", "La Grande Baudroie"], "jardins": ["puffball", "La Vesse-Mère"],
+	"citadelle": ["drowned", "Le Capitaine Noyé"], "cristal": ["turtle", "La Tortue Ancestrale"],
+	"forge": ["imp", "Le Diablotin Forgeron"], "bibliotheque": ["tome", "Le Grimoire Interdit"],
+	"glace": ["golem", "Le Golem du Glacier"], "ossuaire": ["skeleton", "Le Roi Squelette"],
+	"ruche": ["flyer", "Le Bourdon Gardien"], "jungle": ["monkey", "Le Roi Singe"],
+	"desert": ["scorpion", "Le Scorpion Empereur"], "antique": ["goblin", "Le Chef Gobelin"]}
+const CHAMP_SCALE := 2.0
+const CHAMP_AIR := ["angler", "tome", "flyer"]
+var champ = null          # champion vivant (barre de vie en bas de l'écran)
 const LancerScript = preload("res://scripts/lancer.gd")
 const WraithScript = preload("res://scripts/wraith.gd")
 
@@ -280,6 +291,12 @@ func _build_level() -> void:
 	bg.set_script(BackgroundScript)
 	bg.main = self
 	add_child(bg)
+	# troisième plan (étangs, rivières, fontaines…) entre l'arrière-plan et le décor
+	if not GameState.is_hub():
+		var mid := Node2D.new()
+		mid.set_script(preload("res://scripts/midground.gd"))
+		mid.main = self
+		add_child(mid)
 	var art := Node2D.new()
 	art.set_script(LevelArtScript)
 	art.main = self
@@ -612,6 +629,13 @@ func _spawn_everything() -> void:
 					var nm := 2 + int(fposmod(float(x * 7 + y * 3), 2.0))
 					for k in nm:
 						enemy_spawns.append([MothScript, Vector2(x * TILE + 16 + (k - 1) * 22, y * TILE + 16 + (k % 2) * 14), null, _roll_elite(x + k, y)])
+				"`":
+					var cid := String(pal.get("id", ""))
+					var ckey := "%d-%d-%d#champ" % [GameState.run_seed, GameState.palier, GameState.step]
+					if CHAMPIONS.has(cid) and not (GameState.mode == "descent" and GameState.is_collected(ckey)):
+						var csc = load("res://scripts/%s.gd" % CHAMPIONS[cid][0])
+						var floor_pos := Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE)
+						enemy_spawns.append([csc, floor_pos, null, true, {"name": CHAMPIONS[cid][1], "key": ckey, "air": CHAMPIONS[cid][0] in CHAMP_AIR}])
 				"<":
 					enemy_spawns.append([AnglerScript, Vector2(x * TILE + 16, y * TILE + 16), null, _roll_elite(x, y)])
 				"?":
@@ -772,8 +796,34 @@ func respawn_enemies() -> void:
 			e.main = self
 			e.elite = s[3]
 			e.position = s[1]
+			if s.size() > 4:
+				# champion : il ne revient pas une fois vaincu
+				if GameState.mode == "descent" and GameState.is_collected(s[4]["key"]):
+					continue
+				if s[4]["name"] == "Le Bourdon Gardien":
+					e.set("bee", true)
 			add_child(e)
 			s[2] = e
+			if s.size() > 4:
+				_make_champion(e, s[4])
+
+func _make_champion(e, info: Dictionary) -> void:
+	e.champion = info["name"]
+	e.set_meta("champ_key", info["key"])
+	e.scale = Vector2(CHAMP_SCALE, CHAMP_SCALE)
+	var floor_pos: Vector2 = info.get("floor", e.position)
+	info["floor"] = floor_pos
+	e.position = floor_pos - Vector2(0, e.size.y * CHAMP_SCALE / 2.0 + 1.0 + (110.0 if info["air"] else 0.0))
+	if e.get("home") != null:
+		e.home = e.position
+	e.hp = int(e.hp * (5 + GameState.palier))
+	e.hp_max = e.hp
+	e.geo_value = e.geo_value * 6
+	e.show_bar = false             # sa vie s'affiche en bas de l'écran
+	for k in e.get_children():
+		if k.get_script() == e.HpBarScript:
+			k.queue_free()
+	champ = e
 
 func make_light(color: Color, sc: float, energy: float, offset: Vector2 = Vector2.ZERO, shadows := false) -> PointLight2D:
 	var l := PointLight2D.new()
@@ -1124,11 +1174,22 @@ func _update_sleep() -> void:
 # Sanctuaire : les habitants parlent quand on passe près d'eux (bulle, une fois par passage)
 const LoreScript = preload("res://scripts/lore.gd")
 var _chat_cd := {}
+var _bubble: Node2D = null
+
 func _npc_chatter(delta: float) -> void:
 	if not GameState.is_hub() or player == null or get_tree().paused:
 		return
 	for k in _chat_cd.keys():
 		_chat_cd[k] -= delta
+	# pas de bulle par-dessus un message (bilan de descente, trésor…) ou un panneau d'aide :
+	# celle qui parle se tait ; et une seule bulle à la fois
+	var busy: bool = (hud != null and hud.message_t > 0.0) or sign_text != ""
+	if is_instance_valid(_bubble):
+		if busy and _bubble.life > _bubble.t + 0.4:
+			_bubble.life = _bubble.t + 0.4
+		return
+	if busy:
+		return
 	for it in interactables:
 		var kind: String = it[1]
 		if not LoreScript.AMBIENT.has(kind) or not is_instance_valid(it[0]):
@@ -1144,6 +1205,7 @@ func _npc_chatter(delta: float) -> void:
 			b.text = tr(line)
 			b.position = it[0].global_position + Vector2(0, -92)
 			add_child(b)
+			_bubble = b
 			LoreScript.hear(LoreScript.NPC_NAMES[kind], tr(line))
 		elif d > 220.0 and float(_chat_cd.get(kind, 0.0)) > 0.0 and float(_chat_cd[kind]) < 20.0:
 			_chat_cd[kind] = minf(_chat_cd[kind], 6.0)
@@ -1294,24 +1356,24 @@ func _process(delta: float) -> void:
 				GameState.j_add("chests")
 				GameState.prog["collected"].append(pk[2])     # cachette vidée
 				Audio.sfx("pickup", 0.0)
-				show_message(tr("Trésor caché : +%d éclats !") % amount, 3.0)
+				show_pickup(tr("Trésor caché : +%d éclats !") % amount, 3.0)
 				Achievements.unlock("room")
 			elif pk[1] == "memory":
 				GameState.prog["memories"] = int(GameState.prog.get("memories", 0)) + 1
 				GameState.prog["collected"].append(pk[2])
 				Audio.sfx("soul_level", 0.0)
-				show_message(tr("Fragment de mémoire (%d) — l'Ancien saura quoi en faire.") % int(GameState.prog["memories"]), 3.5)
+				show_pickup(tr("Fragment de mémoire (%d) — l'Ancien saura quoi en faire.") % int(GameState.prog["memories"]), 3.5)
 			elif pk[1] == "charm":
 				GameState.add_charm(pk[2])
 				if pk.size() > 3:
 					_mark_collected(String(pk[3]))
 				GameState.j_charm_found(int(pk[2]), String(level.get("name", "")))
 				Audio.sfx("pickup", 0.0)
-				show_message(tr("Emblème obtenu : %s\nÉquipe-le depuis l'inventaire ({inventory|1}) en te reposant sur un banc.") % tr(GameState.charm(pk[2])["name"]), 4.5)
+				show_pickup(tr("Emblème obtenu : %s\nÉquipe-le depuis l'inventaire ({inventory|1}) en te reposant sur un banc.") % tr(GameState.charm(pk[2])["name"]), 4.5)
 			else:
 				GameState.add_notch(pk[2])
 				Audio.sfx("pickup", 0.0)
-				show_message(tr("Encoche d'emblème obtenue !\nEncoches : %d") % GameState.prog["notches"], 3.5)
+				show_pickup(tr("Encoche d'emblème obtenue !\nEncoches : %d") % GameState.prog["notches"], 3.5)
 			spawn_burst(prop.position, Color(1.0, 0.92, 0.65), 30, 220.0, 0.0)
 			shake(6)
 			prop.queue_free()
@@ -1599,10 +1661,15 @@ func hit_stop(duration: float) -> void:
 	await get_tree().create_timer(duration, true, false, true).timeout
 	Engine.time_scale = Settings.speed()
 
-func show_message(text: String, duration: float = 2.5) -> void:
+func show_message(text: String, duration: float = 2.5, small := false) -> void:
 	if hud:
 		hud.message = tr(text)
 		hud.message_t = duration
+		hud.message_small = small
+
+# objet ramassé : bandeau discret en haut de l'écran (le centre reste libre pour le combat)
+func show_pickup(text: String, duration: float = 3.0) -> void:
+	show_message(text, duration, true)
 
 var _spark: Texture2D
 func _spark_tex() -> Texture2D:
@@ -1731,6 +1798,20 @@ func on_enemy_killed(e, geo: int) -> void:
 	# Récolte d'Âme : chaque ennemi vaincu rend 8 d'âme
 	if player.eq(player.C.SOUL_HARVEST) and not e.is_boss:
 		player.soul = mini(player.soul + int(player.clv(player.C.SOUL_HARVEST, [8, 12, 16])), player.SOUL_MAX)
+	if e.champion != "":
+		# champion vaincu : gros butin, ne revient plus dans ce niveau
+		var bonus := roundi((60 + 25 * GameState.palier) * GameState.geo_mult())
+		player.geo += bonus
+		GameState.j_add("geo_in", bonus)
+		GameState.j_add("champions")
+		if GameState.mode == "descent" and e.has_meta("champ_key"):
+			GameState.prog["collected"].append(String(e.get_meta("champ_key")))
+		show_pickup(tr("Champion vaincu : %s\n+%d éclats") % [tr(e.champion), bonus], 3.5)
+		spawn_burst(e.global_position, Color(1.0, 0.8, 0.4), 30, 260.0, 0.0)
+		shake(10)
+		hit_stop(0.12)
+		Audio.sfx("achievement", 0.0, -4.0)
+		champ = null
 	Achievements.stat("kills")
 	Achievements.on_kill(e.elite and not e.is_boss)
 	if player.plunge_kill_t > 0.0:

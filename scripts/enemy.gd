@@ -21,7 +21,8 @@ var display := false     # portrait (Scriptorium) : dessiné seulement, aucune l
 # Variante de biome : certaines créatures prennent la teinte du biome où elles vivent
 # (carapace du Rampant, feuillage du Cracheur, corps du Sauteur). a = force du mélange.
 var vtint := Color(0, 0, 0, 0)
-const BIOME_SKINNED := ["crawler", "spitter", "hopper"]
+var champion := ""        # nom du champion du biome (mini-boss), sinon vide
+const BIOME_SKINNED := ["crawler", "spitter", "hopper", "guard", "lancer"]
 
 static func skin_tint(pal: Dictionary) -> Color:
 	var c: Color = pal.get("moss", Color(0.6, 0.8, 0.5))
@@ -85,6 +86,14 @@ func _wrap_outline() -> void:
 		_outline_mat.shader = EliteOutline
 	var cg := CanvasGroup.new()
 	cg.material = _outline_mat
+	if champion != "":
+		# champion du biome : liseré doré, plus épais
+		var cm := ShaderMaterial.new()
+		cm.shader = EliteOutline
+		cm.set_shader_parameter("line_color", Color(1.0, 0.78, 0.3))
+		cm.set_shader_parameter("line_px", 2.2)
+		cm.set_shader_parameter("glow_px", 8.0)
+		cg.material = cm
 	cg.fit_margin = 16.0
 	cg.clear_margin = 16.0
 	cg.z_index = z_index
@@ -181,7 +190,7 @@ func body_color(base: Color) -> Color:
 		# garde la luminosité d'origine, prend la teinte du biome
 		var t := Color(vtint.r, vtint.g, vtint.b) * (base.get_luminance() / maxf(Color(vtint.r, vtint.g, vtint.b).get_luminance(), 0.05))
 		base = base.lerp(Color(clampf(t.r, 0, 1), clampf(t.g, 0, 1), clampf(t.b, 0, 1), base.a), vtint.a)
-	return base.lerp(Color(1.0, 0.35, 0.3), 0.35) if elite else base
+	return base.lerp(Color(1.0, 0.35, 0.3), 0.35) if elite and champion == "" else base
 
 # Étoiles d'étourdissement au-dessus de la tête
 func draw_stun(y: float) -> void:

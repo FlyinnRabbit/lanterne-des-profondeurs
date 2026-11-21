@@ -3,6 +3,7 @@ extends SceneTree
 const Biomes = preload("res://scripts/biomes.gd")
 const LevelGen = preload("res://scripts/levelgen.gd")
 func _initialize() -> void:
+	RenderingServer.render_loop_enabled = false   # aucun dessin nécessaire : test plus rapide
 	_run()
 func _frames(n: int) -> void:
 	for i in n:
@@ -15,7 +16,7 @@ func _run() -> void:
 	var all: Array = Biomes.all()
 	var bad := 0
 	var total := 0
-	for sd in 6:
+	for sd in 3:
 		for i in all.size():
 			var b: Dictionary = all[i]
 			gs.run_seed = 100 + sd

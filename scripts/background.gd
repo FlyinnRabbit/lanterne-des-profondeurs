@@ -442,6 +442,9 @@ class Layer extends Node2D:
 
 func _ready() -> void:
 	z_index = -10
+	# les lampes du décor n'éclairent pas l'arrière-plan lointain : ces grandes surfaces repassées
+	# par chaque lumière coûtaient cher (≈ -40 % de temps d'image au Sanctuaire)
+	_no_lights.call_deferred(self)
 	var w: float = main.map_size.x * main.TILE
 	var h: float = main.map_size.y * main.TILE
 	var p: Dictionary = main.pal
@@ -491,3 +494,9 @@ func _process(_delta: float) -> void:
 	var c := cam.get_screen_center_position()
 	for l in layers:
 		l.position = c * float(l.get_meta("factor"))
+
+func _no_lights(n: Node) -> void:
+	if n is CanvasItem:
+		n.light_mask = 2
+	for k in n.get_children():
+		_no_lights(k)

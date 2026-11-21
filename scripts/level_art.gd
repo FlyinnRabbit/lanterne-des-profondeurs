@@ -288,6 +288,10 @@ func _decor_lights() -> void:
 			col = Color(1.0, 0.5, 0.15)
 		# gros cristaux et scories du premier plan
 		var hf := _hash(x * 3 + 11, y * 5 - 3)
+		if biome == "profondeurs" and hf > 0.8 and x >= 18 and not _cell(x, y - 2) and _hash(x + 5, y - 9) > 0.4 and _hash(x + 5, y - 9) <= 0.72:
+			col = Color(0.5, 0.82, 1.0)
+			g = Vector2(x * T + 6 + _hash(x, y + 77) * (T - 12), y * T - 14)
+			sc = 0.7
 		if hf > 0.86 and x >= 18 and biome in ["cristal", "forge"] and not _cell(x, y - 2):
 			col = main.pal["moss"] if biome == "cristal" else Color(1.0, 0.45, 0.12)
 			g = Vector2(x * T + 6 + _hash(x, y + 77) * (T - 12), y * T - 18)
@@ -624,9 +628,11 @@ func draw_front(ci: CanvasItem) -> void:
 		var h := _hash(x * 3 + 11, y * 5 - 3)
 		var k := _hash(x + 5, y - 9)
 		var g := Vector2(x * T + 6 + _hash(x, y + 77) * (T - 12), y * T + 1)
-		if up and h > 0.86:
-			_front_object(ci, g, h, k)
-		elif down and h < 0.1 and biome in ["jungle", "jardins", "profondeurs", "ruche", "glace", "cristal"]:
+		# les Profondeurs, très sombres, ont un premier plan plus fourni
+		var th := 0.8 if biome == "profondeurs" else 0.86
+		if up and h > th:
+			_front_object(ci, g, 0.86 + (h - th) * 0.14 / (1.0 - th), k)
+		elif down and h < (0.16 if biome == "profondeurs" else 0.1) and biome in ["jungle", "jardins", "profondeurs", "ruche", "glace", "cristal"]:
 			var top := Vector2(x * T + 16, (y + 1) * T)
 			if biome in ["glace", "cristal"]:
 				_fg_icicle(ci, top, 22.0 + k * 24.0)
@@ -636,7 +642,17 @@ func draw_front(ci: CanvasItem) -> void:
 func _front_object(ci: CanvasItem, g: Vector2, h: float, k: float) -> void:
 	var s := 0.8 + (h - 0.86) * 3.0     # 0.8 → 1.2
 	match biome:
-		"jungle", "jardins", "profondeurs":
+		"profondeurs":
+			# champignons bleus lumineux, bouquets de lucioles-champignons, fougères pâles
+			if k > 0.72:
+				_fg_shroom_tree(ci, g, s)
+			elif k > 0.4:
+				_fg_glowcaps(ci, g, s)
+			elif k > 0.2:
+				_fg_fern(ci, g, s)
+			else:
+				_fg_bush(ci, g, s)
+		"jungle", "jardins":
 			if k > 0.72:
 				if biome == "jungle":
 					_fg_tree(ci, g, s)
@@ -838,7 +854,30 @@ func _fg_grass(ci: CanvasItem, g: Vector2, s: float) -> void:
 		ci.draw_colored_polygon(PackedVector2Array([b0 + Vector2(-2, 0), b0 + Vector2(lean * 0.4 - 1, -hh * 0.55), b0 + Vector2(lean, -hh), b0 + Vector2(lean * 0.4 + 1, -hh * 0.55), b0 + Vector2(2, 0)]), c2)
 	_mound(ci, g, 26.0 * s, 3.5)
 
+# bouquet de petits champignons bioluminescents (Profondeurs)
+func _fg_glowcaps(ci: CanvasItem, g: Vector2, s: float) -> void:
+	_contact(ci, g, 36.0 * s)
+	var glow := Color(0.55, 0.85, 1.0)
+	var n := 4 + int(_hash(int(g.x), 3) * 3.0)
+	for i in n:
+		var ox := (i - (n - 1) / 2.0) * 8.0 * s + (_hash(i, int(g.x)) - 0.5) * 6.0
+		var hh := (10.0 + _hash(int(g.y), i) * 22.0) * s
+		var b := g + Vector2(ox, 1)
+		var tip := b + Vector2((_hash(i, 9) - 0.5) * 6.0, -hh)
+		ci.draw_line(b, tip, Color(0.78, 0.82, 0.9), 2.4 * s)
+		var r := (4.0 + _hash(i, int(g.x) + 1) * 4.0) * s
+		ci.draw_circle(tip, r * 2.4, Color(glow, 0.12))
+		var cap := DU.ellipse(tip, Vector2(r * 1.3, r), 14, PI, TAU)
+		cap.append(tip + Vector2(r * 1.3, 0))
+		ci.draw_colored_polygon(cap, Color(0.3, 0.55, 0.75).lerp(glow, 0.35))
+		ci.draw_line(tip + Vector2(-r * 1.2, 0), tip + Vector2(r * 1.2, 0), glow.lightened(0.3), 1.5)
+		ci.draw_circle(tip + Vector2(-r * 0.3, -r * 0.45), r * 0.25, Color(1, 1, 1, 0.7))
+	_mound(ci, g, 30.0 * s, 4.0)
+
 func _fg_vine(ci: CanvasItem, top: Vector2, l: float) -> void:
+	if biome == "profondeurs":
+		_fg_glowworm(ci, top, l)
+		return
 	var col := _leaf_col()
 	var pts := PackedVector2Array()
 	for i in 10:
@@ -851,6 +890,20 @@ func _fg_vine(ci: CanvasItem, top: Vector2, l: float) -> void:
 		ci.draw_colored_polygon(PackedVector2Array([a, a + Vector2(sd * 8.0, 1.0), a + Vector2(sd * 5.0, 6.0), a + Vector2(sd * 1.0, 4.0)]), col.lerp(col.lightened(0.2), _hash(i, int(top.x))))
 	# racines et terre au point d'accroche
 	ci.draw_colored_polygon(DU.ellipse(top + Vector2(0, 1), Vector2(8, 3), 10), main.pal["rock"].lightened(0.15))
+
+# fils de vers luisants qui pendent du plafond (Profondeurs) : perles de lumière bleue
+func _fg_glowworm(ci: CanvasItem, top: Vector2, l: float) -> void:
+	for j in 3:
+		var x0 := top + Vector2((j - 1) * 7.0 + (_hash(j, int(top.x)) - 0.5) * 4.0, 0)
+		var ll := l * (0.55 + _hash(int(top.x), j) * 0.6)
+		ci.draw_line(x0, x0 + Vector2(0, ll), Color(0.7, 0.85, 1.0, 0.35), 1.0)
+		var beads := int(ll / 9.0)
+		for i in beads:
+			var p := x0 + Vector2(0, 6.0 + i * 9.0 + _hash(i, j) * 3.0)
+			var r := 1.3 + _hash(i + 3, j) * 1.2
+			ci.draw_circle(p, r * 2.6, Color(0.5, 0.8, 1.0, 0.13))
+			ci.draw_circle(p, r, Color(0.75, 0.92, 1.0, 0.95))
+	ci.draw_colored_polygon(DU.ellipse(top + Vector2(0, 1), Vector2(9, 3), 10), main.pal["rock"].lightened(0.15))
 
 # ---- glace et cristal : amas qui perce une dalle soulevée
 func _fg_shards(ci: CanvasItem, g: Vector2, s: float) -> void:

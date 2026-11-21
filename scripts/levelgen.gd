@@ -741,6 +741,16 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 			var p: Vector2i = ground.pop_back()
 			if g[p.y][p.x] == "." and g[p.y + 1][p.x] == "#":
 				put(p.x, p.y, k if k in GROUND_FOES else "c")
+	# champion du biome (mini-boss) : parfois, à partir du palier 2, dans un niveau sans boss.
+	# Il attend au sol, dans la deuxième moitié du niveau, avec de la place au-dessus de lui.
+	if boss == "" and not rush and depth >= 3 and rng.randf() < 0.4:
+		var cand := ground.filter(func(p): return p.x > W / 2 and p.x < W - 24 and p.y > CEIL + 5 \
+			and g[p.y - 1][p.x] == "." and g[p.y - 2][p.x] == "." and g[p.y - 3][p.x] == "." and g[p.y][p.x - 1] == "." and g[p.y][p.x + 1] == ".")
+		if not cand.is_empty():
+			var cp: Vector2i = cand[0]
+			ground.erase(cp)
+			if g[cp.y][cp.x] == "." and g[cp.y + 1][cp.x] == "#":
+				put(cp.x, cp.y, "`")
 	# mimique : parfois une fausse cachette au trésor, sur un sol sûr
 	if rng.randf() < 0.3 + depth * 0.03 and not ground.is_empty():
 		var mp: Vector2i = ground.pop_back()
@@ -781,7 +791,7 @@ func generate(biome: Dictionary, seed_value: int, depth: int, boss: String, fina
 # près d'un autre danger (pas de piège sur piège), ni près du départ, de la sortie, d'un banc
 # ou de l'arène du boss.
 const HAZARDS := "^ZUVkqvyCXKxzaodi+"
-const KEEP_CLEAR := "PEBOHLSGR*N$"
+const KEEP_CLEAR := "PEBOHLSGR*N$`"
 # ennemi propre à chaque biome : Baudroie, Vesse-de-loup, Noyé, Tortue de cristal, Diablotin de
 # braise, Grimoire volant, Golem de givre, Squelette
 const SIGNATURE := {"profondeurs": "<", "jardins": ";", "citadelle": ">", "cristal": "=", "forge": "!",

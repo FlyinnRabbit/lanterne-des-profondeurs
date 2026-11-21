@@ -8,6 +8,7 @@ const G = preload("res://scripts/glyphs.gd")
 var main
 var message := ""
 var message_t := 0.0
+var message_small := false   # objet ramassé : bandeau en haut, plus petit
 var shown_soul := 0.0
 var soul_levels := -1          # niveaux pleins du flacon à l'image précédente (-1 : pas encore lu)
 var level_flash := [0.0, 0.0, 0.0, 0.0]   # éclat de chaque losange quand son niveau se remplit
@@ -33,7 +34,7 @@ func add_damage(dmg: int, who: String, kind: String, killed: bool) -> void:
 		damage_log[0][4] = 0.0
 		return
 	damage_log.push_front([dmg, who, kind, killed, 0.0])
-	if damage_log.size() > 6:
+	if damage_log.size() > 3:      # 3 lignes au plus : la liste ne s'allonge pas sous la mini-carte
 		damage_log.pop_back()
 
 func _process(delta: float) -> void:
@@ -243,11 +244,37 @@ func _draw() -> void:
 		for side in [-1.0, 1.0]:
 			var ex: float = bx + w / 2.0 + side * (w / 2.0 + 8.0)
 			draw_colored_polygon(DU.diamond(Vector2(ex, by + 5), Vector2(6, 8)), Color(0.6, 0.5, 0.35))
+	# Champion du biome (mini-boss) : barre plus courte, quand il est proche
+	elif main.champ != null and is_instance_valid(main.champ) and main.player and main.champ.global_position.distance_to(main.player.global_position) < 620.0:
+		var e = main.champ
+		var w := 360.0
+		var bx := (sz.x - w) / 2.0
+		var by := sz.y - 60.0
+		var bf: float = clampf(float(e.hp) / maxf(e.hp_max, 1), 0.0, 1.0)
+		draw_string(font, Vector2(bx + 1, by - 9), tr(e.champion), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(0, 0, 0, 0.7))
+		draw_string(font, Vector2(bx, by - 10), tr(e.champion), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1.0, 0.85, 0.55))
+		draw_string(font, Vector2(bx, by - 10), tr("champion"), HORIZONTAL_ALIGNMENT_RIGHT, w, 12, Color(0.85, 0.75, 0.6, 0.8))
+		DU.box(self, Rect2(bx - 3, by - 3, w + 6, 14), Color(0.3, 0.24, 0.18))
+		draw_rect(Rect2(bx, by, w, 8), Color(0.05, 0.03, 0.03, 0.95))
+		DU.vgrad(self, Rect2(bx, by, w * bf, 8), Color(1.0, 0.7, 0.3), Color(0.65, 0.3, 0.1))
 	# Flash blanc de l'ultime
 	if main.flash > 0.0:
 		draw_rect(Rect2(Vector2.ZERO, sz), Color(1.0, 0.97, 0.88, main.flash * 0.55))
 	# Message central
-	if message_t > 0.0 and message != "":
+	if message_t > 0.0 and message != "" and message_small:
+		var alpha := clampf(message_t, 0.0, 1.0)
+		var lines := message.split("\n")
+		var bw := 0.0
+		for i in lines.size():
+			bw = maxf(bw, G.rich_width(font, lines[i], 22 if i == 0 else 15) + 48.0)
+		var bh := 16.0 + 28.0 + (lines.size() - 1) * 21.0
+		var bp := Vector2((sz.x - bw) / 2.0, 104.0)
+		draw_rect(Rect2(bp, Vector2(bw, bh)), Color(0.03, 0.04, 0.08, 0.72 * alpha))
+		draw_rect(Rect2(bp + Vector2(0, bh - 2), Vector2(bw, 2)), Color(1.0, 0.82, 0.45, 0.8 * alpha))
+		for i in lines.size():
+			var fs := 22 if i == 0 else 15
+			G.draw_rich(self, font, 0, sz.x, bp.y + 30.0 + i * 21.0, lines[i], fs, Color(1.0, 0.93, 0.75, alpha) if i == 0 else Color(0.85, 0.88, 0.95, alpha), true)
+	elif message_t > 0.0 and message != "":
 		var alpha := clampf(message_t, 0.0, 1.0)
 		var lines := message.split("\n")
 		for i in lines.size():
