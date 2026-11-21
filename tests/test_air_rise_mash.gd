@@ -51,5 +51,30 @@ func _run() -> void:
 		var good: bool = r[1].has("air_rise") and r[0] > plain[0] + 40.0
 		print("2 coups à %d images d'écart : %d px  %s  %s" % [gap, int(r[0]), r[1], "ok" if good else "PROBLÈME"])
 		ok = ok and good
+	# stick poussé en avant et un peu vers le bas : combo aérien, pas coup plongeant
+	pl.global_position = Vector2(40 * 32, 10 * 32)
+	pl.velocity = Vector2.ZERO
+	await _f(90)
+	Input.action_press("jump")
+	await _f(10)
+	Input.action_press("move_right", 0.8)
+	Input.action_press("down", 0.6)
+	await _f(2)
+	await _tap("attack")
+	await _f(3)
+	var k1: String = pl.attack_kind
+	Input.action_release("down")
+	Input.action_press("down", 0.95)
+	Input.action_press("move_right", 0.2)
+	await _f(60)
+	await _tap("attack")
+	await _f(3)
+	var k2: String = pl.attack_kind
+	Input.action_release("down")
+	Input.action_release("move_right")
+	Input.action_release("jump")
+	await _f(90)
+	print("stick en diagonale avant-bas : %s (attendu air) ; stick franchement bas : %s (attendu slash vers le bas)" % [k1, k2])
+	ok = ok and k1 == "air" and k2 != "air"
 	print("RÉSULTAT : ", "OK" if ok else "ÉCHEC")
 	quit()

@@ -174,6 +174,16 @@ func _act(a: String) -> String:
 	return ("p2_" + a) if pid == 2 else a
 func _ok(a: String) -> bool:
 	return pid != 2 or InputMap.has_action("p2_" + a)
+# Coup vers le haut / le bas : au stick, il faut viser franchement à la verticale. Un stick
+# poussé en avant et un peu vers le bas (en courant, en sautant) donnait un coup plongeant au
+# lieu du combo aérien. Au clavier (touches pleines), bas + côté reste un coup vers le bas.
+func _aim_vert(a: String) -> bool:
+	if not _ip(a):
+		return false
+	var v := Input.get_action_strength(_act(a))
+	var hz := maxf(Input.get_action_strength(_act("move_left")), Input.get_action_strength(_act("move_right")))
+	return v >= hz
+
 func _ip(a: String) -> bool:
 	return _ok(a) and Input.is_action_pressed(_act(a))
 func _ijp(a: String) -> bool:
@@ -631,9 +641,9 @@ func _physics_process(delta: float) -> void:
 	if attack_buf > 0.0 and attack_cd <= 0.0 and knock_t <= 0.0:
 		attack_buf = 0.0
 		var adir := Vector2(facing, 0)
-		if _ip("up"):
+		if _aim_vert("up"):
 			adir = Vector2.UP
-		elif _ip("down") and not on_floor:
+		elif _aim_vert("down") and not on_floor:
 			adir = Vector2.DOWN
 		if not on_floor and adir.y == 0.0:
 			# combo aérien : entaille, entaille montante, puis vrille
