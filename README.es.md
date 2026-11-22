@@ -68,7 +68,7 @@ guarda las esquirlas perdidas donde caíste, y el ascensor recuerda hasta dónde
 
 ## Descargar y jugar
 
-> **Demo gratuita**: las versiones de esta página (navegador, Windows, macOS, Linux) son la demo: el tutorial y los niveles 1 y 2. El juego completo llega a Steam; tu partida guardada se conservará.
+> **Demo gratuita**: las versiones de esta página (navegador, Windows, macOS, Linux) son la demo: el tutorial y los niveles 1 y 2. El juego completo llega a Steam; tu partida guardada se conservará. También en [itch.io](https://flyinrabbit.itch.io/lantern-of-the-depths-demo).
 
 El juego está disponible en español, inglés, francés y alemán.
 

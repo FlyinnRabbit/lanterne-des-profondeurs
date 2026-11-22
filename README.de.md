@@ -68,7 +68,7 @@ Schatten bewahrt die verlorenen Splitter dort, wo du gefallen bist, und der Aufz
 
 ## Herunterladen und spielen
 
-> **Kostenlose Demo**: Die Versionen auf dieser Seite (Browser, Windows, macOS, Linux) sind die Demo: das Tutorial und die Ebenen 1 und 2. Die Vollversion erscheint auf Steam; dein Spielstand wird übernommen.
+> **Kostenlose Demo**: Die Versionen auf dieser Seite (Browser, Windows, macOS, Linux) sind die Demo: das Tutorial und die Ebenen 1 und 2. Die Vollversion erscheint auf Steam; dein Spielstand wird übernommen. Auch auf [itch.io](https://flyinrabbit.itch.io/lantern-of-the-depths-demo).
 
 Das Spiel ist auf Deutsch, Englisch, Französisch und Spanisch verfügbar.
 

@@ -11,7 +11,8 @@ const STEAM_MOVE := false
 
 # Identifiant Steam du jeu complet (pas de la démo), à remplir une fois l'app créée dans Steamworks.
 const STEAM_APP_ID := 0
-const FALLBACK_URL := "https://github.com/FlyinnRabbit/lanterne-des-profondeurs"
+# Page itch.io de la démo : lien du bouton « Le jeu complet » tant que la page Steam n'existe pas.
+const FALLBACK_URL := "https://flyinrabbit.itch.io/lantern-of-the-depths-demo"
 
 # La démo peut aussi être forcée par l'environnement (tests) ; l'inverse est impossible.
 static func demo() -> bool:

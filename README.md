@@ -66,7 +66,7 @@ keeps the shards you dropped where you fell, and the lift remembers how deep you
 
 ## Download and play
 
-> **Free demo**: the builds on this page (browser, Windows, macOS, Linux) are the demo: the tutorial and tiers 1 and 2. The full game is coming to Steam; your save will carry over.
+> **Free demo**: the builds on this page (browser, Windows, macOS, Linux) are the demo: the tutorial and tiers 1 and 2. The full game is coming to Steam; your save will carry over. Also on [itch.io](https://flyinrabbit.itch.io/lantern-of-the-depths-demo).
 
 The game is available in French, English, Spanish and German.
 

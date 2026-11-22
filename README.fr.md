@@ -68,7 +68,7 @@ ombre garde les éclats perdus là où tu es tombé, et l'ascenseur se souvient 
 
 ## Télécharger et jouer
 
-> **Démo gratuite** : les versions de cette page (navigateur, Windows, macOS, Linux) sont la démo : le tutoriel et les paliers 1 et 2. Le jeu complet arrive sur Steam ; ta sauvegarde y sera reprise.
+> **Démo gratuite** : les versions de cette page (navigateur, Windows, macOS, Linux) sont la démo : le tutoriel et les paliers 1 et 2. Le jeu complet arrive sur Steam ; ta sauvegarde y sera reprise. Aussi sur [itch.io](https://flyinrabbit.itch.io/lantern-of-the-depths-demo).
 
 Le jeu existe en français, anglais, espagnol et allemand.
 

@@ -1,5 +1,7 @@
 # La démo sur itch.io
 
+Page publique : https://flyinrabbit.itch.io/lantern-of-the-depths-demo (variable `ITCH_GAME` = `flyinrabbit/lantern-of-the-depths-demo`).
+
 ## Créer la page (une fois)
 1. Créer un compte sur **itch.io** (gratuit), puis *Tableau de bord* → **Créer un nouveau projet**.
 2. Réglages :

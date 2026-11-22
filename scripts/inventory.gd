@@ -439,9 +439,12 @@ func _set_page(i: int) -> void:
 # on revérifie à chaque image qu'il tient dans la fenêtre (avant, il pouvait déborder en bas).
 # Seulement pour le rétrécir : un aller-retour de taille déplaçait les cases sous une souris
 # immobile, la description changeait, et le panneau « zoomait » sans arrêt.
-func _process(_d: float) -> void:
+func _process(d: float) -> void:
 	if visible and panel and _fit_scale() < panel.scale.x - 0.002:
 		_apply_scale()
+	if visible and page == 0:
+		_stick_scroll(d)
+		_hold_repeat(d)
 
 func _fit_scale() -> float:
 	var s: float = Settings.menu_scale
@@ -478,6 +481,14 @@ func _can_edit() -> bool:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and event.relative.length() > 0.5:
 		mouse_moved_t = Engine.get_process_frames()
+	# molette sur la grille : une rangée par cran (le pas natif, plus petit qu'une rangée,
+	# était ramené à la rangée de départ par l'alignement et la grille ne bougeait pas)
+	if visible and page == 0 and event is InputEventMouseButton and event.pressed \
+			and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN] \
+			and grid_scroll and grid_scroll.get_global_rect().has_point(grid_scroll.get_global_mouse_position()):
+		scroll_rows(1 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1)
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("inventory"):
 		if visible:
 			close()
@@ -589,3 +600,58 @@ func _scroll_to_slot(id: int) -> void:
 	elif row >= top + ROWS_SHOWN:
 		top = row - ROWS_SHOWN + 1
 	grid_scroll.scroll_vertical = top * ROW_PITCH
+
+# fait défiler la grille de n rangées entières
+func scroll_rows(n: int) -> void:
+	if grid_scroll == null:
+		return
+	var sb := grid_scroll.get_v_scroll_bar()
+	var top := int(roundf(grid_scroll.scroll_vertical / float(ROW_PITCH))) + n
+	var max_top := int(floorf(maxf(sb.max_value - sb.page, 0.0) / ROW_PITCH + 0.01))
+	grid_scroll.scroll_vertical = clampi(top, 0, max_top) * ROW_PITCH
+
+# stick droit : fait défiler la grille (une rangée, puis en continu si on le maintient)
+var _rs_t := 0.0
+func _stick_scroll(d: float) -> void:
+	var v := Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
+	for dev in Input.get_connected_joypads():
+		if absf(Input.get_joy_axis(dev, JOY_AXIS_RIGHT_Y)) > absf(v):
+			v = Input.get_joy_axis(dev, JOY_AXIS_RIGHT_Y)
+	if absf(v) < 0.5:
+		_rs_t = 0.0
+		_rs_held = false
+		return
+	_rs_t -= d
+	if _rs_t <= 0.0:
+		scroll_rows(1 if v > 0.0 else -1)
+		_rs_t = 0.14 if _rs_held else 0.35
+		_rs_held = true
+var _rs_held := false
+
+# stick gauche / flèches maintenus : la sélection continue d'avancer (Godot ne répète pas
+# le stick tout seul, il fallait le relâcher à chaque case)
+var _hold_dir := Vector2i.ZERO
+var _hold_t := 0.0
+func _hold_repeat(d: float) -> void:
+	var dir := Vector2i.ZERO
+	if Input.is_action_pressed("ui_down"): dir.y += 1
+	if Input.is_action_pressed("ui_up"): dir.y -= 1
+	if Input.is_action_pressed("ui_right"): dir.x += 1
+	if Input.is_action_pressed("ui_left"): dir.x -= 1
+	if dir == Vector2i.ZERO or dir != _hold_dir:
+		_hold_dir = dir
+		_hold_t = 0.4      # délai avant la première répétition (le premier pas vient de Godot)
+		return
+	_hold_t -= d
+	if _hold_t > 0.0:
+		return
+	_hold_t = 0.11
+	var f := get_viewport().gui_get_focus_owner()
+	var id := slots.find(f)
+	if id < 0:
+		return
+	var nid := id + dir.y * 7 + dir.x
+	if dir.x != 0 and dir.y == 0 and (nid / 7 != id / 7 or nid < 0):
+		return     # pas de saut de rangée en glissant de côté
+	if nid >= 0 and nid < slots.size():
+		slots[nid].grab_focus()
