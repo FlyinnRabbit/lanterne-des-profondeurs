@@ -38,17 +38,17 @@ jobs:
 
       - name: Démo (sans Steam)
         run: |
-          G="$RUNNER_TEMP/godot"
+          G="timeout 600 $RUNNER_TEMP/godot"
           sed -i 's/^const DEMO := .*/const DEMO := true/; s/^const STEAM := .*/const STEAM := false/' scripts/edition.gd
-          "$G" --headless --editor --quit || true
+          $G --headless --editor --quit || true
           mkdir -p out/Demo/win out/Demo/linux
-          "$G" --headless --export-release "Windows Desktop" out/Demo/win/LanterneDesProfondeurs_Demo.exe
+          $G --headless --export-release "Windows Desktop" out/Demo/win/LanterneDesProfondeurs_Demo.exe
           python3 tools/peicon.py out/Demo/win/LanterneDesProfondeurs_Demo.exe art/icon_1024.png
-          "$G" --headless --export-release "Linux" out/Demo/linux/LanterneDesProfondeurs_Demo.x86_64
+          $G --headless --export-release "Linux" out/Demo/linux/LanterneDesProfondeurs_Demo.x86_64
           cp art/icon.png out/Demo/linux/LanterneDesProfondeurs_Demo.png
           mkdir -p out/Demo/macos out/Demo/web
-          "$G" --headless --export-release "macOS" out/Demo/macos/LanterneDesProfondeurs_Demo.zip
-          "$G" --headless --export-release "Web" out/Demo/web/index.html
+          $G --headless --export-release "macOS" out/Demo/macos/LanterneDesProfondeurs_Demo.zip
+          $G --headless --export-release "Web" out/Demo/web/index.html
           # paquets prêts pour itch.io
           mkdir -p out/itch
           (cd out/Demo/win && zip -9 -q -r ../../itch/Lanterne_Demo_Windows.zip .)
@@ -82,28 +82,31 @@ jobs:
           SRC=$(find "$RUNNER_TEMP/gs" -type d -path "*addons/godotsteam" | head -1)
           mkdir -p addons && cp -r "$SRC" addons/
           ls addons/godotsteam
+          # l'extension est déclarée directement (sans repasser par l'éditeur)
+          GDE=$(find addons/godotsteam -name "*.gdextension" | head -1)
+          mkdir -p .godot && echo "res://$GDE" > .godot/extension_list.cfg
+          cat .godot/extension_list.cfg
 
       - name: Version Steam (jeu complet)
         run: |
-          G="$RUNNER_TEMP/godot"
+          G="timeout 600 $RUNNER_TEMP/godot"
           sed -i 's/^const DEMO := .*/const DEMO := false/; s/^const STEAM := .*/const STEAM := true/' scripts/edition.gd
-          "$G" --headless --editor --quit || true
+          timeout 300 "$RUNNER_TEMP/godot" --headless --editor --quit || echo "import : fin (code $?)"
           mkdir -p out/Steam/win out/Steam/linux out/Steam/macos
-          "$G" --headless --export-release "Windows Desktop" out/Steam/win/LanterneDesProfondeurs.exe
+          $G --headless --export-release "Windows Desktop" out/Steam/win/LanterneDesProfondeurs.exe
           python3 tools/peicon.py out/Steam/win/LanterneDesProfondeurs.exe art/icon_1024.png
-          "$G" --headless --export-release "Linux" out/Steam/linux/LanterneDesProfondeurs.x86_64
-          "$G" --headless --export-release "macOS" out/Steam/macos/LanterneDesProfondeurs.zip
+          $G --headless --export-release "Linux" out/Steam/linux/LanterneDesProfondeurs.x86_64
+          $G --headless --export-release "macOS" out/Steam/macos/LanterneDesProfondeurs.zip
           ls -R out/Steam | head -40
 
       - name: Démo Steam
         run: |
-          G="$RUNNER_TEMP/godot"
+          G="timeout 600 $RUNNER_TEMP/godot"
           sed -i 's/^const DEMO := .*/const DEMO := true/; s/^const STEAM := .*/const STEAM := true/' scripts/edition.gd
-          "$G" --headless --editor --quit || true
           mkdir -p out/SteamDemo/win out/SteamDemo/linux
-          "$G" --headless --export-release "Windows Desktop" out/SteamDemo/win/LanterneDesProfondeurs_Demo.exe
+          $G --headless --export-release "Windows Desktop" out/SteamDemo/win/LanterneDesProfondeurs_Demo.exe
           python3 tools/peicon.py out/SteamDemo/win/LanterneDesProfondeurs_Demo.exe art/icon_1024.png
-          "$G" --headless --export-release "Linux" out/SteamDemo/linux/LanterneDesProfondeurs_Demo.x86_64
+          $G --headless --export-release "Linux" out/SteamDemo/linux/LanterneDesProfondeurs_Demo.x86_64
 
       - uses: actions/upload-artifact@v6
         with:
