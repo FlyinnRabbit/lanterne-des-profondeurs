@@ -34,6 +34,11 @@ var _asset_size := 0
 var _bad := ""              # version de patch qui a échoué au démarrage
 
 static func enabled() -> bool:
+	# Steam se met à jour par sa boutique ; après la bascule (STEAM_MOVE), le jeu complet gratuit ne
+	# reçoit plus rien. La démo publique, elle, se met à jour depuis GitHub comme avant.
+	var Ed = load("res://scripts/edition.gd")
+	if Ed.STEAM or Ed.STEAM_MOVE:
+		return false
 	return not OS.has_feature("web") and (not OS.has_feature("editor") or OS.get_environment("LANTERNE_UPDATE_TEST") != "")
 
 # Dossier des fichiers de mise à jour (à côté des sauvegardes ; mode portable compris).

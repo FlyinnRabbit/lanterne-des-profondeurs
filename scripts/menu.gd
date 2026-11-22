@@ -152,6 +152,13 @@ func _build_title(root: Control) -> void:
 	title_items.append(t)
 	var sub := Label.new()
 	sub.text = "Un metroidvania aux profondeurs changeantes"
+	if GameState.Edition.demo():
+		var dl := Label.new()
+		dl.text = tr("DÉMO — paliers 1 et 2")
+		dl.add_theme_font_size_override("font_size", 20)
+		dl.add_theme_color_override("font_color", Color(1.0, 0.75, 0.4))
+		v.add_child(dl)
+		title_items.append(dl)
 	sub.add_theme_font_size_override("font_size", 16)
 	sub.add_theme_color_override("font_color", Color(0.62, 0.69, 0.84))
 	v.add_child(sub)
@@ -160,6 +167,13 @@ func _build_title(root: Control) -> void:
 	rule.custom_minimum_size = Vector2(300, 22)
 	v.add_child(rule)
 	title_items.append(rule)
+	if GameState.Edition.STEAM_MOVE and not GameState.Edition.demo():
+		var mv := Label.new()
+		mv.text = tr("Le jeu continue sur Steam : cette version gratuite ne reçoit plus de mises à jour.")
+		mv.add_theme_font_size_override("font_size", 13)
+		mv.add_theme_color_override("font_color", Color(1.0, 0.78, 0.5))
+		v.add_child(mv)
+		title_items.append(mv)
 	var cs: int = GameState.continue_slot()
 	if cs > 0:
 		first_title_button = _item("Continuer", func(): GameState.continue_game(cs))
@@ -183,6 +197,10 @@ func _build_title(root: Control) -> void:
 	v.add_child(_item("Options", _open_options))
 	v.add_child(_item("Succès", _open_achievements))
 	v.add_child(_item("Discord", _open_discord))
+	if GameState.Edition.show_store_link():
+		var st := _item(GameState.Edition.store_label(), GameState.Edition.open_store)
+		st.add_theme_color_override("font_color", Color(1.0, 0.82, 0.45))
+		v.add_child(st)
 	if not OS.has_feature("web"):   # dans un navigateur, on ferme simplement l'onglet
 		v.add_child(_item("Quitter le jeu", func(): get_tree().quit()))
 	# version et mise à jour (voir updater.gd), en bas de l'écran

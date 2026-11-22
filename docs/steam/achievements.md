@@ -1,0 +1,36 @@
+# Succès Steam
+
+À créer dans Steamworks → Stats & Achievements, avec le **nom d'API** exact (le jeu les débloque via
+`scripts/steam_bridge.gd`). Tous sont visibles (pas cachés) et sans statistique liée.
+
+| Nom d'API | FR | EN | ES | DE |
+|---|---|---|---|---|
+| `ACH_PALIER1` | **Premiers pas** — Termine le palier 1. | **First Steps** — Clear tier 1. | **Primeros pasos** — Supera el nivel 1. | **Erste Schritte** — Schließe Ebene 1 ab. |
+| `ACH_PALIER3` | **Plus profond** — Termine le palier 3. | **Deeper** — Clear tier 3. | **Más profundo** — Supera el nivel 3. | **Tiefer** — Schließe Ebene 3 ab. |
+| `ACH_PALIER6` | **Abysses** — Termine le palier 6. | **Abyss** — Clear tier 6. | **Abismos** — Supera el nivel 6. | **Abgründe** — Schließe Ebene 6 ab. |
+| `ACH_FINAL` | **Lanterne rallumée** — Vaincs le boss final du palier 7. | **Lantern Rekindled** — Defeat the final boss of tier 7. | **Linterna reavivada** — Derrota al jefe final del nivel 7. | **Laterne entfacht** — Besiege den Endboss von Ebene 7. |
+| `ACH_FINALS4` | **Les quatre gardiens** — Vaincs les quatre boss finaux (un par partie, tiré au hasard). | **The Four Guardians** — Defeat all four final bosses (one per game, picked at random). | **Los cuatro guardianes** — Derrota a los cuatro jefes finales (uno por partida, al azar). | **Die vier Wächter** — Besiege alle vier Endbosse (einer pro Spiel, zufällig gewählt). |
+| `ACH_FLAWLESS` | **Intouchable** — Termine un palier sans être touché. | **Untouchable** — Clear a tier without getting hit. | **Intocable** — Supera un nivel sin recibir golpes. | **Unberührbar** — Schließe eine Ebene ohne Treffer ab. |
+| `ACH_PERFECT10` | **Maître de la parade** — Réussis 10 parades parfaites d'affilée sans être touché. | **Parry Master** — Land 10 perfect parries in a row without getting hit. | **Maestro de la parada** — Logra 10 paradas perfectas seguidas sin recibir golpes. | **Meister der Parade** — Schaffe 10 perfekte Paraden in Folge ohne getroffen zu werden. |
+| `ACH_CRIT50` | **Coup de grâce** — Porte 50 coups critiques. | **Coup de Grâce** — Land 50 critical hits. | **Golpe de gracia** — Asesta 50 golpes críticos. | **Gnadenstoß** — Lande 50 kritische Treffer. |
+| `ACH_PLUNGE` | **Météore** — Vaincs un ennemi avec une attaque plongée. | **Meteor** — Defeat an enemy with a dive attack. | **Meteoro** — Derrota a un enemigo con un ataque en picado. | **Meteor** — Besiege einen Gegner mit einem Sturzangriff. |
+| `ACH_SHADE` | **Retour d'outre-tombe** — Récupère les éclats de ton ombre. | **Back from Beyond** — Recover the shards from your shade. | **De vuelta del más allá** — Recupera las esquirlas de tu sombra. | **Zurück aus dem Jenseits** — Hole dir die Splitter deines Schattens zurück. |
+| `ACH_RICH` | **Trésor** — Possède 1000 éclats. | **Treasure** — Hold 1000 shards. | **Tesoro** — Ten 1000 esquirlas. | **Schatz** — Besitze 1000 Splitter. |
+| `ACH_ARSENAL` | **Collectionneur** — Possède les 4 armes. | **Collector** — Own all 4 weapons. | **Coleccionista** — Ten las 4 armas. | **Sammler** — Besitze alle 4 Waffen. |
+| `ACH_FORGE` | **Forgée** — Améliore une arme chez la forgeronne. | **Forged** — Upgrade a weapon with the smith. | **Forjada** — Mejora un arma con la herrera. | **Geschmiedet** — Lass eine Waffe bei der Schmiedin verbessern. |
+| `ACH_CHARMS` | **Tous les emblèmes** — Possède tous les emblèmes. | **All Charms** — Own every charm. | **Todos los emblemas** — Ten todos los emblemas. | **Alle Embleme** — Besitze alle Embleme. |
+| `ACH_CURSE` | **Maudit** — Termine un palier avec une malédiction. | **Cursed** — Clear a tier under a curse. | **Maldito** — Supera un nivel con una maldición. | **Verflucht** — Schließe eine Ebene mit einem Fluch ab. |
+| `ACH_DAILY` | **Graine du jour** — Termine le palier 1 d'une descente du jour. | **Daily Seed** — Complete a daily descent. | **Semilla del día** — Completa un descenso del día. | **Tagessamen** — Schließe einen Tagesabstieg ab. |
+| `ACH_RUSH` | **Marathon** — Termine le défi des boss. | **Marathon** — Complete the boss rush. | **Maratón** — Completa el desafío de jefes. | **Marathon** — Schließe die Boss-Herausforderung ab. |
+| `ACH_ROOM` | **Explorateur** — Réussis une salle spéciale (trésor, défi chronométré ou arène). | **Explorer** — Complete a special room (treasure, timed challenge or arena). | **Explorador** — Supera una sala especial (tesoro, desafío contrarreloj o arena). | **Entdecker** — Meistere einen Spezialraum (Schatz, Zeitprüfung oder Arena). |
+| `ACH_PALIER10` | **Sans fond** — Termine le palier 10. | **Bottomless** — Clear tier 10. | **Sin fondo** — Completa el nivel 10. | **Bodenlos** — Schließe Ebene 10 ab. |
+| `ACH_NIGHTMARE` | **Cauchemar éveillé** — Termine un palier en difficulté Cauchemar. | **Waking nightmare** — Clear a tier on Nightmare difficulty. | **Pesadilla despierta** — Completa un nivel en dificultad Pesadilla. | **Wacher Albtraum** — Schließe eine Ebene auf Albtraum ab. |
+| `ACH_KILLS500` | **Veilleur aguerri** — Vaincs 500 ennemis. | **Seasoned Watcher** — Defeat 500 enemies. | **Vigía curtido** — Derrota a 500 enemigos. | **Erfahrener Wächter** — Besiege 500 Gegner. |
+| `ACH_ELITE25` | **Chasseur d'élites** — Vaincs 25 élites. | **Elite hunter** — Defeat 25 elites. | **Cazador de élites** — Derrota a 25 élites. | **Elitejäger** — Besiege 25 Elitegegner. |
+| `ACH_PARRY100` | **Mur d'acier** — Réussis 100 parades. | **Wall of steel** — Land 100 parries. | **Muro de acero** — Logra 100 paradas. | **Stählerne Wand** — Pariere 100-mal. |
+| `ACH_TROPHY` | **Trophée** — Obtiens un cosmétique rare en battant un boss. | **Trophy** — Get a rare cosmetic by beating a boss. | **Trofeo** — Consigue un cosmético raro al vencer a un jefe. | **Trophäe** — Erhalte eine seltene Kosmetik von einem Boss. |
+| `ACH_WARDROBE` | **Garde-robe** — Possède 10 cosmétiques. | **Wardrobe** — Own 10 cosmetics. | **Guardarropa** — Posee 10 cosméticos. | **Garderobe** — Besitze 10 Kosmetika. |
+| `ACH_FASHION` | **Sur son trente-et-un** — Porte un cosmétique non standard dans chaque catégorie. | **Dressed to the nines** — Wear a non-default cosmetic in every category. | **De punta en blanco** — Lleva un cosmético no estándar en cada categoría. | **Herausgeputzt** — Trage in jeder Kategorie eine Nicht-Standard-Kosmetik. |
+| `ACH_NOEL` | **Esprit de Noël** — Termine un palier pendant l'évènement de Noël. | **Christmas spirit** — Clear a tier during the Christmas event. | **Espíritu navideño** — Completa un nivel durante el evento de Navidad. | **Weihnachtsgeist** — Schließe eine Ebene während des Weihnachtsevents ab. |
+| `ACH_GIFT` | **Sous le sapin** — Ouvre ton cadeau au Sanctuaire pendant l'évènement de Noël. | **Under the tree** — Open your gift in the Sanctuary during the Christmas event. | **Bajo el árbol** — Abre tu regalo en el Santuario durante el evento de Navidad. | **Unter dem Baum** — Öffne dein Geschenk im Heiligtum während des Weihnachtsevents. |
+| `ACH_CALENDAR` | **Calendrier du Veilleur** — Ouvre le cadeau de chacune des quatre fêtes. | **Watcher's calendar** — Open the gift of each of the four festivals. | **Calendario del Vigía** — Abre el regalo de cada una de las cuatro fiestas. | **Kalender des Wächters** — Öffne das Geschenk jedes der vier Feste. |

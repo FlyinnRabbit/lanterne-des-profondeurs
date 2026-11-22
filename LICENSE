@@ -29,6 +29,9 @@ third-party material listed in section 5.
    - Godot Engine, copyright (c) 2014-present Godot Engine contributors and (c) 2007-2014 Juan
      Linietsky, Ariel Manzur, used under the MIT License. The engine's third-party components are
      listed in its COPYRIGHT.txt (https://github.com/godotengine/godot/blob/master/COPYRIGHT.txt).
+   - Store and promotional artwork (Steam capsules, trailer cards) uses the Cardo and Open Sans fonts
+     (SIL Open Font License 1.1); the achievement icons use pictograms from Noto Color Emoji (Google,
+     SIL Open Font License 1.1).
    - sfx/lift_chains.ogg comes from the recording "Chains Chiming" by freesound_community on
      Pixabay, used under the Pixabay Content License.
 

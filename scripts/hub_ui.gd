@@ -42,6 +42,9 @@ class LiftTrack extends Control:
 		var n: int = GS.FINAL_PALIER
 		var base: int = GS.goal_palier() - n
 		var cycle := base / n + 1
+		var open_max: int = GS.unlocked
+		if GS.Edition.demo():
+			open_max = mini(open_max, GS.Edition.DEMO_MAX_PALIER)
 		var w := size.x
 		var y := 44.0
 		var x0 := 40.0 if cycle == 1 else 76.0
@@ -64,7 +67,7 @@ class LiftTrack extends Control:
 			if p <= GS.record:
 				draw_circle(c, 11.0, gold)
 				draw_arc(c, 11.0, 0, TAU, 24, gold.lightened(0.4), 1.5)
-			elif p <= GS.unlocked:
+			elif p <= open_max:
 				var pulse := 0.5 + 0.5 * sin(t * 3.0)
 				draw_circle(c, 11.0, Color(0.16, 0.2, 0.3))
 				draw_arc(c, 13.0 + pulse * 2.0, 0, TAU, 28, Color(0.6, 0.85, 1.0, 0.6 + 0.4 * pulse), 2.5)
@@ -81,17 +84,21 @@ class LiftTrack extends Control:
 				else:
 					_skull(c, p <= GS.record)
 			var lab := str(p)
+			var cap := ""
 			if last and cycle == 1:
-				lab = "%d — %s" % [p, tr("Lanterne rallumée") if p <= GS.record else tr("la Lanterne")]
+				cap = tr("Lanterne rallumée") if p <= GS.record else tr("la Lanterne")
 			elif last:
 				# le nom du boss final, dès que son palier est ouvert (la liste le montre aussi)
-				lab = "%d — %s" % [p, GS.boss_name_for(p) if p <= GS.unlocked else tr("boss final")]
+				cap = GS.boss_name_for(p) if p <= open_max else tr("boss final")
 			var fs := 15
 			var tw := font.get_string_size(lab, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-			var col := gold if p <= GS.record else (Color(0.7, 0.88, 1.0) if p <= GS.unlocked else Color(0.45, 0.47, 0.55))
+			var col := gold if p <= GS.record else (Color(0.7, 0.88, 1.0) if p <= open_max else Color(0.45, 0.47, 0.55))
 			if last and p > GS.record:
 				col = Color(0.85, 0.75, 0.55)
 			draw_string(font, Vector2(clampf(c.x - tw / 2.0, 0.0, w - tw), y + 34.0), lab, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+			if cap != "":
+				var cw := font.get_string_size(cap, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+				draw_string(font, Vector2(clampf(c.x - cw / 2.0, 0.0, w - cw), y + 51.0), cap, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, col)
 	func _lantern(lp: Vector2, lit: bool) -> void:
 		var lc := Color(1.0, 0.75, 0.35) if lit else Color(0.45, 0.47, 0.55)
 		if lit:
@@ -358,7 +365,7 @@ func _build_lift(root: Control) -> void:
 	lift_panel.add_child(v)
 	v.add_child(_label("Ascenseur", 32, Color(0.7, 0.88, 1.0)))
 	lift_track = LiftTrack.new()
-	lift_track.custom_minimum_size = Vector2(560, 88)
+	lift_track.custom_minimum_size = Vector2(560, 104)
 	v.add_child(lift_track)
 	lift_info = _label("", 16, Color(0.65, 0.7, 0.82))
 	lift_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -408,7 +415,13 @@ func open_elevator(all_paliers := false) -> void:
 	var first: Button = null
 	var base: int = GameState.goal_palier() - GameState.FINAL_PALIER
 	var lowest := 1 if all_paliers else base + 1
-	for p in range(GameState.unlocked, lowest - 1, -1):
+	var top: int = GameState.unlocked
+	if GameState.Edition.demo():
+		# démo : les paliers suivants restent dans la version complète
+		top = mini(top, GameState.Edition.DEMO_MAX_PALIER)
+		var full := _lift_button(tr("Palier %d et au-delà : dans la version complète") % (GameState.Edition.DEMO_MAX_PALIER + 1), open_demo_end)
+		full.add_theme_color_override("font_color", Color(1.0, 0.82, 0.45))
+	for p in range(top, lowest - 1, -1):
 		var boss: String = GameState.boss_name_for(p)
 		var b := _lift_button(tr("Palier %d — boss : %s%s") % [p, boss, tr("  (nouveau !)") if p > GameState.record else ""], _choose_curse.bind(p))
 		if first == null:
@@ -416,6 +429,10 @@ func open_elevator(all_paliers := false) -> void:
 	if lowest > 1:
 		var pb := _lift_button(tr("Paliers précédents (1 – %d)…") % (lowest - 1), open_elevator.bind(true))
 		pb.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
+	if GameState.Edition.demo():
+		# pas de modes spéciaux dans la démo (ils descendent plus bas que le palier 2)
+		first.grab_focus()
+		return
 	# modes spéciaux
 	var dkey := "daily_%d" % GameState.today_seed()
 	var dbest := float(Achievements.counters.get(dkey, 0.0))
@@ -856,6 +873,10 @@ func open_npc(kind: String) -> void:
 	_clear(npc_buttons)
 	var first: Button = null
 	match kind:
+		"demo_end":
+			npc_name.text = "Fin de la démo"
+			npc_text.text = _demo_end_text()
+			first = _npc_button(tr("Ajouter à ma liste de souhaits"), func(): GameState.Edition.open_store())
 		"arena":
 			npc_name.text = "L'Arène des Ombres"
 			var pads := Input.get_connected_joypads()
@@ -1010,6 +1031,13 @@ func _buy_map() -> void:
 	GameState.save_game()
 	Audio.sfx("pickup", 0.0)
 	open_npc("cartographer")
+
+# ---------------------------------------------------------------- fin de la démo
+func open_demo_end() -> void:
+	open_npc("demo_end")
+
+func _demo_end_text() -> String:
+	return tr("Merci d'avoir joué à la démo !") + "\n\n" + tr("La version complète t'attend : 12 biomes, 10 gardiens, 12 champions, des modes de défi et des paliers sans fin, jusqu'à rallumer la Lanterne au septième.\nTa sauvegarde sera reprise telle quelle.")
 
 # ---------------------------------------------------------------- commun
 func _open(panel: PanelContainer) -> void:

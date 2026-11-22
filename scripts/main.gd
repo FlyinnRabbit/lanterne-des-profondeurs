@@ -228,6 +228,15 @@ func _ready() -> void:
 		show_message(head + tr("Palier %d — niveau %d / %d%s\n%s — %s") % [GameState.palier, GameState.step, GameState.STEPS_PER_PALIER,
 			tr("  (boss)") if GameState.is_boss_level() else "", tr(level["name"]), GameState.diff_name()] + cur, 3.5)
 	GameState.pending_message = ""
+	if GameState.show_demo_end and GameState.is_hub() and hub_ui:
+		GameState.show_demo_end = false
+		_open_demo_end_later()
+	elif GameState.is_hub() and hub_ui and GameState.Edition.demo() and GameState.record >= GameState.Edition.DEMO_MAX_PALIER \
+			and not bool(GameState.prog.get("demo_end_seen", false)):
+		# partie commencée dans le jeu complet, passée à la démo : on l'explique une fois
+		GameState.prog["demo_end_seen"] = true
+		GameState.save_game()
+		_open_demo_end_later()
 	Audio.play_playlist(level.get("music", []))
 	Audio.play_ambience("hub" if GameState.is_hub() else String(pal.get("id", "")))
 	if GameState.show_title:
@@ -1671,6 +1680,20 @@ func hit_stop(duration: float) -> void:
 
 func _exit_tree() -> void:
 	Engine.time_scale = Settings.speed()      # jamais de ralenti hérité d'une scène quittée
+
+# Écran de fin de démo : une fois l'écran de l'ascenseur fini et le message d'arrivée lu.
+func _open_demo_end_later() -> void:
+	var calm := 0.0
+	while calm < 2.5:
+		await get_tree().create_timer(0.25, true).timeout
+		if not is_instance_valid(hub_ui):
+			return
+		var loading := false
+		for c in get_tree().root.get_children():
+			if c.get_script() == LoadingScript:
+				loading = true
+		calm = 0.0 if (loading or get_tree().paused or hub_ui.visible) else calm + 0.25
+	hub_ui.open_demo_end()
 
 func show_message(text: String, duration: float = 2.5, small := false) -> void:
 	if hud:

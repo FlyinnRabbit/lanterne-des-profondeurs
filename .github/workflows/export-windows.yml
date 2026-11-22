@@ -26,6 +26,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Après la bascule vers Steam (fichier PUBLIC_DEMO à la racine, voir docs/steam/bascule.md),
+      # les versions publiques gratuites sont la démo.
+      - name: Édition publique
+        run: |
+          if [ -f PUBLIC_DEMO ]; then
+            sed -i 's/^const DEMO := .*/const DEMO := true/' scripts/edition.gd
+            echo "Édition : démo"
+          else
+            echo "Édition : jeu complet"
+          fi
+
       - name: Installer Godot 4.3 et les modèles d'export Windows, Linux et macOS
         run: |
           cd "$RUNNER_TEMP"

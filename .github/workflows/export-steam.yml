@@ -1,0 +1,123 @@
+# Construit les éditions Démo et Steam (lancement manuel : Actions > Export Steam > Run workflow).
+# Les fichiers restent dans les artefacts du workflow (jamais publiés dans une Release publique) :
+#   - Demo        : démo (tutoriel + paliers 1-2) pour itch.io / GitHub, sans Steam (Windows, Linux,
+#                   macOS et navigateur) ; envoyée sur itch.io si le secret BUTLER_API_KEY et la
+#                   variable ITCH_GAME (ex. flyinnrabbit/lanterne-des-profondeurs) existent ;
+#   - Steam       : jeu complet pour Steam (succès Steam via GodotSteam, pas de mise à jour auto) ;
+#   - SteamDemo   : démo pour l'app « démo » de Steam.
+# Les dépôts Steam (depots) se téléversent ensuite avec SteamPipe (steamcmd) depuis ces dossiers.
+name: Export Steam
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GODOTSTEAM_URL: https://codeberg.org/godotsteam/godotsteam/releases/download/v4.15-gde/godotsteam-4.15-gdextension-plugin-4.1-4.3.zip
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Installer Godot 4.3 et les modèles d'export
+        run: |
+          cd "$RUNNER_TEMP"
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          mv Godot_v4.3-stable_linux.x86_64 godot && chmod +x godot
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          unzip -qj Godot_v4.3-stable_export_templates.tpz templates/windows_release_x86_64.exe templates/linux_release.x86_64 templates/macos.zip templates/web_nothreads_release.zip templates/version.txt \
+            -d ~/.local/share/godot/export_templates/4.3.stable
+          rm Godot_v4.3-stable_export_templates.tpz
+          pip install --quiet pillow
+
+      - name: Démo (sans Steam)
+        run: |
+          G="$RUNNER_TEMP/godot"
+          sed -i 's/^const DEMO := .*/const DEMO := true/; s/^const STEAM := .*/const STEAM := false/' scripts/edition.gd
+          "$G" --headless --editor --quit || true
+          mkdir -p out/Demo/win out/Demo/linux
+          "$G" --headless --export-release "Windows Desktop" out/Demo/win/LanterneDesProfondeurs_Demo.exe
+          python3 tools/peicon.py out/Demo/win/LanterneDesProfondeurs_Demo.exe art/icon_1024.png
+          "$G" --headless --export-release "Linux" out/Demo/linux/LanterneDesProfondeurs_Demo.x86_64
+          cp art/icon.png out/Demo/linux/LanterneDesProfondeurs_Demo.png
+          mkdir -p out/Demo/macos out/Demo/web
+          "$G" --headless --export-release "macOS" out/Demo/macos/LanterneDesProfondeurs_Demo.zip
+          "$G" --headless --export-release "Web" out/Demo/web/index.html
+          # paquets prêts pour itch.io
+          mkdir -p out/itch
+          (cd out/Demo/win && zip -9 -q -r ../../itch/Lanterne_Demo_Windows.zip .)
+          tar -czf out/itch/Lanterne_Demo_Linux.tar.gz -C out/Demo/linux .
+          cp out/Demo/macos/LanterneDesProfondeurs_Demo.zip out/itch/Lanterne_Demo_macOS.zip
+          (cd out/Demo/web && zip -9 -q -r ../../itch/Lanterne_Demo_Web.zip .)
+
+      - name: Envoyer la démo sur itch.io (si configuré)
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+          ITCH_GAME: ${{ vars.ITCH_GAME }}
+        run: |
+          if [ -z "$BUTLER_API_KEY" ] || [ -z "$ITCH_GAME" ]; then
+            echo "itch.io non configuré (secret BUTLER_API_KEY / variable ITCH_GAME) : envoi sauté."
+            exit 0
+          fi
+          curl -sL -o "$RUNNER_TEMP/butler.zip" https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
+          unzip -q -o "$RUNNER_TEMP/butler.zip" -d "$RUNNER_TEMP/butler" && chmod +x "$RUNNER_TEMP/butler/butler"
+          V=$(sed -n 's/^const VERSION := "\(.*\)"/\1/p' scripts/version.gd)
+          B="$RUNNER_TEMP/butler/butler"
+          "$B" push out/Demo/win   "$ITCH_GAME:windows-demo" --userversion "$V"
+          "$B" push out/Demo/linux "$ITCH_GAME:linux-demo"   --userversion "$V"
+          "$B" push out/itch/Lanterne_Demo_macOS.zip "$ITCH_GAME:mac-demo" --userversion "$V"
+          "$B" push out/Demo/web   "$ITCH_GAME:html5-demo"   --userversion "$V"
+
+      - name: Ajouter GodotSteam
+        run: |
+          wget -q -O "$RUNNER_TEMP/godotsteam.zip" "$GODOTSTEAM_URL"
+          unzip -q -o "$RUNNER_TEMP/godotsteam.zip" -d "$RUNNER_TEMP/gs"
+          # le zip contient addons/godotsteam (selon les versions, à la racine ou dans un dossier)
+          SRC=$(find "$RUNNER_TEMP/gs" -type d -path "*addons/godotsteam" | head -1)
+          mkdir -p addons && cp -r "$SRC" addons/
+          ls addons/godotsteam
+
+      - name: Version Steam (jeu complet)
+        run: |
+          G="$RUNNER_TEMP/godot"
+          sed -i 's/^const DEMO := .*/const DEMO := false/; s/^const STEAM := .*/const STEAM := true/' scripts/edition.gd
+          "$G" --headless --editor --quit || true
+          mkdir -p out/Steam/win out/Steam/linux out/Steam/macos
+          "$G" --headless --export-release "Windows Desktop" out/Steam/win/LanterneDesProfondeurs.exe
+          python3 tools/peicon.py out/Steam/win/LanterneDesProfondeurs.exe art/icon_1024.png
+          "$G" --headless --export-release "Linux" out/Steam/linux/LanterneDesProfondeurs.x86_64
+          "$G" --headless --export-release "macOS" out/Steam/macos/LanterneDesProfondeurs.zip
+          ls -R out/Steam | head -40
+
+      - name: Démo Steam
+        run: |
+          G="$RUNNER_TEMP/godot"
+          sed -i 's/^const DEMO := .*/const DEMO := true/; s/^const STEAM := .*/const STEAM := true/' scripts/edition.gd
+          "$G" --headless --editor --quit || true
+          mkdir -p out/SteamDemo/win out/SteamDemo/linux
+          "$G" --headless --export-release "Windows Desktop" out/SteamDemo/win/LanterneDesProfondeurs_Demo.exe
+          python3 tools/peicon.py out/SteamDemo/win/LanterneDesProfondeurs_Demo.exe art/icon_1024.png
+          "$G" --headless --export-release "Linux" out/SteamDemo/linux/LanterneDesProfondeurs_Demo.x86_64
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Lanterne_Demo
+          path: out/Demo
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Lanterne_Demo_itch
+          path: out/itch
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Lanterne_Steam
+          path: out/Steam
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Lanterne_SteamDemo
+          path: out/SteamDemo

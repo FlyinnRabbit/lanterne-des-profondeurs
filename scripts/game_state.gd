@@ -181,6 +181,8 @@ func _fresh() -> Dictionary:
 # premier message au Sanctuaire : le but de la partie
 const GOAL_MESSAGE := "Le Sanctuaire de la Lanterne\nLa Lanterne s'est éteinte au septième palier. Descends la rallumer.\nParle au marchand, puis prends l'ascenseur."
 const FINAL_PALIER := 7
+const Edition = preload("res://scripts/edition.gd")
+var show_demo_end := false     # démo terminée : le Sanctuaire ouvre l'écran de fin à l'arrivée
 
 # prochain palier-but (7, puis 14, 21… une fois la Lanterne rallumée)
 func goal_palier() -> int:
@@ -481,6 +483,10 @@ func go_next_level(player) -> void:
 			unlocked = maxi(unlocked, palier + 1)
 			mode = "hub"
 			pending_message = tr("Palier %d terminé !\nL'ascenseur peut maintenant descendre jusqu'au palier %d.") % [palier, unlocked]
+			if Edition.demo() and palier >= Edition.DEMO_MAX_PALIER:
+				# fin de la démo : le Sanctuaire l'annonce à l'arrivée
+				pending_message = tr("Palier %d terminé !") % palier
+				show_demo_end = true
 			pending_message += "\n" + Achievements.run_summary()
 			_palier_done()
 			if curse != "":
@@ -684,7 +690,7 @@ func save_summary(s := -1) -> String:
 	var dd: int = clampi(int(cfg.get_value("game", "difficulty", 1)), 0, DIFFS.size() - 1)
 	var p: Dictionary = cfg.get_value("game", "prog", {})
 	return ("★ " if bool(p.get("finished", false)) else "") + (tr("Une seule vie") + " — " if bool(cfg.get_value("game", "one_life", false)) else "") + tr("%s — palier %d accessible — record : palier %d — %d éclats") % [
-		tr(DIFFS[dd]["name"]), int(cfg.get_value("game", "unlocked", 1)), int(cfg.get_value("game", "record", 0)), int(p.get("geo", 0))]
+		tr(DIFFS[dd]["name"]), mini(int(cfg.get_value("game", "unlocked", 1)), Edition.DEMO_MAX_PALIER) if Edition.demo() else int(cfg.get_value("game", "unlocked", 1)), int(cfg.get_value("game", "record", 0)), int(p.get("geo", 0))]
 
 func load_game() -> bool:
 	var cfg := ConfigFile.new()

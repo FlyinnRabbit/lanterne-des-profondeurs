@@ -5,3 +5,7 @@
 build/
 *.exe
 *.pck
+addons/
+out/
+tools/steam/out/
+tools/steam/ach/
