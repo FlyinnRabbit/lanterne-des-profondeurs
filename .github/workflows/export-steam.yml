@@ -59,7 +59,7 @@ jobs:
       - name: Envoyer la démo sur itch.io (si configuré)
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
-          ITCH_GAME: ${{ vars.ITCH_GAME }}
+          ITCH_GAME: ${{ vars.ITCH_GAME || secrets.ITCH_GAME }}
         run: |
           if [ -z "$BUTLER_API_KEY" ] || [ -z "$ITCH_GAME" ]; then
             echo "itch.io non configuré (secret BUTLER_API_KEY / variable ITCH_GAME) : envoi sauté."
