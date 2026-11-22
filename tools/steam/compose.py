@@ -32,8 +32,9 @@ def place(im, logo, box):
 # python3 compose.py [en] : « en » produit les visuels avec le titre anglais (dossier out/en/)
 TITLES={"fr": ("Lanterne des","Profondeurs"), "en": ("Lantern of","the Depths")}
 LANG=sys.argv[1] if len(sys.argv) > 1 else "fr"
-if LANG == "itch":
-    LANG = "fr"; ITCH = True
+ITCH_LANG = "fr"
+if LANG in ("itch", "itch_en"):
+    ITCH_LANG = "en" if LANG == "itch_en" else "fr"; LANG = "fr"; ITCH = True
 else:
     ITCH = False
 if LANG != "fr":
@@ -81,14 +82,14 @@ for i,n in enumerate(shots):
     im.save(O+"screenshots/%02d_%s.jpg"%(i+1,n),quality=92)
 print("ok")
 
-# --- itch.io : couverture 630x500 et bannière 960x300 (python3 compose.py itch)
+# --- itch.io : couverture 630x500 et bannière 960x300 (python3 compose.py itch | itch_en)
 def itch():
-    out="out/itch/"; os.makedirs(out, exist_ok=True)
-    L=make_logo(TITLES["fr"], stacked=True)
+    out="out/itch/" + ("en/" if ITCH_LANG == "en" else ""); os.makedirs(out, exist_ok=True)
+    L=make_logo(TITLES[ITCH_LANG], stacked=True)
     cv=load("boss_oeil_1",(140,0,790,516),(630,500),bright=1.08); cv=shade(cv,"right",200,0.55)
     place(cv,L,(330,60,290,300)); cv.convert("RGB").save(out+"cover_630x500.jpg",quality=93)
     bn=load("boss_chevalier_1",(0,240,960,540),(960,300),bright=1.1); bn=shade(bn,"right",210,0.5)
-    place(bn,make_logo(TITLES["fr"]),(560,40,380,220)); bn.convert("RGB").save(out+"banner_960x300.jpg",quality=93)
+    place(bn,make_logo(TITLES[ITCH_LANG]),(560,40,380,220)); bn.convert("RGB").save(out+"banner_960x300.jpg",quality=93)
     print("ok itch")
 
 if ITCH:
